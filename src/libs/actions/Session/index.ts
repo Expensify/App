@@ -357,7 +357,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.NETWORK,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
@@ -694,7 +694,8 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
-    const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- OldDot's handoff payload still carries the boolean, and this is where it gets converted to ACTIVE_SERVER
+    const {hybridApp, [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: shouldUseStagingServer, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
@@ -797,13 +798,23 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 readyToShowAuthScreens: !hybridApp?.useNewDotSignInPage,
             };
 
-            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | keyof typeof newDotOnyxValues>> = [
+            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.ACTIVE_SERVER | keyof typeof newDotOnyxValues>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.HYBRID_APP,
                     value: hybridAppUpdate,
                 },
             ];
+
+            // A payload without the field says nothing about the server, and writing a default here would pin staging and adhoc builds to production.
+            // `setActiveServer` is the wrong helper: it reports the choice back to OldDot through HybridAppModule.
+            if (shouldUseStagingServer !== undefined) {
+                onyxUpdates.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACTIVE_SERVER,
+                    value: shouldUseStagingServer ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION,
+                });
+            }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
                 onyxUpdates.push({
@@ -896,7 +907,14 @@ function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
  *
  * @param validateCode - 6 digit code required for login
  */
-function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode: string | undefined, login: string | undefined, storedValidateCode: string | undefined) {
+function signIn(
+    validateCode: string,
+    preferredLocale: Locale | undefined,
+    twoFactorAuthCode: string | undefined,
+    login: string | undefined,
+    storedValidateCode: string | undefined,
+    storedAuthToken?: string,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -954,11 +972,17 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
             params.validateCode = validateCode || storedValidateCode;
         }
 
+        // If this is the 2FA step we have a short-lived 2FA authentication authToken from the earlier call, send it
+        // so the backend can complete the login
+        if (twoFactorAuthCode && storedAuthToken) {
+            params.authToken = storedAuthToken;
+        }
+
         API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string) {
+function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string, storedAuthToken?: string) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
@@ -1029,6 +1053,10 @@ function signInWithValidateCode(accountID: number, code: string, preferredLocale
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
         };
+
+        if (twoFactorAuthCode && storedAuthToken) {
+            params.authToken = storedAuthToken;
+        }
 
         API.write(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK, params, {optimisticData, successData, failureData});
     });

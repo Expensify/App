@@ -10,7 +10,6 @@ import type {
     TransactionThreadInfo,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -860,6 +859,7 @@ type ChangeTransactionsReportProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -880,6 +880,7 @@ function getChangeTransactionsReportOnyxData({
     selfDMReportActions,
     delegateAccountID,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 

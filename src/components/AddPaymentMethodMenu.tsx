@@ -111,6 +111,7 @@ function AddPaymentMethodMenu({
             anchorPosition={anchorPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={anchorRef}
+            enableEdgeToEdgeBottomSafeAreaPadding
             onItemSelected={() => {
                 setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
                 onClose();
