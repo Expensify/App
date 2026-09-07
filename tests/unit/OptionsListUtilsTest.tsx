@@ -101,6 +101,17 @@ const renderLocaleContextProvider = () => {
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 
+// Mirrors the `getReportByID` resolver production code passes in (see `useFilteredOptions`), backed by the
+// reports the individual tests write to Onyx.
+let onyxReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (reports) => {
+        onyxReports = reports;
+    },
+});
+const getReportByIDFromOnyx = (reportID: string | undefined): OnyxEntry<Report> => onyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 describe('OptionsListUtils', () => {
     const policyID = 'ABC123';
 
@@ -854,6 +865,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -910,6 +922,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: optionsWithMemberWorkspaceChat,
@@ -933,6 +946,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to true
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -968,6 +982,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options where the current user is Iron Man (accountID: 2)
             // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1000,6 +1015,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with policyCollection
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
@@ -1032,6 +1048,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with empty policyCollection
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1063,6 +1080,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with undefined policyCollection
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -1095,6 +1113,7 @@ describe('OptionsListUtils', () => {
             const conciergeReportID = '11';
             // When we call getSearchOptions with conciergeReportID
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1121,6 +1140,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with Concierge
             // When we call getSearchOptions with conciergeReportID set to undefined
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1149,6 +1169,7 @@ describe('OptionsListUtils', () => {
             const conciergeReportID = '11';
             // When we call getSearchOptions with a search query matching Concierge
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CONCIERGE,
@@ -1187,7 +1208,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1229,7 +1250,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
@@ -1267,7 +1288,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -1294,7 +1315,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -1349,6 +1370,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     includeRecentReports: false,
                     personalDetails,
@@ -1379,7 +1401,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -1404,7 +1426,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 conciergeReportID,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -1429,7 +1451,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -1453,7 +1475,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -1506,7 +1528,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeMultipleParticipantReports: true, sortedActions: undefined},
                 translateLocal,
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1559,7 +1581,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: true, sortedActions: undefined},
                 translateLocal,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -1609,7 +1631,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeMultipleParticipantReports: true, showRBR: false, sortedActions: undefined},
                 translateLocal,
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1663,7 +1685,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, shouldUnreadBeBold: true, includeMultipleParticipantReports: true, sortedActions: undefined},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    shouldUnreadBeBold: true,
+                    includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
+                },
                 translateLocal,
             );
 
@@ -1695,7 +1724,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, personalDetails: customPersonalDetails, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, personalDetails: customPersonalDetails, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -1718,7 +1747,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, selectedOptions, includeSelectedOptions: true, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -1741,7 +1770,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxElements: 1},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxElements: 1},
                 translateLocal,
             );
 
@@ -1757,7 +1786,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxElements: 100},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxElements: 100},
                 translateLocal,
             );
 
@@ -1803,7 +1832,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a top-N cap that exercises the heap
-            const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
 
@@ -1819,7 +1848,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
-            const config = {dateFnsLocale: undefined, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
 
@@ -1886,7 +1915,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, searchString, includeP2P: true},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, searchString, includeP2P: true},
                 translateLocal,
             );
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -1951,7 +1980,7 @@ describe('OptionsListUtils', () => {
             const {eagerList, lazyList} = buildOptionLists();
 
             // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
-            const config = {dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
 
@@ -1978,7 +2007,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -2001,6 +2030,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     personalDetails: PERSONAL_DETAILS,
                 },
@@ -2027,7 +2057,7 @@ describe('OptionsListUtils', () => {
 
             // When both lists go through getValidOptions with search + maxElements together
             // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
-            const config = {dateFnsLocale: undefined, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
 
@@ -2069,7 +2099,7 @@ describe('OptionsListUtils', () => {
             }
 
             // When both the fresh and cached lazy lists go through getValidOptions
-            const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, maxElements: 3, personalDetails: PERSONAL_DETAILS};
             const {options: firstResults} = getValidOptions(firstLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: cachedResults} = getValidOptions(cachedLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
@@ -2213,7 +2243,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When both mixed lists are filtered for the device contact
-            const config = {dateFnsLocale: undefined, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
             const {options: eagerResults} = getValidOptions(eagerWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: lazyResults} = getValidOptions(lazyWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
 
@@ -2401,7 +2431,7 @@ describe('OptionsListUtils', () => {
             expect(second.personalDetails.length).toBe(first.personalDetails.length);
 
             // When both are run through getValidOptions (the first pass builds, the second must not)
-            const config = {dateFnsLocale: undefined, personalDetails: PERSONAL_DETAILS};
+            const config = {dateFnsLocale: undefined, getReportByID: getReportByIDFromOnyx, personalDetails: PERSONAL_DETAILS};
             const firstBuilds = first.personalDetails.map(buildIdentity);
             const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
             const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
@@ -2500,7 +2530,15 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, includeP2P: true, includeOwnedWorkspaceChats: true, sortedActions: undefined},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                    sortedActions: undefined,
+                },
                 translateLocal,
             );
 
@@ -2538,6 +2576,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2568,6 +2607,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2597,6 +2637,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2626,6 +2667,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -2656,7 +2698,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
@@ -2679,7 +2721,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2702,7 +2744,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -2726,7 +2768,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CONCIERGE]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2751,7 +2793,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.CHRONOS]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2776,7 +2818,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: {[CONST.EMAIL.RECEIPTS]: true}, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2799,7 +2841,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2818,7 +2860,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -2829,7 +2871,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2848,7 +2890,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             const {options: resultsWithLimit} = getValidOptions(
@@ -2859,7 +2901,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxRecentReportElements: 2, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2880,7 +2922,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, maxElements: maxTotalElements, maxRecentReportElements: maxRecentReports, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -2918,6 +2960,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -2965,6 +3008,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -3013,6 +3057,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3039,6 +3084,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3075,6 +3121,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3112,6 +3159,7 @@ describe('OptionsListUtils', () => {
             });
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_ARCHIVED,
@@ -3147,6 +3195,7 @@ describe('OptionsListUtils', () => {
             });
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_PERIODS,
@@ -3177,6 +3226,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
@@ -3203,6 +3253,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3240,6 +3291,7 @@ describe('OptionsListUtils', () => {
             );
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_CHAT_ROOMS,
@@ -3267,6 +3319,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'fantastic';
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3295,6 +3348,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3327,7 +3381,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT, sortedActions: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
@@ -3344,6 +3398,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3372,6 +3427,7 @@ describe('OptionsListUtils', () => {
             const searchText = '';
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3410,6 +3466,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -3452,6 +3509,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -3500,6 +3558,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -3548,6 +3607,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -3582,7 +3642,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
@@ -3630,6 +3690,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions with a search query that matches a participant display name
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -3685,6 +3746,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions with a search query that matches a participant login
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -3740,6 +3802,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions with a search query that matches a participant name
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -3795,6 +3858,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions with a search query that does not match any participant
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT,
@@ -3847,6 +3911,7 @@ describe('OptionsListUtils', () => {
 
             // When we call getSearchOptions with all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
@@ -3879,7 +3944,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -3902,7 +3967,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -3925,7 +3990,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -3947,7 +4012,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
@@ -3967,7 +4032,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -3992,7 +4057,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -4017,7 +4082,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
@@ -4042,7 +4107,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
@@ -4065,7 +4130,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -4089,7 +4154,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeUserToInvite: true, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -4113,7 +4178,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
@@ -4133,7 +4198,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
@@ -4160,7 +4225,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
@@ -4183,6 +4248,7 @@ describe('OptionsListUtils', () => {
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -4208,6 +4274,7 @@ describe('OptionsListUtils', () => {
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -4243,6 +4310,7 @@ describe('OptionsListUtils', () => {
                     });
                     // When we call getSearchOptions
                     const {options: results} = getSearchOptions({
+                        getReportByID: getReportByIDFromOnyx,
                         dateFnsLocale: undefined,
                         translate: translateLocal,
                         options: OPTIONS_WITH_PERIODS,
@@ -4282,6 +4350,7 @@ describe('OptionsListUtils', () => {
 
             // Given a set of options
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -4317,6 +4386,7 @@ describe('OptionsListUtils', () => {
 
             // Given a set of options with self dm and all betas
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS_WITH_SELF_DM,
@@ -4339,6 +4409,7 @@ describe('OptionsListUtils', () => {
 
         it('should return the same matches for normalized multi-word queries with extra spaces', () => {
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 translate: translateLocal,
                 dateFnsLocale: undefined,
                 options: OPTIONS,
@@ -4811,6 +4882,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     showChatPreviewLine: true,
                     includeMultipleParticipantReports: true,
@@ -6350,7 +6422,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -6369,7 +6441,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -6380,7 +6452,17 @@ describe('OptionsListUtils', () => {
 
         it('should work with empty policies collection', () => {
             const options = {reports: [], personalDetails: []};
-            const {options: results} = getValidOptions(options, {}, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {dateFnsLocale: undefined}, translateLocal);
+            const {options: results} = getValidOptions(
+                options,
+                {},
+                undefined,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
+                translateLocal,
+            );
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -6413,7 +6495,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, betas: [], includeRecentReports: true, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, betas: [], includeRecentReports: true, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -7894,6 +7976,10 @@ describe('OptionsListUtils', () => {
             },
         };
 
+        // Stands in for the resolver a caller builds from its own reports subscription (see useFilteredOptions).
+        const formatReportsByID: Record<string, Report> = {};
+        const getFormatReportByID = (reportID: string | undefined) => (reportID ? formatReportsByID[reportID] : undefined);
+
         beforeEach(async () => {
             const report1: Report = {
                 reportID: formatReportID1,
@@ -7922,6 +8008,9 @@ describe('OptionsListUtils', () => {
                     },
                 },
             };
+
+            formatReportsByID[formatReportID1] = report1;
+            formatReportsByID[formatReportID2] = report2;
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`, report1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`, report2);
@@ -7957,6 +8046,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getFormatReportByID,
                 formatPersonalDetails,
                 true,
             );
@@ -7992,6 +8082,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getReportByIDFromOnyx,
                 formatPersonalDetails,
                 true,
             );
@@ -8042,6 +8133,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getFormatReportByID,
                 formatPersonalDetails,
                 true,
             );
@@ -8085,6 +8177,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getReportByIDFromOnyx,
                 formatPersonalDetails,
                 false,
             );
@@ -8125,6 +8218,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getFormatReportByID,
                 formatPersonalDetails,
                 true,
             );
@@ -8165,6 +8259,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getReportByIDFromOnyx,
                 formatPersonalDetails,
                 true,
             );
@@ -8179,7 +8274,20 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return empty section when no selectedOptions are provided', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, formatPersonalDetails, true);
+            const result = formatSectionsFromSearchTerm(
+                '',
+                [],
+                [],
+                [],
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                getReportByIDFromOnyx,
+                formatPersonalDetails,
+                true,
+            );
 
             expect(result.section.data).toHaveLength(0);
         });
@@ -8228,11 +8336,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                getReportByID,
                 formatPersonalDetails,
                 true,
-                undefined,
-                undefined,
-                getReportByID,
             );
 
             expect(result.section.data).toHaveLength(1);
@@ -8268,6 +8374,129 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('getReportByID resolver', () => {
+        // The reports below are intentionally NOT merged into Onyx, so they are only reachable through the resolver.
+        // If the option builders still read the module-level Onyx.connect() cache, these lookups return undefined
+        // and the assertions below fail.
+        const RESOLVER_IOU_REPORT_ID = 'resolverIOUReport';
+        const RESOLVER_CHAT_REPORT_ID = 'resolverChatReport';
+        const RESOLVER_THREAD_REPORT_ID = 'resolverThreadReport';
+        const OTHER_ACTOR_ACCOUNT_ID = 987;
+
+        /** A DM chat report, which is what `getSendMoneyFlowAction` requires to treat the IOU report as a one-transaction report. */
+        const resolverChatReport: Report = {
+            reportID: RESOLVER_CHAT_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        /** The transaction thread carries the newest activity, so the IOU report only reads as unread when it is resolved. */
+        const resolverThreadReport: Report = {
+            reportID: RESOLVER_THREAD_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated: '2025-06-15 12:00:00.000',
+            lastActorAccountID: OTHER_ACTOR_ACCOUNT_ID,
+            lastMessageText: 'Newer thread message',
+        };
+
+        const resolverIOUReport: Report = {
+            reportID: RESOLVER_IOU_REPORT_ID,
+            reportName: 'Resolver IOU report',
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID: RESOLVER_CHAT_REPORT_ID,
+            // Older than lastReadTime, so the report on its own is read.
+            lastVisibleActionCreated: '2025-06-15 09:00:00.000',
+            lastReadTime: '2025-06-15 10:00:00.000',
+            lastActorAccountID: OTHER_ACTOR_ACCOUNT_ID,
+            lastMessageText: 'Older message',
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [OTHER_ACTOR_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        const resolverIOUOption: SearchOption<Report> = {
+            item: resolverIOUReport,
+            reportID: RESOLVER_IOU_REPORT_ID,
+            text: 'Resolver IOU report',
+            isUnread: false,
+            isMoneyRequestReport: true,
+            participantsList: [],
+            keyForList: RESOLVER_IOU_REPORT_ID,
+            policyID: '123',
+            lastMessageText: 'Older message',
+            lastVisibleActionCreated: resolverIOUReport.lastVisibleActionCreated,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            accountID: 0,
+            login: '',
+            alternateText: '',
+            subtitle: '',
+            firstName: '',
+            lastName: '',
+            icons: [],
+            isSelected: false,
+            isDisabled: false,
+            brickRoadIndicator: null,
+            isBold: false,
+        };
+
+        // A single 'pay' IOU action makes this a send-money flow, which is only detected when the DM chat report is resolved.
+        const payAction: ReportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: RESOLVER_THREAD_REPORT_ID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: 'resolverTransaction'},
+        } as ReportAction;
+
+        const getResolverOptions = (getReportByID: (reportID: string | undefined) => OnyxEntry<Report>) =>
+            getValidOptions(
+                {reports: [{...resolverIOUOption}], personalDetails: []},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMoneyRequests: true,
+                    includeMultipleParticipantReports: true,
+                    shouldUnreadBeBold: true,
+                    sortedActions: {[RESOLVER_IOU_REPORT_ID]: [payAction]},
+                    isOffline: false,
+                    getReportByID,
+                },
+                translateLocal,
+            ).options;
+
+        it('should resolve the chat report and its one-transaction thread through the resolver when computing unread state', () => {
+            const results = getResolverOptions((reportID) => {
+                if (reportID === RESOLVER_CHAT_REPORT_ID) {
+                    return resolverChatReport;
+                }
+                return reportID === RESOLVER_THREAD_REPORT_ID ? resolverThreadReport : undefined;
+            });
+
+            // The thread's newer activity is only visible through the resolver, so the option reads as unread.
+            expect(results.recentReports.at(0)?.isUnread).toBe(true);
+        });
+
+        it('should fall back to the report on its own when the resolver cannot find the chat report', () => {
+            const results = getResolverOptions(() => undefined);
+
+            // Without the DM chat report there is no one-transaction thread, so only the (already read) IOU report counts.
+            expect(results.recentReports.at(0)?.isUnread).toBe(false);
+        });
+
+        it('should ask the resolver for the option chat report while filtering reports', () => {
+            const getReportByID = jest.fn(() => undefined);
+
+            getResolverOptions(getReportByID);
+
+            expect(getReportByID).toHaveBeenCalledWith(RESOLVER_CHAT_REPORT_ID);
+        });
+    });
+
     describe('reports parameter functionality', () => {
         it('getValidOptions should use reports parameter to look up chat reports', () => {
             // When we call getValidOptions with the reports collection
@@ -8279,7 +8508,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -8299,7 +8528,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -8315,6 +8544,7 @@ describe('OptionsListUtils', () => {
         it('getSearchOptions should use reports parameter from config', () => {
             // When we call getSearchOptions with reports in the config
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -8337,6 +8567,7 @@ describe('OptionsListUtils', () => {
         it('getSearchOptions should forward sortedActions to getValidOptions', () => {
             const sortedActions = {};
             const {options} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: OPTIONS,
@@ -8380,7 +8611,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -8400,7 +8631,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined},
                 translateLocal,
             );
 
@@ -9204,7 +9435,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -9222,7 +9453,15 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: false, recentAttendees, maxRecentReportElements: 5, searchString: 'john', sortedActions: undefined},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: false,
+                    recentAttendees,
+                    maxRecentReportElements: 5,
+                    searchString: 'john',
+                    sortedActions: undefined,
+                },
                 translateLocal,
             );
 
@@ -9343,7 +9582,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('formatSectionsFromSearchTerm should accept policy parameter', () => {
-            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, translateLocal, undefined, PERSONAL_DETAILS, true);
+            const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, allPolicies, translateLocal, undefined, getReportByIDFromOnyx, PERSONAL_DETAILS, true);
             expect(result).toBeDefined();
             expect(result.section).toBeDefined();
         });
@@ -9417,7 +9656,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
             );
 
@@ -9476,7 +9722,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
                 translateLocal,
             );
 
@@ -9532,7 +9778,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: undefined},
                 translateLocal,
             );
 
@@ -9614,7 +9860,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
             );
 
@@ -9689,7 +9942,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, sortedActions},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: true, sortedActions},
                 translateLocal,
             );
 
@@ -9754,7 +10007,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
                 translateLocal,
             );
 
@@ -9871,7 +10124,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, includeMultipleParticipantReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions},
+                {
+                    getReportByID: getReportByIDFromOnyx,
+                    dateFnsLocale: undefined,
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    action: CONST.IOU.ACTION.CREATE,
+                    sortedActions,
+                },
                 translateLocal,
             );
 
@@ -9932,7 +10192,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
+                {getReportByID: getReportByIDFromOnyx, dateFnsLocale: undefined, includeRecentReports: true, action: CONST.IOU.ACTION.CREATE, sortedActions: {[reportID]: [commentAction]}},
                 translateLocal,
             );
 
@@ -9982,6 +10242,7 @@ describe('OptionsListUtils', () => {
             };
 
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
@@ -10050,6 +10311,7 @@ describe('OptionsListUtils', () => {
             };
 
             const {options: results} = getSearchOptions({
+                getReportByID: getReportByIDFromOnyx,
                 dateFnsLocale: undefined,
                 translate: translateLocal,
                 options: {reports: [inputOption], personalDetails: []},
