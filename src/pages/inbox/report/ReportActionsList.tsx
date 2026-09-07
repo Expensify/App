@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +64,7 @@ import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -135,6 +137,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const {sessionStartTime} = useConciergeSessionState();
+    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportID);
 
     const didLayout = useRef(false);
 
@@ -407,10 +410,18 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     ];
 
     const listHeaderComponent = (
-        <ReportActionsListHeader
-            reportID={reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+        <>
+            <ConciergeChatHistoryToggle
+                reportID={reportID}
+                hasPreviousMessages={!!hasPreviousMessages}
+                shouldShowFullHistory={!showHiddenHistory}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+            <ReportActionsListHeader
+                reportID={reportID}
+                isDraftPendingCompletion={isDraftPendingCompletion}
+            />
+        </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
@@ -469,7 +480,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowConciergeWelcome && styles.chatContentScrollViewCentered]}
                     onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}

@@ -2242,6 +2242,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...chatContentScrollViewPlatformStyles,
         },
 
+        // The list is inverted, so centering here lifts a short welcome screen off the composer and into the middle of the chat.
+        chatContentScrollViewCentered: {
+            justifyContent: 'center',
+        },
+
         // Chat Item
         chatItem: {
             display: 'flex',

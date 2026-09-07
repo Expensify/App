@@ -44,6 +44,7 @@ import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
 import CaretUpDown from '@assets/images/caret-up-down.svg';
 import Cash from '@assets/images/cash.svg';
+import ChartPie from '@assets/images/chart-pie.svg';
 import ChatBubbleCounter from '@assets/images/chatbubble-counter.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
@@ -334,6 +335,7 @@ const Expensicons = {
     CarPlus,
     Cash,
     CertiniaSquare,
+    ChartPie,
     ChatBubble,
     ChatBubbles,
     Checkbox,

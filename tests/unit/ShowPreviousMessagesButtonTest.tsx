@@ -96,4 +96,15 @@ describe('ShowPreviousMessagesButton', () => {
         renderButton({showFullHistory: true});
         expect(screen.queryByRole('button')).toBeNull();
     });
+
+    it('renders nothing when the Ask Concierge beta is enabled', async () => {
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
+        await waitForBatchedUpdates();
+
+        renderButton();
+        expect(screen.queryByRole('button')).toBeNull();
+
+        await Onyx.set(ONYXKEYS.BETAS, []);
+        await waitForBatchedUpdates();
+    });
 });
