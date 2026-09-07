@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/SplitExpenseEditDateForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -59,6 +60,7 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
     const report = useReportOrReportDraft(reportID);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+    const [currentReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(currentReport?.ownerAccountID)});
 
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
@@ -82,7 +84,8 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
         Navigation.goBack(backPath);
     };
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport);
+    const isSplitAvailable =
+        report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentReportOwnerLogin, effectivePolicy, parentReport);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES> = {};

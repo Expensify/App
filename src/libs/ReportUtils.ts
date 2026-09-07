@@ -2104,7 +2104,7 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, report
     return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
-function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
+function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, reportOwnerLogin: string | undefined): boolean {
     if (!report) {
         return false;
     }
@@ -2116,7 +2116,9 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    const submitsToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails));
+    // TODO: Callers are threaded in PRs 4a-4d; remove this fallback in PR 28 once none of them pass undefined (https://github.com/Expensify/App/issues/66413)
+    const resolvedOwnerLogin = reportOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, allPersonalDetails);
+    const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
@@ -3065,7 +3067,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isRep
     }
 
     if (isProcessingReport(moneyRequestReport) && isExpenseReport(moneyRequestReport)) {
-        return isAwaitingFirstLevelApproval(moneyRequestReport);
+        // TODO: Pass reportOwnerLogin — PR 4b (canAddOrDeleteTransactions must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        return isAwaitingFirstLevelApproval(moneyRequestReport, undefined);
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -3144,7 +3147,8 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
-        return isOpenReport(report) || isAwaitingFirstLevelApproval(report);
+        // TODO: Pass reportOwnerLogin — PR 4b (isMoneyRequestReportEligibleForMerge must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        return isOpenReport(report) || isAwaitingFirstLevelApproval(report, undefined);
     }
 
     return isManager && isExpenseReport(report) && isProcessingReport(report);
@@ -3158,6 +3162,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmailParam: string,
     currentUserAccountIDParam: number,
+    iouReportOwnerLogin: string | undefined,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     const hasAutoRejectedTransactionsForManager =
@@ -3177,7 +3182,8 @@ function canSubmitAndIsAwaitingForCurrentUser(
         !hasAutoRejectedTransactionsForManager &&
         canSubmitReport(
             iouReport,
-            getLoginByAccountID(iouReport?.ownerAccountID, allPersonalDetails),
+            // TODO: Callers are threaded in PRs 4c and 23; remove this fallback in PR 28 once none of them pass undefined (https://github.com/Expensify/App/issues/66413)
+            iouReportOwnerLogin ?? getLoginByAccountID(iouReport?.ownerAccountID, allPersonalDetails),
             policy,
             transactions,
             undefined,
@@ -3240,6 +3246,8 @@ function hasOutstandingChildRequest(
                 allTransactionViolations,
                 currentUserEmailParam,
                 currentUserAccountIDParam,
+                // TODO: Pass iouReportOwnerLogin — PR 4c (hasOutstandingChildRequest must take it first) (https://github.com/Expensify/App/issues/66413); canSubmitAndIsAwaitingForCurrentUser falls back to allPersonalDetails
+                undefined,
                 getAllReportActions(iouReportID),
             )
         );
@@ -3400,7 +3408,8 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
         }
 
         const isReportSubmitter = isCurrentUserSubmitter(report, currentUserAccountID);
-        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report)));
+        // TODO: Pass reportOwnerLogin — PR 4a (canDeleteMoneyRequestReport must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        return isReportSubmitter && (isOpenReport(report) || (isProcessingReport(report) && isAwaitingFirstLevelApproval(report, undefined)));
     }
 
     return false;
@@ -4950,7 +4959,8 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+    // TODO: Pass reportOwnerLogin — PR 4b (isReportFieldDisabled must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, undefined);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -5655,7 +5665,8 @@ function canModifyHoldStatus(report: Report, reportAction: ReportAction, current
     }
 
     if (isActionOwner && !isAdmin) {
-        return isAwaitingFirstLevelApproval(report);
+        // TODO: Pass reportOwnerLogin — PR 4a (canModifyHoldStatus must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        return isAwaitingFirstLevelApproval(report, undefined);
     }
 
     return (isAdmin || isManager) && isProcessingReport(report);
@@ -12457,7 +12468,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
  * Check if a report is forwarded or not
  */
 function isForwardedReport(report: OnyxEntry<Report>): boolean {
-    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+    // TODO: Pass reportOwnerLogin — PR 4a (isForwardedReport must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+    return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, undefined);
 }
 
 function isReportOutstanding(

@@ -119,6 +119,7 @@ function isSplitAction(
     originalTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
 ): boolean {
@@ -185,7 +186,7 @@ function isSplitAction(
     }
 
     // Hide split option for the submitter if the report is forwarded
-    return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
+    return (isSubmitter && isAwaitingFirstLevelApproval(report, reportOwnerLogin)) || isAdmin || isManager;
 }
 
 function isSubmitAction({
@@ -1116,7 +1117,8 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport) &&
+        // TODO: Pass reportOwnerLogin — PR 4c (getSecondaryReportActions must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, undefined, policy, parentReport) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1252,7 +1254,8 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, grandParentReport) &&
+        // TODO: Pass reportOwnerLogin — PR 4c (getSecondaryTransactionThreadActions must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, undefined, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);

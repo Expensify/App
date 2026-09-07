@@ -414,7 +414,7 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy);
+        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, iouReportOwnerLogin, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =

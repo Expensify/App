@@ -75,7 +75,8 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport),
+            // TODO: Pass reportOwnerLogin — PR 4d; this runs per search result, so it needs a precomputed accountID-to-login map rather than a hook (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, undefined, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
