@@ -29,7 +29,7 @@ import {View} from 'react-native';
 function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);

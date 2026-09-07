@@ -41,7 +41,7 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
     const policyID = policy?.id;
     const styles = useThemeStyles();
 
