@@ -3,7 +3,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
@@ -35,7 +35,7 @@ type SelectorType = ListItem & {
 function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled(policy);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -93,7 +93,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={!isGlobalReimbursementFXEnabled}
+            shouldBeBlocked={!canConfigureCurrencyConversionFees}
             displayName="QuickbooksFxExpenseAccountSelectPage"
             data={filteredData}
             textInputOptions={textInputOptions}
