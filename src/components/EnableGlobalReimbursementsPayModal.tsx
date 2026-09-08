@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CorpayPayModal from '@src/types/onyx/CorpayPayModal';
 
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
 import {ModalActions} from './Modal/Global/ModalContext';
@@ -22,38 +22,47 @@ function EnableGlobalReimbursementsPayModal() {
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const isModalOpenRef = useRef(false);
 
     const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
-        const navigationPathAtSignal = Navigation.getActiveRoute();
-        const result = await showConfirmModal({
-            id: 'corpayPayModal',
-            title: translate('common.corpayPayModalTitle'),
-            prompt: translate('common.corpayPayModalPrompt'),
-            confirmText: translate('common.enableGlobalReimbursements'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-        });
-
-        if (result.action === ModalActions.CONFIRM) {
-            if (isAccountLocked) {
-                showLockedAccountModal();
-            } else {
-                const {bankAccountID, bankCountry, bankCurrency} = modalData;
-                Navigation.navigate(
-                    getEnableGlobalReimbursementsBusinessNavigationRoute(
-                        bankAccountID,
-                        CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                        {
-                            bankCountry,
-                            bankCurrency,
-                        },
-                        navigationPathAtSignal,
-                    ),
-                    {skipMatchingFullScreenRoute: true},
-                );
-            }
+        if (isModalOpenRef.current) {
+            return;
         }
-        clearCorpayPayModal();
+        isModalOpenRef.current = true;
+        try {
+            const navigationPathAtSignal = Navigation.getActiveRoute();
+            const result = await showConfirmModal({
+                id: 'corpayPayModal',
+                title: translate('common.corpayPayModalTitle'),
+                prompt: translate('common.corpayPayModalPrompt'),
+                confirmText: translate('common.enableGlobalReimbursements'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            });
+
+            if (result.action === ModalActions.CONFIRM) {
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                } else {
+                    const {bankAccountID, bankCountry, bankCurrency} = modalData;
+                    Navigation.navigate(
+                        getEnableGlobalReimbursementsBusinessNavigationRoute(
+                            bankAccountID,
+                            CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                            {
+                                bankCountry,
+                                bankCurrency,
+                            },
+                            navigationPathAtSignal,
+                        ),
+                        {skipMatchingFullScreenRoute: true},
+                    );
+                }
+            }
+        } finally {
+            isModalOpenRef.current = false;
+            clearCorpayPayModal();
+        }
     });
 
     useEffect(() => {

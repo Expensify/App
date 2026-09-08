@@ -1,6 +1,8 @@
 /**
  * Route helpers for Enable Global Reimbursements in wallet settings or on search and report screens.
  */
+import Log from '@libs/Log';
+
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
@@ -61,7 +63,8 @@ function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boole
         if (focusedRouteName && ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS.has(focusedRouteName)) {
             return true;
         }
-    } catch {
+    } catch (error) {
+        Log.warn('shouldUseDynamicEnableGlobalReimbursementsBase: failed to resolve route state from path', {basePath, error: (error as Error)?.message});
         return false;
     }
 

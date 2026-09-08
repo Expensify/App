@@ -700,6 +700,7 @@ const WRITE_COMMANDS = {
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
 } as const;
 
+/** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */
 const PAYMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.PAY_MONEY_REQUEST, WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]);
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
