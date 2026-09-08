@@ -212,7 +212,9 @@ jest.mock('@shopify/flash-list', () => {
                 () => ({
                     scrollToIndex: mockFlashListScrollToIndex,
                     scrollToItem: mockFlashListScrollToItem,
-                    scrollToOffset: (params: {offset: number; animated?: boolean}) => nativeScrollRef.current?.(params),
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => {
+                        nativeScrollRef.current?.(params);
+                    },
                     getLayout: mockFlashListGetLayout,
                     computeVisibleIndices: mockFlashListComputeVisibleIndices,
                     getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
