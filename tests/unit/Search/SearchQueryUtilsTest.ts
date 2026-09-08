@@ -3650,6 +3650,17 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('"group-by: reports"');
         });
 
+        it('should preserve valid filter syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from: me', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toEqual([CONST.SEARCH.ME]);
+            expect(updatedResult).not.toContain('"from: me"');
+        });
+
         it('should preserve terms after consecutive incomplete syntax tokens', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 

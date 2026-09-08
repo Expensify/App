@@ -108,6 +108,7 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -306,6 +307,15 @@ function tokenizeKeywordSegments(keywords: string) {
 }
 
 const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
+    if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
+        return false;
+    }
+
+    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegment.toLowerCase()));
+}
 
 function sanitizeIncompleteQuotedValue(str: string) {
     const sanitized = sanitizeSearchValue(str);
@@ -329,8 +339,8 @@ function escapeKeyword(keywords: string) {
             }
 
             const nextSegment = segments.at(index + 1);
-            const q = syntaxWithoutValueRegex.test(segment) && nextSegment ? `${segment} ${nextSegment}` : segment;
-            skipNextSegment = q !== segment;
+            skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
+            const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
 
             if (q.startsWith('"')) {
                 return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
