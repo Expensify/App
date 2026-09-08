@@ -49,7 +49,8 @@ function countsByRule(diagnostics) {
 // `result.errors` to fatal React Compiler diagnostics (oxc-project/oxc#26128) and `should_panic`
 // answers false unconditionally for the default `panicThreshold: 'none'`, so on 0.148.0 and 0.149.0
 // it analyzes every file and returns nothing. All twelve rc/* rules are `off` in .oxlintrc.json
-// because of it; the reasoning and the measured numbers live there.
+// because of it; the reasoning and the measured numbers live there, and it is tracked upstream as
+// oxc-project/oxc#26318.
 //
 // Rather than hardcode zeroes, every assertion below reads this flag and checks the real expectation
 // or the blocked one. So the day upstream exposes non-fatal diagnostics, this script starts

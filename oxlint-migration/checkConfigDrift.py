@@ -60,7 +60,7 @@ LEDGER = {
     # the default panicThreshold, so the Rust engine analyzes every file and hands back nothing. Measured 12/12
     # fixtures on 0.147.0, 0/12 on 0.148.0 and 0.149.0. panicThreshold: all_errors is not a workaround; the rc/*
     # block in .oxlintrc.json carries the numbers. Costs 352 findings against ESLint. Delete these twelve entries
-    # when oxc exposes non-fatal diagnostics and the rules go back on.
+    # when oxc exposes non-fatal diagnostics and the rules go back on. Tracked as oxc-project/oxc#26318.
     'react-hooks/refs': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
     'react-hooks/set-state-in-effect': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
     'react-hooks/set-state-in-render': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),

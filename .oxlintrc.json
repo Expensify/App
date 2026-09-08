@@ -896,6 +896,11 @@
         // `outputMode: "lint"` is documented as "analyze and report diagnostics without applying
         // compiler output", which is exactly the missing channel.
         //
+        // Tracked upstream as oxc-project/oxc#26318, "expose recoverable React Compiler
+        // diagnostics", open and unanswered as of 2026-09-08. It asks for a `diagnostics` array beside `errors`,
+        // or a Babel-style logger; the Rust side already carries category, span and help text per diagnostic and
+        // only the binding drops them. Independently filed, and it reports the same three things measured here.
+        //
         // Re-enable all twelve when that lands. oxlint-migration/checkReactCompilerRust.mjs and
         // port-probe/ both assert the blockage, so they fail the moment it is lifted.
         "rc/refs": "off",

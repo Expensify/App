@@ -79,6 +79,21 @@ Cost while off: 352 findings ESLint reports and oxlint does not. What it needs i
 non-fatal React Compiler diagnostics; their own `outputMode: "lint"` is documented as "analyze and
 report diagnostics without applying compiler output", which is precisely the missing channel.
 
+Tracked upstream as [oxc-project/oxc#26318](https://github.com/oxc-project/oxc/issues/26318),
+"expose recoverable React Compiler diagnostics" against the Node binding, filed 2026-09-04 and open with
+no maintainer reply. Filed by someone else and it reaches the same three conclusions independently:
+`errors` is fatal-only, `outputMode: "lint"` returns nothing, and `panicThreshold` is not a workaround
+because it stops at the first diagnostic. It asks for a `diagnostics` array beside `errors`, or a
+Babel-style logger; the Rust side already has category, span and help text and only the binding drops
+them. So there is nothing to file, only something to wait on or contribute to.
+
+Related but already avoided:
+[oxc-project/oxc#26277](https://github.com/oxc-project/oxc/issues/26277) reports that a
+`disable-next-line` naming `react/exhaustive-deps` or `react/rules-of-hooks` suppresses every React
+Compiler diagnostic in the enclosing component. That hits Oxlint's *native* `react/*` rules, which this
+config does not use for the compiler checks precisely because of that behaviour, which is what
+`eslintSuppressionRules: []` in `config/oxlint/reactCompilerRust.mjs` is there to defeat.
+
 Nothing here silently tolerates it. `checkReactCompilerRust.mjs` derives an `ENGINE_REPORTS` flag and
 asserts either the real expectations or the blocked ones, ending with a check that the twelve rules
 are enabled if and only if the engine can feed them. The `port-probe/` entries carry

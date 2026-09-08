@@ -64,7 +64,7 @@ const ENVIRONMENT = {
 // for `panicThreshold: 'none'`. All twelve rc/* rules are `off` in .oxlintrc.json as a result; the
 // reasoning and the measured numbers live there. The code below is left in the shape that worked on
 // 0.147.0 rather than adapted, because that is the shape that starts working again the moment
-// upstream exposes non-fatal diagnostics.
+// upstream exposes non-fatal diagnostics. Tracked as oxc-project/oxc#26318.
 const CATEGORY_PATTERN = /react-compiler\(([^)]+)\)/;
 
 const cache = new Map();
