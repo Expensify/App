@@ -387,10 +387,11 @@ describe('ProductMarketingWindowManager', () => {
     });
 
     it('keeps the original session eligible when a failed Copilot connection leaves a stashed session', async () => {
+        const errorTimestamp = '1';
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
             await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
-            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {errorFields: {connect: {[SECOND_USER_EMAIL]: {['1']: 'Connection failed'}}}}});
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {errorFields: {connect: {[SECOND_USER_EMAIL]: {[errorTimestamp]: 'Connection failed'}}}}});
             await waitForBatchedUpdatesWithAct();
         });
         renderManager();
