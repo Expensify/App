@@ -55,6 +55,7 @@ import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
+import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -818,6 +819,12 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
+/**
+ * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
+ */
+const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
+    (isPolicyAdmin(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
+
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
@@ -1113,6 +1120,16 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
     const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
+ * Checks whether a policy max expense amount (e.g. `maxExpenseAmountNoReceipt`) is actually configured.
+ *
+ * `0` is a valid limit meaning "always required", so a falsy check would wrongly treat an explicit $0.00 as unset.
+ * Only `undefined` and `CONST.DISABLED_MAX_EXPENSE_VALUE` mean the amount is not set.
+ */
+function isMaxExpenseAmountSet(value: number | undefined): value is number {
+    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
 /**
@@ -1465,7 +1482,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1556,7 +1577,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -1596,6 +1617,16 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
  */
 function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
+ * Checks if the approval workflow configuration must stay hidden because the workspace's Dynamic External Workflow has
+ * "Hide People Table Columns" set. The backend only returns `dynamicExternalWorkflowHidePeople` when it is `true`, so an
+ * absent flag means "show". The approval mode is checked too, so a stale flag can't hide workflows on a policy that no
+ * longer uses a Dynamic External Workflow.
+ */
+function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boolean {
+    return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
 /**
@@ -1710,6 +1741,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) {
+        return policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -3154,6 +3188,7 @@ export {
     hasTags,
     hasCustomCategories,
     hasConfiguredRules,
+    isMaxExpenseAmountSet,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -3190,6 +3225,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,
@@ -3309,6 +3345,7 @@ export {
     getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
+    shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
