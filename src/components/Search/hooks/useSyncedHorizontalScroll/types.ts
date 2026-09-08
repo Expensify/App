@@ -28,7 +28,7 @@ type SyncedHorizontalScroll = {
  * publishes wrongly at exactly the wrong moment: when a header sticks, FlashList mounts a *second* copy of it, and
  * that copy starts at offset 0 and reports 0 back to the group, yanking the rows to the start of the table.
  *
- * Pass `undefined` as the key to opt out — layouts that don't split a group render both halves in one scroller and
+ * Pass `undefined` as the key to opt out. Layouts that don't split a group render both halves in one scroller and
  * need no syncing. `isEnabled` additionally gates it on the table actually overflowing, and must stay reactive: the
  * ScrollView only exists while it is true, so the hook has nothing to attach to before then.
  */
@@ -38,9 +38,9 @@ type UseSyncedHorizontalScroll = (key: string | undefined, isEnabled: boolean) =
  * Follows the offset published for `key`, without being something the user can scroll.
  *
  * Returns a callback ref for a clipped (`overflow: hidden`) View wrapping content wider than itself. That clip still
- * accepts a `scrollLeft`, so the hook can move it in step with the rows, but it renders no scrollbar, cannot be
- * dragged, and — crucially — never publishes: it only ever receives an offset, so it cannot argue with the scroller it
- * is following.
+ * accepts a `scrollLeft`, so the hook can move it in step with the rows, but it renders no scrollbar and cannot be
+ * dragged. Most importantly it never publishes. It only ever receives an offset, so it cannot argue with the scroller
+ * it is following.
  *
  * Same key and `isEnabled` contract as `useSyncedHorizontalScroll`.
  */

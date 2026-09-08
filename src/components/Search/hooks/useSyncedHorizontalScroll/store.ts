@@ -2,10 +2,10 @@ type OffsetListener = (offsetX: number) => void;
 
 /**
  * The current horizontal offset per sync key, kept outside React so a recycled scroller or follower can restore it on
- * mount, and kept for the session so an offset survives a query change — the same behaviour `HorizontalTableScroll`
- * gives the flat table. Entries are one number under a group's key, and are deliberately never dropped: clearing them
- * when a scroller unmounts would defeat the point, since FlashList unmounts a group's header and rows whenever it
- * recycles them.
+ * mount. It is also kept for the session so an offset survives a query change, which is the same behaviour
+ * `HorizontalTableScroll` gives the flat table. Entries are one number under a group's key, and are deliberately never
+ * dropped: clearing them when a scroller unmounts would defeat the point, since FlashList unmounts a group's header
+ * and rows whenever it recycles them.
  */
 const offsetsByKey = new Map<string, number>();
 
@@ -19,8 +19,8 @@ function getSyncedHorizontalOffset(key: string) {
 /**
  * Records `offsetX` for `key` and pushes it to every follower on that key.
  *
- * Only a group's rows scroller publishes, and followers never do, so there is no echo to filter: a follower moves by
- * transform and has no scroll position of its own to report back.
+ * Only a group's rows scroller publishes. A follower is moved by whoever owns this offset and never reports its own
+ * position back, so there is no echo to filter out here.
  */
 function publishSyncedHorizontalOffset(key: string, offsetX: number) {
     offsetsByKey.set(key, offsetX);

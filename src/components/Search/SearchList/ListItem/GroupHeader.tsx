@@ -177,7 +177,7 @@ function GroupHeader({
     const subHeaderMinTableWidth = getTableMinWidth(subHeaderDataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isSubHeaderActionColumnWide);
     const shouldSubHeaderScrollHorizontally = isLargeScreenWidth && subHeaderMinTableWidth > windowWidth;
 
-    // The rows this header labels are a sibling list row and own the scroller; these labels only follow its offset.
+    // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
     const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
@@ -460,13 +460,13 @@ function GroupHeader({
                                             // A clip the follower scrolls, not a ScrollView: the rows below own the scroll
                                             // and these labels only mirror their offset. `overflow: hidden` still takes a
                                             // `scrollLeft`, so this moves with the rows while showing no scrollbar of its
-                                            // own and refusing to be dragged — a second real scroller here is what used
-                                            // to let the two drift apart.
+                                            // own and refusing to be dragged. A second real scroller here is what used to
+                                            // let the two drift apart.
                                             <View
                                                 style={styles.overflowHidden}
                                                 ref={subHeaderFollowerRef}
                                             >
-                                                <View style={{width: subHeaderMinTableWidth}}>{subHeaderContent}</View>
+                                                <View style={StyleUtils.getWidthStyle(subHeaderMinTableWidth)}>{subHeaderContent}</View>
                                             </View>
                                         ) : (
                                             subHeaderContent

@@ -4,7 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import useSyncedHorizontalScroll from '@components/Search/hooks/useSyncedHorizontalScroll';
+import {useSyncedHorizontalScroll} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -181,9 +181,9 @@ function TransactionGroupListExpandedImpl({
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     // When the group's column header is rendered outside these rows (split groups on wide web), this scroller is the
-    // one the user drags and the header follows the offset it publishes. Without a sync key — every other layout,
-    // where the header sits inside this same scroller — this is inert and `syncProps` is empty, so the ScrollView
-    // below keeps exactly the props it had before.
+    // one the user drags and the header follows the offset it publishes. Without a sync key this is inert and
+    // `syncProps` is empty, so the ScrollView below keeps exactly the props it had before. That covers every other
+    // layout, where the header sits inside this same scroller.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();

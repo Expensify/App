@@ -4,7 +4,7 @@ import type {Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View as RNView} from 'react-native';
 
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useMemo} from 'react';
 
 import type {SyncedHorizontalScroll, UseHorizontalScrollFollower, UseSyncedHorizontalScroll} from './types';
 
@@ -17,7 +17,7 @@ const NO_SYNC_PROPS: SyncedHorizontalScroll['syncProps'] = {};
  * Native: the offset is published through the ScrollView's `onScroll` prop, the only scroll signal available here.
  *
  * Splitting a group into a sticky header row plus a children row is web-only today, so on native the callers pass no
- * key and this hook returns empty `syncProps` — it must not hand the rows' ScrollView an `onScroll`, or every native
+ * key and this hook returns empty `syncProps`. It must not hand the rows' ScrollView an `onScroll`, or every native
  * table wider than the screen (tablets clear the large-screen breakpoint) would start firing throttled scroll events
  * into a handler that does nothing. It is a working implementation rather than a stub so that enabling the split on
  * native degrades to a throttled publish instead of silently doing nothing.
@@ -25,14 +25,10 @@ const NO_SYNC_PROPS: SyncedHorizontalScroll['syncProps'] = {};
  * See ./types for what this hook is for, and ./index.ts for the DOM-level web version.
  */
 const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) => {
-    const scrollViewInstanceRef = useRef<RNScrollView | null>(null);
-
-    // Subscribing in the ref callback rather than an effect keeps this tied to the scroller's own mount: a group
-    // renders collapsed, so its scroller appears on expand, long after this hook's first render.
+    // Restoring in the ref callback rather than an effect keeps this tied to the scroller's own mount: a group renders
+    // collapsed, so its scroller appears on expand, long after this hook's first render.
     const scrollViewRef = useCallback(
         (scrollView: RNScrollView | null) => {
-            scrollViewInstanceRef.current = scrollView;
-
             if (!scrollView || !key || !isEnabled) {
                 return;
             }
@@ -64,14 +60,13 @@ const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) =>
 /**
  * Native: nothing to follow, so this attaches nothing.
  *
- * The follower exists only for the split-group layout, which is web-only: everywhere else a group renders its column
+ * The follower exists only for the split-group layout, which is web-only. Everywhere else a group renders its column
  * labels inside the same scroller as its rows, so they stay aligned with no syncing at all. Enabling the split on
- * native would need a real implementation here — a Reanimated shared value driving the labels' `translateX` — since
- * there is no DOM node to write a transform onto, and carrying that unused was not worth the surface area.
+ * native would need a real implementation here, a Reanimated shared value driving the labels' `translateX`, since
+ * there is no DOM node to write a scroll offset onto. Carrying that while it is unused was not worth the surface area.
  */
 const NO_FOLLOWER: Ref<RNView> = () => {};
 
 const useHorizontalScrollFollower: UseHorizontalScrollFollower = () => NO_FOLLOWER;
 
-export default useSyncedHorizontalScroll;
-export {useHorizontalScrollFollower};
+export {useHorizontalScrollFollower, useSyncedHorizontalScroll};
