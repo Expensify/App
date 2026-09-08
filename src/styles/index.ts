@@ -127,6 +127,11 @@ const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari()
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
+// The bulk action bar's height, which the space reserved for it at the end of a list has to match. Derived from the
+// bar's own padding and its tallest item, a small button, rather than written down a second time: a written height
+// silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
+const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -5436,7 +5441,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
-            paddingVertical: 20,
+            paddingVertical: variables.bulkActionBarPaddingVertical,
             paddingLeft: 20,
             paddingRight: 16,
             borderRadius: variables.componentBorderRadiusLarge,
@@ -5448,7 +5453,7 @@ const staticStyles = (theme: ThemeColors) =>
         // scrolled clear of it. Applied to the list's content rather than its container: content grows below the
         // viewport, so the rows on screen stay where they are when a selection shows or hides the bar.
         bulkActionBarListSpacing: {
-            paddingBottom: CONST.BULK_ACTION_BAR.HEIGHT + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+            paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
         },
 
         // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A

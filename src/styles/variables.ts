@@ -141,6 +141,7 @@ export default {
     htmlTableChevronColumnWidth: 20,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
+    bulkActionBarPaddingVertical: 20,
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,

@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -150,7 +151,7 @@ function BulkActionBarContent<TValueType>({
                                     }
                                     setIsMoreMenuVisible(false);
                                 }}
-                                shouldUseScrollView={moreOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                                shouldUseScrollView={shouldPopoverUseScrollView(moreOptions)}
                                 menuItems={moreOptions.map((option) => ({
                                     ...option,
                                     shouldCallAfterModalHide: true,
