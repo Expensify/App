@@ -1940,6 +1940,168 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
         });
 
+        it.each([
+            ['no target policy is provided', undefined, 'reported-source'],
+            ['a target policy is provided for an unreported source', mockPolicy, CONST.REPORT.UNREPORTED_REPORT_ID],
+        ])('should duplicate a GPS distance expense as manual distance when %s', async (_description, targetPolicy, reportID) => {
+            const transactionID = 'gps-unreported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: targetPolicy?.id,
+                targetPolicy,
+                targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
+                targetReport: targetPolicy ? policyExpenseChat : undefined,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(trackExpenseCall).toBeDefined();
+            expect(trackExpenseCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distance: 56.78,
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    waypoints: undefined,
+                }),
+            );
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(56.78);
+        });
+
+        it('should keep reported workspace GPS distance duplicates as GPS with waypoints', async () => {
+            const transactionID = 'gps-reported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID: 'reported-gps-report',
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: mockPolicy.id,
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(distanceCall).toBeDefined();
+            expect(writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE))).toBeUndefined();
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                }),
+            );
+            expect(distanceCall?.[1]?.waypoints).toBeDefined();
+            expect(distanceCall?.[1]?.waypoints).not.toBe('null');
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+        });
+
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
@@ -3166,6 +3328,11 @@ describe('actions/Duplicate', () => {
             const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            );
         });
 
         it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
