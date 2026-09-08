@@ -1,4 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
@@ -8,6 +8,8 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
@@ -151,11 +153,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     if (isLoading) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return <ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />;
     }
 
     if (data.length === 0) {

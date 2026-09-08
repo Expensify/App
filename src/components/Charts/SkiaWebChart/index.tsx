@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 
 import viewRef from '@src/types/utils/viewRef';
 
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React, {useRef, useState} from 'react';
@@ -26,7 +26,8 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Identifies the loading skeleton span for telemetry. */
+    /** Shown while the chart engine downloads. */
+    loadingFallback?: ReactNode;
 };
 
 function ChartUnavailable() {
@@ -48,14 +49,13 @@ function ChartUnavailable() {
 }
 
 /**
- * Shared web wrapper around `WithSkiaWeb` for the chart entry points (Pie/Line/Bar and the Victory
- * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
- * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
+ * When the environment can't provide a usable WebGL/Skia surface this shows an "unable to display chart"
+ * empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `isSkiaWebSupported`).
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps, loadingFallback}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
 
@@ -63,16 +63,14 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
-    // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
-    // renderer reporting that and degrade to the empty state.
+    // The probe can pass while the renderer still ends up without a drawing surface.
     const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
 
-    // If unsupported, the device can't give CanvasKit a usable WebGL surface.
     if (!isSupported || isSurfaceUnavailable) {
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = loadingFallback ?? (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>

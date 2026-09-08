@@ -1,5 +1,6 @@
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -34,7 +35,6 @@ const TEXT_LINE_GAP = 4;
 const SEPARATORS_HEIGHT = CONST.HOME.SECTION_VISIBLE_LIMIT - 1;
 const ITEM_HEIGHT = ROW_VERTICAL_PADDING + Math.max(RECEIPT_HEIGHT, MERCHANT_LINE_HEIGHT + TEXT_LINE_GAP + LABEL_LINE_HEIGHT);
 const COLUMN_GAP = 12;
-const BAR_HEIGHT = 12;
 const AMOUNT_WIDTH = 56;
 const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
