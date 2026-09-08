@@ -69,11 +69,13 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     // Track if we have cached data to avoid showing loading state on remount
     const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
+    const [prevPolicyIDs, setPrevPolicyIDs] = useState(policyIDs);
     const [isFilteringLocally, setIsFilteringLocally] = useState(false);
 
-    useEffect(() => {
+    if (prevPolicyIDs !== policyIDs) {
+        setPrevPolicyIDs(policyIDs);
         setIsFilteringLocally(false);
-    }, [policyIDs]);
+    }
 
     // Only treat the cache as complete when the empty-query dataset is fully loaded.
     // A finished server search for a non-empty term can still be a partial result set.
