@@ -180,9 +180,10 @@ function TransactionGroupListExpandedImpl({
     const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
-    // When the group's column header is rendered outside these rows (split groups on wide web), both scroll as one.
-    // Without a sync key — every other layout, where the header sits inside this same scroller — this is inert and
-    // `syncProps` is empty, so the ScrollView below keeps exactly the props it had before.
+    // When the group's column header is rendered outside these rows (split groups on wide web), this scroller is the
+    // one the user drags and the header follows the offset it publishes. Without a sync key — every other layout,
+    // where the header sits inside this same scroller — this is inert and `syncProps` is empty, so the ScrollView
+    // below keeps exactly the props it had before.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();

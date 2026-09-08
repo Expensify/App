@@ -2,8 +2,7 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import ScrollView from '@components/ScrollView';
-import useSyncedHorizontalScroll from '@components/Search/hooks/useSyncedHorizontalScroll';
+import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -178,8 +177,8 @@ function GroupHeader({
     const subHeaderMinTableWidth = getTableMinWidth(subHeaderDataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isSubHeaderActionColumnWide);
     const shouldSubHeaderScrollHorizontally = isLargeScreenWidth && subHeaderMinTableWidth > windowWidth;
 
-    // The rows this header labels are a sibling list row with their own scroller, so both share one offset.
-    const {scrollViewRef: subHeaderScrollViewRef, syncProps: subHeaderSyncProps} = useSyncedHorizontalScroll(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
+    // The rows this header labels are a sibling list row and own the scroller; these labels only follow its offset.
+    const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
@@ -458,16 +457,17 @@ function GroupHeader({
                                         onLayout={onSubHeaderLayout}
                                     >
                                         {shouldSubHeaderScrollHorizontally ? (
-                                            <ScrollView
-                                                ref={subHeaderScrollViewRef}
-                                                horizontal
-                                                // The rows below already show one, a second bar under the header would only add noise.
-                                                showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={{width: subHeaderMinTableWidth}}
-                                                {...subHeaderSyncProps}
+                                            // A clip the follower scrolls, not a ScrollView: the rows below own the scroll
+                                            // and these labels only mirror their offset. `overflow: hidden` still takes a
+                                            // `scrollLeft`, so this moves with the rows while showing no scrollbar of its
+                                            // own and refusing to be dragged — a second real scroller here is what used
+                                            // to let the two drift apart.
+                                            <View
+                                                style={styles.overflowHidden}
+                                                ref={subHeaderFollowerRef}
                                             >
-                                                {subHeaderContent}
-                                            </ScrollView>
+                                                <View style={{width: subHeaderMinTableWidth}}>{subHeaderContent}</View>
+                                            </View>
                                         ) : (
                                             subHeaderContent
                                         )}
