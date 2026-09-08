@@ -25,30 +25,18 @@ function getTabState(route: {name: string; state?: NavigationState | {routes: Ar
     return undefined;
 }
 
-/**
- * Extracts the tab navigator's own state from the root navigation state.
- */
 function getTabNavigatorState(rootState: RootNavigationState): RootTabState | undefined {
     return getTabState(rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
 }
 
-/**
- * Whether the Reports tab has been preloaded and not yet opened. Read before dispatching a tab navigation,
- * because jumping to the tab drops its key from `preloadedRouteKeys`.
- */
+/** Read before dispatching a tab navigation: jumping to the tab drops its key from `preloadedRouteKeys`. */
 function isReportsTabPreloaded(rootState: RootNavigationState): boolean {
     const tabState = getTabNavigatorState(rootState);
     const reportsSplitRouteKey = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)?.key;
     return !!reportsSplitRouteKey && !!tabState?.preloadedRouteKeys?.includes(reportsSplitRouteKey);
 }
 
-/**
- * The tab state key to dispatch a Reports tab preload at, or undefined when preloading would be pure cost.
- *
- * Preloading pins the route key in `preloadedRouteKeys`, which drops `shouldFreeze` in BottomTabView. On the
- * focused or already-mounted Reports tab that only defeats `freezeOnBlur` until the user next opens Inbox,
- * with nothing to warm in return, so both are skipped - despite the docs calling the second one a no-op.
- */
+/** Undefined when preloading would be pure cost: a preloaded key drops `shouldFreeze`, with nothing to warm in return. */
 function getReportsTabPreloadTarget(rootState: RootNavigationState): string | undefined {
     const tabState = getTabNavigatorState(rootState);
     const reportsSplitRoute = tabState?.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);

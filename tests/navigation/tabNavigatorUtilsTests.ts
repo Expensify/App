@@ -116,8 +116,7 @@ describe('isReportsTabPreloaded', () => {
         expect(isReportsTabPreloaded(buildRootState([]))).toBe(false);
     });
 
-    // A rehydrated or partial state carries no `preloadedRouteKeys`, so the attribute has to read false
-    // rather than throw.
+    // A rehydrated or partial state carries no `preloadedRouteKeys`.
     it('returns false when the tab state does not track preloaded keys', () => {
         expect(isReportsTabPreloaded(buildRootState(undefined))).toBe(false);
     });

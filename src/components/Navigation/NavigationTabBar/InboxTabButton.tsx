@@ -47,7 +47,6 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     });
 }
 
-/** Marks the navigation as one that also opened a report, so its duration is known to include an OpenReport wait. */
 function markNavigateToInboxTabOpenedReport() {
     getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_OPENED_REPORT, true);
 }

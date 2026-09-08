@@ -42,9 +42,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-
 import {CommonActions} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
@@ -101,9 +100,7 @@ function AuthScreensInitHandler() {
     useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
-    // The tab navigator registers its state only once it mounts, which is after AuthScreens renders. Gating the
-    // preload on this key instead of on navigation readiness is what makes it fire at all: `Navigation.isNavigationReady()`
-    // resolves on the container's first render, which on a launch into the sign-in page happens before this navigator exists.
+    // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
     const tabNavigatorStateKey = useRootNavigationState((rootState) => getTabNavigatorState(rootState)?.key);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
@@ -224,12 +221,8 @@ function AuthScreensInitHandler() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Moves the first Inbox open of the session off the critical path: preloads the lazy Reports tab so the tap
-    // jumps to an already-evaluated chunk and an already-built navigator instead of paying both on the click.
     useEffect(() => {
-        // `undefined` means Onyx has not read the key yet, so wait for an explicit false instead of negating.
-        // A reload runs ReconnectApp, which never raises the flag, so this effect fires on the first render pass —
-        // before the tab navigator exists. Without the key gate the preload would silently no-op on every reload.
+        // A reload runs ReconnectApp, which never raises the flag, so without the key gate this no-ops on every reload.
         if (isLoadingApp !== false || !tabNavigatorStateKey) {
             return;
         }
