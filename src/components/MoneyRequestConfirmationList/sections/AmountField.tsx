@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
@@ -46,7 +47,6 @@ type AmountFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    autoFocus?: boolean;
     isParticipantPickerVisible?: boolean;
 };
 
@@ -62,9 +62,9 @@ function AmountField({
     policy,
     clearFormErrors,
     setFormError,
-    autoFocus = false,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
+    const shouldAutoFocusOnMount = !canUseTouchScreen();
     const {isEditingSplitBill, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -115,7 +115,7 @@ function AmountField({
     // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
     // receives focus.
     useEffect(() => {
-        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -127,7 +127,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);

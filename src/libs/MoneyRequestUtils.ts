@@ -188,13 +188,19 @@ type AmountHasUnsavedChangesParams = {
     isCreateEntry: boolean;
     selectedCurrency: string;
     originalCurrency: string;
+    isSignChanged?: boolean;
 };
 
 /**
- * Whether the amount step has unsaved input. Emptiness is judged on the raw string (so a typed "0" counts) and the
- * change in backend units (so "5" vs "5.00" isn't a false positive); a currency change counts on its own.
+ * Whether the amount step has unsaved input. A sign flip alone counts as a change; otherwise emptiness is judged on
+ * the raw string (so a typed "0" counts) and the change in backend units (so "5" vs "5.00" isn't a false positive);
+ * a currency change counts on its own.
  */
-function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency}: AmountHasUnsavedChangesParams): boolean {
+function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency, isSignChanged = false}: AmountHasUnsavedChangesParams): boolean {
+    if (isSignChanged) {
+        return true;
+    }
+
     const currencyChanged = selectedCurrency !== originalCurrency;
     if (isCreateEntry) {
         return typedAmount !== '' || committedAmount !== 0 || currencyChanged;
