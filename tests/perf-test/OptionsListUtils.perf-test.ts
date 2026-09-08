@@ -183,6 +183,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
         });
@@ -203,6 +204,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
         });
@@ -378,6 +380,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
         });

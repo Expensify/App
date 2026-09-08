@@ -1375,6 +1375,7 @@ describe('OptionsListUtils', () => {
 
             const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -1908,6 +1909,7 @@ describe('OptionsListUtils', () => {
             );
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3079,6 +3081,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3148,6 +3151,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3190,6 +3194,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3262,6 +3267,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3293,6 +3299,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3333,6 +3340,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3364,6 +3372,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3397,6 +3406,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3526,6 +3536,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3575,6 +3586,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3627,6 +3639,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3679,6 +3692,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3702,6 +3716,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -3990,6 +4005,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with any search value
             const filteredOptions = filterAndOrderOptions(options, 'Unknown', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4014,6 +4030,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4040,6 +4057,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4066,6 +4084,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4091,6 +4110,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value without accent mark
             const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4114,6 +4134,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4142,6 +4163,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4170,6 +4192,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4198,6 +4221,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4276,6 +4300,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4364,6 +4389,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4393,6 +4419,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4474,6 +4501,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -4513,6 +4541,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -4540,10 +4569,12 @@ describe('OptionsListUtils', () => {
 
             const multiSpaceQueryResults = filterAndOrderOptions(options, 'Invisible   Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
             const spaceSeparatedQueryResults = filterAndOrderOptions(options, 'Invisible Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
@@ -8584,6 +8615,7 @@ describe('OptionsListUtils', () => {
         it('should return a valid invite option for a new email', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 searchValue: 'newuser@example.com',
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
@@ -8599,6 +8631,7 @@ describe('OptionsListUtils', () => {
         it('should return null when searchValue is empty', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 searchValue: '',
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
@@ -8612,6 +8645,7 @@ describe('OptionsListUtils', () => {
         it('should return null when searching for current user email', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 searchValue: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 loginList: {},
@@ -8633,13 +8667,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {dateFnsLocale: undefined, convertToDisplayString},
                 translateLocal,
             );
 
             const filteredOptions = filterAndOrderOptions(options, 'newuser@example.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
             });
 
             expect(filteredOptions.userToInvite).not.toBeNull();
@@ -8656,11 +8691,15 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {dateFnsLocale: undefined, convertToDisplayString},
                 translateLocal,
             );
 
-            const filteredOptions = filterAndOrderOptions(options, 'anotheruser@example.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'anotheruser@example.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+            });
 
             expect(filteredOptions.userToInvite).not.toBeNull();
             expect(filteredOptions.userToInvite?.login).toBe('anotheruser@example.com');
@@ -8675,13 +8714,14 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
-                {dateFnsLocale: undefined},
+                {dateFnsLocale: undefined, convertToDisplayString},
                 translateLocal,
             );
 
             const filteredOptions = filterAndOrderOptions(options, CURRENT_USER_EMAIL, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
             });
 
             expect(filteredOptions.userToInvite).toBeNull();
@@ -8726,6 +8766,7 @@ describe('OptionsListUtils', () => {
             // When we call filterAndOrderOptions with the reports parameter
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
             });
 
