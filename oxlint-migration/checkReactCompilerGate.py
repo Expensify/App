@@ -3,7 +3,7 @@
     python3 oxlint-migration/checkReactCompilerGate.py
 
 Two rules are suppressed wholesale in files both React compilers memoize. ESLint does it in a
-processor (config/eslint/processors/eslint-processor-react-compiler-compat.mjs); oxlint has no
+processor (oxlint-migration/rule-tester/eslint-processor-react-compiler-compat.mjs); oxlint has no
 processor, so config/oxlint/reactCompilerGate.mjs does it by wrapping `context.report` inside the
 JS plugin. This checks the two agree, on both answers.
 

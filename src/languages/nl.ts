@@ -473,7 +473,6 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopieer naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
-        actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
         opensInNewTab: 'Opent in een nieuw tabblad',
@@ -951,10 +950,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Begin hier!',
     },
     homePage: {
-        forYou: 'Voor jou',
+        toDos: 'To-do’s',
         timeSensitiveSection: {
             title: 'Tijdgevoelig',
-            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
@@ -980,7 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
             validateAccount: {title: 'Valideer je account', subtitle: 'Account', cta: 'Valideren'},
-            addHomeAddress: {title: 'Voeg je thuisadres toe voor afstandsregistratie', subtitle: 'Account', cta: 'Adres toevoegen'},
+            addHomeAddress: {title: 'Voeg je thuisadres toe voor afstandsregistratie', subtitle: 'Account', cta: 'Toevoegen'},
             fixFailedBilling: {title: 'We konden je kaart in ons bestand niet belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Je zakelijke bankrekening is geblokkeerd',
@@ -988,11 +987,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Portemonnee',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.',
-                subtitle: 'Expensify Kaart',
-                cta: 'Details toevoegen',
-            },
+            addVirtualCardPersonalDetails: {title: 'Voeg je gegevens toe om je Expensify Kaart te bekijken en te gebruiken.', subtitle: 'Expensify Kaart', cta: 'Toevoegen'},
             enterSignerInfo: {title: 'Ondertekenaargegevens vereist', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankrekening ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1095,6 +1090,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Nodig je accountant uit',
             customizeSpendCategories: 'Uitgaven­categorieën aanpassen',
             customizeSpendCategoriesSubText: 'Orden en classificeer uitgaven',
+            customizeExpenseCategories: 'Pas je uitgavencategorieën aan',
+            customizeExpenseCategoriesSubText: 'Voeg de categorieën van je bedrijf toe om je uitgaven te coderen',
             createExpense: 'Maak een uitgave',
             createExpenseSubText: 'Scan, sleep neer en zet neer, of voer handmatig een uitgave in met de +-knop',
             linkPersonalCard: 'Koppel persoonlijke kaart',
@@ -1120,7 +1117,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Je uitgaven',
             awaitingApproval: 'In afwachting van goedkeuring',
             repaidLast30Days: 'Terugbetaald afgelopen 30 dagen',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Recente transacties • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Bekijk nog ${count}`,
         recentlyAddedSection: {
@@ -1275,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -3758,11 +3755,6 @@ ${amount} voor ${merchant} - ${date}`,
         thisBankAccount: 'Deze bankrekening wordt gebruikt voor zakelijke betalingen in je workspace',
         accountNumber: 'Rekeningnummer',
         routingNumber: 'Routingnummer',
-        internationalBankAccountDetails: 'Internationale bankrekeninggegevens',
-        internationalBankAccountDetailsTitle: 'Wat zijn je internationale rekeninggegevens?',
-        internationalBankAccountDetailsSubtitle: 'Een van je werkruimtes heeft internationale rekeninggegevens nodig om onkostenvergoedingen te verwerken',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC-code',
         chooseAnAccountBelow: 'Kies een account hieronder',
         addBankAccount: 'Bankrekening toevoegen',
         chooseAnAccount: 'Kies een account',
@@ -3812,8 +3804,6 @@ ${amount} voor ${merchant} - ${date}`,
             restrictedBusiness: 'Bevestig dat het bedrijf niet op de lijst met beperkte bedrijven staat',
             routingNumber: 'Voer een geldig routingnummer in',
             accountNumber: 'Voer een geldig rekeningnummer in',
-            iban: 'Voer een geldige IBAN in',
-            swiftCode: 'Voer een geldige SWIFT/BIC-code in',
             routingAndAccountNumberCannotBeSame: 'Routing- en rekeningnummers mogen niet hetzelfde zijn',
             companyType: 'Selecteer een geldig bedrijfstype',
             tooManyAttempts: 'Vanwege een groot aantal inlogpogingen is deze optie voor 24 uur uitgeschakeld. Probeer het later opnieuw of voer de gegevens in plaats daarvan handmatig in.',
@@ -4171,8 +4161,7 @@ ${amount} voor ${merchant} - ${date}`,
         legalFirstName: 'Juridische voornaam',
         legalLastName: 'Wettelijke achternaam',
         enterTheDateOfBirthOfTheOwner: 'Wat is de geboortedatum van de eigenaar?',
-        enterTheLast4: 'Wat zijn de laatste 4 cijfers van het burgerservicenummer (BSN) van de eigenaar?',
-        last4SSN: 'Laatste 4 cijfers van SSN',
+        enterTheSSN: 'Wat is het Amerikaanse Social Security Number (SSN) van de eigenaar?',
         dontWorry: 'Geen zorgen, we voeren geen persoonlijke kredietcontroles uit!',
         enterTheOwnersAddress: 'Wat is het adres van de eigenaar?',
         letsDoubleCheck: 'Laten we voor de zekerheid controleren of alles er goed uitziet.',
@@ -4199,13 +4188,12 @@ ${amount} voor ${merchant} - ${date}`,
         whatsYourDOB: 'Wat is je geboortedatum?',
         whatsTheOwnersAddress: 'Wat is het adres van de eigenaar?',
         whatsYourAddress: 'Wat is je adres?',
-        whatAreTheLast: 'Wat zijn de laatste 4 cijfers van het burgerservicenummer (BSN) van de eigenaar?',
-        whatsYourLast: 'Wat zijn de laatste 4 cijfers van uw sofinummer?',
+        whatsTheOwnersSSN: 'Wat is het Amerikaanse Social Security Number (SSN) van de eigenaar?',
+        whatsYourSSN: 'Wat is je Amerikaanse Social Security Number (SSN)?',
         whatsYourNationality: 'Wat is uw nationaliteit?',
         whatsTheOwnersNationality: 'Wat is het land van staatsburgerschap van de eigenaar?',
         countryOfCitizenship: 'Land van nationaliteit',
         dontWorry: 'Geen zorgen, we voeren geen persoonlijke kredietcontroles uit!',
-        last4: 'Laatste 4 cijfers van SSN',
         whyDoWeAsk: 'Waarom vragen we dit?',
         letsDoubleCheck: 'Laten we voor de zekerheid controleren of alles er goed uitziet.',
         legalName: 'Wettelijke naam',
@@ -4228,6 +4216,8 @@ ${amount} voor ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Bewijs van uiteindelijk belanghebbende',
         proofOfBeneficialOwnerDescription:
             'Geef een ondertekende verklaring en een organisatieschema van een openbare accountant, notaris of advocaat waarin wordt bevestigd wie 25% of meer van het bedrijf bezit. Deze moeten dateren van binnen de laatste drie maanden en het licentienummer van de ondertekenaar bevatten.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Upload alsjeblieft je Schedule 50 (aandeelhoudersinformatie) van je meest recente T2-vennootschapsbelastingaangifte, waarop iedere persoon staat die 25% of meer van het bedrijf bezit.',
         copyOfID: 'Kopie van identiteitsbewijs van uiteindelijk belanghebbende',
         copyOfIDDescription: 'Voorbeelden: paspoort, rijbewijs, enz.',
         proofOfAddress: 'Adresbewijs voor uiteindelijke belanghebbende',
@@ -4737,6 +4727,7 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
+            recruiting: 'Werving',
             rooms: 'Kamers',
             findDomain: 'Domein zoeken',
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
@@ -4966,7 +4957,6 @@ ${amount} voor ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Gebruik deze rekening bij het exporteren van facturen naar ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe aankopen met bedrijfskaarten worden geëxporteerd naar ${integrationName}.`,
             vendor: 'Leverancier',
-            defaultVendorDescription: 'Stel een standaardleverancier in die bij export op alle creditcardtransacties wordt toegepast.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Stel in hoe contante uitgaven worden geëxporteerd naar ${integrationName}.`,
             exportCheckDescription: 'We maken een gespecificeerde cheque voor elk Expensify-rapport en versturen die vanaf de onderstaande bankrekening.',
             exportJournalEntryDescription: 'We maken een gespecificeerde journaalpost voor elk Expensify-rapport en boeken deze op de onderstaande rekening.',
@@ -5131,8 +5121,6 @@ ${amount} voor ${merchant} - ${date}`,
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in Xero en synchroniseer de verbinding opnieuw',
-            defaultSupplier: 'Standaardleverancier',
-            defaultSupplierDescription: 'Stel een standaardsupplier in die wordt toegepast op alle creditcardtransacties bij het exporteren.',
             noSuppliersFound: 'Geen leveranciers gevonden',
             noSuppliersFoundDescription: 'Voeg de leverancier toe in Xero en synchroniseer de koppeling opnieuw.',
             accountingMethods: {
@@ -6161,6 +6149,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             finishSetup: 'Configuratie voltooien',
             chooseBankAccount: 'Kies bankrekening',
             chooseExistingBank: 'Kies een bestaande zakelijke bankrekening om je saldo van de Expensify Kaart te betalen, of voeg een nieuwe bankrekening toe',
+            chooseExistingBankForTravelBilling: 'Kies een bestaande zakelijke bankrekening om je geconsolideerde reissaldi te betalen, of voeg een nieuwe bankrekening toe',
             accountEndingIn: 'Rekening eindigend op',
             addNewBankAccount: 'Nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
@@ -6232,7 +6221,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             deleteFailureMessage: 'Er is een fout opgetreden bij het verwijderen van de categorie, probeer het opnieuw',
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
-            autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -6568,6 +6556,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             subtitle: 'Rapportvelden zijn van toepassing op alle uitgaven en kunnen nuttig zijn wanneer je om extra informatie wilt vragen.',
             disableReportFields: 'Rapportvelden uitschakelen',
             disableReportFieldsConfirmation: 'Weet je het zeker? Tekst- en datumvelden worden verwijderd en lijsten worden uitgeschakeld.',
+            cannotDisableImportedReportFields: 'Rapportvelden die zijn geïmporteerd via je boekhoudkoppeling kunnen niet worden uitgeschakeld.',
             importedFromAccountingSoftware: 'De onderstaande rapportvelden worden geïmporteerd uit jouw',
             textType: 'Tekst',
             dateType: 'Datum',
@@ -7233,11 +7222,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             exportCompanyCard: 'Bedrijfspaskosten exporteren als',
             exportDate: 'Exportdatum',
             defaultVendor: 'Standaardleverancier',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Declaraties die niet automatisch worden gematcht, worden standaard aan deze leverancier gekoppeld.`
-                    : `Bonnetjes die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Kies een standaard ${connectionName}-leverancier voor uitgaven die niet automatisch worden gematcht.`,
+                    : `Declaraties die niet automatisch worden gekoppeld, worden standaard aan deze leverancier toegewezen. Anders worden ze geëxporteerd als ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Kies een standaardleverancier voor uitgaven die niet automatisch worden herkend.`,
             defaultAccount: 'Standaardrekening',
             autoSync: 'Automatisch synchroniseren',
             autoSyncDescription: 'Synchroniseer NetSuite en Expensify automatisch, elke dag. Exporteer een afgerond rapport in realtime',
@@ -7258,6 +7247,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     `Zorg ervoor dat deze rekening overeenkomt met je Consolidated Travel Billing-afwikkelingsrekening (eindigend op ${lastFourPAN}), zodat Continuous Reconciliation goed werkt.`,
             },
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7315,12 +7306,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Sluit ${distance} ${unit} per declaratie uit`,
                 optionDisabledTitle: 'Woon-werkverkeer niet uitsluiten',
                 optionDisabledHelp: 'Er is geen woon-werkverkeer uit declaraties verwijderd.',
-                optionFixedDistanceTitle: 'Een vaste afstand per declaratie uitsluiten',
-                optionFixedDistanceHelp: 'Trek dezelfde woon-werkafstand van elke declaratie af. Het meest geschikt voor leden die één declaratie per werkdag indienen.',
+                optionFixedDistanceTitle: 'Vaste afstand verwijderen',
+                optionFixedDistanceHelp: 'Trekt dezelfde afstand van elke declaratie af.',
                 distanceLabel: 'Afstand',
                 summaryHomeAndOffice: 'Gebruik thuis- en kantoorlocaties',
-                optionHomeAndOfficeTitle: 'Berekenen per thuis en kantoor',
-                optionHomeAndOfficeHelp: 'Gebruik het thuisadres van het lid, de werkregeling en de kantoorindeling om woon-werkuitzonderingen te berekenen.',
+                optionHomeAndOfficeTitle: 'Gebruikelijke woon-werkrit uitsluiten',
+                optionHomeAndOfficeHelp: 'Trekt de gebruikelijke woon-werkrit van elk lid af op basis van hun thuisadres, werkafspraak en kantoor.',
                 workspaceAddressRequired: {
                     title: 'Niet zo snel...',
                     promptStart: 'Je kunt de instelling ‘berekenen op basis van thuis en kantoor’ pas inschakelen nadat je eerst een kantoorlocatie hebt toegevoegd in',
@@ -7950,6 +7941,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 supplierUnavailable: 'Leverancier niet beschikbaar',
+                confirmErrorCategory: 'Selecteer een categorie',
+                confirmErrorCategoryTax: 'Selecteer een belastingtarief',
+                confirmErrorCondition: 'Voer een leverancier in',
+                confirmErrorConditionAndDefault: 'Voer een leverancier in en stel minstens één standaard in',
+                turnOnTaxesFirstTitle: 'Zet eerst belastingen aan',
+                turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
+                categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
+                categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -8248,10 +8247,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 applyExpenseDefaultsDescription: 'Velden bijwerken zonder dat de indiener iets hoeft te doen',
                 flagForReview: 'Markeren voor controle',
                 flagForReviewDescription: 'Goedkeurders informeren wanneer onkosten de categorielimieten overschrijden',
-                requireFields: 'Veldvereisten',
+                requireFields: 'Veldvereisten instellen',
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
-                createAgentRule: 'Agentregel',
-                createAgentRuleDescription: 'Beschrijf flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                createAgentRule: 'Agentregel beschrijven',
+                createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8262,6 +8261,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 update: 'Bijwerken',
                 merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Type leverancier is "${merchantType}"`,
+                categoryIs: (category: string) => `Categorie is "${category}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -8278,6 +8278,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireReceipt: 'Bon nodig',
                 doNotRequireReceipt: 'Bon niet verplicht stellen',
                 doNotRequireItemizedReceipt: 'Geen gespecificeerde bon vereist',
+                typeLabel: 'Vereisen',
             },
             requireFieldsEmptyState: {
                 title: 'Signaleer ontbrekende gegevens direct',
@@ -8326,6 +8327,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
+            expenseDefaultType: {
+                title: 'Standaardwaarden voor uitgaven toepassen',
+                subtitle: 'Waar moet deze regel op overeenkomen?',
+                merchant: 'Winkelier',
+                merchantDescription: 'Veldwaarden bij uitgaven van een specifieke verkoper bijwerken',
+                category: 'Categorie',
+                categoryDescription: 'Stel een standaardbelastingtarief in voor een specifieke categorie',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Belastingen zijn niet ingeschakeld',
+                subtitle: 'Activeer belastingen om in aanmerking komende belastingen vast te leggen en terug te vorderen.',
+                cta: 'Belastingen inschakelen',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -8352,37 +8366,26 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         hr: {
             title: 'HR',
-            connections: 'Verbindingen',
             connectionsSubtitle:
                 'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
-            connect: 'Verbinden',
-            syncNow: 'Nu synchroniseren',
-            disconnect: 'Ontkoppelen',
-            disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
-            disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
             alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
             alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
-            lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
-            syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
-            approvalMode: 'Goedkeuringsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-goedkeuringsmodus`,
-            finalApprover: 'Eindgoedkeurder',
             providerFinalApprover: (providerName: string) => `Laatste ${providerName}-fiatteur`,
-            notSet: 'Niet ingesteld',
+            syncing: 'Werknemers synchroniseren',
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             approvalModeDescription: (providerName: string) => `Leden en managers zijn ingesteld om te synchroniseren met ${providerName}.`,
             approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Weet je zeker dat je de goedkeuringsmodus voor deze werkruimte wilt wijzigen? Lees meer over de verschillende ${providerName}-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
             approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
-            approvalModes: {
-                basic: {label: 'Basisgoedkeuring', description: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.'},
-                manager: {
-                    label: 'Managergoedkeuring',
-                    description: (providerName: string) => `Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in ${providerName}.`,
-                },
-                custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.'},
+            approvalModeDescriptions: {
+                basic: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.',
+                manager: (providerName: string) => `Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in ${providerName}.`,
+                custom: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8422,22 +8425,50 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
-            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
-            syncing: 'Werknemers synchroniseren',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Configuratie voltooien',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
                 groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
             },
+        },
+        recruiting: {
+            title: 'Werving',
+            connectionsSubtitle:
+                'Koppel je recruitmentsysteem om kandidaatgegevens te synchroniseren, vergoedingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
+            alreadyConnectedTitle: 'Kan niet met meerdere ATS-platformen verbinden',
+            alreadyConnectedPrompt: 'Je moet je huidige ATS loskoppelen voordat je een andere verbindt.',
+            syncing: 'Kandidaten synchroniseren',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Installatie voltooien</a>` : 'Voltooi installatie'} om kandidaten te importeren.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
+            importSettings: 'Importinstellingen',
+            defaultApprover: 'Standaardgoedkeurder',
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+        },
+        merge: {
+            connections: 'Verbindingen',
+            connect: 'Verbinden',
+            findIntegration: 'Integratie zoeken',
+            syncNow: 'Nu synchroniseren',
+            disconnect: 'Ontkoppelen',
+            disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
+            disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
+            lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
             notSync: 'Niet gesynchroniseerd',
+            syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             authenticationError: (providerName: string) => `Kan geen verbinding maken met ${providerName} vanwege een verlopen koppeling.`,
             reconnect: 'Opnieuw verbinden',
             reconnectLink: 'Opnieuw verbinden.',
-            findIntegration: 'Integratie zoeken',
-        },
-        merge: {
+            notSet: 'Niet ingesteld',
+            completeSetup: 'Configuratie voltooien',
+            approvalMode: 'Goedkeuringsmodus',
+            finalApprover: 'Eindgoedkeurder',
+            approvalModes: {
+                basic: 'Basisgoedkeuring',
+                manager: 'Managergoedkeuring',
+                custom: 'Aangepaste goedkeuring',
+                advanced: 'Geavanceerde goedkeuring',
+            },
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
@@ -9444,6 +9475,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
         },
+        mergeReports: {
+            title: 'Rapporten samenvoegen',
+            description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+        },
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',
@@ -10064,47 +10099,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden.';
+                        return 'Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd.';
                     }
                     return isMarkAsCash
-                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. Markeer als contant om te negeren, of <a href="${connectionLink}">verbind opnieuw</a> om de bon te koppelen.`
-                        : `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw geverifieerd moet worden. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
+                        ? `Kan bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. Markeer als contant om te negeren, of <a href="${connectionLink}">maak opnieuw verbinding</a> om de bon te koppelen.`
+                        : `Kan de bon niet automatisch koppelen omdat je bankverbinding opnieuw moet worden geverifieerd. <a href="${connectionLink}">Verbind opnieuw</a> om de bon te koppelen.`;
                 }
                 return isAdmin
-                    ? `Bankkoppeling moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding moet opnieuw worden geverifieerd. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling moet opnieuw worden geverifieerd. Vraag een beheerder om opnieuw te verbinden zodat het overeenkomt met de bon.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
+                    return 'Kan bon niet automatisch koppelen door een verbroken bankverbinding.';
                 }
                 return isMarkAsCash
-                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">repareer de kaart</a> om de bon te koppelen.`
-                    : `Kan bon automatisch koppelen aan bon vanwege verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
+                    ? `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">herstel de kaart</a> om de bon te koppelen.`
+                    : `Kan bon niet automatisch koppelen vanwege een verbroken kaartverbinding. <a href="${connectionLink}">Herstel de kaart</a> om de bon te koppelen.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Bankkoppeling verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
-                    : 'Bankkoppeling verbroken. Vraag een beheerder om de verbinding opnieuw te maken om de bon te laten overeenkomen.';
+                    ? `Bankverbinding verbroken. <a href="${companyCardPageURL}">Opnieuw verbinden om bon te koppelen</a>`
+                    : 'Bankkoppeling verbroken. Vraag een admin om opnieuw te verbinden om de bon te koppelen.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van koppeling met kaarttransactie.';
+                return isAdmin ? `Vraag ${member} om deze als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van samenvoeging met kaarttransactie.';
             }
             return '';
         },
         brokenConnection530Error: 'Bonnetje in behandeling vanwege verbroken bankverbinding',
+        brokenConnection531Error: 'Kan bon niet automatisch koppelen vanwege een tijdelijk bankprobleem. Probeer het later opnieuw.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',

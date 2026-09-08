@@ -1,7 +1,7 @@
 ---
 title: Track Expenses
 description: Learn how to create and manage expenses in New Expensify without submitting them for reimbursement or approval.
-keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable
+keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable, send to someone, submit tracked expense
 ---
 
 
@@ -86,6 +86,19 @@ If you belong to a workspace, you can also click into the expense to:
    - **Categorize** – Assign to a workspace category.
    - **Share with your accountant** – Give access to financial contacts.
    - **Move expense(s)** – Add the expense to an existing report or create a new report on the spot.
+
+---
+
+## How to use Send to someone for a tracked expense
+
+You can submit a tracked expense to someone directly from the expense, without waiting for the Concierge message. You don't need to belong to a workspace to do this.
+
+1. Go to **Spend > Expenses** and open the tracked expense.
+2. Select **More**.
+3. Select **Send to someone**.
+4. Choose a recipient, then follow the prompts to submit the expense to them.
+
+The **Send to someone** option appears only while the expense is still tracked. Once you submit it to a report or workspace, the option no longer appears.
 
 ---
 

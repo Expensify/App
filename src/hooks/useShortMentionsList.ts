@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -60,7 +60,7 @@ export default function useShortMentionsList() {
 
     // The selector output is compared by value, so consumers re-render only when the list changes.
     // The raw hook skips the search-snapshot redirect: this list must always read live data.
-    const [availableLoginsList = emptyLoginsList] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const [availableLoginsList = emptyLoginsList] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin),
     });
 

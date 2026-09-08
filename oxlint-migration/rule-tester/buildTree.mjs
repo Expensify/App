@@ -3,8 +3,8 @@ import {registerHooks} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
-import {RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../config/eslint/processors/eslint-processor-react-compiler-compat.mjs';
 import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
+import {RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../config/reactCompiler/suppressedRules.mjs';
 import {resolve} from './resolveHook.mjs';
 import {captured} from './ruleTesterStub.mjs';
 

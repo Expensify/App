@@ -2,7 +2,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../eslint/processors/eslint-processor-react-compiler-compat.mjs';
+import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
 import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 

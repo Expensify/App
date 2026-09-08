@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import tseslint from 'typescript-eslint';
 
-import reactCompilerCompat from '../../config/eslint/processors/eslint-processor-react-compiler-compat.mjs';
+import reactCompilerCompat from './eslint-processor-react-compiler-compat.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../..');
