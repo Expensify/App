@@ -28,6 +28,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-nati
 import type {BulkActionBarProps} from './types';
 
 import BulkActionBarButton from './BulkActionBarButton';
+import BulkActionBarMenuTheme from './BulkActionBarMenuTheme';
 import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
 
 /**
@@ -121,26 +122,28 @@ function BulkActionBarContent<TValueType>({
                         <Button.Icon src={isMoreMenuVisible ? icons.UpArrow : icons.DownArrow} />
                     </Button>
                     {!!moreMenuAnchorPosition && (
-                        <PopoverMenu
-                            isVisible={isMoreMenuVisible}
-                            anchorRef={moreAnchorRef}
-                            anchorPosition={moreMenuAnchorPosition}
-                            anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
-                            onClose={() => setIsMoreMenuVisible(false)}
-                            onItemSelected={(selectedItem, index, event) => {
-                                onSubItemSelected?.(selectedItem, index, event);
-                                if (selectedItem.shouldCloseModalOnSelect === false) {
-                                    return;
-                                }
-                                setIsMoreMenuVisible(false);
-                            }}
-                            shouldUseScrollView={moreOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                            menuItems={moreOptions.map((option) => ({
-                                ...option,
-                                shouldCallAfterModalHide: true,
-                                subMenuItems: option.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
-                            }))}
-                        />
+                        <BulkActionBarMenuTheme>
+                            <PopoverMenu
+                                isVisible={isMoreMenuVisible}
+                                anchorRef={moreAnchorRef}
+                                anchorPosition={moreMenuAnchorPosition}
+                                anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
+                                onClose={() => setIsMoreMenuVisible(false)}
+                                onItemSelected={(selectedItem, index, event) => {
+                                    onSubItemSelected?.(selectedItem, index, event);
+                                    if (selectedItem.shouldCloseModalOnSelect === false) {
+                                        return;
+                                    }
+                                    setIsMoreMenuVisible(false);
+                                }}
+                                shouldUseScrollView={moreOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                                menuItems={moreOptions.map((option) => ({
+                                    ...option,
+                                    shouldCallAfterModalHide: true,
+                                    subMenuItems: option.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
+                                }))}
+                            />
+                        </BulkActionBarMenuTheme>
                     )}
                 </>
             )}

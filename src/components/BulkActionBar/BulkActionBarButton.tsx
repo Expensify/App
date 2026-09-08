@@ -14,6 +14,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import type {BulkActionBarButtonProps} from './types';
 
+import BulkActionBarMenuTheme from './BulkActionBarMenuTheme';
 import {defaultPopoverAnchorPosition, SUB_MENU_ANCHOR_ALIGNMENT} from './popoverPosition';
 
 /**
@@ -67,22 +68,24 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                 {hasSubMenu && <Button.Icon src={isMenuVisible ? icons.UpArrow : icons.DownArrow} />}
             </Button>
             {hasSubMenu && !!anchorPosition && (
-                <PopoverMenu
-                    isVisible={isMenuVisible}
-                    anchorRef={anchorRef}
-                    anchorPosition={anchorPosition}
-                    anchorAlignment={SUB_MENU_ANCHOR_ALIGNMENT}
-                    menuItems={subMenuItems.map((subItem) => ({...subItem, shouldCallAfterModalHide: true}))}
-                    onClose={() => setIsMenuVisible(false)}
-                    onItemSelected={(selectedSubItem, index, event) => {
-                        onSubItemSelected?.(selectedSubItem, index, event);
-                        if (selectedSubItem.shouldCloseModalOnSelect === false) {
-                            return;
-                        }
-                        setIsMenuVisible(false);
-                    }}
-                    shouldUseScrollView={subMenuItems.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                />
+                <BulkActionBarMenuTheme>
+                    <PopoverMenu
+                        isVisible={isMenuVisible}
+                        anchorRef={anchorRef}
+                        anchorPosition={anchorPosition}
+                        anchorAlignment={SUB_MENU_ANCHOR_ALIGNMENT}
+                        menuItems={subMenuItems.map((subItem) => ({...subItem, shouldCallAfterModalHide: true}))}
+                        onClose={() => setIsMenuVisible(false)}
+                        onItemSelected={(selectedSubItem, index, event) => {
+                            onSubItemSelected?.(selectedSubItem, index, event);
+                            if (selectedSubItem.shouldCloseModalOnSelect === false) {
+                                return;
+                            }
+                            setIsMenuVisible(false);
+                        }}
+                        shouldUseScrollView={subMenuItems.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                    />
+                </BulkActionBarMenuTheme>
             )}
         </>
     );
