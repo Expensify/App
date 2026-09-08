@@ -16,6 +16,7 @@ import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/Cur
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -41,12 +42,11 @@ function RulesItemizedReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
-    const defaultValue =
-        policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoItemizedReceipt
-            ? ''
-            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency));
+    const defaultValue = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt)
+        ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency))
+        : '';
 
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM>,
@@ -56,12 +56,12 @@ function RulesItemizedReceiptRequiredAmountPage({
 
         if (maxExpenseAmountNoItemizedReceipt) {
             const maxExpenseAmountNoItemizedReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
-            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt ?? 0;
+            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
 
             // Check if itemized receipt amount is lower than regular receipt amount
-            if (maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
+            if (isMaxExpenseAmountSet(maxExpenseAmountNoReceipt) && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
                 errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency)),
+                    amount: convertToDisplayString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
                 });
             }
         }
