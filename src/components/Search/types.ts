@@ -469,7 +469,6 @@ type SearchChartProps = {
     /** Callback when a chart item is pressed - receives the filter query to apply */
     onItemPress?: (filterQuery: string) => void;
 
-    /** Whether data is loading */
     isLoading?: boolean;
 
     /** Currency unit with font fallback support */

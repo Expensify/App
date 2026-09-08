@@ -93,7 +93,6 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
 type MoneyRequestReportListProps = {
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
