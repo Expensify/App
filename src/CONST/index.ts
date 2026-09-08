@@ -2037,11 +2037,13 @@ const CONST = {
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
             MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
+            RECONCILIATION_ALL_EXPENSES: 'reconciliation_all_expenses',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
             MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
+            RECONCILIATION_ALL_EXPENSES: 'Reconciliation - All Expenses',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -6880,6 +6882,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
+
+    // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {

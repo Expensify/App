@@ -1663,11 +1663,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
-        confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Diese Ausgabe ist zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-            other: 'Diese Ausgaben sind zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-        }),
+        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
@@ -3343,6 +3340,7 @@ ${amount} für ${merchant} – ${date}`,
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -9636,6 +9634,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exportiert nach ${translatedLabel}`;
@@ -10878,6 +10877,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         multipleTaxExport: 'Kanadischer Export mit mehreren Steuern',
+        reconciliationAllExpenses: 'Abstimmung - Alle Ausgaben',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
