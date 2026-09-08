@@ -285,6 +285,10 @@ type DoesClientNeedToBeUpdatedParams = {
     updateType?: AnyOnyxUpdatesFromServer['type'];
 };
 
+function isSerializedBehindPusherApply(updateType?: AnyOnyxUpdatesFromServer['type']): boolean {
+    return updateType === CONST.ONYX_UPDATE_TYPES.PUSHER;
+}
+
 /**
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
@@ -298,10 +302,11 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, update
         return false;
     }
 
+    // QueuedOnyxUpdates defers the Onyx write for WRITE requests, so their own responses arrive before the watermark moves.
     const lastUpdateIDFromClient = Math.max(
         clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0,
         lastUpdateIDPendingFlush,
-        updateType === CONST.ONYX_UPDATE_TYPES.PUSHER ? lastUpdateIDPendingApply : 0,
+        isSerializedBehindPusherApply(updateType) ? lastUpdateIDPendingApply : 0,
     );
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
