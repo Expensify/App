@@ -603,7 +603,7 @@ function getAccountingIntegrationData(
                     cardList ?? {},
                     CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
                 ),
-                onAdvancedPagePress: () => null,
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD,
                     CONST.CAMPFIRE_CONFIG.AUTO_SYNC,

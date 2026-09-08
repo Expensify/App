@@ -4811,6 +4811,30 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-invoicing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-invoicing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-invoicing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-invoicing-payable-account` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
