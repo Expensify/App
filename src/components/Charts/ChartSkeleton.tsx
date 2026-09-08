@@ -50,8 +50,7 @@ function renderLineShape(width: number) {
     const step = width / (LINE_POINT_RATIOS.length - 1);
     const points = LINE_POINT_RATIOS.map((ratio, index) => ({x: index * step, y: CHART_CONTENT_MIN_HEIGHT * ratio}));
 
-    // A stroked polyline would be dropped by the shimmer clip path, which reads fill geometry only, so the
-    // line is drawn as a filled band.
+    // A stroked polyline would be dropped by the shimmer clip path, which reads fill geometry only.
     const topEdge = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ');
     const bottomEdge = points
         .slice()
@@ -91,11 +90,6 @@ type ChartSkeletonProps = {
     view: ChartView;
 };
 
-/**
- * Every shape draws into a box of the shared chart content height, so the three agree with the chart's own
- * content box and with the card Home draws before the chart mounts. A per-type height would resize that card
- * according to which type won.
- */
 function ChartSkeleton({view}: ChartSkeletonProps) {
     const theme = useTheme();
     const {onLayout, containerWidth} = useContainerWidth();

@@ -1,5 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
@@ -7,7 +6,6 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {lineHeightScale} from '@styles/typography';
@@ -29,13 +27,10 @@ const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
 const LOWER_BAR_WIDTH = 80;
 
-// The chart this stands in for draws its own loading skeleton at exactly this height.
-const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 
 const CARD_TEST_ID = 'homePageSkeletonCard';
-const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
 
 // Two widths alternating down the card, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
@@ -107,6 +102,32 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
     );
 }
 
+type HomePageSkeletonCardShellProps = {
+    /** What the card draws inside its container */
+    children: React.ReactNode;
+};
+
+function HomePageSkeletonCardShell({children}: HomePageSkeletonCardShellProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    return (
+        <View testID={CARD_TEST_ID}>
+            <WidgetContainer
+                titleContent={
+                    <SkeletonTextLine
+                        lineHeight={TITLE_LINE_HEIGHT}
+                        barWidth={CARD_TITLE_WIDTH}
+                    />
+                }
+                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
+            >
+                {children}
+            </WidgetContainer>
+        </View>
+    );
+}
+
 type HomePageSkeletonCardProps = {
     numRows: number;
 
@@ -119,64 +140,33 @@ type HomePageSkeletonCardProps = {
 
 function HomePageSkeletonCard({numRows, renderRow, shouldShowSeparators = false}: HomePageSkeletonCardProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {onLayout, containerWidth} = useContainerWidth();
     const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
     const textLineGap = styles.gap1.gap;
 
     return (
-        <View testID={CARD_TEST_ID}>
-            <WidgetContainer
-                titleContent={
-                    <SkeletonTextLine
-                        lineHeight={TITLE_LINE_HEIGHT}
-                        barWidth={CARD_TITLE_WIDTH}
-                    />
-                }
-                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
-            >
-                <ItemListSkeletonView
-                    shouldAnimate
-                    fixedNumItems={numRows}
-                    itemViewHeight={rowHeight}
-                    // The default `mr5` on each row would shrink the SVG below the card width and pull the
-                    // right-aligned bars inward.
-                    itemViewStyle={styles.mr0}
-                    itemContainerStyle={shouldShowSeparators ? styles.borderBottom : undefined}
-                    renderSkeletonItem={({itemIndex}) => renderRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
-                    onLayout={onLayout}
-                />
-            </WidgetContainer>
-        </View>
+        <HomePageSkeletonCardShell>
+            <ItemListSkeletonView
+                shouldAnimate
+                fixedNumItems={numRows}
+                itemViewHeight={rowHeight}
+                // The default `mr5` on each row would shrink the SVG below the card width and pull the
+                // right-aligned bars inward.
+                itemViewStyle={styles.mr0}
+                itemContainerStyle={shouldShowSeparators ? styles.borderBottom : undefined}
+                renderSkeletonItem={({itemIndex}) => renderRow({itemIndex, width: containerWidth, horizontalPadding, rowHeight, iconTextGap, textLineGap})}
+                onLayout={onLayout}
+            />
+        </HomePageSkeletonCardShell>
     );
 }
 
-// The card this stands in for has no bar-representable rows, so a shimmer stand-in would invent a row
-// structure the real card does not have.
-function HomePageSkeletonSpinnerCard() {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
+// The line shape is drawn because the default Home insight is a line chart.
+function HomePageSkeletonChartCard() {
     return (
-        <View testID={CARD_TEST_ID}>
-            <WidgetContainer
-                titleContent={
-                    <SkeletonTextLine
-                        lineHeight={TITLE_LINE_HEIGHT}
-                        barWidth={CARD_TITLE_WIDTH}
-                    />
-                }
-                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
-            >
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getHeight(SPINNER_CARD_HEIGHT)]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        testID={SPINNER_TEST_ID}
-                    />
-                </View>
-            </WidgetContainer>
-        </View>
+        <HomePageSkeletonCardShell>
+            <ChartSkeleton view={CONST.SEARCH.VIEW.LINE} />
+        </HomePageSkeletonCardShell>
     );
 }
 
@@ -196,4 +186,4 @@ function HomePageSkeletonRowCards() {
     );
 }
 
-export {HomePageSkeletonSpinnerCard, HomePageSkeletonRowCards, CARD_TEST_ID, SPINNER_TEST_ID};
+export {HomePageSkeletonChartCard, HomePageSkeletonRowCards, CARD_TEST_ID};

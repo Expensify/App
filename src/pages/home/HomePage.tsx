@@ -25,7 +25,7 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
-import {HomePageSkeletonRowCards, HomePageSkeletonSpinnerCard} from './HomePageSkeleton';
+import {HomePageSkeletonChartCard, HomePageSkeletonRowCards} from './HomePageSkeleton';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
@@ -70,7 +70,7 @@ function HomePage() {
             {forYouSection}
             {shouldShowHomeSkeleton ? (
                 <>
-                    <HomePageSkeletonSpinnerCard />
+                    <HomePageSkeletonChartCard />
                     <HomePageSkeletonRowCards />
                 </>
             ) : (
@@ -92,7 +92,7 @@ function HomePage() {
             >
                 {forYouSection}
                 {shouldShowHomeSkeleton ? (
-                    <HomePageSkeletonSpinnerCard />
+                    <HomePageSkeletonChartCard />
                 ) : (
                     <>
                         <GettingStartedSection />

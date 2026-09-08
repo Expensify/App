@@ -10,8 +10,7 @@ import React from 'react';
 const CONTAINER_WIDTH = 320;
 const NARROW_CONTAINER_WIDTH = 60;
 
-// The shapes size off the measured container, which never lays out under the test renderer, so without this
-// every shape would draw at zero width and the assertions would pass on an empty box.
+// The shapes size off the measured container, which never lays out under the test renderer, so without this every shape would draw at zero width.
 function renderAtContainerWidth(view: ChartView, width = CONTAINER_WIDTH) {
     render(<ChartSkeleton view={view} />);
     fireEvent(screen.getByTestId(CHART_SKELETON_TEST_ID), 'layout', {nativeEvent: {layout: {width, height: 0}}});

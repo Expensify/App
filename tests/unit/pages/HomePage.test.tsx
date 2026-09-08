@@ -92,19 +92,19 @@ jest.mock('@libs/NetworkState', () => ({
 
 // Deliberately not `mockSection(...)`: that helper emits a `section-` testID, which `renderedSectionOrder`
 // matches, so a skeleton group would count as a rendered section.
-const mockSpinnerCardTestID = 'homePageSkeletonSpinnerCard';
+const mockChartCardTestID = 'homePageSkeletonChartCard';
 const mockRowCardsTestID = 'homePageSkeletonRowCards';
 
 jest.mock('@pages/home/HomePageSkeleton', () => {
     const ReactModule = require('react');
     const {View: RNView} = require('react-native');
-    function MockHomePageSkeletonSpinnerCard() {
-        return ReactModule.createElement(RNView, {testID: mockSpinnerCardTestID});
+    function MockHomePageSkeletonChartCard() {
+        return ReactModule.createElement(RNView, {testID: mockChartCardTestID});
     }
     function MockHomePageSkeletonRowCards() {
         return ReactModule.createElement(RNView, {testID: mockRowCardsTestID});
     }
-    return {HomePageSkeletonSpinnerCard: MockHomePageSkeletonSpinnerCard, HomePageSkeletonRowCards: MockHomePageSkeletonRowCards};
+    return {HomePageSkeletonChartCard: MockHomePageSkeletonChartCard, HomePageSkeletonRowCards: MockHomePageSkeletonRowCards};
 });
 
 // Each section is mocked to render a stable `section-<Name>` testID so we can assert ordering and column placement.
@@ -547,7 +547,7 @@ describe('HomePage', () => {
             const leftOrder = within(leftColumn)
                 .getAllByTestId(/^(section-|homePageSkeleton)/)
                 .map((el) => String(el.props.testID));
-            expect(leftOrder).toEqual(['section-ForYouSection', mockSpinnerCardTestID]);
+            expect(leftOrder).toEqual(['section-ForYouSection', mockChartCardTestID]);
 
             expect(within(rightColumn).getByTestId(mockRowCardsTestID)).toBeOnTheScreen();
             expect(renderedSectionOrder()).toEqual(['section-ForYouSection']);
