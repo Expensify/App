@@ -20,11 +20,11 @@ import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -75,7 +75,12 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !canWriteApprovals || isPendingDeletePolicy(policy) || isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isAnyHRReadOnlyWorkflowMode(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
@@ -99,7 +104,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             // screen carries extra seed params, so a strict param match misses it and REPLACE mounts
             // a fresh edit screen that re-derives the workflow from the policy — wiping the unsaved
             // draft (the seeded agent and any in-progress edits). POP_TO returns to the live screen.
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover), {compareParams: false});
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
             return;
         }
         // Mark that we've completed the initial wizard flow before navigating to the summary page
