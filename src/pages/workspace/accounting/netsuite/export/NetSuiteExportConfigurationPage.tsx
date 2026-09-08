@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemBrickRoadIndicator from '@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -251,13 +252,15 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                     key={item.description}
                                     pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
-                                    <MenuItemWithTopDescription
-                                        title={item.title}
-                                        description={item.description}
-                                        shouldShowRightIcon
+                                    <MenuItemField
+                                        name={item.description ?? ''}
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
+                                        value={item.title}
+                                    >
+                                        {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && (
+                                            <MenuItemBrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                        )}
+                                    </MenuItemField>
                                 </OfflineWithFeedback>
                             );
                     }

@@ -2,7 +2,8 @@ import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -100,17 +101,15 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 key={userDimension.dimension}
                                 pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
-                                <MenuItemWithTopDescription
-                                    title={userDimension.dimension}
-                                    description={translate('workspace.intacct.userDefinedDimension')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={
-                                        areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields)
-                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                            : undefined
-                                    }
-                                />
+                                    value={userDimension.dimension}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                </MenuItemField>
                             </OfflineWithFeedback>
                         ))}
                     </ScrollView>

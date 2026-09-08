@@ -1,5 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -122,15 +124,15 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 isToggleTriggered={shouldAnimateSyncReimbursedReportsAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={billPaymentAccount ? `${billPaymentAccount?.code} ${billPaymentAccount?.name}` : undefined}
-                        description={translate('workspace.rillet.billPaymentAccount.label')}
+                    <MenuItemField
+                        name={translate('workspace.rillet.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                        shouldShowRightIcon
-                        brickRoadIndicator={
-                            areSettingsInErrorFields([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
-                    />
+                        value={billPaymentAccount ? `${billPaymentAccount?.code} ${billPaymentAccount?.name}` : undefined}
+                    >
+                        {areSettingsInErrorFields([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             </Accordion>
             {isExpensifyCardsEnabled && (
@@ -152,17 +154,15 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         isToggleTriggered={shouldAnimateSyncExpensifyCardSettlementsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
-                            <MenuItemWithTopDescription
-                                title={settlementsBankAccount ? `${settlementsBankAccount?.accountCode} ${settlementsBankAccount?.name}` : undefined}
-                                description={translate('workspace.rillet.settlementAccount.label')}
+                            <MenuItemField
+                                name={translate('workspace.rillet.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areSettingsInErrorFields([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields)
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                            />
+                                value={settlementsBankAccount ? `${settlementsBankAccount?.accountCode} ${settlementsBankAccount?.name}` : undefined}
+                            >
+                                {areSettingsInErrorFields([CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     </Accordion>
                 </>
@@ -186,17 +186,15 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         isToggleTriggered={shouldAnimateSyncTravelBillingSettlementsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
-                            <MenuItemWithTopDescription
-                                title={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.accountCode} ${travelBillingSettlementsBankAccount?.name}` : undefined}
-                                description={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
+                            <MenuItemField
+                                name={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areSettingsInErrorFields([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields)
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                            />
+                                value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.accountCode} ${travelBillingSettlementsBankAccount?.name}` : undefined}
+                            >
+                                {areSettingsInErrorFields([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     </Accordion>
                 </>

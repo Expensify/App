@@ -2,7 +2,8 @@ import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -136,13 +137,13 @@ function NetSuiteImportCustomFieldPage({
                     key={`${record.internalID}-${index}`}
                     pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
-                        shouldShowRightIcon
-                        title={'listName' in record ? record.listName : record.segmentName}
+                    <MenuItemField
+                        name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
-                        brickRoadIndicator={areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={'listName' in record ? record.listName : record.segmentName}
+                    >
+                        {areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
 
