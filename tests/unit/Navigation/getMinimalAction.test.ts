@@ -291,13 +291,16 @@ describe.each([
 
     it('reuses the split for the same scope', () => {
         const state = buildState();
-        expect(getMinimalAction(matchingAction(), state).action).toMatchObject({type: 'NAVIGATE', target: getSplitRoute(state).state?.key});
+        const result = getMinimalAction(matchingAction(), state);
+        expect(result.action).toMatchObject({type: 'NAVIGATE', target: getSplitRoute(state).state?.key});
+        expect(result.scopedSplitPayload).toBeUndefined();
     });
 
     it('pushes a separate split for a different scope and matches central-only history', () => {
         const state = buildState();
         const result = getMinimalAction(differentAction(), state);
         expect(result.action).toMatchObject({type: 'PUSH', target: 'workspace-state'});
+        expect(result.scopedSplitPayload).toBe(result.action.payload);
         expect(hasMatchingSplitScope(getSplitRoute(state), result.action.payload)).toBe(false);
         const split = getSplitRoute(state);
         const action = matchingAction();
@@ -309,7 +312,15 @@ describe.each([
     });
 
     it('preserves explicit replacement across scopes', () => {
-        expect(getMinimalAction({...differentAction(), type: 'REPLACE'}, buildState()).action).toMatchObject({type: 'REPLACE', target: 'workspace-state'});
+        const result = getMinimalAction({...differentAction(), type: 'REPLACE'}, buildState());
+        expect(result.action).toMatchObject({type: 'REPLACE', target: 'workspace-state'});
+        expect(result.scopedSplitPayload).toBeUndefined();
+    });
+
+    it('does not classify an existing same-scope PUSH as a scope change', () => {
+        const result = getMinimalAction({...matchingAction(), type: 'PUSH'}, buildState());
+        expect(result.action.type).toBe('PUSH');
+        expect(result.scopedSplitPayload).toBeUndefined();
     });
 
     it('uses the focused central route rather than a stale historical route', () => {

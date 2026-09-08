@@ -491,17 +491,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return false;
     }
 
-    const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
-    const minimalActionPayload = minimalAction.payload;
-    const isScopedSplitPush =
-        minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.PUSH &&
-        !!minimalActionPayload &&
-        typeof minimalActionPayload === 'object' &&
-        'name' in minimalActionPayload &&
-        typeof minimalActionPayload.name === 'string' &&
-        isSplitNavigatorName(minimalActionPayload.name);
+    const {action: minimalAction, targetState, scopedSplitPayload} = getMinimalAction(action, rootState);
 
-    if ((minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !isScopedSplitPush) || !targetState) {
+    if ((minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && !scopedSplitPayload) || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
         return false;
     }
@@ -541,7 +533,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) =>
-        isScopedSplitPush ? hasMatchingSplitScope(route, minimalActionPayload) : doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams),
+        scopedSplitPayload ? hasMatchingSplitScope(route, scopedSplitPayload) : doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams),
     );
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
@@ -552,9 +544,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return true;
     }
 
-    if (isScopedSplitPush) {
+    if (scopedSplitPayload) {
         const matchingSplitState = targetState.routes.at(indexOfBackToRoute)?.state;
-        const nestedTarget = getNestedActionTarget(minimalActionPayload);
+        const nestedTarget = getNestedActionTarget(scopedSplitPayload);
         if (!matchingSplitState?.key || !nestedTarget) {
             Log.hmmm('[Navigation] Unable to go up. Scoped split target is missing nested state.');
             return false;
@@ -570,29 +562,25 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
             target: matchingSplitState.key,
         };
         const indexOfNestedBackToRoute = matchingSplitState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, nestedAction, compareParams));
-        const nestedDistanceToPop = matchingSplitState.routes.length - indexOfNestedBackToRoute - 1;
+        if (distanceToPop > 0) {
+            dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
+        }
 
-        dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
-
-        const splitNavigatorName = minimalActionPayload.name;
+        const splitNavigatorName = scopedSplitPayload.name;
         const sidebarScreen = typeof splitNavigatorName === 'string' && isSplitNavigatorName(splitNavigatorName) ? SPLIT_TO_SIDEBAR[splitNavigatorName] : undefined;
         const focusedRouteInSplit = matchingSplitState.routes.at(matchingSplitState.index ?? -1);
         // Keep the sidebar in history when the restored split has no central screen to replace.
         if (indexOfNestedBackToRoute === -1 && nestedTarget.screen !== sidebarScreen && focusedRouteInSplit?.name === sidebarScreen) {
             dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH});
-            return true;
-        }
-
-        if (!compareParams) {
+        } else if (!compareParams) {
             dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
-            return true;
-        }
-        if (indexOfNestedBackToRoute === -1) {
+        } else if (indexOfNestedBackToRoute === -1) {
             dispatch({...nestedAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
-            return true;
-        }
-        if (nestedDistanceToPop > 0) {
-            dispatch({...StackActions.pop(nestedDistanceToPop), target: matchingSplitState.key});
+        } else {
+            const nestedDistanceToPop = matchingSplitState.routes.length - indexOfNestedBackToRoute - 1;
+            if (nestedDistanceToPop > 0) {
+                dispatch({...StackActions.pop(nestedDistanceToPop), target: matchingSplitState.key});
+            }
         }
         return true;
     }

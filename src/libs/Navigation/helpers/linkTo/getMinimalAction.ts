@@ -15,6 +15,8 @@ import type {ActionPayload} from './types';
 type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
+    /** Present only when scope minimization produces a PUSH; goUp uses it to restore matching split history. */
+    scopedSplitPayload?: ActionPayload & {name: string};
 };
 
 function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
@@ -91,6 +93,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     let currentAction: NavigationAction = action;
     let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
+    let scopedSplitPayload: MinimalAction['scopedSplitPayload'];
 
     while (isNamedActionPayload(currentAction.payload) && currentState) {
         const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
@@ -103,6 +106,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         if (!currentRoute.state || isDifferentSplitScope) {
             if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
                 currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
+                scopedSplitPayload = payload;
             }
             break;
         }
@@ -121,7 +125,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
             target: currentTargetKey,
         };
     }
-    return {action: currentAction, targetState: currentState};
+    return {action: currentAction, targetState: currentState, scopedSplitPayload};
 }
 
 export {hasMatchingSplitScope};
