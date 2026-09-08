@@ -322,6 +322,20 @@ describe('Avatar', () => {
             expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
         });
 
+        it('WorkspaceAvatar renders the default workspace icon when the policy ID is unavailable', async () => {
+            const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
+
+            render(
+                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+                    <WorkspaceAvatar name={WORKSPACE_NAME} />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdates();
+
+            expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
+
         it('assigns different workspace avatar colors for distinct hex policy IDs', () => {
             const naNColor = getDefaultWorkspaceAvatarColor('NaN');
             const hexPolicyColor = getDefaultWorkspaceAvatarColor(HEX_POLICY_ID_STARTING_WITH_LETTER);
