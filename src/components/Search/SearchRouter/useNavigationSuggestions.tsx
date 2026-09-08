@@ -138,6 +138,9 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether the Vendor Matching beta is enabled for the current user. */
     isVendorMatchingBetaEnabled: boolean;
 
+    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
+    isRecruitingBetaEnabled: boolean;
+
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
 
@@ -275,6 +278,7 @@ function buildWorkspaceNavigationItems({
     isOffline,
     isRulesRevampBetaEnabled,
     isVendorMatchingBetaEnabled,
+    isRecruitingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -294,6 +298,7 @@ function buildWorkspaceNavigationItems({
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isRulesRevampBetaEnabled,
                 isVendorMatchingBetaEnabled,
+                isRecruitingBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -422,6 +427,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         isOffline: !!isOffline,
         isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),
