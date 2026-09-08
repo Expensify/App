@@ -8,10 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
-    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getMoneyRequestSpendBreakdown,
-    getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
@@ -20,7 +17,6 @@ import {
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -51,6 +47,7 @@ import {
     ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
+import resolvePressOrigin from './resolvePressOrigin';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewActionDecision from './useReportPreviewActionDecision';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
@@ -62,7 +59,9 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     iouReport: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    allReportTransactions: Transaction[];
+    transactionsWithReceipts: Transaction[];
+    hasNonReimbursableTransactions: boolean;
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
@@ -70,6 +69,8 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+    onCancelPendingPress?: () => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -88,7 +89,9 @@ function MoneyRequestReportPreviewProvider({
     iouReport,
     chatReport,
     transactions,
-    allReportTransactions,
+    transactionsWithReceipts,
+    hasNonReimbursableTransactions,
+    areAllRequestsBeingSmartScanned,
     policy,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
@@ -96,6 +99,8 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     renderTransactionItem,
+    onOrderedTransactionsChange,
+    onCancelPendingPress,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
@@ -143,18 +148,6 @@ function MoneyRequestReportPreviewProvider({
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
     // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
     const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent',
-        hasOnceLoadedReportActions: chatReportLoadingState?.hasOnceLoadedReportActions,
-        isTransactionsEmpty: transactions.length === 0,
-        isOptimisticReport: isOptimisticChatReport,
-    };
-    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportPreviewContent.Carousel',
-        hasCurrentWidth: !!currentWidth,
-        shouldShowLoading,
-        shouldShowLoadingDeferred,
-    };
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation, startSubmittingAnimation} =
@@ -174,14 +167,7 @@ function MoneyRequestReportPreviewProvider({
     const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const numberOfRequests = transactions?.length ?? 0;
-    // Pass the reactive `allReportTransactions` list (the full set, matching `getReportTransactions`) into these
-    // ReportUtils helpers rather than letting them read from Onyx by ID. This keeps the derivation logic in one place,
-    // preserves the pre-decomposition behavior (including optimistically-deleted rows), and lets React Compiler
-    // recompute these values when the report's transactions change.
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReportID, allReportTransactions);
-    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
 
@@ -221,12 +207,23 @@ function MoneyRequestReportPreviewProvider({
         currentWidth,
         newTransactionIDs,
         renderTransactionItem,
+        onOrderedTransactionsChange,
     });
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID) {
             return;
         }
+        const routeAtPress = Navigation.getActiveRoute();
+        onCancelPendingPress?.();
+
+        // "View" pressed inside the cascade window lands on a report a card press already opened, so there is
+        // nothing left to push; pushing it again would nest the report under itself.
+        const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, isSmallScreenWidth ? `r/${iouReportID}` : `e/${iouReportID}`);
+        if (wasPressedFromReport) {
+            return;
+        }
+
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -234,16 +231,11 @@ function MoneyRequestReportPreviewProvider({
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo));
         } else {
-            Navigation.navigate(
-                ROUTES.EXPENSE_REPORT_RHP.getRoute({
-                    reportID: iouReportID,
-                    backTo: Navigation.getActiveRoute(),
-                }),
-            );
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth]);
+    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
 
     const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
         if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
@@ -294,8 +286,6 @@ function MoneyRequestReportPreviewProvider({
         shouldShowCarouselArrows,
         isScanning,
         previewCarouselMinWidth,
-        skeletonReasonAttributes,
-        carouselReasonAttributes,
         previewMessageStyle,
         reportPreviewStyles,
         buttonMaxWidth,

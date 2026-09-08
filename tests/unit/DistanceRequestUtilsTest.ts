@@ -1,6 +1,9 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 import CONST from '@src/CONST';
+import en from '@src/languages/en';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -31,7 +34,6 @@ const FAKE_POLICY: Policy = {
     type: 'corporate',
     owner: 'work.sa1206+travel@gmail.com',
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
             ...distanceCustomUnitBase,
@@ -370,13 +372,192 @@ describe('DistanceRequestUtils', () => {
 
     describe('getDistanceForDisplay', () => {
         it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, false);
             expect(result).toBe('');
         });
 
         it('formats zero distance when isManualDistanceRequest is true', () => {
-            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, translateLocal, false, true);
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+
+        it('formats zero reimbursable commuter distance', () => {
+            const commuterExclusionData = {
+                commuterExclusion: 1,
+                reimbursableDistance: 0,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            };
+
+            const result = DistanceRequestUtils.getDistanceForDisplay(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                translateLocal,
+                false,
+                false,
+                commuterExclusionData,
+            );
+
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getDistanceDisplayDetailsWithCommuter', () => {
+        it.each([
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 1.00 commuter mile'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 'Removed 2.00 commuter miles'],
+            [1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 1.00 commuter kilometer'],
+            [2, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 'Removed 2.00 commuter kilometers'],
+        ])('localizes a commuter exclusion of %s %s', (commuterExclusion, unit, expected) => {
+            const translation = en.distance.commuterExclusion.removedCommuterDistance[unit]({distance: commuterExclusion.toFixed(2)});
+
+            expect(commuterExclusion === 1 ? translation.one : translation.other).toBe(expected);
+        });
+
+        it('passes commuter distance semantics to localization', () => {
+            const translateMock = jest.fn();
+            const translate: LocaleContextProps['translate'] = (path, ...parameters) => {
+                translateMock(path, ...parameters);
+                return translateLocal(path, ...parameters);
+            };
+
+            DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(
+                {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                translate,
+            );
+
+            expect(translateMock).toHaveBeenCalledWith('distance.commuterExclusion.removedCommuterDistance.mi', {
+                distance: '1.00',
+                count: 1,
+            });
+        });
+    });
+
+    describe('getCommuterExclusionDisplayData', () => {
+        it('returns stored commuter display data from custom unit', () => {
+            const result = DistanceRequestUtils.getCommuterExclusionDisplayData(
+                {
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            expect(result).toEqual({
+                commuterExclusion: 1,
+                reimbursableDistance: 3,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+        });
+    });
+
+    describe('getTransactionCommuterExclusionData', () => {
+        const policyWithCommuterExclusion: Policy = {
+            ...FAKE_POLICY,
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 1,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        };
+        const policyWithZeroCommuterExclusion: Policy = {
+            ...policyWithCommuterExclusion,
+            commuterExclusions: {
+                method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                fixedDistance: 0,
+                fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            },
+        };
+        const distanceTransaction = {
+            ...createRandomTransaction(1),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                customUnit: {
+                    customUnitRateID: '222AAF6B93BCB',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 4,
+                },
+            },
+        } as Transaction;
+
+        it('uses the policy commuter exclusion when no stored custom unit exists', () => {
+            const getCurrencySymbolMock = (currency: string): string | undefined => (currency === CONST.CURRENCY.USD ? '$' : undefined);
+            const toLocaleDigitMock = (digit: string) => digit;
+            const transaction = {
+                ...createRandomTransaction(1),
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: '222AAF6B93BCB',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        routeDistanceMeters: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                    },
+                },
+            } as Transaction;
+            const policy = {
+                ...FAKE_POLICY,
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy,
+                storedCustomUnit: undefined,
+                translate: translateLocal,
+                toLocaleDigit: toLocaleDigitMock,
+                getCurrencySymbol: getCurrencySymbolMock,
+            });
+
+            expect(result?.modifiedAmount).toBe(201);
+            expect(result?.modifiedMerchant).toBe('3.00 mi @ $0.67 / mi');
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
+        });
+
+        it('uses the transaction route when the custom unit has no distance', () => {
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                comment: {customUnit: {...distanceTransaction.comment?.customUnit, quantity: undefined}},
+                routes: {
+                    route0: {
+                        distance: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                        geometry: {coordinates: [], type: 'LineString'},
+                    },
+                },
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithCommuterExclusion,
+            });
+
+            expect(result?.modifiedAmount).toBe(201);
+            expect(result?.customUnit.quantity).toBe(4);
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
+        });
+
+        it.each([
+            ['manual distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, policyWithCommuterExclusion],
+            ['odometer distance requests', {...distanceTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, policyWithCommuterExclusion],
+            ['missing route distance', {...distanceTransaction, comment: {customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}}}, policyWithCommuterExclusion],
+            ['missing commuter exclusion settings', distanceTransaction, FAKE_POLICY],
+            ['zero commuter exclusion distance', distanceTransaction, policyWithZeroCommuterExclusion],
+            ['zero route distance', {...distanceTransaction, comment: {customUnit: {...distanceTransaction.comment?.customUnit, quantity: 0}}}, policyWithCommuterExclusion],
+        ])('returns no commuter data for %s', (_caseName, transaction, policy) => {
+            expect(DistanceRequestUtils.getTransactionCommuterExclusionData({transaction, policy})).toBeUndefined();
         });
     });
 
@@ -469,6 +650,27 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
+    describe('getRateByCustomUnitRateIDAcrossPolicies', () => {
+        const customUnitRateID = '222AAF6B93BCB';
+
+        it('returns the rate from the supplied policy', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID, policy: FAKE_POLICY});
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
+        });
+
+        it('falls back to the policy that owns the enabled rate', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({
+                customUnitRateID,
+                policies: {[FAKE_POLICY.id]: FAKE_POLICY},
+            });
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
+        });
+    });
+
     describe('getDistanceMerchant', () => {
         const toLocaleDigitMock = (dot: string): string => dot;
         const getCurrencySymbolMock = (currency: string): string | undefined => {
@@ -490,6 +692,43 @@ describe('DistanceRequestUtils', () => {
                 getCurrencySymbolMock,
                 true,
             );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+
+        it('formats distance merchants with a currency amount', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(3.49, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+
+            expect(result).toBe('3.49 mi @ $0.67 / mi');
+        });
+
+        it('formats zero reimbursable commuter distance', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                DistanceRequestUtils.convertToDistanceInMeters(1, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                false,
+                {
+                    commuterExclusion: 1,
+                    reimbursableDistance: 0,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            );
+
             expect(result).toBe('0.00 mi @ $0.67 / mi');
         });
     });

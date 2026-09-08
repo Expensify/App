@@ -1,6 +1,9 @@
-import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldImportedFromIntegration, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
 
+import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
+
+import createMock from '../utils/createMock';
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
     it('returns true for recognized formula tokens', () => {
@@ -85,8 +88,8 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
 
 describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     const fieldList: Record<string, PolicyReportField> = {
-        field1: {name: 'Field1', type: 'text'} as PolicyReportField,
-        field2: {name: 'Field2', type: 'date'} as PolicyReportField,
+        field1: createMock<PolicyReportField>({name: 'Field1', type: 'text'}),
+        field2: createMock<PolicyReportField>({name: 'Field2', type: 'date'}),
     };
 
     it('should return false when field name does not exist', () => {
@@ -100,5 +103,30 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     it('should return true when field name exists with different case', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
+    });
+});
+
+describe('WorkspaceReportFieldUtils.isReportFieldImportedFromIntegration', () => {
+    const reportFieldWithOrigin = (origin: string | undefined) => createMock<PolicyReportField>({name: 'Field', type: 'text', origin});
+
+    it('should return true for every origin an accounting integration stamps', () => {
+        for (const origin of Object.values(CONST.POLICY.CONNECTIONS.REPORT_FIELD_ORIGIN)) {
+            expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(origin))).toBe(true);
+        }
+    });
+
+    it('should return false for a connection name that is not the stamped origin', () => {
+        // The backend stamps `qbo`/`qbd`/`dualentry`, not the connection names, so these must not match.
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(CONST.POLICY.CONNECTIONS.NAME.QBO))).toBe(false);
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(CONST.POLICY.CONNECTIONS.NAME.QBD))).toBe(false);
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY))).toBe(false);
+    });
+
+    it('should return false for a manually-created field, an origin from a non-integration automated action, or no field', () => {
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(undefined))).toBe(false);
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin(''))).toBe(false);
+        expect(isReportFieldImportedFromIntegration(reportFieldWithOrigin('automatedAction'))).toBe(false);
+        expect(isReportFieldImportedFromIntegration(undefined)).toBe(false);
+        expect(isReportFieldImportedFromIntegration(null)).toBe(false);
     });
 });

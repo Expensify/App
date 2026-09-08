@@ -30,11 +30,9 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
 
-    // Show page-level skeleton when no data has ever arrived for this query,
-    // or when card feeds are still loading for card-grouped searches.
-    // Once data arrives (even empty []), Search mounts and handles its own
-    // loading/empty states internally via shouldShowLoadingState.
-    // When errors are present, let Search mount so it can render FullPageErrorView.
+    // Keep the page skeleton visible until the first response arrives and while card feeds load.
+    // SearchPage turns a completed response with no data into an empty result, so Search can render its empty state.
+    // Errors bypass the missing-data skeleton so Search can render FullPageErrorView.
     return (hasNoData && !hasErrors) || isCardFeedsLoading;
 }
 

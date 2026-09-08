@@ -1,6 +1,7 @@
 import SpendRuleCategoryBase from '@components/SpendRules/configuration/SpendRuleCategoryBase';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useOnyx from '@hooks/useOnyx';
 
 import {updateDraftSpendRule} from '@libs/actions/User';
@@ -22,6 +23,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
     const {policyID} = route.params;
     const canWriteCardSpendRules = useCanWriteCardSpendRules(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    useControlOnlyRuleUpgradeRedirect(policyID);
 
     const onCategoriesChange = (categories: SpendRuleCategory[]) => {
         updateDraftSpendRule({categories});

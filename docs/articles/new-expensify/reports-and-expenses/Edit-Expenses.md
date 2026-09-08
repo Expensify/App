@@ -12,7 +12,7 @@ You can edit a single expense from within a report, or update multiple expenses 
 ## Who can edit expenses
 
 - **All members**: Can edit expenses on their own Draft or Outstanding reports.
-- **Current approver**: Can edit expenses on Outstanding reports pending their approval.
+- **Current approver**: Can edit expenses on the submitter's Draft reports and on Outstanding reports pending their approval.
 - **Workspace Admin**: Can edit expenses on any Draft or Outstanding report on the Workspace.
 
 Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid and Done reports cannot be edited. 
@@ -70,9 +70,17 @@ On Draft and Outstanding reports, you can edit:
 
 # FAQ
 
+## Can I edit expenses on Draft and Outstanding reports? 
+
+Yes, expenses on Draft and Outstanding reports can still be edited.
+
+## Can I edit expenses on Approved reports? 
+
+Yes. However, the report submitter will need to ask the approver to unapprove the report before the expenses can be edited again.
+
 ## Can I edit expenses on Paid and Done reports? 
 
-No, Paid or Done reports are locked and cannot be reopened for editing. 
+No, expenses on Paid and Done reports are locked and cannot be reopened for editing. 
 
 ## Why are some fields not editable in the Edit multiple panel?
 

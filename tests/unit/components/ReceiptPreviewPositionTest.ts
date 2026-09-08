@@ -13,12 +13,33 @@ describe('getAnchoredPreviewPosition', () => {
         expect(getAnchoredPreviewPosition(undefined, WINDOW_WIDTH, WINDOW_HEIGHT)).toBeUndefined();
     });
 
-    it('places the preview just to the right of the hovered thumbnail', () => {
+    it('places the preview just to the left of the hovered thumbnail when there is room', () => {
+        const anchor = {top: 300, left: 500, width: 68, height: 64};
+
+        const position = getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        expect(position?.left).toBe(anchor.left - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_GAP);
+        expect(position?.left).toBeLessThan(anchor.left);
+    });
+
+    it('flips to the right of the thumbnail when there is not enough room on the left', () => {
+        // A thumbnail hugging the left edge leaves no room for the preview to its left.
         const anchor = {top: 300, left: 120, width: 68, height: 64};
 
         const position = getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         expect(position?.left).toBe(anchor.left + anchor.width + RECEIPT_PREVIEW_GAP);
+    });
+
+    it('clamps the preview to the right edge when neither side fits on a narrow viewport', () => {
+        const narrowWidth = 801;
+        // Neither side has room: too little space on the left, and flipping right would overflow the edge.
+        const anchor = {top: 300, left: 400, width: 68, height: 64};
+
+        const position = getAnchoredPreviewPosition(anchor, narrowWidth, WINDOW_HEIGHT);
+
+        expect(position?.left).toBe(narrowWidth - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_EDGE_MARGIN);
+        expect((position?.left ?? 0) + RECEIPT_PREVIEW_WIDTH).toBeLessThanOrEqual(narrowWidth - RECEIPT_PREVIEW_EDGE_MARGIN);
     });
 
     it('aligns the preview top with the hovered row before it has been measured', () => {
@@ -27,8 +48,7 @@ describe('getAnchoredPreviewPosition', () => {
         expect(getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT)?.top).toBe(420);
     });
 
-    it('flips to the left of the thumbnail when there is not enough room on the right', () => {
-        // A thumbnail hugging the right edge leaves no room for a 380px-wide preview to its right.
+    it('keeps the preview to the left of a thumbnail near the right edge', () => {
         const anchor = {top: 300, left: WINDOW_WIDTH - 80, width: 68, height: 64};
 
         const position = getAnchoredPreviewPosition(anchor, WINDOW_WIDTH, WINDOW_HEIGHT);

@@ -6,17 +6,18 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
+
+import viewRef from '@src/types/utils/viewRef';
 
 import type {ComponentType} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import isSkiaWebSupported from './isSkiaWebSupported';
+import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type SkiaWebChartProps<TProps> = {
     /** Lazily imports the Skia-backed chart component to render. */
@@ -26,7 +27,6 @@ type SkiaWebChartProps<TProps> = {
     componentProps: TProps;
 
     /** Identifies the loading skeleton span for telemetry. */
-    reasonContext: string;
 };
 
 function ChartUnavailable() {
@@ -55,35 +55,41 @@ function ChartUnavailable() {
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps, reasonContext}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
+    const containerRef = useRef<HTMLElement | null>(null);
 
     // Probe once per mount (not per render) so re-rendering doesn't repeatedly create WebGL contexts,
     // while a fresh chart still re-checks capability instead of trusting a stale session-wide result.
     const [isSupported] = useState(() => isSkiaWebSupported());
 
+    // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
+    // renderer reporting that and degrade to the empty state.
+    const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
+
     // If unsupported, the device can't give CanvasKit a usable WebGL surface.
-    if (!isSupported) {
+    if (!isSupported || isSurfaceUnavailable) {
         return <ChartUnavailable />;
     }
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: reasonContext};
     const fallback = (
         <View style={styles.chartWebFallback}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={reasonAttributes}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 
     return (
-        <WithSkiaWeb
-            opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={getComponent}
-            componentProps={componentProps}
-            fallback={fallback}
-        />
+        <View
+            ref={viewRef(containerRef)}
+            style={styles.mw100}
+        >
+            <WithSkiaWeb
+                opts={{locateFile: (file: string) => `/${file}`}}
+                getComponent={getComponent}
+                componentProps={componentProps}
+                fallback={fallback}
+            />
+        </View>
     );
 }
 

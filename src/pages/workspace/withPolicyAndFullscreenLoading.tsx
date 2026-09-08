@@ -2,8 +2,6 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -46,12 +44,7 @@ function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscre
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'withPolicyAndFullscreenLoading',
-            isLoadingPolicy: !!isLoadingPolicy,
-            isLoadingReportData: !!isLoadingReportData,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (

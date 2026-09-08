@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 
@@ -22,7 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
 import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -48,7 +49,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowRightLong',
@@ -68,12 +69,12 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, dateFnsLocale, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, dateFnsLocale, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), dateFnsLocale);
         }
     };
 
@@ -164,16 +165,13 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive
-            shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
             secondaryIconFill={theme.icon}
             onPress={() =>
-                Navigation.navigate(
-                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex, Navigation.getReportRHPActiveRoute()),
-                )
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)))
             }
         />
     );

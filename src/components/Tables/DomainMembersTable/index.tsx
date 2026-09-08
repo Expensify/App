@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
@@ -42,6 +42,7 @@ type DomainMembersTableProps = {
     shouldShowGroupColumn: boolean;
     filterConfig?: FilterConfig<DomainMembersTableFilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
+    headerComponent?: React.ReactElement;
 };
 
 /**
@@ -52,18 +53,19 @@ function DomainMembersGroupFilterSync({shouldShowGroupFilter, groupOptionValuesK
     const groupFilterValue = activeFilters.group;
 
     useEffect(() => {
-        const activeGroupFilter = groupFilterValue?.at(0);
+        const activeGroupFilters = Array.isArray(groupFilterValue) ? groupFilterValue.filter((value): value is string => typeof value === 'string') : [];
         const groupOptionValues = groupOptionValuesKey ? groupOptionValuesKey.split(',') : [];
 
         if (!shouldShowGroupFilter) {
-            if (activeGroupFilter) {
+            if (activeGroupFilters.length > 0) {
                 tableMethods.updateFilter({key: 'group', value: []});
             }
             return;
         }
 
-        if (activeGroupFilter && !groupOptionValues.includes(activeGroupFilter)) {
-            tableMethods.updateFilter({key: 'group', value: []});
+        const validFilters = activeGroupFilters.filter((filter) => groupOptionValues.includes(filter));
+        if (validFilters.length !== activeGroupFilters.length) {
+            tableMethods.updateFilter({key: 'group', value: validFilters});
         }
     }, [shouldShowGroupFilter, groupOptionValuesKey, groupFilterValue, tableMethods]);
 
@@ -79,6 +81,7 @@ export default function DomainMembersTable({
     shouldShowGroupColumn,
     filterConfig,
     isItemInFilter,
+    headerComponent,
 }: DomainMembersTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -137,6 +140,9 @@ export default function DomainMembersTable({
         />
     );
 
+    const shouldShowTableControls = !isEmpty;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')} /> : undefined);
+
     return (
         <Table
             ref={tableRef}
@@ -154,6 +160,7 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             {!isEmpty && (
                 <DomainMembersGroupFilterSync
                     shouldShowGroupFilter={shouldShowGroupFilter}
@@ -161,7 +168,6 @@ export default function DomainMembersTable({
                 />
             )}
 
-            <Table.FilterBar label={translate('domain.members.findMember')} />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

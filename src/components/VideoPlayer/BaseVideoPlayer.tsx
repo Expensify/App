@@ -13,7 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 
@@ -33,7 +32,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 import type VideoPlayerProps from './types';
 
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
-import * as VideoUtils from './utils';
+import {buildVideoSourceURL} from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -78,8 +77,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
+    const [sourceURL] = useState(() => buildVideoSourceURL(url, encryptedAuthToken));
     const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
@@ -201,7 +199,12 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return;
         }
 
-        if (isEnded && currentTime >= duration) {
+        // This branch only runs when the player is paused (the check above returns early while playing),
+        // so a playback position within REPLAY_END_THRESHOLD_SECONDS of the end unambiguously means the video is
+        // finished and should be replayed. We rely on the position rather than the `isEnded` flag because
+        // changing the playback speed can spuriously clear `isEnded` on iOS (the playbackRate write briefly
+        // resumes playback and fires `playingChange`), which would otherwise make Play a no-op at the end.
+        if (duration > 0 && currentTime >= duration - CONST.VIDEO_PLAYER.REPLAY_END_THRESHOLD_SECONDS) {
             allowSharedAutoPlayRef.current = true;
             replayVideo();
             return;
@@ -209,7 +212,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
         allowSharedAutoPlayRef.current = true;
         playVideo();
-    }, [isOffline, isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
+    }, [isOffline, isCurrentlyURLSet, isLoading, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, report, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded || isSeeking) {

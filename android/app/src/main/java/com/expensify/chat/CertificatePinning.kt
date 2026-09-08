@@ -12,9 +12,11 @@ import javax.net.ssl.SSLPeerUnverifiedException
 /**
  * Certificate pinning for React Native's shared OkHttp client (Iteration 1 - NewDot).
  *
- * On Android, `react-native-blob-util` (authenticated attachment/receipt downloads) and React Native
- * networking (including `fetch()`) route through `OkHttpClientProvider.getOkHttpClient()`. Installing
- * an [OkHttpClientProvider] factory with an OkHttp [CertificatePinner] here pins that traffic.
+ * On Android, `react-native-blob-util` (authenticated attachment/receipt downloads), Fresco, and
+ * other React Native networking consumers route through `OkHttpClientProvider.getOkHttpClient()`.
+ * Installing an [OkHttpClientProvider] factory with an OkHttp [CertificatePinner] here pins that
+ * traffic. JavaScript `fetch()` uses NitroFetch/Cronet and is pinned separately by the
+ * `react-native-nitro-fetch` patch.
  *
  * Additional networking channels are also monitored:
  * - **HttpURLConnection**: A wrapping [javax.net.ssl.HostnameVerifier] validates pins after the

@@ -29,7 +29,7 @@ If you have multiple Expensify accounts, you can merge them into a single login.
 4. Enter the **email address or phone number** for the account you want to merge into this one.
 5. Check the box that says **"Yes, I understand this is not reversible"**.
 6. Click **Merge Accounts**.
-7. Check your email for the magic code sent by Expensify.
+7. Check your email for the security code sent by Expensify.
 8. Enter the code into the prompt and click **Merge**.
 
 ---
@@ -48,3 +48,8 @@ The following items from the merged account will be transferred to your primary 
 - Co-pilots
 - Group workspace settings
 
+## Can a Copilot merge accounts on my behalf?
+
+Yes, a Copilot with Full Access can merge accounts while acting on your behalf.
+- When they do, Expensify sends the security code to you (the account owner), not the Copilot. You'll need to share that code with your Copilot so they can complete the merge.
+- This keeps you in control, since the merge can't be finalized without the code that only you receive.

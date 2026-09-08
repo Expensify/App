@@ -89,16 +89,32 @@ function requestTravelAccess() {
     API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
+function setTravelProvisioningTaxID(taxID: string) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
+}
+
+function setTravelProvisioningDomain(domain: string) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {domain});
+}
+
 function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
 
-function setTravelProvisioningTaxID(taxID: string) {
-    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {taxID});
+function setTravelProvisioningEnabledSteps(enabledSteps: string[]) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {enabledSteps});
 }
 
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-export {acceptSpotnanaTerms, cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep, setTravelProvisioningTaxID};
+export {
+    acceptSpotnanaTerms,
+    cleanupTravelProvisioningSession,
+    requestTravelAccess,
+    setTravelProvisioningDomain,
+    setTravelProvisioningEnabledSteps,
+    setTravelProvisioningNextStep,
+    setTravelProvisioningTaxID,
+};

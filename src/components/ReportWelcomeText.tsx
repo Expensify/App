@@ -3,14 +3,13 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
     getParticipantsAccountIDsForDisplay,
@@ -49,10 +48,11 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const reportAttributes = useReportAttributes();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
@@ -91,15 +91,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = deprecatedGetReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
-    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsPath = buildDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
     const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
@@ -129,13 +128,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         translate,
         localeCompare,
         conciergeReportID,
-        reportAttributes,
+        derivedReportName,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
         isTrackIntentUser: !!isTrackIntentUser,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     return (

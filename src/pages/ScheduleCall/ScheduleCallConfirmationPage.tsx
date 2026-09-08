@@ -1,10 +1,12 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -34,7 +36,7 @@ import React, {useEffect} from 'react';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
@@ -72,11 +74,11 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+        const timeString = `${DateUtils.formatTimeInTimeZoneWithPeriod(translate, scheduleCallDraft?.timeSlot, userTimezone)} - ${DateUtils.formatTimeInTimeZoneWithPeriod(
+            translate,
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
-            CONST.DATE.LOCAL_TIME_FORMAT,
         )}`;
 
         const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
@@ -106,23 +108,28 @@ function ScheduleCallConfirmationPage() {
                 }}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
-                    <MenuItem
-                        style={styles.mb3}
-                        title={guideDetails?.displayName}
-                        description={guideDetails?.login}
-                        label={translate('scheduledCall.confirmation.setupSpecialist')}
-                        interactive={false}
-                        iconAccountID={guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.gap3, styles.pb3]}>
+                    <Text style={[styles.mb2, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
+                    <MenuItemWithLabel label={translate('scheduledCall.confirmation.setupSpecialist')}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <ReportActionAvatars
+                                    singleAvatarContainerStyle={[styles.actionAvatar]}
+                                    accountIDs={[guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                {!!guideDetails?.displayName && <MenuItem.Title>{guideDetails.displayName}</MenuItem.Title>}
+                                {!!guideDetails?.login && <MenuItem.Description>{guideDetails.login}</MenuItem.Description>}
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItemWithLabel>
                     <MenuItemWithTopDescription
                         title={dateTimeString}
                         description={translate('scheduledCall.confirmation.dateTime')}
                         shouldTruncateTitle={false}
                         numberOfLinesTitle={2}
                         shouldShowRightIcon
-                        style={styles.mb3}
                         onPress={() => {
                             if (!route?.params?.reportID) {
                                 return;
@@ -134,16 +141,16 @@ function ScheduleCallConfirmationPage() {
                         title={translate('scheduledCall.confirmation.minutes')}
                         description={translate('scheduledCall.confirmation.meetingLength')}
                         interactive={false}
-                        style={styles.mb3}
                     />
                 </ScrollView>
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        text={translate('scheduledCall.confirmation.title')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={confirm}
-                    />
+                    >
+                        <Button.Text>{translate('scheduledCall.confirmation.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

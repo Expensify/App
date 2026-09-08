@@ -23,7 +23,7 @@ type CopyTextToClipboardProps = {
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;
-} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconSize' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground'>;
+} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconSize' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground' | 'inline'>;
 
 function CopyTextToClipboard({
     text,
@@ -35,6 +35,7 @@ function CopyTextToClipboard({
     shouldHaveActiveBackground,
     shouldUseButtonBackground,
     styles,
+    inline,
 }: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
@@ -61,6 +62,7 @@ function CopyTextToClipboard({
             iconStyles={iconStyles}
             styles={styles}
             shouldUseButtonBackground={shouldUseButtonBackground}
+            inline={inline}
         />
     );
 }

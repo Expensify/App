@@ -65,8 +65,12 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
-    /** Full set of the report's transactions, including optimistically-deleted rows (matches `getReportTransactions`) */
-    allReportTransactions: Transaction[];
+    /** Transactions with a receipt, derived from the report's full transaction set (including optimistically-deleted rows) */
+    transactionsWithReceipts: Transaction[];
+    /** Whether the report's full transaction set (including optimistically-deleted rows) has any non-reimbursable transaction */
+    hasNonReimbursableTransactions: boolean;
+    /** Whether every request in the report's full transaction set (including optimistically-deleted rows) is still being SmartScanned */
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
@@ -92,6 +96,12 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
 
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;
+
+        /** Called with the transactions in the order the carousel renders them */
+        onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+
+        /** Cancels anything a carousel press staged, so opening the report cannot be overtaken by it */
+        onCancelPendingPress?: () => void;
 
         /** Callback called when the whole preview is pressed */
         onPress: () => void;

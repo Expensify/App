@@ -3,7 +3,7 @@ import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
@@ -13,7 +13,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 import React from 'react';
 
-function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
+function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

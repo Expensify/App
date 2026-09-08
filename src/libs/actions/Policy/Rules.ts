@@ -74,6 +74,7 @@ function mapFormFieldsToRuleForOnyx(form: MerchantRuleForm, policy: Policy | und
         category: form.category || null,
         tag: form.tag || null,
         tax: buildTaxObject(form.tax, policy) ?? null,
+        vendorID: form.vendorID || null,
         comment: convertCommentToHTML(form.comment),
         reimbursable: form.reimbursable ?? null,
         billable: form.billable ?? null,
@@ -99,6 +100,9 @@ function mapFormFieldsToRuleForAPI(form: MerchantRuleForm, policy: Policy | unde
     const tax = buildTaxObject(form.tax, policy);
     if (tax) {
         rule.tax = tax;
+    }
+    if (form.vendorID) {
+        rule.vendorID = form.vendorID;
     }
     const commentHTML = convertCommentToHTML(form.comment);
     if (commentHTML) {
@@ -281,8 +285,9 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * Imports coding rules parsed from a spreadsheet into the given policy in bulk
  * @param policyID - The ID of the policy to import the rules into
  * @param rules - Coding rule values keyed by client-generated ruleID
+ * @param invalidCategoryCount - Number of imported categories that don't exist on the policy, reported in the confirmation modal
  */
-async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>): Promise<ImportFinalModal> {
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
         return getImportFailedFinalModal();
@@ -291,7 +296,11 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-        promptKeyParams: {rules: Object.keys(rules).length},
+        promptKeyParams: {count: Object.keys(rules).length},
+        ...(invalidCategoryCount > 0 && {
+            pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+            pendingMessageKeyParams: {count: invalidCategoryCount},
+        }),
     };
 
     const parameters: ImportMerchantRulesSpreadsheetParams = {
@@ -478,7 +487,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
     API.write(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, parameters, onyxData);
 }
 
-function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string) {
+function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, previousPrompt: string, previousTitle?: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for updatePolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -496,6 +505,9 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt,
+                                // Clear the stale title so the list falls back to the new prompt until the server
+                                // returns the regenerated title.
+                                title: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                         },
@@ -528,6 +540,7 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                         agentRules: {
                             [agentRuleID]: {
                                 prompt: previousPrompt,
+                                title: previousTitle ?? null,
                                 pendingAction: null,
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
@@ -673,6 +686,8 @@ function clearPolicyAgentRuleErrors(policyID: string, agentRuleID: string, agent
 export {
     openPolicyRulesPage,
     getAgentRuleSuggestions,
+    mapFormFieldsToRuleForOnyx,
+    mapFormFieldsToRuleForAPI,
     setPolicyCodingRule,
     importMerchantRulesSpreadsheet,
     deletePolicyCodingRule,

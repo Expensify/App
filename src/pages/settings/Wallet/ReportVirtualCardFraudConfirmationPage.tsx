@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +14,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -70,12 +71,13 @@ function ReportVirtualCardFraudConfirmationPage({
                     <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>{translate(description)}</Text>
                 </ScrollView>
                 <Button
-                    text={translate('reportFraudConfirmationPage.buttonText')}
                     onPress={close}
                     style={themeStyles.justifyContentEnd}
-                    success
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('reportFraudConfirmationPage.buttonText')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

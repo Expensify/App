@@ -1,4 +1,4 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
@@ -16,7 +16,7 @@ import TestToolRow from '@components/TestToolRow';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +30,6 @@ import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import colors from '@styles/theme/colors';
@@ -49,7 +48,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
@@ -61,7 +60,6 @@ type BaseMenuItem = WithSentryLabel & {
 
 function TroubleshootPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'RotateLeft']);
-    const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -204,52 +202,57 @@ function TroubleshootPage() {
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
-            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes} />}
-            <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                        subtitle={translate('initialSettingsPage.troubleshoot.description')}
-                        isCentralPane
-                        subtitleMuted
-                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                        illustrationBackgroundColor={colors.blue700}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
-                        {...troubleshootIllustration}
-                    >
-                        <View style={[styles.flex1, styles.mt5]}>
-                            <View>
-                                <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
-                                    <Switch
-                                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
-                                        isOn={shouldMaskOnyxState}
-                                        onToggle={setShouldMaskOnyxState}
-                                    />
-                                </TestToolRow>
+            <View style={styles.flex1}>
+                <ScrollView contentContainerStyle={styles.pt3}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('initialSettingsPage.aboutPage.troubleshoot')}
+                            subtitle={translate('initialSettingsPage.troubleshoot.description')}
+                            isCentralPane
+                            subtitleMuted
+                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                            illustrationBackgroundColor={colors.blue700}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
+                            {...troubleshootIllustration}
+                        >
+                            <View style={[styles.flex1, styles.mt5]}>
+                                <View>
+                                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
+                                        <Switch
+                                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                            isOn={shouldMaskOnyxState}
+                                            onToggle={setShouldMaskOnyxState}
+                                        />
+                                    </TestToolRow>
+                                </View>
+                                <ImportOnyxState setIsLoading={setIsLoading} />
+                                <MenuItemList
+                                    menuItems={menuItems}
+                                    shouldUseSingleExecution
+                                />
+                                {!isProduction && (
+                                    <View style={[styles.mt6]}>
+                                        <TestToolMenu />
+                                    </View>
+                                )}
+                                {isDevelopment && (
+                                    <View style={[styles.mt6]}>
+                                        <SentryDebugToolMenu />
+                                    </View>
+                                )}
                             </View>
-                            <ImportOnyxState setIsLoading={setIsLoading} />
-                            <MenuItemList
-                                menuItems={menuItems}
-                                shouldUseSingleExecution
-                            />
-                            {!isProduction && (
-                                <View style={[styles.mt6]}>
-                                    <TestToolMenu />
-                                </View>
-                            )}
-                            {isDevelopment && (
-                                <View style={[styles.mt6]}>
-                                    <SentryDebugToolMenu />
-                                </View>
-                            )}
-                        </View>
-                    </Section>
-                </View>
-            </ScrollView>
+                        </Section>
+                    </View>
+                </ScrollView>
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                )}
+            </View>
         </ScreenWrapper>
     );
 }

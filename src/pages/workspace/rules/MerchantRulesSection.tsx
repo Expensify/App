@@ -17,15 +17,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import variables from '@styles/variables';
+import {lineHeightScale} from '@styles/typography';
 
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -43,12 +44,13 @@ type FieldLabels = {
     tag: string;
     description: string;
     tax: string;
+    vendor: string;
 };
 
 /**
  * Generates a human-readable description of what a coding rule does
  */
-function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels): string {
+function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels, policy: Policy | undefined): string {
     const actions: string[] = [];
 
     if (rule.merchant) {
@@ -66,6 +68,11 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
+    }
+    if (rule.vendorID) {
+        const unavailableLabel = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+        const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -93,8 +100,9 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
             tag: translate('common.tag').toLowerCase(),
             description: translate('common.description').toLowerCase(),
             tax: translate('common.tax').toLowerCase(),
+            vendor: translate(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor').toLowerCase(),
         }),
-        [translate],
+        [translate, policy],
     );
 
     const codingRules = policy?.rules?.codingRules;
@@ -166,7 +174,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
-                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
+                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy);
 
                         return (
                             <View key={rule.ruleID}>
@@ -179,7 +187,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: lineHeightScale.text}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
@@ -215,3 +223,4 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
 MerchantRulesSection.displayName = 'MerchantRulesSection';
 
 export default MerchantRulesSection;
+export {getRuleDescription};

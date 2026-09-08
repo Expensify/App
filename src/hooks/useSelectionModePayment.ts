@@ -10,8 +10,6 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -22,17 +20,17 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -46,6 +44,7 @@ import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
 type HoldMenuOpenParams = {
     requestType: ActionHandledType;
@@ -81,6 +80,7 @@ function useSelectionModePayment({
     confirmApproval,
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -96,15 +96,15 @@ function useSelectionModePayment({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
@@ -124,6 +124,9 @@ function useSelectionModePayment({
     const {showLockedAccountModal} = useLockedAccountActions();
     const kycWallRef = useContext(KYCWallContext);
 
+    // Store the pending payment and resume it after the user validates, instead of dropping it on the way to the magic-code screen.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Cash', 'ArrowRight', 'Building'] as const);
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
@@ -138,7 +141,7 @@ function useSelectionModePayment({
         }
     };
 
-    const shouldBlockAction = (paymentMethodType?: PaymentMethodType, deferBlockingPresentation = false) => {
+    const shouldBlockAction = (paymentMethodType?: PaymentMethodType, deferBlockingPresentation = false, retry?: () => void) => {
         if (isDelegateAccessRestricted) {
             presentBlockingAction(showDelegateNoAccessModal, deferBlockingPresentation);
             return true;
@@ -148,10 +151,17 @@ function useSelectionModePayment({
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            presentBlockingAction(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)), deferBlockingPresentation);
+            presentBlockingAction(() => verifyAccountAndResume(retry), deferBlockingPresentation);
             return true;
         }
         return false;
+    };
+
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, deferBlockingPresentation: boolean, action: () => void) => {
+        if (shouldBlockAction(paymentMethodType, deferBlockingPresentation, action)) {
+            return;
+        }
+        action();
     };
 
     const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
@@ -177,10 +187,10 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -190,6 +200,7 @@ function useSelectionModePayment({
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
@@ -199,11 +210,11 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
@@ -219,6 +230,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -265,10 +277,7 @@ function useSelectionModePayment({
     })();
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (shouldBlockAction(undefined, true)) {
-            return;
-        }
-        kycWallRef.current?.continueAction?.({policy: wp});
+        runPaymentAction(undefined, true, () => kycWallRef.current?.continueAction?.({policy: wp}));
     };
 
     const paymentSubMenuItems: PopoverMenuItem[] = (() => {
@@ -294,6 +303,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            getCurrencyDecimals,
             event,
             iouPaymentType,
             triggerKYCFlow,
@@ -305,7 +315,6 @@ function useSelectionModePayment({
             isASAPSubmitBetaEnabled,
             confirmApproval,
             iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
             betas,
             userBillingGracePeriodEnds,
             amountOwed,
@@ -314,14 +323,12 @@ function useSelectionModePayment({
             expenseReportPolicy: policy,
             isTrackIntentUser,
             ownerLogin,
+            delegateAccountID,
         });
     };
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType, true)) {
-            return;
-        }
-        invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+        runPaymentAction(iouPaymentType, true, () => invokePaymentSelect(event, iouPaymentType, triggerKYCFlow));
     };
 
     const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
@@ -333,12 +340,11 @@ function useSelectionModePayment({
 
     return {
         confirmPayment,
-        shouldBlockAction,
+        runPaymentAction,
         invokePaymentSelect,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,
-        workspacePolicyOptions,
         handleWorkspaceSelected,
         hasPayInSelectionMode,
         hasActualPaymentOptions,

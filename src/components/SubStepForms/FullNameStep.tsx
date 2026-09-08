@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -20,7 +20,7 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         /** The ID of the form */
         formID: TFormID;

@@ -9,7 +9,7 @@ import AppLogs from 'react-native-app-logs';
 import pkg from '../../package.json';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
-import {post} from './Network';
+import MainQueueStore from './Network/MainQueueStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
@@ -26,7 +26,7 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return MainQueueStore.enqueue(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
@@ -114,7 +114,7 @@ const Log = new Logger({
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);
     },
-    maxLogLinesBeforeFlush: 150,
+    maxLogLinesBeforeFlush: 500,
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });

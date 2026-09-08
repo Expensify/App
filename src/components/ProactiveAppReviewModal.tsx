@@ -1,3 +1,4 @@
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -8,7 +9,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
@@ -32,15 +33,22 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
     const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldUseNarrowLayout,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: styles.m5,
+    });
 
     return (
         <Modal
             onClose={onSkip}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.m5]}>
+            <View style={bottomSafeAreaPaddingStyle}>
                 {/* Todd with phones illustration */}
                 <View style={[styles.alignItemsCenter, styles.mb3]}>
                     <ImageSVG
@@ -59,19 +67,21 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Buttons */}
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
                     onPress={onPositive}
-                    pressOnEnter
-                    text={translate('proactiveAppReview.positiveButton')}
-                    large
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('proactiveAppReview.positiveButton')}</Button.Text>
+                </Button>
                 <Button
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onNegative}
-                    text={translate('proactiveAppReview.negativeButton')}
-                    large
-                />
+                >
+                    <Button.Text>{translate('proactiveAppReview.negativeButton')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

@@ -21,7 +21,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
@@ -33,20 +33,11 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
 
-    const getIOUActionForTransactionIDSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
             return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID);
         },
-        [transaction.transactionID],
-    );
-
-    const [iouReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
-        {
-            selector: getIOUActionForTransactionIDSelector,
-        },
-        [getIOUActionForTransactionIDSelector],
-    );
+    });
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
 

@@ -11,7 +11,6 @@ import {
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -33,6 +32,7 @@ import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
@@ -68,7 +68,10 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
-    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+    // Keyed on the prompting flag rather than `isFeedConnectionBroken`: once a broken connection is past the grace period we
+    // stop blocking assignment. Otherwise a single long-dead card would disable assigning on the whole feed forever, and a
+    // commercial/CSV feed cannot be reconnected at all, so there would be no way out.
+    const isSelectedFeedConnectionBroken = !!feedErrors?.shouldPromptBrokenConnection || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
@@ -143,6 +146,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {currencyList} = useCurrencyListState();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -197,11 +201,11 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             };
         }
 
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+        const activeEmployees = Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (activeEmployees.length === 1) {
+            const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
+            const personalDetails = employeePersonalDetails[userEmail];
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
             cardToAssign.customCardName = getDefaultCardName(memberName);
 

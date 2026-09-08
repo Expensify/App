@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletSettlementsAccount} from '@libs/actions/connections/Rillet';
@@ -50,6 +51,7 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
                 keyForList: bankAccountItem.id,
                 isSelected: settlementsBankAccountID === bankAccountItem.id,
             })) ?? [];
+    const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
@@ -83,7 +85,8 @@ function RilletExpensifyCardSettlementAccountPage({policy}: WithPolicyConnection
             shouldBeBlocked={shouldBeBlocked}
             displayName="RilletExpensifyCardSettlementAccountPage"
             title="workspace.rillet.settlementAccount.label"
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={setSettlementsAccount}

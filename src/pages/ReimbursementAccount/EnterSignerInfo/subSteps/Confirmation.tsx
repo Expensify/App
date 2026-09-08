@@ -2,7 +2,7 @@ import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 
@@ -13,7 +13,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 import React from 'react';
 
-type ConfirmationProps = SubStepProps & {policyID: string};
+type ConfirmationProps = SubPageProps & {policyID: string};
 
 function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) {
     const {translate} = useLocalize();

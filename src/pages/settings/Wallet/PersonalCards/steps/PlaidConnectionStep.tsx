@@ -14,7 +14,7 @@ import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -63,16 +63,9 @@ function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, onS
         return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
     }
     if (plaidData?.isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'PersonalCardPlaidConnectionStep.renderPlaidLink',
-            isPlaidDataLoading: plaidData?.isLoading,
-        };
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
@@ -162,8 +155,9 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         // on success we need to move to bank connection screen with token, bank name = plaid
         Log.info('[PlaidLink] Success!');
 
-        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-        const plaidConnectedFeedName = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+        const institution = metadata.institution;
+        const plaidConnectedFeed = getPlaidInstitutionID(institution);
+        const plaidConnectedFeedName = institution?.name;
 
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
@@ -171,7 +165,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
                 publicToken,
                 plaidConnectedFeed,
                 plaidConnectedFeedName,
-                plaidAccounts: metadata?.accounts,
+                plaidAccounts: metadata.accounts,
             },
         });
     };

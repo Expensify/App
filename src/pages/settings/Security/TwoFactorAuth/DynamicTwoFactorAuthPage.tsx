@@ -20,7 +20,6 @@ import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
@@ -64,7 +63,13 @@ function DynamicTwoFactorAuthPage() {
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
+    const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
+
+    // Once 2FA is enabled this page is only reachable by navigating back into it, so the effect below leaves the flow
+    // and the recovery codes stay hidden so they don't flash first. The forced-onboarding post-verify handoff is the
+    // exception: it sets requiresTwoFactorAuth before Got it clears the setup progress, and the page is still a
+    // legitimate step of that flow, so it must keep both the redirect off and the codes on screen.
+    const shouldLeaveEnabledSetup = is2FAEnabled && !is2FASetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
 
@@ -76,7 +81,9 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isFocused && is2FAEnabled) {
+        // Skip redirect to the enabled page while setup is still in progress (e.g. post-verify handoff
+        // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
+        if (isFocused && shouldLeaveEnabledSetup) {
             Navigation.isNavigationReady().then(() => {
                 // The setup page is only reached with 2FA already enabled by pressing browser Back from the success
                 // page on web (the recovery-codes page stays in history because Download codes uses PUSH). Go back out
@@ -87,7 +94,7 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || shouldLeaveEnabledSetup || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -100,7 +107,7 @@ function DynamicTwoFactorAuthPage() {
         // this effect has already run, which happens when a browser back on a freshly loaded page rebuilds the modal.
         // Without it the page would keep rendering an empty codes box with no way to continue.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, recoveryCodes]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
 
     return (
         <TwoFactorAuthWrapper
@@ -115,7 +122,7 @@ function DynamicTwoFactorAuthPage() {
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {!!isUserValidated && !is2FAEnabled && (
+                {!!isUserValidated && !shouldLeaveEnabledSetup && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         containerStyles={[styles.twoFactorAuthSection]}
@@ -126,7 +133,7 @@ function DynamicTwoFactorAuthPage() {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>
@@ -190,7 +197,7 @@ function DynamicTwoFactorAuthPage() {
                             style={[styles.mb3]}
                         />
                     )}
-                    {!!recoveryCodes && !is2FAEnabled && (
+                    {!!recoveryCodes && !shouldLeaveEnabledSetup && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -200,6 +207,8 @@ function DynamicTwoFactorAuthPage() {
                                 setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
+                                // PUSH on web (forceReplace only off-web) so this page stays in browser history and
+                                // the browser Back button returns here instead of jumping out of the 2FA flow.
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: !isWeb});
                             }}
                         >

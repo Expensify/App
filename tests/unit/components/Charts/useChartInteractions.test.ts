@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+import {findClosestPoint, normalizeChartCoordinate, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
 import {useSharedValue} from 'react-native-reanimated';
 
@@ -87,6 +87,21 @@ describe('findClosestPoint', () => {
             // cursor at 590px — right of the last tick (575px) → clamp to 11
             expect(findClosestPoint(xs, 590)).toBe(11);
         });
+    });
+});
+
+describe('normalizeChartCoordinate', () => {
+    it('leaves coordinates unchanged at the design scale', () => {
+        expect(normalizeChartCoordinate(120, 1)).toBe(120);
+    });
+
+    it('maps rendered coordinates back to design coordinates', () => {
+        expect(normalizeChartCoordinate(120, 0.5)).toBe(240);
+    });
+
+    it('leaves coordinates unchanged when the scale is invalid', () => {
+        expect(normalizeChartCoordinate(120, 0)).toBe(120);
+        expect(normalizeChartCoordinate(120, Number.NaN)).toBe(120);
     });
 });
 

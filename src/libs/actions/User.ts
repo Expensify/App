@@ -7,7 +7,6 @@ import type {
     CloseAccountParams,
     DeleteContactMethodParams,
     GetStatementPDFParams,
-    PusherPingParams,
     RequestContactMethodValidateCodeParams,
     ResendValidateCodeParams,
     RevokeDeviceParams,
@@ -28,13 +27,11 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getIsOffline} from '@libs/NetworkState';
-import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
-import type {PingPongEvent} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -45,12 +42,12 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type {CurrentUserPersonalDetails, Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
@@ -210,7 +207,7 @@ function resendValidateCode(reasonParams: ResendValidateCodeParams, login: strin
 }
 
 /**
- * Requests a new validate code be sent for the passed contact method
+ * Requests a new validateCode be sent for the passed contact method
  *
  * @param contactMethod - the new contact method that the user is trying to verify
  */
@@ -354,7 +351,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
 }
 
 /**
@@ -513,7 +510,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
- * Requests a magic code to verify current user
+ * Requests a validateCode to verify current user
  */
 function requestValidateCodeAction(params?: ResendValidateCodeParams) {
     const requestedAt = Date.now();
@@ -523,6 +520,7 @@ function requestValidateCodeAction(params?: ResendValidateCodeParams) {
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
                 lastValidateCodeRequestedAt: requestedAt,
+                lastValidateCodeReason: params?.reasonCode ?? null,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -556,6 +554,7 @@ function requestValidateCodeAction(params?: ResendValidateCodeParams) {
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
                 lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
                 isLoading: false,
                 errorFields: {
                     actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
@@ -600,7 +599,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGINS,
@@ -622,6 +621,14 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 isLoading: false,
                 validated: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
             },
         },
     ];
@@ -797,122 +804,6 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let pongHasBeenMissed = false;
-let lastPingSentTimestamp = Date.now();
-let lastPongReceivedTimestamp = Date.now();
-function subscribeToPusherPong(currentUserAccountID: number) {
-    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
-        Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
-        lastPongReceivedTimestamp = Date.now();
-
-        // Calculate the latency between the client and the server
-        const pongEvent = pushJSON as PingPongEvent;
-        const latency = Date.now() - Number(pongEvent.pingTimestamp);
-        Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-
-        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
-        pongHasBeenMissed = false;
-    });
-}
-
-// Specify how long between each PING event to the server
-const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
-
-// Specify how long between each check for missing PONG events
-const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
-
-// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
-const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
-
-function pingPusher() {
-    if (getIsOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
-        return;
-    }
-    // Send a PING event to the server with a specific ID and timestamp
-    // The server will respond with a PONG event with the same ID and timestamp
-    // Then we can calculate the latency between the client and the server (or if the server never replies)
-    const pingID = NumberUtils.rand64();
-    const pingTimestamp = Date.now();
-
-    // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
-    // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
-    if (pingTimestamp - lastPingSentTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
-        return;
-    }
-    lastPingSentTimestamp = pingTimestamp;
-
-    const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
-    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
-}
-
-function checkForLatePongReplies() {
-    if (getIsOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
-        return;
-    }
-
-    if (pongHasBeenMissed) {
-        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
-        return;
-    }
-
-    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
-    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
-
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
-    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
-
-        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastPingSentTimestamp = Date.now();
-        pongHasBeenMissed = true;
-    } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
-    }
-}
-
-let pingPusherIntervalID: ReturnType<typeof setInterval>;
-let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
-function initializePusherPingPong(currentUserAccountID: number) {
-    // Only run the ping pong from the leader client
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
-        return;
-    }
-
-    Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
-
-    // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
-    // so there could be a little delay before the client is actually listening to this event.
-    subscribeToPusherPong(currentUserAccountID);
-
-    // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-    if (pingPusherIntervalID) {
-        clearInterval(pingPusherIntervalID);
-    }
-
-    // Send a ping to pusher on a regular interval
-    pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
-
-    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
-    // events to be sent and received
-    setTimeout(() => {
-        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
-        if (checkForLatePongRepliesIntervalID) {
-            clearInterval(checkForLatePongRepliesIntervalID);
-        }
-        // Check for any missing pong events on a regular interval
-        checkForLatePongRepliesIntervalID = setInterval(checkForLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
-    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
-}
-
 /**
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
@@ -928,6 +819,8 @@ function subscribeToUserEvents(
         return;
     }
 
+    PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
+
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
@@ -942,9 +835,7 @@ function subscribeToUserEvents(
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            // specific key type is not known from the Pusher event data
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updates: (pushEventData.updates as Array<OnyxUpdateEvent<any>>) ?? [],
+            updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
@@ -992,8 +883,6 @@ function subscribeToUserEvents(
         reconnectApp();
         return Promise.resolve();
     });
-
-    initializePusherPingPong(currentUserAccountID);
 }
 
 /**
@@ -1050,11 +939,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+function setActiveServer(server: ValueOf<typeof CONST.SERVER>) {
     if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+        HybridAppModule.shouldUseStaging(server === CONST.SERVER.STAGING);
     }
-    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
+    Onyx.set(ONYXKEYS.ACTIVE_SERVER, server);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1216,7 +1105,7 @@ function setContactMethodAsDefault(
         failureData,
     });
     if (!skipNavigation) {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
     }
 }
 
@@ -1364,6 +1253,18 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
         optimisticData,
         failureData,
     });
+}
+
+function dismissMarketingWindow(updateKey: string) {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+            value: updateKey,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.DISMISS_MARKETING_WINDOW, {updateKey}, {optimisticData});
 }
 
 /**
@@ -1681,7 +1582,7 @@ function respondToProactiveAppReview(
  *
  * This handles the complete flow for verifying a secondary login:
  * 1. Verifies the validation code entered by the user
- * 2. On success, stores the validate code to allow adding the new email
+ * 2. On success, stores the validateCode to allow adding the new email
  * 3. On failure, updates the state to reflect the failed verification
  *
  * @param validateCode - The validation code entered by the user
@@ -1701,13 +1602,21 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 isVerifiedValidateActionCode: true,
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                lastValidateCodeRequestedAt: null,
+                lastValidateCodeReason: null,
             },
         },
     ];
@@ -2017,7 +1926,7 @@ export {
     updatePreferredSkinTone,
     setInboxTab,
     updateChatPriorityMode,
-    setShouldUseStagingServer,
+    setActiveServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,
@@ -2068,6 +1977,7 @@ export {
     clearDraftMerchantTypeRule,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
+    dismissMarketingWindow,
 };
 
 export {type LockAccountOnyxKey};

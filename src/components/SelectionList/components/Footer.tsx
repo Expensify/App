@@ -1,8 +1,10 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -40,17 +42,15 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonOptions, ad
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             >
                 <Button
-                    success
-                    large={confirmButtonSize === 'large'}
-                    medium={confirmButtonSize === 'medium'}
-                    small={confirmButtonSize === 'small'}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={confirmButtonSize}
                     style={[styles.w100, confirmButtonStyle]}
-                    text={confirmButtonText}
                     onPress={onConfirm}
-                    pressOnEnter
-                    enterKeyEventListenerPriority={1}
                     isDisabled={isConfirmButtonDisabled}
-                />
+                >
+                    <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                    {!!confirmButtonText && <Button.Text>{confirmButtonText}</Button.Text>}
+                </Button>
             </FixedFooter>
         );
     }

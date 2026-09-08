@@ -77,7 +77,7 @@ function DynamicPayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'DynamicPayAndDowngradePage'}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

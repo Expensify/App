@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 
 import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 
-import {SPAN_STATUS_OK} from '@sentry/core';
+import {SPAN_STATUS_OK, spanTimeInputToSeconds} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
@@ -13,15 +13,18 @@ type ActiveSpanEntry = {
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
-type StartSpanExtraOptions = Partial<{
-    /**
-     * Minimum duration of the span in milliseconds. If the span is shorter than this duration, it will be discarded (filtered out) before sending to Sentry.
-     *
-     */
-    minDuration: number;
-}>;
+function getPerformanceStartTimeForLog(startTime: StartSpanOptions['startTime']): number {
+    const performanceTimestamp = performance.now();
+    if (startTime === undefined) {
+        return performanceTimestamp;
+    }
 
-function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
+    // Sentry start times are Unix timestamps, while performance.now() is relative to the process start. Translate the timestamp once so elapsed time stays monotonic.
+    const epochStartTime = spanTimeInputToSeconds(startTime) * 1000;
+    return performanceTimestamp - (Date.now() - epochStartTime);
+}
+
+function startSpan(spanId: string, options: StartSpanOptions) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
         return;
     }
@@ -30,21 +33,11 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     console.debug(`[Sentry][${spanId}] Starting span`, {
         spanId,
         spanOptions: options,
-        spanExtraOptions: extraOptions,
         timestamp: Date.now(),
     });
     const span = Sentry.startInactiveSpan(options);
 
-    if (extraOptions.minDuration) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
-    }
-
-    let startTimeForLog: number;
-    if (typeof options.startTime === 'number') {
-        startTimeForLog = options.startTime;
-    } else {
-        startTimeForLog = performance.now();
-    }
+    const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
     activeSpans.set(spanId, {span, startTimeForLog});
 
@@ -58,9 +51,9 @@ function endSpan(spanId: string) {
         return;
     }
     const {span, startTimeForLog} = entry;
-    const now = performance.now();
-    const durationMs = Math.round(now - startTimeForLog);
-    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
+    const performanceTimestamp = performance.now();
+    const durationMs = Math.round(performanceTimestamp - startTimeForLog);
+    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: Date.now(), attributes: Sentry.spanToJSON(span).data});
     span.setStatus({code: SPAN_STATUS_OK});
 
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
@@ -114,10 +107,19 @@ function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
 
+/** Look up a span whose id is suffixed (e.g. per-attempt spans stored as `${name}_${attempt}`). */
+function getSpanByPrefix(prefix: string) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (spanID.startsWith(prefix)) {
+            return entry.span;
+        }
+    }
+}
+
 function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

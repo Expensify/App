@@ -4,6 +4,8 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +21,7 @@ import type {SearchReportActionsParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
@@ -27,25 +30,27 @@ import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolatio
 import React, {useCallback, useEffect, useMemo} from 'react';
 
 type SearchHoldReasonPageProps =
-    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
-    const {backTo = '', reportID} = route.params ?? {};
+    const isBulkHold = route.name === SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS;
+    const {reportID} = route.params ?? {};
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.HOLD_TRANSACTIONS.path);
+    const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-    const relevantTransactionIDs = useMemo(
-        () => (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs : Object.keys(selectedTransactions)),
-        [route.name, selectedTransactionIDs, selectedTransactions],
-    );
-    const violationsSelector = useMemo(() => transactionViolationsByIDsSelector(relevantTransactionIDs), [relevantTransactionIDs]);
-    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: violationsSelector}, [violationsSelector]);
+    const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
+    const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
     const {isOffline} = useNetwork();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -59,7 +64,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 showDelegateNoAccessModal();
                 return;
             }
-            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
+            if (isBulkHold) {
                 putTransactionsOnHold(
                     selectedTransactionIDs,
                     comment,
@@ -69,6 +74,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserAccountID,
                     selectedTransactionViolations,
                     isTrackIntentUser,
+                    delegateAccountID,
                     ancestors,
                 );
                 clearSelectedTransactions(true);
@@ -86,6 +92,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
+                        delegateAccountID,
                         ancestors,
                     );
                 }
@@ -96,7 +103,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         },
         [
             isDelegateAccessRestricted,
-            route.name,
+            isBulkHold,
             showDelegateNoAccessModal,
             selectedTransactionIDs,
             reportID,
@@ -108,6 +115,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserAccountID,
             selectedTransactionViolations,
             isTrackIntentUser,
+            delegateAccountID,
         ],
     );
 
@@ -129,7 +137,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
 
-    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs.length : Object.keys(selectedTransactions).length;
+    const expenseCount = isBulkHold ? selectedTransactionIDs.length : Object.keys(selectedTransactions).length;
 
     return (
         <HoldReasonFormView

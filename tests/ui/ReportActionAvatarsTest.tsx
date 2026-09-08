@@ -1,5 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
+import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
+import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 
@@ -22,22 +24,29 @@ import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-type AvatarProps = {
-    source?: AvatarSource;
-    name?: string;
-    avatarID?: number | string;
-    testID?: string;
-};
-
 type AvatarData = {
     uri: string;
-    avatarID?: number;
+    avatarID?: number | string;
     name?: string;
     parent: string;
 };
+
+function getAvatarData(dataSet: unknown): AvatarData {
+    if (!isObject(dataSet) || typeof dataSet.uri !== 'string' || typeof dataSet.parent !== 'string') {
+        throw new Error('Expected an avatar test double to expose AvatarData');
+    }
+
+    return {
+        uri: dataSet.uri,
+        avatarID: typeof dataSet.avatarID === 'number' || typeof dataSet.avatarID === 'string' ? dataSet.avatarID : undefined,
+        name: typeof dataSet.name === 'string' ? dataSet.name : undefined,
+        parent: dataSet.parent,
+    };
+}
 
 /* --- UI Mocks --- */
 
@@ -46,7 +55,9 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
         return source;
     }
     if (typeof source === 'object' && 'name' in source) {
-        return source.name as string;
+        if (typeof source.name === 'string') {
+            return source.name;
+        }
     }
     if (typeof source === 'object' && 'uri' in source) {
         return source.uri ?? 'No Source';
@@ -59,8 +70,23 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
     return source?.toString() ?? 'No Source';
 };
 
-jest.mock('@src/components/Avatar', () => {
-    return ({source, name, avatarID, testID = 'Avatar'}: AvatarProps) => {
+jest.mock('@components/Avatar/UserAvatar', () => {
+    return ({source, accountID, testID = 'Avatar'}: UserAvatarProps) => {
+        return (
+            <MockedAvatarData
+                dataSet={{
+                    avatarID: accountID,
+                    uri: parseSource(source ?? '') || 'No Source',
+                    parent: testID,
+                }}
+                testID="MockedAvatarData"
+            />
+        );
+    };
+});
+
+jest.mock('@components/Avatar/WorkspaceAvatar', () => {
+    return ({source, name, avatarID, testID = 'Avatar'}: WorkspaceAvatarProps) => {
         return (
             <MockedAvatarData
                 dataSet={{
@@ -93,6 +119,7 @@ jest.mock('@src/components/Icon', () => {
 
 const LOGGED_USER_ID = iouReportR14932.ownerAccountID;
 const SECOND_USER_ID = iouReportR14932.managerID;
+const THIRD_USER_ID = Number(Object.keys(personalDetails).find((accountID) => Number(accountID) !== LOGGED_USER_ID && Number(accountID) !== SECOND_USER_ID));
 
 const policy = {
     ...policy420A,
@@ -298,9 +325,15 @@ async function retrieveDataFromAvatarView(props: Parameters<typeof ReportActionA
         exact: false,
     });
 
-    const imageData = images.map((img) => img.props.dataSet as AvatarData);
-    const iconData = icons.map((icon) => icon.props.dataSet as AvatarData);
-    const fragmentsData = reportAvatarFragments.map((fragment) => fragment.props.testID as string);
+    const imageData = images.map((img) => getAvatarData(img.props.dataSet));
+    const iconData = icons.map((icon) => getAvatarData(icon.props.dataSet));
+    const fragmentsData = reportAvatarFragments.map((fragment) => {
+        const testID: unknown = fragment.props.testID;
+        if (typeof testID !== 'string') {
+            throw new Error('Expected a report avatar fragment testID');
+        }
+        return testID;
+    });
 
     return {
         images: imageData,
@@ -373,7 +406,7 @@ function isMultipleAvatarRendered({
 }
 
 function isSingleAvatarRendered({images, negate = false, userAvatar}: {images: AvatarData[]; negate?: boolean; userAvatar?: string}) {
-    const isUserAvatarCorrect = images.some((image) => image.uri === (userAvatar ?? USER_AVATAR) && image.parent === 'ReportActionAvatars-SingleAvatar');
+    const isUserAvatarCorrect = images.some((image) => image.uri === (userAvatar ?? USER_AVATAR) && image.parent === 'SingleAvatar');
 
     expect(isUserAvatarCorrect).toBe(!negate);
 }
@@ -454,6 +487,96 @@ describe('ReportActionAvatars', () => {
         it('renders workspace avatar if policyID is passed as a prop', async () => {
             const retrievedData = await retrieveDataFromAvatarView({policyID: policy.id});
             isSingleAvatarRendered({...retrievedData, userAvatar: getDefaultWorkspaceAvatar(policy.name).name});
+        });
+    });
+
+    describe('renders overflow (+N) overlays and card-feed subscripts', () => {
+        it('collapses 3+ account IDs into a diagonal "+N" overlay, showing only the primary avatar', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID]});
+
+            // Beyond the first avatar, the rest collapse into the "+N" overlay rather than rendering a second avatar
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-MultipleAvatars-LimitReached');
+            expect(retrievedData.fragments).not.toContain('ReportActionAvatars-MultipleAvatars-SecondaryAvatar');
+            expect(retrievedData.images.some((image) => image.uri === USER_AVATAR && image.parent === 'ReportActionAvatars-MultipleAvatars-MainAvatar')).toBe(true);
+        });
+
+        it('renders a horizontal "+N" overlay when stacked avatars exceed the row limit', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
+                horizontalStacking: {maxAvatarsPerRow: 2},
+            });
+
+            // Only the first two avatars render inline; the third collapses into the overlay
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-MultipleAvatars-StackedHorizontally-LimitReached');
+            const stackedAvatars = retrievedData.images.filter((image) => image.parent === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar');
+            expect(stackedAvatars).toHaveLength(2);
+            expect(stackedAvatars.map((image) => image.uri)).toEqual(expect.arrayContaining([USER_AVATAR, SECOND_USER_AVATAR]));
+        });
+
+        it('renders the card-feed icon in place of the workspace subscript when subscriptCardFeed is provided', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                reportID: iouReport.reportID,
+                subscriptCardFeed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            });
+
+            // The subscript layout is used, the primary (user) avatar still renders, but the workspace subscript is swapped for the card-feed icon.
+            // The card-feed icon is a (mocked) Icon, so it surfaces in `icons` with its testID on `parent` rather than as a fragment.
+            expect(retrievedData.fragments).toContain('ReportActionAvatars-Subscript');
+            expect(retrievedData.images.some((image) => image.uri === USER_AVATAR && image.parent === 'ReportActionAvatars-Subscript-MainAvatar')).toBe(true);
+            expect(retrievedData.images.some((image) => image.parent === 'ReportActionAvatars-Subscript-SecondaryAvatar')).toBe(false);
+            expect(retrievedData.icons.some((icon) => icon.parent === 'ReportActionAvatars-Subscript-CardIcon')).toBe(true);
+        });
+    });
+
+    describe('covers size, sorting, and row-layout variants', () => {
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'applies "%s" sorting to horizontally stacked avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], horizontalStacking: true, sort});
+                isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR, stacked: true});
+            },
+        );
+
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder the primary and subscript avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, sort});
+
+                // The user stays the main avatar and the workspace stays the subscript regardless of sorting
+                isSubscriptAvatarRendered(retrievedData);
+            },
+        );
+
+        it.each([CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME, CONST.REPORT_ACTION_AVATARS.SORT_BY.ID, CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE])(
+            'does not let "%s" sorting reorder diagonal avatars',
+            async (sort) => {
+                const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], sort});
+                isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+            },
+        );
+
+        it.each([CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.XXXX_LARGE])('renders a subscript avatar at size "%s"', async (size) => {
+            const retrievedData = await retrieveDataFromAvatarView({reportID: iouReport.reportID, size});
+            isSubscriptAvatarRendered(retrievedData);
+        });
+
+        it.each([CONST.AVATAR_SIZE.XXX_LARGE, CONST.AVATAR_SIZE.XXXX_LARGE])('renders diagonal avatars at size "%s"', async (size) => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size});
+            isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+        });
+
+        it('renders diagonal avatars at small size', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({accountIDs: [LOGGED_USER_ID, SECOND_USER_ID], size: CONST.AVATAR_SIZE.SMALL});
+            isMultipleAvatarRendered({...retrievedData, secondUserAvatar: SECOND_USER_AVATAR});
+        });
+
+        it('splits horizontally stacked avatars into two rows when maxRows allows it', async () => {
+            const retrievedData = await retrieveDataFromAvatarView({
+                accountIDs: [LOGGED_USER_ID, SECOND_USER_ID, THIRD_USER_ID],
+                horizontalStacking: {maxRows: 2, maxAvatarsPerRow: 2},
+            });
+            const rows = retrievedData.fragments.filter((fragment) => fragment === 'ReportActionAvatars-MultipleAvatars-StackedHorizontally-Row');
+            expect(rows).toHaveLength(2);
         });
     });
 });

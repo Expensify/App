@@ -112,7 +112,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
-    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
     const shouldShowCurrency = hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
     const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
     const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
@@ -176,7 +176,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && (!shouldShowCurrency || (isWorkflowsSelected && currencyNeededForWorkflows));
+    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && isWorkflowsSelected && currencyNeededForWorkflows;
     if (shouldIncludeCurrency && !effectiveSelectedFeatures.includes('currency')) {
         effectiveSelectedFeatures.push('currency');
     }

@@ -23,7 +23,7 @@ Only workspace owners can add a payment card or update an existing one. If you'r
 ## How to add a payment card
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account** > **Subscription**.
-2. In the **Payment** section, select **Add payment card**.
+2. In the **Payment** section, select **Add card**.
 3. Enter your payment card details.
 4. Accept the terms and select **Add payment card**.
 
@@ -41,6 +41,8 @@ To replace an existing card:
 4. Select **Add payment card**.
 
 The new payment card replaces the previous one and will be used for future Expensify subscription charges.
+
+![The Payment section of Account > Subscription with the three-dots (⋮) menu opened next to the card on file, showing the "Change payment card" option.]({{site.url}}/assets/images/ExpensiHelp-Add-or-Update-a-Payment-Card.png){:width="100%"}
 
 ---
 

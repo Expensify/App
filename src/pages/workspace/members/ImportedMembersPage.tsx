@@ -8,9 +8,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,12 +24,12 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useCallback, useState} from 'react';
 
-type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
@@ -40,6 +42,12 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const policy = usePolicy(policyID);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+
+    // The same mapping screen is reused for the Members importer and the Workflows importer. When it is reached from the
+    // Workflows page we keep the user in the Workflows context (title + back + return + confirmation navigation).
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -88,8 +96,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         setIsImporting(false);
     };
 
+    // Only runs once the import succeeded (it is the confirm modal's onModalHide). Workflows returns to a tabbed page that
+    // reopens on the tab the user left, so point it at Approvals — otherwise the imported workflows are hidden behind it.
     const navigateBackToMembers = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
+        const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
+        if (isWorkflowsImport && isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
+        Navigation.goBack(returnRoute, {waitForTransition: true});
     };
 
     const importMembers = async () => {
@@ -254,7 +268,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         if (isRoleMissing) {
             await setImportedSpreadsheetMemberData(allMembers, shouldShowMemberRolePermissionWarning);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
+            Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
             const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning);
@@ -283,8 +297,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.people.importMembers')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
+                title={isWorkflowsImport ? translate('spreadsheet.importWorkflows') : translate('workspace.people.importMembers')}
+                onBackButtonPress={() => Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

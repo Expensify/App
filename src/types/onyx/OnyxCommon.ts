@@ -62,14 +62,14 @@ type Icon = {
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
 
+    /** Display name of the account, embedded at build time so consumers can sort icons by name without a personal-details subscription */
+    displayName?: string;
+
     /** Avatar id */
     id?: number | string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
-
-    /** Fill color of the icon */
-    fill?: string;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, TranslationKeyError, TranslationKeyErrors};

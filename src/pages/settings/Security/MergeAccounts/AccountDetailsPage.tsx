@@ -95,7 +95,7 @@ function AccountDetailsPage() {
                     return;
                 }
 
-                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email.trim()));
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE.getRoute(email.trim()));
             },
         });
 

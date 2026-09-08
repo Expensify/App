@@ -27,7 +27,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         owner: policy.owner,
         connections: policy.connections,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         isJoinRequestPending: policy.isJoinRequestPending,
         pendingAction: policy.pendingAction,
         errors: policy.errors,
@@ -42,6 +41,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
+        areRulesEnabled: policy.areRulesEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -69,7 +69,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
 
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
@@ -77,6 +77,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
+    // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
+    // large, and shallowEqual on the raw references is cheaper than deepEqual of a transformed copy.
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
@@ -122,9 +126,11 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
+                activeExpensifyCardFeedID,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
+                policyCategories: allPolicyCategories,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -132,19 +138,33 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             cardFeedsByPolicy,
             defaultCardFeed,
             defaultExpensifyCard,
+            activeExpensifyCardFeedID,
             allPolicies,
             savedSearches,
             isOffline,
             draftTransactionIDs,
             isTrackIntentUser,
             hasReportAwaitingApproval,
+            allPolicyCategories,
         ],
     );
 
-    const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+    // The saved search the current query maps to (keyed by `hash`), derived from the existing `savedSearches`
+    // subscription. Undefined when there is no match or when the match is pending deletion (unless offline).
+    const activeSavedSearch = (() => {
+        if (hash === undefined || !savedSearches) {
+            return undefined;
+        }
+        const item = savedSearches[hash];
+        if (!item || (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline)) {
+            return undefined;
+        }
+        return item;
+    })();
 
-        if (isSavedSearchActive) {
+    const activeItemIndex = (() => {
+        // A saved search is not part of `typeMenuSections`, so keep suggested-search focus off it.
+        if (activeSavedSearch) {
             return -1;
         }
 
@@ -180,7 +200,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         }
 
         return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    })();
 
     const activeKey = activeItemIndex < 0 ? undefined : typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex)?.key;
 
@@ -188,6 +208,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         typeMenuSections,
         activeItemIndex,
         activeKey,
+        activeSavedSearch,
     };
 };
 

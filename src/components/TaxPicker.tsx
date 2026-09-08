@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getDefaultTaxCode, getEnabledTaxRateCount, transformedTaxRates} from '@libs/TransactionUtils';
@@ -92,10 +93,10 @@ function TaxPicker({
     const {taxCode, taxValue} = currentTransaction ?? {};
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
     const fallbackTaxCode = transactionID ? defaultTaxCode : '';
-    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : fallbackTaxCode;
+    const effectiveTaxCode = resolveCurrentTaxCode(policy, taxCode && taxCode.length > 0 ? taxCode : fallbackTaxCode);
     const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
-    const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
-    const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
+    const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[effectiveTaxCode];
+    const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[effectiveTaxCode]?.value !== taxValue;
 
     const deletedTaxOption = !hasTaxBeenDeleted
         ? null
@@ -137,8 +138,8 @@ function TaxPicker({
             return;
         }
 
-        const isSameTaxCode = taxCode === newSelectedOption.code;
-        const currentTaxRateValue = taxCode ? taxRates?.taxes?.[taxCode]?.value : undefined;
+        const isSameTaxCode = effectiveTaxCode === newSelectedOption.code;
+        const currentTaxRateValue = taxCode ? taxRates?.taxes?.[effectiveTaxCode]?.value : undefined;
         const hasMatchingTaxValue = taxValue === undefined || currentTaxRateValue === taxValue;
 
         // If deselection is not allowed and the same option is selected, just dismiss

@@ -1,6 +1,6 @@
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
-import {isTodoSearch} from '@libs/SearchUIUtils';
+import {getTransactionsByReportID, getViolationsFromSearchData, isTodoSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +17,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -28,13 +28,15 @@ type SearchResultsProviderProps = {
 const defaultSearchInfo: SearchResultsInfo = {
     offset: 0,
     hash: 0,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
     hasMoreResults: false,
     hasResults: true,
     isLoading: false,
     count: 0,
     total: 0,
-    currency: '',
+    currency: undefined,
 };
 
 function SearchResultsProvider({children}: SearchResultsProviderProps) {
@@ -80,8 +82,15 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         });
     };
 
+    // Computed here, not per row: it scans every snapshot key.
+    const searchData = currentSearchResults?.data;
+    const currentSearchTransactionsByReportID = searchData ? getTransactionsByReportID(searchData) : EMPTY_TRANSACTIONS_BY_REPORT_ID;
+    const currentSearchViolations = searchData ? getViolationsFromSearchData(searchData) : CONST.EMPTY_OBJECT;
+
     const resultsValue: SearchResultsContextValue = {
         currentSearchResults,
+        currentSearchTransactionsByReportID,
+        currentSearchViolations,
         shouldUseLiveData,
         sortedReportIDs,
         shouldShowFiltersBarLoading,

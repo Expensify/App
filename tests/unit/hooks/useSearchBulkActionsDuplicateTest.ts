@@ -20,14 +20,15 @@ import Onyx from 'react-native-onyx';
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
 
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
@@ -404,7 +405,7 @@ describe('useSearchBulkActions - duplicate option', () => {
     it('should show duplicate option for a Per Diem expense with dates', async () => {
         const txnID = '1500';
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
         const txn = {
             ...createRandomTransaction(1),
             transactionID: txnID,
@@ -450,7 +451,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should show duplicate option for a mix of cash, Per Diem, and Distance expenses', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
         const cashTxn = {...createRandomTransaction(1), transactionID: '1700', managedCard: false};
         const perDiemTxn = {
             ...createRandomTransaction(2),
@@ -632,7 +633,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should pass defaultExpensePolicy as targetPolicy when available', async () => {
         const policyID = 'POLICY_TEAM_1';
-        const teamPolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test Workspace'} as Policy;
+        const teamPolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test Workspace'});
         mockDefaultExpensePolicy = teamPolicy;
 
         const txnID = '700';
@@ -680,7 +681,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should resolve policy categories and tags from defaultExpensePolicy', async () => {
         const policyID = 'POLICY_CAT_TEST';
-        const teamPolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Category WS'} as Policy;
+        const teamPolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Category WS'});
         mockDefaultExpensePolicy = teamPolicy;
 
         const categories: PolicyCategories = {
@@ -718,7 +719,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should pass activePolicyExpenseChat as targetReport when it exists', async () => {
         const policyID = 'POLICY_REPORT_TEST';
-        const teamPolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Report WS'} as Policy;
+        const teamPolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Report WS'});
         mockDefaultExpensePolicy = teamPolicy;
 
         const policyExpenseChat: Report = {
@@ -758,7 +759,7 @@ describe('useSearchBulkActions - duplicate option', () => {
     it('should duplicate expenses from multiple policies using the default expense policy data', async () => {
         const defaultPolicyID = 'DEFAULT_POLICY';
         const otherPolicyID = 'OTHER_POLICY';
-        const teamPolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+        const teamPolicy = createMock<Policy>({id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'});
         mockDefaultExpensePolicy = teamPolicy;
 
         const defaultCategories: PolicyCategories = {
@@ -900,7 +901,7 @@ describe('useSearchBulkActions - duplicate option', () => {
     it('should not show duplicate option for per-diem expense on non-default workspace', async () => {
         const defaultPolicyID = 'DEFAULT_POLICY';
         const otherPolicyID = 'OTHER_POLICY';
-        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'});
 
         const txnID = '2100';
         const txn = {
@@ -971,7 +972,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should not show duplicate option for distance expense from DM chat', async () => {
         const defaultPolicyID = 'DEFAULT_POLICY';
-        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'});
 
         const txnID = '2400';
         const expenseReportID = 'r_expense_dm';
@@ -1037,7 +1038,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should not show duplicate option for unreported per diem expense (no policyID on report)', async () => {
         const defaultPolicyID = 'DEFAULT_POLICY';
-        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'});
 
         const txnID = '2500';
         const txn = {
@@ -1065,7 +1066,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should not show duplicate option for unreported distance expense when policy expense chat exists', async () => {
         const defaultPolicyID = 'DEFAULT_POLICY';
-        mockDefaultExpensePolicy = {id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: defaultPolicyID, type: CONST.POLICY.TYPE.TEAM, name: 'Default WS'});
 
         const txnID = '2600';
         const txn = {
@@ -1181,7 +1182,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should show duplicate report option for a single expense report owned by current user', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const report: Report = {
             reportID: 'report1',
@@ -1205,7 +1206,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should show duplicate report option for multiple expense reports owned by current user', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         for (const reportID of ['rpt1', 'rpt2', 'rpt3']) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1254,7 +1255,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should not show duplicate report option on expense (non-report) search type', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const report: Report = {
             reportID: 'report1',
@@ -1276,7 +1277,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should not show duplicate report option when current user is not the submitter', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const otherUserAccountID = 9999;
         const report: Report = {
@@ -1299,7 +1300,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should not show duplicate report option when one selected report is not an expense report', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const expenseReport: Report = {
             reportID: 'rpt1',
@@ -1332,7 +1333,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should not show duplicate report option when no reports are selected', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         mockSelectedReports = [];
 
@@ -1343,7 +1344,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should not show duplicate report option when one report has undefined reportID', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         const report: Report = {
             reportID: 'rpt1',
@@ -1372,7 +1373,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should call bulkDuplicateReports with correct reportIDs when invoked', async () => {
         const policyID = 'policy1';
-        const teamPolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        const teamPolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
         mockDefaultExpensePolicy = teamPolicy;
 
         for (const reportID of ['rpt1', 'rpt2']) {
@@ -1410,7 +1411,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
     it('should clear selected transactions after invoking duplicate report', async () => {
         const policyID = 'policy1';
-        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
+        mockDefaultExpensePolicy = createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'});
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}rpt1`, {
             reportID: 'rpt1',

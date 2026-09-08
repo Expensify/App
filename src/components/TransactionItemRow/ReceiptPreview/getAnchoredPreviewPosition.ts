@@ -15,10 +15,10 @@ const RECEIPT_PREVIEW_EDGE_MARGIN = 24;
 const RECEIPT_PREVIEW_MIN_VISIBLE_HEIGHT = 160;
 
 /**
- * Anchors the preview's bottom-left corner to the right of the hovered thumbnail, so the preview grows upward
- * from the row. If there isn't room on the right, it flips to the left of the thumbnail. The top is clamped to a
- * viewport margin so a tall receipt near the top of the screen never runs off the top edge. Returns undefined
- * when there is no anchor, so the caller keeps the static style.
+ * Anchors the preview's bottom-left corner beside the hovered thumbnail, so the preview grows upward from the
+ * row. It prefers the left of the thumbnail and only flips to the right when there isn't room on the left. The
+ * top is clamped to a viewport margin so a tall receipt near the top of the screen never runs off the top edge.
+ * Returns undefined when there is no anchor, so the caller keeps the static style.
  *
  * @param previewHeight Measured height of the preview. 0 means "not measured yet" — we can't bottom-align without
  * it, so we fall back to aligning the top with the row (keeping a minimum slice on-screen) for the first frame.
@@ -28,9 +28,14 @@ function getAnchoredPreviewPosition(anchorPosition: AnchorPosition | undefined, 
         return undefined;
     }
 
+    const leftOfThumbnail = anchorPosition.left - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_GAP;
     const rightOfThumbnail = anchorPosition.left + anchorPosition.width + RECEIPT_PREVIEW_GAP;
-    const overflowsRight = windowWidth > 0 && rightOfThumbnail + RECEIPT_PREVIEW_WIDTH + RECEIPT_PREVIEW_EDGE_MARGIN > windowWidth;
-    const left = overflowsRight ? Math.max(RECEIPT_PREVIEW_EDGE_MARGIN, anchorPosition.left - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_GAP) : rightOfThumbnail;
+    const fitsLeft = leftOfThumbnail >= RECEIPT_PREVIEW_EDGE_MARGIN;
+    const preferredLeft = fitsLeft ? leftOfThumbnail : rightOfThumbnail;
+
+    // Clamp so the preview stays on-screen even when neither side has enough room (narrow viewports).
+    const maxLeft = windowWidth - RECEIPT_PREVIEW_WIDTH - RECEIPT_PREVIEW_EDGE_MARGIN;
+    const left = Math.max(RECEIPT_PREVIEW_EDGE_MARGIN, Math.min(preferredLeft, maxLeft));
 
     // Before it's measured we can't bottom-align, so keep a minimum slice on-screen relative to the row top.
     if (previewHeight <= 0) {

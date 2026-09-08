@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -54,6 +55,17 @@ type TagPickerProps = {
      * split-edit where the active workspace no longer carries the original tag value.
      */
     additionalTagsToInclude?: string[];
+
+    /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
+    addBottomSafeAreaPadding?: boolean;
+    /**
+     * Optional override for whether to show GL codes. When omitted, TagPicker reads
+     * `showTagGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldShowGLCode?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -80,8 +92,15 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    addBottomSafeAreaPadding = false,
+    shouldShowGLCode: shouldShowGLCodeProp,
+    shouldAutoFocusSearchInput = false,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
+    });
+    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -146,6 +165,7 @@ function TagPicker({
         recentlyUsedTags: policyRecentlyUsedTagsList,
         localeCompare,
         translate,
+        shouldShowGLCode,
     });
     const sections = shouldOrderListByTagName
         ? tagSections.map((option) => ({
@@ -161,7 +181,8 @@ function TagPicker({
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
@@ -177,6 +198,7 @@ function TagPicker({
             shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
@@ -184,3 +206,4 @@ function TagPicker({
 }
 
 export default TagPicker;
+export type {TagPickerProps};

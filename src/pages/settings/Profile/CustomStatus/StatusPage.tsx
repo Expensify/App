@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FixedFooter from '@components/FixedFooter';
@@ -6,7 +6,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -50,7 +50,7 @@ function StatusPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     // We intentionally use isSmallScreenWidth here. Since the Status page is displayed
     // inside the RHP, shouldUseNarrowLayout is always true. However, we still need to
@@ -83,8 +83,8 @@ function StatusPage() {
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(translate, dataToShow);
-    }, [draftClearAfter, currentUserClearAfter, translate]);
+        return DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
+    }, [draftClearAfter, currentUserClearAfter, translate, dateFnsLocale]);
 
     const isValidClearAfterDate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -158,15 +158,15 @@ function StatusPage() {
     const saveButton = useMemo(
         () => (
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={styles.w100}
-                text={translate('statusPage.save')}
                 onPress={() => formRef.current?.submit()}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 isLoading={isFormLoading}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('statusPage.save')}</Button.Text>
+            </Button>
         ),
         [translate, isFormLoading, styles.w100],
     );
@@ -236,7 +236,7 @@ function StatusPage() {
                         brickRoadIndicator={brickRoadIndicator}
                     />
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                        <MenuItem
+                        <MenuItemAction
                             title={translate('statusPage.clearStatus')}
                             icon={icons.Trashcan}
                             onPress={clearStatus}

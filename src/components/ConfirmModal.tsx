@@ -2,6 +2,8 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -40,11 +42,11 @@ type ConfirmModalProps = {
     /** Modal content text/element */
     prompt?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
 
-    /** Is the action destructive */
-    danger?: boolean;
+    /** Button variant */
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -85,6 +87,9 @@ type ConfirmModalProps = {
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
 
+    /** Styles for subtitle */
+    subtitleStyles?: StyleProp<TextStyle>;
+
     /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
@@ -102,6 +107,12 @@ type ConfirmModalProps = {
 
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
+
+    /** Image width */
+    imageWidth?: number;
+
+    /** Image height */
+    imageHeight?: number;
 
     /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
@@ -144,8 +155,9 @@ function ConfirmModal({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
-    danger = false,
+    subtitle,
+    subtitleStyles,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     onCancel = () => {},
     onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -163,6 +175,8 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
@@ -200,6 +214,7 @@ function ConfirmModal({
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
+            shouldTreatModalAsCovering
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}
@@ -218,8 +233,9 @@ function ConfirmModal({
                 confirmText={confirmText}
                 cancelText={cancelText}
                 prompt={prompt}
-                success={success}
-                danger={danger}
+                subtitle={subtitle}
+                subtitleStyles={subtitleStyles}
+                buttonVariant={buttonVariant}
                 isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}
@@ -239,6 +255,8 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
                 isTitleLoading={isTitleLoading}

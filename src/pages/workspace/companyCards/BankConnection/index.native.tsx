@@ -18,7 +18,6 @@ import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
@@ -76,22 +75,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-        isAllFeedsResultLoading,
-        isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
-        isConnectionCompleted,
-        isPlaid,
-    };
-    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-    };
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={renderLoadingReasonAttributes}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -120,17 +106,30 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         }
 
         // Handle assign card flow
-        if (feed && !isFeedExpired) {
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        if (feed) {
+            if (!isFeedExpired) {
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                    return;
+                }
+                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
+                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                if (!assignCard?.isRefreshing) {
+                    setAssignCardStepAndData({
+                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                        isEditing: false,
+                    });
+                    return;
+                }
+            }
+            // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
+            // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
+            // miss the `plaid.` prefix and take the server's create-new-feed branch, duplicating the feed). This
+            // mirrors the web effect, which returns for a still-expired Plaid feed.
+            if (isPlaid) {
                 return;
             }
-            setAssignCardStepAndData({
-                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                isEditing: false,
-            });
-            return;
         }
 
         // Handle add new card flow
@@ -158,6 +157,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         feed,
         isFeedExpired,
         assignCard?.cardToAssign?.dateOption,
+        assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
@@ -205,7 +205,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={activityReasonAttributes}
                     />
                 )}
                 {isNewFeedHasError && (

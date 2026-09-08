@@ -9,6 +9,8 @@ import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSe
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import createMock from '../utils/createMock';
+
 const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockGetTopmostReportParams = jest.fn<{reportID: string} | undefined, [unknown]>();
 const mockGetReportOrDraftReport = jest.fn();
@@ -71,8 +73,14 @@ describe('submitDismissStrategies', () => {
         it('ends span, flushes deferred write, and runs callback in afterTransition', () => {
             dismissOnly(runAfterDismiss);
 
-            const opts = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0) as {afterTransition: () => void} | undefined;
-            opts?.afterTransition();
+            const opts = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0);
+            if (!opts) {
+                throw new Error('Expected dismissModal options');
+            }
+            if (!opts.afterTransition) {
+                throw new Error('Expected dismissModal afterTransition callback');
+            }
+            opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
             expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
@@ -99,9 +107,11 @@ describe('submitDismissStrategies', () => {
         it('pops RHP and runs callback after transitions when report has no existing transactions', () => {
             mockGetReportOrDraftReport.mockReturnValue({reportID: 'report-1', transactionCount: 0});
             mockIsMoneyRequestReport.mockReturnValue(true);
-            (navigationRef.getRootState as jest.Mock).mockReturnValue({
-                routes: [{state: {key: 'rhp-key'}}],
-            });
+            jest.spyOn(navigationRef, 'getRootState').mockReturnValue(
+                createMock<ReturnType<typeof navigationRef.getRootState>>({
+                    routes: [{state: {key: 'rhp-key'}}],
+                }),
+            );
 
             dismissRHPToReport('report-1', runAfterDismiss);
 
@@ -137,9 +147,11 @@ describe('submitDismissStrategies', () => {
         it('pops RHP when report is not a money request report (no existing transactions)', () => {
             mockGetReportOrDraftReport.mockReturnValue({reportID: 'report-1'});
             mockIsMoneyRequestReport.mockReturnValue(false);
-            (navigationRef.getRootState as jest.Mock).mockReturnValue({
-                routes: [{state: {key: 'rhp-key-2'}}],
-            });
+            jest.spyOn(navigationRef, 'getRootState').mockReturnValue(
+                createMock<ReturnType<typeof navigationRef.getRootState>>({
+                    routes: [{state: {key: 'rhp-key-2'}}],
+                }),
+            );
 
             dismissRHPToReport('report-1', runAfterDismiss);
 
@@ -205,8 +217,14 @@ describe('submitDismissStrategies', () => {
 
             executeDismissModalStrategy('report-1', runAfterDismiss);
 
-            const opts = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0) as {afterTransition: () => void} | undefined;
-            opts?.afterTransition();
+            const opts = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0);
+            if (!opts) {
+                throw new Error('Expected dismissModal options');
+            }
+            if (!opts.afterTransition) {
+                throw new Error('Expected dismissModal afterTransition callback');
+            }
+            opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
@@ -239,8 +257,14 @@ describe('submitDismissStrategies', () => {
 
             executeDismissModalStrategy('report-1', runAfterDismiss);
 
-            const opts = jest.mocked(Navigation.revealRouteBeforeDismissingModal).mock.calls.at(0)?.at(1) as {afterTransition: () => void} | undefined;
-            opts?.afterTransition();
+            const opts = jest.mocked(Navigation.revealRouteBeforeDismissingModal).mock.calls.at(0)?.[1];
+            if (!opts) {
+                throw new Error('Expected revealRouteBeforeDismissingModal options');
+            }
+            if (!opts.afterTransition) {
+                throw new Error('Expected revealRouteBeforeDismissingModal afterTransition callback');
+            }
+            opts.afterTransition();
 
             expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
@@ -252,9 +276,15 @@ describe('submitDismissStrategies', () => {
 
                 executeDismissModalStrategy('report-1', runAfterDismiss);
 
-                const opts = jest.mocked(Navigation.dismissModalWithReport).mock.calls.at(0)?.at(2) as {onBeforeNavigate: (willOpenReport: boolean) => void} | undefined;
+                const opts = jest.mocked(Navigation.dismissModalWithReport).mock.calls.at(0)?.[2];
                 jest.mocked(setPendingSubmitFollowUpAction).mockClear();
-                opts?.onBeforeNavigate(true);
+                if (!opts) {
+                    throw new Error('Expected dismissModalWithReport options');
+                }
+                if (!opts.onBeforeNavigate) {
+                    throw new Error('Expected dismissModalWithReport onBeforeNavigate callback');
+                }
+                opts.onBeforeNavigate(true);
 
                 expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report-1');
             });
@@ -264,9 +294,15 @@ describe('submitDismissStrategies', () => {
 
                 executeDismissModalStrategy('report-1', runAfterDismiss);
 
-                const opts = jest.mocked(Navigation.dismissModalWithReport).mock.calls.at(0)?.at(2) as {onBeforeNavigate: (willOpenReport: boolean) => void} | undefined;
+                const opts = jest.mocked(Navigation.dismissModalWithReport).mock.calls.at(0)?.[2];
                 jest.mocked(setPendingSubmitFollowUpAction).mockClear();
-                opts?.onBeforeNavigate(false);
+                if (!opts) {
+                    throw new Error('Expected dismissModalWithReport options');
+                }
+                if (!opts.onBeforeNavigate) {
+                    throw new Error('Expected dismissModalWithReport onBeforeNavigate callback');
+                }
+                opts.onBeforeNavigate(false);
 
                 expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             });
