@@ -3,6 +3,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
 
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -51,8 +53,8 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
-    /** Whether the form submit action is dangerous */
-    isSubmitActionDangerous?: boolean;
+    /** The visual variant of the submit button, which controls its color scheme */
+    buttonVariant?: ButtonVariant;
 
     /** Custom content to display in the footer after submit button */
     footerContent?: React.ReactNode;
@@ -69,9 +71,6 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Text for the button */
     buttonText: string;
 
-    /** Whether to use a smaller submit button size */
-    useSmallerSubmitButtonSize?: boolean;
-
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
 
@@ -85,13 +84,16 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
      */
-    shouldBlendOpacity?: boolean;
+    blendButtonOpacity?: boolean;
 
     /** Whether to add a bottom padding to the button */
     addButtonBottomPadding?: boolean;
 
     /** Prevents the button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /** Styles for the container wrapping the submit button and footer content */
+    buttonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormAlertWithSubmitButton({
@@ -103,25 +105,25 @@ function FormAlertWithSubmitButton({
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
-    isSubmitActionDangerous = false,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     footerContent,
     buttonRef,
     buttonStyles,
     buttonText,
     isAlertVisible = false,
     onSubmit,
-    useSmallerSubmitButtonSize = false,
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
     shouldRenderFooterAboveSubmit = false,
-    shouldBlendOpacity = false,
+    blendButtonOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    buttonAndFooterContainerStyles,
     shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
 
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
@@ -149,14 +151,14 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View>
+                <View style={buttonAndFooterContainerStyles}>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
-                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
-                            blendOpacity={shouldBlendOpacity}
+                            variant={buttonVariant}
+                            blendOpacity={blendButtonOpacity}
                             isDisabled
-                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={style}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
@@ -166,9 +168,9 @@ function FormAlertWithSubmitButton({
                     ) : (
                         <Button
                             ref={buttonRef}
-                            variant={isSubmitActionDangerous ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
-                            blendOpacity={shouldBlendOpacity}
-                            size={useSmallerSubmitButtonSize ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+                            variant={buttonVariant}
+                            blendOpacity={blendButtonOpacity}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             style={style}
                             onPress={submit}
                             isDisabled={isDisabled}

@@ -1,7 +1,9 @@
-import {initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
+import {getSplitReimbursable, initSplitExpenseItemData} from '@libs/actions/IOU/SplitExpenseItems';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import createMock from '../../utils/createMock';
 
 /**
  * Tests for the stale-tax handling in `initSplitExpenseItemData`.
@@ -23,7 +25,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -45,7 +46,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -68,7 +68,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -77,7 +76,11 @@ describe('initSplitExpenseItemData stale tax handling', () => {
                 foreignTaxDefault: NEW_TAX_CODE,
                 defaultValue: defaultRateValue,
                 taxes: {
-                    [TAX_CODE]: {name: 'Tax Rate 1', value: disabledRateValue, isDisabled: true},
+                    [TAX_CODE]: {
+                        name: 'Tax Rate 1',
+                        value: disabledRateValue,
+                        isDisabled: true,
+                    },
                     [NEW_TAX_CODE]: {name: 'Tax Rate 2', value: defaultRateValue},
                 },
             },
@@ -91,7 +94,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -100,7 +102,11 @@ describe('initSplitExpenseItemData stale tax handling', () => {
                 foreignTaxDefault: TAX_CODE,
                 defaultValue: disabledRateValue,
                 taxes: {
-                    [TAX_CODE]: {name: 'Tax Rate 1', value: disabledRateValue, isDisabled: true},
+                    [TAX_CODE]: {
+                        name: 'Tax Rate 1',
+                        value: disabledRateValue,
+                        isDisabled: true,
+                    },
                 },
             },
         }) as Policy;
@@ -113,7 +119,6 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: 'owner@test.com',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             tax: {trackingEnabled: true},
             taxRates: {
@@ -152,7 +157,10 @@ describe('initSplitExpenseItemData stale tax handling', () => {
 
     it('falls back to the policy default rate when the stored tax rate was deleted', () => {
         // The stored code no longer exists. The policy default is now a 10% rate (100 * 10 / 110 = 9.09).
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDeletedRate('10%'), getCurrencyDecimals: () => 2});
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
+            policy: buildPolicyWithDeletedRate('10%'),
+            getCurrencyDecimals: () => 2,
+        });
 
         expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
         expect(splitExpense.taxValue).toBe('10%');
@@ -162,7 +170,10 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     it('falls back to the policy default rate when the stored tax rate was disabled', () => {
         // The stored code still exists but is disabled, so it is not selectable. The enabled default is a 10% rate
         // (100 * 10 / 110 = 9.09).
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDisabledRate('20%', '10%'), getCurrencyDecimals: () => 2});
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
+            policy: buildPolicyWithDisabledRate('20%', '10%'),
+            getCurrencyDecimals: () => 2,
+        });
 
         expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
         expect(splitExpense.taxValue).toBe('10%');
@@ -172,7 +183,10 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     it('refreshes to the default rate when the stored value still matches but its rate is now disabled', () => {
         // The stored 5% still matches the (now disabled) rate's value, but a disabled rate is not selectable, so the
         // split refreshes to the enabled 10% default (100 * 10 / 110 = 9.09) instead of keeping the disabled rate.
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithDisabledRate('5%', '10%'), getCurrencyDecimals: () => 2});
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
+            policy: buildPolicyWithDisabledRate('5%', '10%'),
+            getCurrencyDecimals: () => 2,
+        });
 
         expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
         expect(splitExpense.taxValue).toBe('10%');
@@ -182,7 +196,10 @@ describe('initSplitExpenseItemData stale tax handling', () => {
     it('keeps the parent stored tax trio when only a disabled rate resolves', () => {
         // The stored code is disabled and it is also the default, so no selectable rate resolves. Keep the parent's
         // internally-consistent stored trio.
-        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithOnlyDisabledRate('20%'), getCurrencyDecimals: () => 2});
+        const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
+            policy: buildPolicyWithOnlyDisabledRate('20%'),
+            getCurrencyDecimals: () => 2,
+        });
 
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('5%');
@@ -215,5 +232,144 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         expect(splitExpense.taxCode).toBe(TAX_CODE);
         expect(splitExpense.taxValue).toBe('5%');
         expect(splitExpense.taxAmount).toBe(476);
+    });
+});
+
+/**
+ * Tests for `getSplitReimbursable`, which resolves the `reimbursable` value a split is seeded with.
+ *
+ * The parent expense's stored value is only inherited while the policy leaves the reimbursable field editable.
+ * A locked field (one of the two "Always …" cash-expense modes) must win over a stale stored value, and
+ * managed-card transactions must stay non-reimbursable regardless, because their toggle is hidden in the split
+ * editor and the user would have no way to correct it.
+ */
+describe('getSplitReimbursable', () => {
+    const buildReimbursablePolicy = (
+        overrides: {
+            reimbursableLocked?: boolean;
+            defaultReimbursable?: boolean;
+        } = {},
+    ): Policy =>
+        createMock<Policy>({
+            id: 'policy-1',
+            defaultReimbursable: overrides.defaultReimbursable,
+            disabledFields: {
+                reimbursable: overrides.reimbursableLocked,
+            },
+        });
+
+    const buildReimbursableTransaction = (overrides: {managedCard?: boolean} = {}): Transaction =>
+        createMock<Transaction>({
+            transactionID: 'tx-1',
+            managedCard: overrides.managedCard,
+        });
+
+    describe('policy locks the reimbursable field ("Always …" cash-expense modes)', () => {
+        it('returns the policy default (true) even when the parent expense is stored as non-reimbursable', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: true,
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction())).toBe(true);
+        });
+
+        it('returns the policy default (false) even when a pre-rule parent expense still carries reimbursable: true', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: true,
+                defaultReimbursable: false,
+            });
+
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction())).toBe(false);
+        });
+
+        it('returns the policy default when the parent value is undefined', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: true,
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, undefined, buildReimbursableTransaction())).toBe(true);
+        });
+
+        it('returns undefined when the field is locked but the policy has no defaultReimbursable', () => {
+            const policy = buildReimbursablePolicy({reimbursableLocked: true});
+
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction())).toBeUndefined();
+        });
+    });
+
+    describe('policy does not lock the reimbursable field ("default" cash-expense modes)', () => {
+        it('inherits the parent value (true) instead of the policy default', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: false,
+                defaultReimbursable: false,
+            });
+
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction())).toBe(true);
+        });
+
+        it('inherits the parent value (false) instead of the policy default', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: false,
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction())).toBe(false);
+        });
+
+        it('inherits the parent value when disabledFields is absent entirely', () => {
+            const policy = createMock<Policy>({
+                id: 'policy-1',
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction())).toBe(false);
+        });
+
+        it('inherits the parent value when there is no policy at all (selfDM / P2P split)', () => {
+            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction())).toBe(true);
+            expect(getSplitReimbursable(undefined, false, buildReimbursableTransaction())).toBe(false);
+            expect(getSplitReimbursable(undefined, undefined, buildReimbursableTransaction())).toBeUndefined();
+        });
+    });
+
+    describe('managed-card transactions', () => {
+        it('stays false under a locked "Always reimbursable" policy — the split editor hides the toggle, so the user could not correct it', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: true,
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        });
+
+        it('stays false when the field is unlocked and the parent expense is reimbursable', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: false,
+                defaultReimbursable: true,
+            });
+
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        });
+
+        it('stays false with no policy', () => {
+            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        });
+    });
+
+    describe('missing transaction', () => {
+        it('falls through to the policy default when the field is locked', () => {
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: true,
+                defaultReimbursable: false,
+            });
+
+            expect(getSplitReimbursable(policy, true, undefined)).toBe(false);
+        });
+
+        it('falls through to the parent value when the field is not locked', () => {
+            expect(getSplitReimbursable(undefined, true, undefined)).toBe(true);
+        });
     });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- this suite asserts on Search snapshot keys directly, and no SearchScopeProvider exists in a test to redirect them */
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {setSidebarLoaded} from '@libs/actions/App';
@@ -26,7 +27,6 @@ import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 
@@ -592,7 +592,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                 addComment({
                     report,
                     notifyReportID: REPORT_ID,
@@ -673,7 +673,7 @@ describe('Unread Indicators', () => {
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOptionWithoutAct(0))
                 .then(async () => {
-                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
                     addComment({
                         report,
@@ -706,7 +706,7 @@ describe('Unread Indicators', () => {
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
-                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     if (lastReportAction) {
                         deleteReportComment(report, lastReportAction, undefined, undefined, [], undefined, undefined, '');
                     }
@@ -730,7 +730,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOptionWithoutAct(0);
 
-        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
         addComment({
             report,
             notifyReportID: REPORT_ID,
@@ -953,7 +953,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOptionWithoutAct(0);
 
-        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
 
         // When USER_A add a comment
         addComment({
@@ -991,7 +991,7 @@ describe('Unread Indicators', () => {
         await waitForBatchedUpdates();
 
         // Then the lastReadTime of report should same as last action from USER_B
-        const updatedReport = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        const updatedReport = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
         expect(updatedReport?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportAction9CreatedDate, 1));
     });
 });

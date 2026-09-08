@@ -31,7 +31,6 @@ import type ReactNative from 'react-native';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -176,6 +175,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     dateFnsLocale: undefined,
+    convertToDisplayString: TestHelper.convertToDisplayString,
     conciergeReportID: undefined,
     isSearching: true,
 });
@@ -447,7 +447,7 @@ describe('SearchAutocompleteList', () => {
         await flushAllUpdates();
 
         // The row label is the derived report name, so the options have to be built from the derived attributes
-        const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+        const reportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
         expect(reportAttributes?.reports?.[threadReportID]?.reportName).toBeTruthy();
         mockUseFilteredOptions.mockReturnValue({
             options: createFilteredOptionList(
@@ -459,6 +459,7 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
@@ -536,7 +537,7 @@ describe('SearchAutocompleteList', () => {
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
         await flushAllUpdates();
 
-        const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+        const reportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
         expect(reportAttributes?.reports?.[threadReportID]?.reportName).toBeTruthy();
         mockUseFilteredOptions.mockReturnValue({
             options: createFilteredOptionList(
@@ -548,6 +549,7 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },

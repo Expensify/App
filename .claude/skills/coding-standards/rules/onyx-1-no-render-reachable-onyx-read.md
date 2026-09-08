@@ -7,20 +7,19 @@ title: Keep Onyx reads off the render path and out of a written tick
 
 ### Reasoning
 
-`await OnyxUtils.get()` reads a key once and never subscribes. Most ways that goes wrong are already caught before review, so this rule is only the rest.
+`await Onyx.get()` reads a key once and never subscribes. Most ways that goes wrong are already caught before review, so this rule is only the rest.
 
 Do not re-check these, they are enforced:
 
 | Already enforced | By what |
 |---|---|
 | Read during render, or at module scope | `no-unsafe-onyx-read` |
-| Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | the `ReadableOnyxKey` parameter type, and `@libs/OnyxUtils.get` at runtime for a key that is only a `string` until then |
-| Reading straight off `react-native-onyx` instead of `@libs/OnyxUtils` | `no-unsafe-onyx-read` |
+| Reading a `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` key | `no-unsafe-onyx-read`, which also rejects a key it cannot resolve statically |
 | A forgotten `await` whose value is then used | `tsc`, since the value is a `Promise` |
 
 What is left is what none of them can see: **every** read-after-write ordering question, anything that crosses a file boundary, anything only visible as a diff, and dataflow after the read.
 
-Mutating a read result is not on either list. The resolved value is the object the cache holds, so writing to it is a real bug, but `useOnyx` returns that same object typed the same way and the codebase already accepts the hazard there. Enforcing it on the read alone would only make the read harder to adopt than the subscription it replaces, so it stays a convention documented on `@libs/OnyxUtils.get`.
+Mutating a read result is not on either list. The resolved value is the object the cache holds, so writing to it is a real bug, but `useOnyx` returns that same object typed the same way and the codebase already accepts the hazard there. Enforcing it on the read alone would only make the read harder to adopt than the subscription it replaces, so it stays a convention documented on `Onyx.get`.
 
 **A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (the `returnsJSX` check in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`). It also reads a `selector` option, a lazy initializer and a `useSyncExternalStore` snapshot as render. So it is silent on a read in a library function a hook calls, on a helper that returns JSX from inside an `if` or a `switch`, and on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
 
@@ -37,7 +36,7 @@ Mutating a read result is not on either list. The resolved value is the object t
 ```ts
 // src/libs/ReportOwnerUtils.ts
 async function getReportOwnerAccountID(reportID: string) {
-    return (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.ownerAccountID; // fine here
+    return (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.ownerAccountID; // fine here
 }
 
 // src/hooks/useOwnerName.ts
@@ -51,7 +50,7 @@ function useOwnerName(reportID: string) {
 ```tsx
 // Every return is JSX, but each sits inside a switch case, so `returnsJSX` is false and lint says nothing.
 async function renderReportIcon(reportID: string) {
-    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`); // wrong: this is render
+    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`); // wrong: this is render
 
     switch (report?.chatType) {
         case CONST.REPORT.CHAT_TYPE.POLICY_ROOM:
@@ -76,11 +75,11 @@ async function submitReport(reportID: string) {
 
 // src/libs/ReportUtils.ts, untouched by the diff
 async function getReportTotal(reportID: string) {
-    return (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total;
+    return (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total;
 }
 
 async function getReportAttributes(reportID: string) {
-    return (await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES))?.reports?.[reportID];
+    return (await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES))?.reports?.[reportID];
 }
 ```
 
@@ -91,7 +90,7 @@ async function getReportAttributes(reportID: string) {
 -    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
      useEffect(() => {
 -        markReportSeen(report);
-+        OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`).then(markReportSeen); // never re-runs when the report changes
++        Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`).then(markReportSeen); // never re-runs when the report changes
 -    }, [report]);
 +    }, [reportID]);
  }
@@ -103,7 +102,7 @@ async function getReportAttributes(reportID: string) {
 function ReportTitle({reportID}: {reportID: string}) {
     const [title, setTitle] = useState<string>();
     // The title renders below, so it has to stay reactive. This freezes it at the moment of the tap.
-    const onPress = async () => setTitle((await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.reportName);
+    const onPress = async () => setTitle((await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.reportName);
     return <Text onPress={onPress}>{title}</Text>;
 }
 ```
@@ -133,7 +132,7 @@ function replaceReport(reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[actionID]: null});
     TransitionTracker.runAfterTransitions({
         callback: async () => {
-            const action = (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[actionID];
+            const action = (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[actionID];
             if (action && !action.isOptimisticAction) { ... }
         },
     });
@@ -177,13 +176,13 @@ Callers of a read: Grep `src/` over `**/*.{ts,tsx}` for the function's name, ign
 **A3. Reverse, the diff adds a call, not a read.** Flag when ALL are true:
 
 - The diff adds a call inside a component or a hook, and the call's value is discarded or the callee returns `void`, since tsc reports the rest
-- The callee's file contains a read: Grep that file for `OnyxUtils.get`
+- The callee's file contains a read: Grep that file for `Onyx.get`
 - The added call sits at a render position, not in a handler or an effect
 - Comment on the added call
 
 **A4. Prop, the read leaves in a function handed to a child.** Flag when ALL are true:
 
-- The diff adds a read to a function passed as a prop, or adds a JSX attribute passing a function whose file contains `OnyxUtils.get`
+- The diff adds a read to a function passed as a prop, or adds a JSX attribute passing a function whose file contains `Onyx.get`
 - The receiving component invokes that prop anywhere render reaches: its body at statement level, its JSX, a `useMemo`, or a local function the body calls
 - Resolve the receiver before deciding: take the component name off the JSX attribute, open its file, Grep the prop's name followed by `(`. A prop only forwarded to another component is not a verdict, repeat on that one
 - Comment on the JSX attribute, naming the receiving file and the line that calls it
@@ -193,7 +192,7 @@ Callers of a read: Grep `src/` over `**/*.{ts,tsx}` for the function's name, ign
 
 **B1. Forward, the diff adds an un-awaited write.** Every un-awaited write is a finding for a later read of the same key in the same tick, whichever method it is, and an `await` on the read does not change that. Do not exempt a write by name: which ones land immediately differs between react-native-onyx versions, any `set` inside `update()` is deferred, and a read of a key *derived* from a write lags regardless.
 
-For every call the body makes after a deferred write in the same tick, Grep the callee's file for `OnyxUtils.get`. Flag when the callee reads:
+For every call the body makes after a deferred write in the same tick, Grep the callee's file for `Onyx.get`. Flag when the callee reads:
 
 - The written key, or a member of the written collection
 - A key derived from it. Derived keys are the `DERIVED` block in `src/ONYXKEYS.ts`; the sources of one are the `dependencies` array in its config under `src/libs/actions/OnyxDerived/configs/`. Grep that directory for the written key. A derived read lags even a write that lands immediately, because the derivation's own write does not
@@ -254,7 +253,7 @@ Tick:
 - The keys are provably different and the read key is not derived from the written one
 
 **Search Patterns** (hints for reviewers):
-- `OnyxUtils.get(`
+- `Onyx.get(`
 - `Onyx.merge(`, `Onyx.update(`, `Onyx.set(`, `Onyx.mergeCollection(`
 - `ONYXKEYS.DERIVED`
 - removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff

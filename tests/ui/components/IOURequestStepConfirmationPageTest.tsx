@@ -4,10 +4,11 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 
-import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
+import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -98,6 +98,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // Stands in for the participant picker so a test can hand the page a selection without driving the real selector.
 // The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
 let mockSelectedParticipants: Participant[] = [];
+let mockSelectedPolicy: OnyxEntry<Policy>;
 jest.mock('@components/ParticipantPicker', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text, TouchableOpacity} = jest.requireActual<{
@@ -106,10 +107,10 @@ jest.mock('@components/ParticipantPicker', () => {
     }>('react-native');
     return {
         __esModule: true,
-        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[]) => void}) =>
+        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void}) =>
             ReactModule.createElement(
                 TouchableOpacity,
-                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants)},
+                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
                 ReactModule.createElement(Text, null, 'Select participant'),
             ),
     };
@@ -530,7 +531,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Get initial tax amount from transaction
-            let transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            let transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             const initialTaxAmount = transaction?.taxAmount;
             expect(initialTaxAmount).toBeTruthy();
@@ -589,7 +590,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Get updated tax amount
-            transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             const updatedTaxAmount = transaction?.taxAmount;
 
@@ -657,7 +658,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Verify initial tax with default rate (5%)
-            let transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            let transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             expect(transaction?.taxCode).toBe('taxRate1');
             expect(transaction?.taxAmount).toBe(476);
@@ -697,7 +698,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Get tax after currency change
-            transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             // Tax code should change to foreign default (taxRate2 - 10%)
             expect(transaction?.taxCode).toBe('taxRate2');
@@ -804,7 +805,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Read tax amount - should be zero since taxClaimablePercentage is not configured
-            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             // taxClaimablePercentage defaults to 0, so tax should calculate correctly consistently with how it is calculated in the backend
             expect(transaction?.taxAmount).toBeDefined();
@@ -907,7 +908,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Get initial tax
-            let transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            let transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             const initialTaxAmount = transaction?.taxAmount;
             const initialTaxCode = transaction?.taxCode;
@@ -965,7 +966,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Get updated tax
-            transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
             const updatedTaxAmount = transaction?.taxAmount;
             const updatedTaxCode = transaction?.taxCode;
@@ -1138,7 +1139,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 harvesting: {enabled: false},
             };
 
-            const isReportOutstandingSpy = jest.spyOn(require('@libs/ReportUtils'), 'isReportOutstanding').mockReturnValue(true);
+            const canAddTransactionSpy = jest.spyOn(require('@libs/ReportUtils'), 'canAddTransaction').mockReturnValue(true);
 
             try {
                 await act(async () => {
@@ -1202,7 +1203,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
-                isReportOutstandingSpy.mockRestore();
+                canAddTransactionSpy.mockRestore();
             }
         });
     });
@@ -1515,6 +1516,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
         beforeEach(async () => {
             mockSelectedParticipants = [];
+            mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
@@ -1587,8 +1589,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
         }
 
+        function getPolicyByID(policyID?: string) {
+            return new Promise<OnyxEntry<Policy>>((resolve) => {
+                if (!policyID) {
+                    resolve(undefined);
+                    return;
+                }
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+        }
+
         async function selectParticipants(participants: Participant[]) {
             mockSelectedParticipants = participants;
+            // Mirror the real picker: resolve the chosen workspace's policy and pass it to onParticipantsAdded.
+            mockSelectedPolicy = await getPolicyByID(participants.at(0)?.policyID);
             fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
             await waitForBatchedUpdatesWithAct();
         }
@@ -1659,6 +1679,102 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const draftTransaction = await getDraftTransaction();
             expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
             expect(draftTransaction?.tag).toBe('');
+        });
+    });
+
+    describe('Embedded on IOURequestStartPage', () => {
+        // IOURequestStartPage renders its own ScreenWrapper and hands it the focus trap containers for the
+        // header (which holds the Back button), the tab bar and the active tab. This stands in for that wrapper.
+        //
+        // These assert on which component owns the ScreenWrapper, which is a proxy for the fix rather than a test of
+        // it: every ScreenWrapper mounts a FocusTrapForScreen, so no wrapper means no competing trap. The reported
+        // Tab-order behaviour itself cannot be exercised here, because FocusTrapForScreen is a pass-through on the
+        // native platform Jest resolves - a green run here is not coverage of the focus-trap regression.
+        const PARENT_SCREEN_TEST_ID = 'IOURequestStartPage';
+        const CONFIRMATION_SCREEN_TEST_ID = 'IOURequestStepConfirmation';
+
+        beforeEach(async () => {
+            mockSelectedParticipants = [];
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+            });
+        });
+
+        /**
+         * Renders the body the way the manual tab composes it (inside the start page's ScreenWrapper), or the
+         * standalone RHP route, which brings its own.
+         */
+        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split'}) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                });
+            });
+
+            const Confirmation = isEmbedded ? IOURequestStepConfirmationContentWithWritableReportOrNotFound : IOURequestStepConfirmationWithWritableReportOrNotFound;
+            const confirmation = (
+                <Confirmation
+                    route={{
+                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                        name: 'Money_Request_Step_Confirmation',
+                        params: {
+                            action: 'create',
+                            iouType,
+                            transactionID: TRANSACTION_ID,
+                            reportID: REPORT_ID,
+                        },
+                    }}
+                    // @ts-expect-error only setParams is used by the participant selection handler.
+                    navigation={{setParams: jest.fn()}}
+                    shouldHideHeader={isEmbedded}
+                />
+            );
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>{isEmbedded ? <ScreenWrapper testID={PARENT_SCREEN_TEST_ID}>{confirmation}</ScreenWrapper> : confirmation}</LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('mounts no ScreenWrapper of its own when embedded, so the start page keeps sole ownership of the focus trap', async () => {
+            // Given the body composed the way the manual tab composes it, inside the start page's ScreenWrapper
+            await renderConfirmation({isEmbedded: true});
+
+            // Then the confirmation content is on the screen
+            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+
+            // And the only ScreenWrapper is the start page's, so no second FocusTrapForScreen is pushed onto the
+            // shared trap stack to pause the trap holding the Back button and the tab bar
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('mounts no ScreenWrapper of its own when embedded in the split expense flow either', async () => {
+            // Given the same embedded composition for the split flow, which reuses the start page and this same body
+            await renderConfirmation({isEmbedded: true, iouType: 'split'});
+
+            // Then the split manual tab is covered by the same fix
+            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+            expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
+            expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
+        });
+
+        it('keeps its own ScreenWrapper - and therefore its own focus trap - on the standalone route', async () => {
+            // Given the standalone RHP route, with no parent owning its trap
+            await renderConfirmation({isEmbedded: false});
+
+            // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
+            expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
         });
     });
 });
