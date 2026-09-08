@@ -457,8 +457,8 @@ function redistributeExcludingFrozenSplits(
     const splitExpensesToRedistribute =
         unlockManualEditsIfAllLocked && !hasAnyUneditedSplit ? lockedSplits.map((item) => (isFrozenSplit(item) ? item : {...item, isManuallyEdited: false})) : lockedSplits;
 
-    return redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals).map(
-        (item) => splitExpenses.find((original) => isFrozenSplit(item) && original.transactionID === item.transactionID) ?? item,
+    return redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals).map((item) =>
+        isFrozenSplit(item) ? (splitExpenses.find((original) => original.transactionID === item.transactionID) ?? item) : item,
     );
 }
 
@@ -776,6 +776,11 @@ function removeSplitExpenseField(
         return;
     }
 
+    // A frozen split can't be dropped from the set either - its amount must stay accounted for.
+    if (frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
+        return;
+    }
+
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
 
     const splitExpenses = draftTransaction.comment?.splitExpenses?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
@@ -905,6 +910,12 @@ function updateSplitExpenseAmountField(
     frozenSplitTransactionIDs?: Set<string>,
 ) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
+        return;
+    }
+
+    // A frozen split's amount must stay fixed - `redistributeExcludingFrozenSplits` only guards it from
+    // absorbing changes made to other splits, not from a direct edit applied to itself below.
+    if (frozenSplitTransactionIDs?.has(currentItemTransactionID)) {
         return;
     }
 

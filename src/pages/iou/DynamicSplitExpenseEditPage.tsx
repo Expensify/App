@@ -58,6 +58,7 @@ import {
     isManagedCardTransaction,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
+    isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -156,12 +157,23 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const splitExpenseItem = splitExpensesList?.find((item) => item.transactionID === splitExpenseTransactionID);
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
 
-    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(splitExpensesList ?? [], allTransactions, allReports, report, currentSearchResults?.data);
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs(
+        splitExpensesList ?? [],
+        allTransactions,
+        allReports,
+        report,
+        currentSearchResults?.data,
+        originalTransaction,
+        login ?? '',
+        currentUserAccountID,
+        allPolicies,
+        parentReport,
+    );
 
-    // Card requires exact sum: hide Remove when every other split is frozen.
-    const isCardExpense = isManagedCardTransaction(transaction);
+    // Card and per diem require exact sum: hide Remove when every other split is frozen.
+    const requiresExactSum = isManagedCardTransaction(transaction) || isPerDiemRequest(transaction);
     const otherSplitExpenses = splitExpensesList?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
-    const canRemoveSplit = !isCardExpense || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
+    const canRemoveSplit = !requiresExactSum || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
