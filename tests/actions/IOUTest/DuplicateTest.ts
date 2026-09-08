@@ -1223,7 +1223,6 @@ describe('actions/Duplicate', () => {
             expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
 
             // Then: Verify API was called
-            // eslint-disable-next-line
             expect(API.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
 
