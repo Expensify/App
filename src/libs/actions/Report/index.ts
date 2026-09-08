@@ -1738,7 +1738,7 @@ function openReport(params: OpenReportActionParams) {
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
     // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
-    // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't
+    // (auto-reads no longer clear it, and the repeated openReport calls of a single visit don't
     // either), so the user sees the marker they created. It is reconciled away in two cases: when the user
     // navigates away and comes back (`didNavigateBackToReport`), and on a page refresh (`isFirstLoadAfterRefresh`).
     // This is a purely client-side decision, so it lives in optimisticData: it must apply immediately and
@@ -3137,12 +3137,8 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
-                // Intentionally do NOT clear `manuallyMarkedUnreadReportActionID` here. An explicit
-                // mark-as-unread should keep its "New" marker anchored even after the report is auto-read
-                // (readNewestAction fires whenever the report is focused/visible), so it stays put for the
-                // duration of the visit that created it. The marker is instead cleared client-side in
-                // openReport's optimisticData when the user navigates away and comes back, or on a page
-                // refresh (see the `didNavigateBackToReport || isFirstLoadAfterRefresh` handling there).
+                // Auto-reads keep a manual unread mark. The explicit "Mark as read" clears it here, openReport clears it on return or refresh.
+                ...(shouldResetUnreadMarker && {manuallyMarkedUnreadReportActionID: null}),
             },
         },
     ];
