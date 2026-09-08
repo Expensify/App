@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TaxRate} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -32,11 +33,17 @@ function AddTaxPage({route}: AddTaxPageProps) {
     // Writing the workspace default rate deletes the rule, so offering it here would remove rather than save.
     const isCategoryRule = isCategoryRuleDraft(form, categoryName);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID;
+
+    // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled, or
+    // become the workspace default, after a rule chose it, and dropping it here left the picker with nothing marked
+    // selected — the admin couldn't tell what the rule applies, only that it wasn't any of the options.
+    const isSelectedTax = (taxKey: string) => taxKey === form?.tax;
+    const shouldOfferTax = (taxKey: string, tax: TaxRate) =>
+        !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !(isCategoryRule && taxKey === defaultExternalID);
 
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
-        .filter(([taxKey, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !shouldHideTax(taxKey))
+        .filter(([taxKey, tax]) => isSelectedTax(taxKey) || shouldOfferTax(taxKey, tax))
         .map(([taxKey, tax]) => ({
             name: `${tax.name} (${tax.value})`,
             value: taxKey,

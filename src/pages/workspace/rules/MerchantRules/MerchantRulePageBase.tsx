@@ -28,7 +28,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft, isTaxRateOnPolicy} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -282,9 +282,12 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const isCategoryRule = isCategoryRuleDraft(form, editCategoryTaxRuleFor);
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
-    // Writing the workspace default rate deletes the rule, so a draft tax equal to it means "no rule". A merchant
-    // draft can carry it in before a category condition is added, so ignore it rather than let a save delete.
-    const categoryTaxID = isCategoryRule && form?.tax === policy?.taxRates?.defaultExternalID ? undefined : form?.tax;
+    // Writing the workspace default rate deletes the rule, so choosing it on a NEW rule means "no rule": ignore it
+    // rather than let a save delete, which also covers a merchant draft carrying it in before a category condition is
+    // added. A saved rule is different — the rate it holds can become the workspace default later, and it is still the
+    // rate that rule applies, so it has to keep showing rather than reading as unset.
+    const isDraftTaxTheWorkspaceDefault = isCategoryRule && !isEditingCategoryTaxRule && form?.tax === policy?.taxRates?.defaultExternalID;
+    const categoryTaxID = isDraftTaxTheWorkspaceDefault ? undefined : form?.tax;
     const showCategoryRulesApplyGoingForwardExplainer = () => {
         showConfirmModal({
             title: translate('workspace.rules.merchantRules.categoryRulesApplyGoingForwardTitle'),
@@ -304,12 +307,10 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     // One rule per category is saved, so the condition row lists every category the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
-    // Only a rate the workspace still has. A rule keeps the ID of a deleted rate, and `getTaxRateDisplayName` falls
-    // back to it so the table can hold the ID until the tax list hydrates. Here that would print the raw ID at the
-    // admin, so the row reads as unset instead and they can pick a rate that exists.
+    // Only a rate the workspace still has: a rule keeps the ID of one that left, and printing that at the admin says
+    // nothing, so the row reads as unset and they can pick a rate that exists.
     const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
-    const isTaxRateStillOnPolicy = !!taxRateID && !!policy?.taxRates?.taxes?.[taxRateID];
-    const taxDisplayName = (isTaxRateStillOnPolicy ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
+    const taxDisplayName = (isTaxRateOnPolicy(policy, taxRateID) ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
 
     /**
      * Checks if there's a duplicate rule with the same merchant name and match type.
