@@ -8,6 +8,7 @@ import DateUtils from '@src/libs/DateUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 import type {OnyxKey} from 'react-native-onyx';
 
@@ -423,15 +424,20 @@ describe('OnyxUpdatesTest', () => {
     });
 
     describe('Pusher apply chain recovery', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        const pusherUpdate = (lastUpdateID: number, eventType = 'onyxApiUpdate'): OnyxUpdatesFromServer<never> => ({
+        const pusherUpdate = (lastUpdateID: number, eventType: string, data: Array<OnyxServerUpdate<never>> = []): OnyxUpdatesFromServer<never> => ({
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             previousUpdateID: lastUpdateID - 10,
             lastUpdateID,
-            updates: [{eventType, data: []}],
+            updates: [{eventType, data}],
+        });
+
+        it('propagates a Pusher apply failure to its caller', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.rejects', () => Promise.reject(new Error('handler failed')));
+
+            await expect(OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.rejects'))).rejects.toThrow('handler failed');
         });
 
         it('applies a Pusher update that arrives after an earlier one failed to apply', async () => {
@@ -441,15 +447,12 @@ describe('OnyxUpdatesTest', () => {
             const reportID = NumberUtils.rand64();
             const reportValue = {reportID};
 
-            jest.spyOn(PusherUtils, 'triggerMultiEventHandler')
-                .mockImplementationOnce(() => Promise.reject(new Error('handler failed')))
-                .mockImplementationOnce(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportValue));
+            PusherUtils.subscribeToMultiEvent('test.pusher.recovery-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.recovery-ok', () => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportValue));
 
-            const failedApply = OnyxUpdates.apply(pusherUpdate(20));
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.recovery-failed')).catch(() => {});
 
-            await expect(failedApply).rejects.toThrow('handler failed');
-
-            await OnyxUpdates.apply(pusherUpdate(30));
+            await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.recovery-ok'));
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual(reportValue);
@@ -459,12 +462,11 @@ describe('OnyxUpdatesTest', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
 
-            jest.spyOn(PusherUtils, 'triggerMultiEventHandler')
-                .mockImplementationOnce(() => Promise.reject(new Error('handler failed')))
-                .mockImplementationOnce(() => Promise.resolve());
+            PusherUtils.subscribeToMultiEvent('test.pusher.watermark-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.watermark-ok', () => Promise.resolve());
 
-            await expect(OnyxUpdates.apply(pusherUpdate(20))).rejects.toThrow('handler failed');
-            await OnyxUpdates.apply(pusherUpdate(30));
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.watermark-failed')).catch(() => {});
+            await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.watermark-ok'));
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
@@ -475,8 +477,11 @@ describe('OnyxUpdatesTest', () => {
         it('advances the watermark again once a catch-up response covers the failed range', async () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
-            jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockImplementationOnce(() => Promise.reject(new Error('handler failed')));
-            await expect(OnyxUpdates.apply(pusherUpdate(20))).rejects.toThrow('handler failed');
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.catchup-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.catchup-ok', () => Promise.resolve());
+
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.catchup-failed')).catch(() => {});
 
             const reportID = NumberUtils.rand64();
             await OnyxUpdates.apply({
@@ -490,27 +495,24 @@ describe('OnyxUpdatesTest', () => {
 
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(25);
 
-            await OnyxUpdates.apply(pusherUpdate(30));
+            await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.catchup-ok'));
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
         });
 
-        it('keeps enqueue order for Pusher applies started in the same tick', async () => {
+        it('applies same-tick Pusher updates in enqueue order', async () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
 
-            const applied: string[] = [];
-            jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockImplementation((eventType) =>
-                Promise.resolve().then(() => {
-                    applied.push(eventType);
-                }),
-            );
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}` as const;
+            PusherUtils.subscribeToMultiEvent('test.pusher.order', (data) => Onyx.update(data));
 
-            const first = OnyxUpdates.apply(pusherUpdate(20, 'first'));
-            const second = OnyxUpdates.apply(pusherUpdate(30, 'second'));
+            const first = OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {sequence: 1}}]));
+            const second = OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {sequence: 2}}]));
             await Promise.all([first, second]);
+            await waitForBatchedUpdates();
 
-            expect(applied).toStrictEqual(['first', 'second']);
+            expect(await getOnyxValue(reportKey)).toStrictEqual({sequence: 2});
         });
     });
 });

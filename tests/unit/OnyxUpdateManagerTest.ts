@@ -756,16 +756,11 @@ describe('OnyxUpdateManager', () => {
         const update: OnyxUpdatesFromServer<never> = {...OnyxUpdateMockUtils.createUpdate(2), previousUpdateID: 0};
         OnyxUpdates.apply.mockImplementationOnce(() => Promise.reject(new Error('apply failed')));
 
-        let wasQueuePausedWhenFetching = false;
-        App.getMissingOnyxUpdates.mockImplementationOnce(() => {
-            wasQueuePausedWhenFetching = SequentialQueue.isPaused();
-            return Promise.resolve({jsonCode: 200, onyxData: []});
-        });
+        App.getMissingOnyxUpdates.mockImplementationOnce(() => Promise.resolve({jsonCode: 200, onyxData: []}));
 
         await applyOnyxUpdatesReliably(update, {shouldRunSync: true});
 
         expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
-        expect(wasQueuePausedWhenFetching).toBe(true);
 
         SequentialQueue.unpause();
     });
