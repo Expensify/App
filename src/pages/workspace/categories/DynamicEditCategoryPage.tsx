@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCategoryNameError, getCategoryNameErrorMessage, sanitizeCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -39,24 +40,17 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
 
-    const sanitizeCategoryName = useCallback((name: string) => name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim(), []);
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = sanitizeCategoryName(values.categoryName);
+            const nameError = getCategoryNameError(policyCategories, values.categoryName, currentCategoryName);
 
-            if (!newCategoryName) {
-                errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
-                errors.categoryName = translate('workspace.categories.existingCategoryError');
-            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.categoryName = translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+            if (nameError) {
+                errors.categoryName = getCategoryNameErrorMessage(translate, nameError, values.categoryName);
             }
             return errors;
         },
-        [policyCategories, currentCategoryName, translate, sanitizeCategoryName],
+        [policyCategories, currentCategoryName, translate],
     );
 
     const editCategory = useCallback(
@@ -72,7 +66,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, sanitizeCategoryName],
+        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath],
     );
 
     return (

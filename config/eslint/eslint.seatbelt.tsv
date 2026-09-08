@@ -399,7 +399,7 @@
 "../../src/components/Tooltip/PopoverAnchorTooltip.tsx"	"react-hooks/refs"	7
 "../../src/components/TransactionItemRow/DataCells/ChatBubbleCell.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/components/TransactionItemRow/DataCells/MerchantCell.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/TransactionItemRow/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UpdateAppModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UserInitialsAvatar.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1

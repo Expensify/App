@@ -13,6 +13,7 @@ import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCa
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 
+import useCategoryInlineEdit from '@hooks/useCategoryInlineEdit';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -88,6 +89,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canEditName, renameCategory} = useCategoryInlineEdit({policyData, canWriteCategories, showReadOnlyModal});
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
@@ -264,6 +266,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -289,8 +295,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+                canEditName: canEditName && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+                onRenameName: (newName: string) => renameCategory(value.name, newName),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -302,6 +310,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         shouldShowApproverColumn,
         categoryApproverEmails,
         canWriteCategories,
+        canEditName,
+        isSelectionModeActive,
+        renameCategory,
         policy,
         policyCategories,
         navigateToCategory,

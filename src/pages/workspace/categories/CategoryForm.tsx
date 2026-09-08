@@ -7,9 +7,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,17 +47,10 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, a
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = values.categoryName.trim();
+            const nameError = getCategoryNameError(policyCategories, values.categoryName);
 
-            if (!isRequiredFulfilled(newCategoryName)) {
-                errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName]) {
-                errors.categoryName = translate('workspace.categories.existingCategoryError');
-            } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME || newCategoryName === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
-                errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH));
+            if (nameError) {
+                addErrorMessage(errors, 'categoryName', getCategoryNameErrorMessage(translate, nameError, values.categoryName));
             }
 
             return errors;

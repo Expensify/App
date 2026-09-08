@@ -1,8 +1,8 @@
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import {EditableCell, useInlineEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell/types';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';

@@ -1,8 +1,8 @@
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, useInlineEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
+import {EditableCell, useInlineEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';

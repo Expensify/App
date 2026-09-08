@@ -1,4 +1,5 @@
 import Checkbox from '@components/Checkbox';
+import {useEditingCellState} from '@components/EditableCell';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,7 +20,7 @@ import CONST from '@src/CONST';
 
 import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -89,6 +90,11 @@ export default function TableRow({
         dynamicGridTemplateColumns,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
+
+    // Inline cell editing shares this app-global state. While any cell is being edited, a row press is the click that
+    // dismisses the editor rather than a navigation intent, so navigation/selection must be suppressed for that tap.
+    const {isEditingCell} = useEditingCellState();
+    const wasEditingOnMouseDownRef = useRef(false);
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
@@ -209,6 +215,18 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        // Consume the tap that dismissed an editing cell — a second tap will activate the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+
+        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        if (isEditingCell) {
+            return;
+        }
+
         if (isDisabled || !interactive) {
             return;
         }
@@ -254,10 +272,15 @@ export default function TableRow({
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
+                    wasEditingOnMouseDownRef.current = isEditingCell;
+
                     const target = e?.target;
 
                     if (!(target instanceof HTMLElement)) {
-                        e.preventDefault();
+                        // Skip preventDefault while editing so the browser naturally blurs the active input (triggering save/cancel).
+                        if (!isEditingCell) {
+                            e.preventDefault();
+                        }
                         return;
                     }
 
@@ -270,7 +293,9 @@ export default function TableRow({
                         return;
                     }
 
-                    e.preventDefault();
+                    if (!isEditingCell) {
+                        e.preventDefault();
+                    }
                 }}
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
