@@ -44,12 +44,20 @@ To review and approve a report submitted to you for approval:
 
 ## How to approve a report that contains held expenses
 
-If a report contains one or more held expenses, clicking **Approve** (from within the report or from the **Reports** page) displays a confirmation modal with two options:
+If a report contains one or more held expenses, clicking **Approve** at the top of the report — or on the report preview in a chat — opens a dropdown menu instead of approving right away. The menu explains that the report contains held expenses and gives you two options:
 
 - **Approve only [non-held amount]**: Approves only the compliant (non-held) expenses. The held expenses are moved to a separate report so they can be reviewed independently.
 - **Approve [full amount]**: Approves the entire report, including all held expenses.
 
+Each option shows the amount it will approve, so you can compare the two before you choose.
+
 If every expense on the report is held, only the **Approve [full amount]** option is available.
+
+<!-- SCREENSHOT:
+Suggestion: The open Approve dropdown menu on a submitted report that has one held expense, showing the held-expense explanation and both options with their amounts.
+Location: Immediately after the two approval options in this section.
+Purpose: Approvers expect a confirmation modal and may not notice that the amounts differ between the two options; seeing the menu prevents them from approving the full report when they meant to approve only the compliant expenses.
+-->
 
 ---
 
