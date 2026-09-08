@@ -2977,6 +2977,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
+        /** When enabled, non-reimbursable reports cannot be marked as paid */
+        preventPayoutNonReimbursableReports?: boolean;
+
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
