@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 
@@ -19,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
@@ -26,7 +29,7 @@ import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListB
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {TabActions, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
@@ -72,6 +75,13 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
 
+    /**
+     * Whether to wait for the keyboard to be fully hidden before switching tabs. Opt in from tab screens that hold a
+     * text input next to tabs whose layout reacts to the keyboard, otherwise the tab changes while the keyboard is
+     * still up and the incoming tab lays out inside a container that is still reserving space for it.
+     */
+    shouldDismissKeyboardBeforeTabSwitch?: boolean;
+
     /** Whether a tab switch that gets bounced back to the tab it came from should be re-applied once (see #98240).
      * Opt-in, because it makes a tab switch that another part of the app deliberately undoes stick instead.
      */
@@ -79,6 +89,34 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
+
+const DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS = CONST.MAX_TRANSITION_DURATION_MS;
+
+/**
+ * Waits for the keyboard to be fully hidden before resolving, but never blocks for longer than
+ * `DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS`. `KeyboardUtils.dismiss` only settles once `keyboardDidHide` fires, so
+ * without that timeout a missed event would leave the tab press swallowed by `preventDefault` and the tab would never
+ * change.
+ */
+function dismissKeyboardBeforeTabSwitch(): Promise<void> {
+    let timeoutID: ReturnType<typeof setTimeout> | undefined;
+
+    return Promise.race([
+        // `dismiss` resolves on every path today, so this never runs. It is kept because a rejection would otherwise win
+        // the race, skip the jump and strand the tab press, and this file can't see changes to that utility.
+        KeyboardUtils.dismiss().catch((error: unknown) => {
+            Log.warn('[OnyxTabNavigator] Failed to dismiss the keyboard before switching tabs', {error});
+        }),
+        new Promise<void>((resolve) => {
+            timeoutID = setTimeout(() => {
+                Log.warn('[OnyxTabNavigator] Timed out waiting for the keyboard to hide before switching tabs');
+                resolve();
+            }, DISMISS_KEYBOARD_BEFORE_TAB_SWITCH_TIMEOUT_MS);
+        }),
+    ]).finally(() => {
+        clearTimeout(timeoutID);
+    });
+}
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.
@@ -125,6 +163,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    shouldDismissKeyboardBeforeTabSwitch = false,
     shouldReapplyInterruptedTabPress = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
@@ -168,6 +207,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     // Tab-switch discard guards, keyed by tab name. Tab screens register via `useDiscardChangesConfirmation`.
     const guardsRef = useRef<Map<string, TabSwitchGuard>>(new Map());
     const isDiscardModalOpenRef = useRef(false);
+    // Set while a tab switch is waiting on the keyboard, so repeated taps can't queue competing jumps.
+    const isTabSwitchPendingRef = useRef(false);
 
     const registerTabGuard: RegisterTabSwitchGuard = (guard) => {
         guardsRef.current.set(guard.tabName, guard);
@@ -178,6 +219,35 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
             }
             guardsRef.current.delete(guard.tabName);
         };
+    };
+
+    // A function, not a cached value: each call site checks the keyboard's current state, not one captured earlier.
+    // Gated on Keyboard.isVisible() rather than platform, so an opted-in caller also defers on iOS, not just Android.
+    const hasKeyboardToDismiss = () => shouldDismissKeyboardBeforeTabSwitch && Keyboard.isVisible();
+
+    const runAfterKeyboardDismiss = async (callback: () => void) => {
+        if (!hasKeyboardToDismiss()) {
+            callback();
+            return;
+        }
+
+        isTabSwitchPendingRef.current = true;
+
+        // Shared try/catch so neither branch can leave `isTabSwitchPendingRef` stuck `true` if the jump callback
+        // throws. No `finally`: the React Compiler (Babel) can't lower a `try` with a `finally` clause.
+        try {
+            // dismissKeyboardAndExecute only actually waits for the keyboard to close on Android; elsewhere it
+            // runs the callback immediately, so iOS/web use the dismiss()-based wait instead.
+            if (getPlatform() === CONST.PLATFORM.ANDROID) {
+                await KeyboardUtils.dismissKeyboardAndExecute(callback);
+            } else {
+                await dismissKeyboardBeforeTabSwitch();
+                callback();
+            }
+        } catch (error: unknown) {
+            Log.warn('[OnyxTabNavigator] Failed to switch tabs after dismissing the keyboard', {error});
+        }
+        isTabSwitchPendingRef.current = false;
     };
 
     // Records a tab switch that is about to be dispatched, so the `state` listener can re-apply it if it gets bounced back.
@@ -209,22 +279,41 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     };
 
     const handleTabPress = (navigation: NavigationProp<ParamListBase>, event: EventArg<'tabPress', true, undefined>) => {
-        if (isDiscardModalOpenRef.current) {
+        if (isDiscardModalOpenRef.current || isTabSwitchPendingRef.current) {
             event.preventDefault();
             return;
         }
         const navState = navigation.getState();
         const currentRouteName = navState.routes.at(navState.index)?.name;
         const guard = currentRouteName ? guardsRef.current.get(currentRouteName) : undefined;
-        if (!guard || !guard.getHasUnsavedChanges()) {
-            return;
-        }
         const targetRoute = navState.routes.find((tabRoute) => tabRoute.key === event.target);
         if (!targetRoute || targetRoute.name === currentRouteName) {
             return;
         }
+        // The tab only changes once the keyboard is fully gone. A fire-and-forget dismiss loses the race: the tab
+        // switches mid hide-animation and the incoming tab lays out while the keyboard still occupies the screen.
+        const jumpToTargetTab = () => {
+            runAfterKeyboardDismiss(() => {
+                // This jump replaces the press we prevented above (both callers below call `preventDefault`), so it
+                // needs the same bounce-back protection the outer `tabPress` listener applies to a normal press.
+                armTabSwitch(currentRouteName, targetRoute.name);
+                navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+            });
+        };
+        if (!guard || !guard.getHasUnsavedChanges()) {
+            if (!hasKeyboardToDismiss()) {
+                // Nothing to wait for, so leave the jump to react-navigation and keep it synchronous.
+                return;
+            }
+            // No unsaved changes means no modal is shown, but the input can still be focused with the keyboard up. Take
+            // the jump over from react-navigation so it waits for the keyboard instead of switching straight away.
+            event.preventDefault();
+            jumpToTargetTab();
+            return;
+        }
         event.preventDefault();
         isDiscardModalOpenRef.current = true;
+        ComposerFocusManager.blurActiveInput();
         showConfirmModal({
             ...getDiscardChangesModalConfig(translate),
             shouldIgnoreBackHandlerDuringTransition: true,
@@ -242,9 +331,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                     Growl.error(translate('common.genericErrorMessage'));
                 })
                 .then(() => {
-                    // This jump replaces the press we prevented above, so it needs the same bounce-back protection.
-                    armTabSwitch(currentRouteName, targetRoute.name);
-                    navigation.dispatch(TabActions.jumpTo(targetRoute.name));
+                    jumpToTargetTab();
                 });
         });
     };
