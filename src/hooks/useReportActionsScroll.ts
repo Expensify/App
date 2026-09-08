@@ -239,6 +239,8 @@ function useReportActionsScroll({
         reportID,
         introSelected,
         betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,

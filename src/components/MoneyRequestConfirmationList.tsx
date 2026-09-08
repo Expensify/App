@@ -564,6 +564,7 @@ function MoneyRequestConfirmationList({
             isEditingSplitBill={isEditingSplitBill}
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
+            isScanRequest={isScanRequest}
             isDistanceRequest={isDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
