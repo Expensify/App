@@ -31,13 +31,15 @@ jobs:
             const pr = context.payload.pull_request;
             const {owner, repo} = context.repo;
 
-            // Trigger only on a net-new call. We compare added vs. removed call lines per file (a call
-            // matches `Onyx.connectWithoutView(`), so editing a call in place nets to zero, removed
-            // comments/strings don't count, and a removal in one file can't mask a new call in another.
+            // Trigger only on a net-new production call. Test files and Jest mocks are excluded, and we
+            // compare added vs. removed call lines per file (a call matches `Onyx.connectWithoutView(`),
+            // so editing a call in place nets to zero, removed comments/strings don't count, and a
+            // removal in one file can't mask a new call in another.
             const CALL = /Onyx\.connectWithoutView\s*\(/;
+            const TEST_DIRECTORY = /(^|\/)(?:tests|__mocks__)\//;
             const files = await github.paginate(github.rest.pulls.listFiles, {owner, repo, pull_number: pr.number});
             const addsNewCall = files.some((file) => {
-              if (!file.patch) {
+              if (!file.patch || TEST_DIRECTORY.test(file.filename)) {
                 return false;
               }
               let added = 0;
