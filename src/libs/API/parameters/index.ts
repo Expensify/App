@@ -122,9 +122,9 @@ export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPagePa
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
+export type {default as OpenPolicyRecruitingPageParams} from './OpenPolicyRecruitingPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as AddPersonalPlaidCardParams} from './AddPersonalPlaidCardParams';
-export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
