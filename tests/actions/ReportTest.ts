@@ -47,7 +47,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- pre-existing usage, tracked for removal in https://github.com/Expensify/App/issues/98610
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {MockFetch} from '../utils/TestHelper';

@@ -32,7 +32,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- pre-existing usage, tracked for removal in https://github.com/Expensify/App/issues/98610
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
