@@ -1,10 +1,13 @@
 import {render, screen} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
+import Text from '@components/Text';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
 
@@ -58,5 +61,36 @@ describe('SkiaWebChart', () => {
         );
 
         expect(mockWithSkiaWeb).toHaveBeenCalled();
+    });
+
+    it('should hand the caller-supplied loading fallback to Skia', () => {
+        mockIsSkiaWebSupported.mockReturnValue(true);
+        const loadingFallback = <Text>chart skeleton</Text>;
+
+        render(
+            <SkiaWebChart
+                getComponent={getComponent}
+                componentProps={{}}
+                loadingFallback={loadingFallback}
+            />,
+        );
+
+        expect(mockWithSkiaWeb).toHaveBeenCalledWith(expect.objectContaining({fallback: loadingFallback}), undefined);
+    });
+
+    it('should keep its own spinner fallback when the caller supplies none', () => {
+        mockIsSkiaWebSupported.mockReturnValue(true);
+
+        render(
+            <SkiaWebChart
+                getComponent={getComponent}
+                componentProps={{}}
+            />,
+        );
+
+        const fallback = mockWithSkiaWeb.mock.lastCall?.at(0)?.fallback;
+        render(<View>{fallback}</View>);
+
+        expect(screen.UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
     });
 });

@@ -1,4 +1,4 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -24,11 +24,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart, Line} from 'victory-native';
@@ -232,11 +233,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     };
 
     if (isLoading || !fontManager) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return <ChartSkeleton view={CONST.SEARCH.VIEW.LINE} />;
     }
 
     if (data.length === 0) {

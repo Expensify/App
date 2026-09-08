@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 
 import viewRef from '@src/types/utils/viewRef';
 
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React, {useRef, useState} from 'react';
@@ -26,7 +26,9 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Identifies the loading skeleton span for telemetry. */
+    /** Shown while the chart engine downloads. Callers that know their chart type pass its skeleton; the
+     * type-blind Victory renderer omits it and gets a spinner. */
+    loadingFallback?: ReactNode;
 };
 
 function ChartUnavailable() {
@@ -55,7 +57,7 @@ function ChartUnavailable() {
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
-function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
+function SkiaWebChart<TProps extends object>({getComponent, componentProps, loadingFallback}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElement | null>(null);
 
@@ -72,7 +74,7 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
         return <ChartUnavailable />;
     }
 
-    const fallback = (
+    const fallback = loadingFallback ?? (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>

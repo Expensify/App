@@ -1,4 +1,7 @@
+import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -11,6 +14,7 @@ function PieChart(props: PieChartProps) {
         <SkiaWebChart
             getComponent={getPieChartContent}
             componentProps={props}
+            loadingFallback={<ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />}
         />
     );
 }
