@@ -4,6 +4,7 @@ import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -430,14 +431,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            <MenuItem
-                                style={styles.mb5}
-                                title={translate('common.profile')}
-                                icon={icons.Info}
-                                onPress={navigateToProfile}
-                                shouldShowRightIcon
-                                pressableTestID="member-profile-menu-item"
-                            />
+                            <View style={styles.mb5}>
+                                <MenuItemNavigation
+                                    title={translate('common.profile')}
+                                    icon={icons.Info}
+                                    onPress={navigateToProfile}
+                                    testID="member-profile-menu-item"
+                                />
+                            </View>
                             {memberCards.length > 0 && (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>

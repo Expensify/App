@@ -144,7 +144,7 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
 describe('QuickCreationActionsBar - travel', () => {
     const TRAVEL_POLICY_ID = 'policy-travel-456';
 
-    const seedTravelWorkspaces = async (defaultPolicyID: string) => {
+    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
@@ -166,7 +166,9 @@ describe('QuickCreationActionsBar - travel', () => {
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
                 isTravelEnabled: true,
-                travelSettings: {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true},
+                travelSettings: isTravelWorkspaceProvisioned
+                    ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
+                    : undefined,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
         });
@@ -206,5 +208,13 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+    });
+
+    it('does not show travel for a workspace that is not provisioned and has a stale enabled flag', async () => {
+        await seedTravelWorkspaces(TRAVEL_POLICY_ID, false);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(translateLocal('workspace.common.travel'))).toBeNull();
     });
 });
