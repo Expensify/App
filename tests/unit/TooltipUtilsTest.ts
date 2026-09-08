@@ -45,6 +45,7 @@ describe('TooltipUtils', () => {
         it('returns false for a legacy dismissal that stored only a marker string', () => {
             // Legacy entries predate DismissedProductTrainingElement and aren't representable in the current type,
             // so this shape has to be asserted in rather than built with createMock.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- legacy entries stored a bare marker string that DismissedProductTraining does not model.
             const legacyDismissal = {[MARK_ALL_AS_READ]: 'dismissed'} as unknown as DismissedProductTraining;
 
             expect(hasDismissalExpired(MARK_ALL_AS_READ, legacyDismissal, SEVEN_DAYS)).toBe(false);
@@ -96,6 +97,7 @@ describe('TooltipUtils', () => {
         });
 
         it('returns true for a legacy dismissal that stored only a marker string', () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- legacy entries stored a bare marker string that DismissedProductTraining does not model.
             const legacyDismissal = {[MARK_ALL_AS_READ]: 'dismissed'} as unknown as DismissedProductTraining;
 
             expect(isProductTrainingElementDismissed(MARK_ALL_AS_READ, legacyDismissal)).toBe(true);
