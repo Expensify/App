@@ -59,7 +59,8 @@ const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
 
 const DATE_LINE_HEIGHT = lineHeightScale.label;
 const GREETING_LINE_HEIGHT = lineHeightScale.h1;
-const PLACEHOLDER_LINE_HEIGHT = variables.lineHeightXLarge;
+// The scale token carrying the composer's own line height (`textInputCompose`), which is what the bar stands in for.
+const PLACEHOLDER_LINE_HEIGHT = lineHeightScale.pageHeader;
 
 // Bar widths approximating the copy each one stands in for.
 const DATE_BAR_WIDTH = 120;

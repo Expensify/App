@@ -1,5 +1,4 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
 import {useAppLoadSkeletonState, useShouldWaitForAppLoad} from '@hooks/useInFlightRequests';
@@ -7,7 +6,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -15,10 +13,8 @@ import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import TimeSensitiveGroup from '@pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
-
-import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +24,6 @@ import {accountIDSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 
 import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
@@ -44,7 +39,6 @@ type ForYouSectionProps = {
 
 function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -107,8 +101,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                     key: 'reviewExpenses',
                     count: flaggedExpensesCount,
                     icon: icons.ReceiptSearch,
-                    iconBackgroundColor: colors.tangerine100,
-                    iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -168,22 +160,16 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         ],
     );
 
-    const renderTodoItems = () => (
-        <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonVariant}) => (
-                <BaseWidgetItem
-                    key={key}
-                    icon={icon}
-                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
-                    iconFill={iconFill ?? theme.widgetIconFill}
-                    title={translate(translationKey, {count})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handler}
-                    buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
-                />
-            ))}
-        </View>
-    );
+    const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
+        <BaseWidgetItem
+            key={key}
+            icon={icon}
+            title={translate(translationKey, {count})}
+            ctaText={translate('homePage.forYouSection.begin')}
+            onCtaPress={handler}
+            buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
+        />
+    ));
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
@@ -207,6 +193,11 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     // on them leaves the card a bare Concierge box for the whole load on a cold cache.
     const shouldShowSkeletonBody = isOnboardingCompleted !== false;
 
+    const visibleForYouRows = hideForYou ? [] : forYouRows;
+
+    // The empty state stands in for the to-dos only when both groups are empty.
+    const showEmptyState = !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
+
     // One shimmer block stands in for the whole body during app load, rather than each group deferring on its own,
     // so no heading or row appears mid-load as its data lands.
     const renderBody = () => {
@@ -216,22 +207,24 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
         return (
             <>
-                <TimeSensitiveGroup items={timeSensitiveItems} />
-                {!hideForYou && (
-                    <>
-                        <View style={styles.getForYouSectionHeadingStyle(shouldUseNarrowLayout)}>
-                            <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
-                        </View>
-                        {hasAnyTodos ? renderTodoItems() : <EmptyState />}
-                    </>
-                )}
+                <HomeTaskGroup
+                    title={translate('homePage.timeSensitiveSection.title')}
+                    rows={timeSensitiveItems}
+                />
+                <HomeTaskGroup
+                    title={translate('homePage.toDos')}
+                    rows={visibleForYouRows}
+                    reducedTopGap={timeSensitiveItems.length > 0}
+                >
+                    {showEmptyState ? <EmptyState /> : null}
+                </HomeTaskGroup>
             </>
         );
     };
 
     // Nothing but the Concierge box renders when the body is empty, which is the only case that needs the tighter
     // bottom padding.
-    const hasBodyContent = isInitialLoad ? shouldShowSkeletonBody : timeSensitiveItems.length > 0 || !hideForYou;
+    const hasBodyContent = isInitialLoad ? shouldShowSkeletonBody : timeSensitiveItems.length > 0 || visibleForYouRows.length > 0 || showEmptyState;
 
     // The Concierge copy renders correctly from cache, so it must not stay blanked for as long as the device is
     // offline. The body shimmer has nothing cached to fall back on.

@@ -64,10 +64,7 @@ jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => ({isCopyLoading}
     return ReactModule.createElement('View', {testID: 'concierge-prompt-box'}, isCopyLoading ? ReactModule.createElement('View', {testID: 'concierge-copy-skeleton'}) : null);
 });
 
-// The "Time sensitive" group is exercised in its own tests; stub it out here so these tests stay focused on "For you"
-// (and so it doesn't pull in useFocusEffect, which needs a NavigationContainer this harness doesn't provide).
 jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
-jest.mock('@pages/home/TimeSensitiveSection/TimeSensitiveGroup', () => () => null);
 
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
@@ -77,6 +74,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useIsFocused: jest.fn(() => true),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -92,6 +90,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useIsFocused: () => mockIsFocused,
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -484,7 +483,8 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -498,7 +498,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
         });
 
         it('renders to-do items for a new user who has todos', async () => {
@@ -514,7 +514,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('homePage.toDos')).toBeOnTheScreen();
             expect(screen.getByText('Begin')).toBeOnTheScreen();
         });
 
@@ -532,14 +532,14 @@ describe('ForYouSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The section renders to-dos and persists the "has seen a to-do" flag.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
 
-            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
             rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -554,7 +554,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -572,7 +572,7 @@ describe('ForYouSection', () => {
 
             expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
             expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
         });
 
         it('shows the skeleton during the initial load before the onboarding NVP arrives', async () => {

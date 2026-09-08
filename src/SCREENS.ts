@@ -65,6 +65,7 @@ const SCREENS = {
         EDIT_MULTIPLE_ATTENDEES_RHP: 'Search_Edit_Multiple_Attendees_RHP',
         EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
+        MERGE_REPORTS_SEARCH_RHP: 'Search_Merge_Reports_Search_RHP',
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
@@ -725,6 +726,7 @@ const SCREENS = {
         HR_MERGE_APPROVAL_MODE: 'Workspace_HR_Merge_Approval_Mode',
         HR_MERGE_FINAL_APPROVER: 'Workspace_HR_Merge_Final_Approver',
         HR_MERGE_GROUPS: 'Workspace_HR_Merge_Groups',
+        RECRUITING: 'Workspace_Recruiting',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',

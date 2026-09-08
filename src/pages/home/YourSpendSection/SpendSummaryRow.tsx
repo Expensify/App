@@ -35,8 +35,8 @@ const SKELETON_GAP = 12;
 const SKELETON_TEXT_OFFSET_Y = 26;
 const SKELETON_TEXT_HEIGHT = 12;
 
-// Cycle the title width across rows to match `ForYouSkeleton.getTitleSkeletonWidth`,
-// so stacked Your spend rows have the same visual rhythm as For You rows.
+// Cycle the title width across rows so a stack of them reads as a list of
+// differently named rows rather than one bar repeated.
 function getSkeletonTitleWidth(index: number) {
     switch (index % 3) {
         case 0:
@@ -114,7 +114,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={iconSrc}
                             fill={theme.icon}

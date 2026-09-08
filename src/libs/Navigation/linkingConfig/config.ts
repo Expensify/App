@@ -1980,6 +1980,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,
                         },
+                        [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: {
+                            path: ROUTES.MERGE_REPORTS_SEARCH_RHP.route,
+                            exact: true,
+                        },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: {
                             path: ROUTES.CHANGE_APPROVER_SEARCH_RHP.route,
                             exact: true,
@@ -2331,6 +2335,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.HR]: {
                                     path: ROUTES.WORKSPACE_HR.route,
+                                },
+                                [SCREENS.WORKSPACE.RECRUITING]: {
+                                    path: ROUTES.WORKSPACE_RECRUITING.route,
                                 },
                                 [SCREENS.WORKSPACE.TAGS]: {
                                     path: ROUTES.WORKSPACE_TAGS.route,
