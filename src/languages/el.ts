@@ -1033,6 +1033,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Απαιτούνται στοιχεία υπογράφοντος',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός ${bankAccountLastFour}`,
             },
+            payOverdueInvoice: {title: ({date}: {date: string}) => `Πληρώστε το τιμολόγιό σας έως ${date} για να αποφύγετε τη διακοπή της υπηρεσίας`, cta: 'Έλεγχος'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({

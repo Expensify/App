@@ -990,6 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.', subtitle: 'Expensify Karte', cta: 'Hinzufügen'},
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
+            payOverdueInvoice: {title: ({date}: {date: string}) => `Bezahlen Sie Ihre Rechnung bis zum ${date}, um Serviceunterbrechungen zu vermeiden`, cta: 'Überprüfen'},
         },
         discoverSection: {
             title: 'Entdecken',
