@@ -1211,9 +1211,8 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         parameters,
         onyxData,
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(chatReport.reportID, undefined, true)},
     );
-
-    notifyNewAction(chatReport.reportID, undefined, true);
 }
 
 export {

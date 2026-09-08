@@ -377,9 +377,8 @@ function splitBill({
         parameters,
         onyxData,
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitData.chatReportID, undefined, true)},
     );
-
-    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /**
@@ -486,8 +485,8 @@ function splitBillAndOpenReport({
         parameters,
         onyxData,
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitData.chatReportID, undefined, true)},
     );
-    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
@@ -878,13 +877,13 @@ function startSplitBill({
         parameters,
         {optimisticData, successData, failureData},
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitChatReport.reportID, undefined, true)},
     );
 
     if (shouldHandleNavigation) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
         Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     }
-    notifyNewAction(splitChatReport.reportID, undefined, true);
 
     // Return the split transactionID for testing purpose
     return {splitTransactionID: splitTransaction.transactionID};

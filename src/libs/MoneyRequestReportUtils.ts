@@ -151,10 +151,10 @@ function shouldWaitForTransactions(
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
-    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
-    const hasPendingDismissWrite = hasPendingSubmitWriteForReport(report?.reportID);
-    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    // Scope the pending-submit-write check to *this* report so an unrelated submit flow that's
+    // mid-submit doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingSubmitWrite = hasPendingSubmitWriteForReport(report?.reportID);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingSubmitWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&

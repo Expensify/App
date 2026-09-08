@@ -307,7 +307,7 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
     };
 
     submitWithDismissFirst({
-        executeWrite: () => executeSendMoneyWrite(),
+        executeWrite: executeSendMoneyWrite,
         destinationReportID: chatReportID,
         telemetryContext: {
             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
