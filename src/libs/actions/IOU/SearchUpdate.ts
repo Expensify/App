@@ -2,6 +2,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
@@ -9,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -340,4 +342,44 @@ function getSearchOnyxUpdate({
     };
 }
 
-export {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
+/**
+ * Marks whole group rows as pending delete in a grouped search snapshot.
+ *
+ * A group row's own snapshot entry is the only thing that outlives its child transactions: the children are
+ * cleared from their per-group sub-snapshot as soon as the delete succeeds, while the group entry survives until
+ * the next Search response drops it. Flagging the entry is what keeps the row out of the list across that gap.
+ *
+ * The flag needs no successData: the Search response replaces the whole snapshot, so it clears itself.
+ */
+function getGroupPendingDeleteOnyxUpdate(hash: number | undefined, groupKeys: SearchGroupKey[]): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+    if (hash === undefined || groupKeys.length === 0) {
+        return;
+    }
+
+    const buildGroupData = (pendingAction: OnyxCommon.PendingAction | null): NullishDeep<SearchResultDataType> => {
+        const groupData: NullishDeep<SearchResultDataType> = {};
+        for (const groupKey of groupKeys) {
+            groupData[groupKey] = {pendingAction};
+        }
+        return groupData;
+    };
+
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
+                value: {data: buildGroupData(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
+                value: {data: buildGroupData(null)},
+            },
+        ],
+    };
+}
+
+export {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};

@@ -79,6 +79,7 @@ import {
     serializeQueryJSONForBackend,
 } from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
     getSearchColumnTranslationKey,
@@ -201,25 +202,35 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
 }
 
+/**
+ * The group rows a selection covers in full.
+ *
+ * Selecting a whole group row stamps `isSelectedViaGroup` + `groupKey` on every one of its transactions, and
+ * deselecting any single child clears that flag for the rest of the group. So a selection entry still carrying the
+ * flag means "the user selected this entire group", and an empty group row is selected under its own group key.
+ */
+function getSelectedGroupKeys(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
+    const groupKeys = new Set<SearchGroupKey>();
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupSelection(key, transaction)) {
+            continue;
+        }
+        const groupKey = isGroupEntry(key) ? key : transaction.groupKey;
+        if (groupKey && isGroupEntry(groupKey)) {
+            groupKeys.add(groupKey);
+        }
+    }
+    return [...groupKeys];
+}
+
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
         return queryJSON;
     }
 
-    const groupKeys = new Set<string>();
-    for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (!isGroupSelection(key, transaction)) {
-            continue;
-        }
-        if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            groupKeys.add(key);
-        } else if (transaction.groupKey) {
-            groupKeys.add(transaction.groupKey);
-        }
-    }
-
-    if (groupKeys.size === 0) {
+    const groupKeys = getSelectedGroupKeys(selectedTransactions);
+    if (groupKeys.length === 0) {
         return queryJSON;
     }
 
@@ -1262,11 +1273,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            // A group row's snapshot entry outlives its child transactions, so the row would read as "not deleted"
+            // again between the children being cleared and the next Search response dropping the group. Selecting a
+            // whole group records that on every one of its transactions, so the group rows this delete wipes out are
+            // already known: flag them so the row leaves the list once and stays out.
+            const fullyDeletedGroupKeys = queryJSON?.groupBy ? getSelectedGroupKeys(selectedTransactions) : [];
+
             // Route individual transactions through the split-aware hook so that deleting a
             // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
             // bare deleteMoneyRequest.
             if (transactionIDsToDelete.length > 0) {
-                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash, undefined, fullyDeletedGroupKeys);
             }
 
             // Whole-report deletions keep their existing path.
@@ -1295,6 +1312,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
+        queryJSON?.groupBy,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -2975,5 +2993,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {shouldShowBulkDuplicateOption};
+export {getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

@@ -36,11 +36,7 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
-const EMPTY_GROUP_KEYS: ReadonlySet<string> = new Set<string>();
-
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-const isGroupFullyDeleted = (item: SearchListItem) => isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted);
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
@@ -121,40 +117,9 @@ function ExpenseGroupedSearchView({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
-    // A group row carries no pendingAction of its own: its delete state is read off its child transactions.
-    // Deleting every expense in a group therefore leaves a window where the children have already been cleared
-    // from the snapshot but the group entry has not, and the group would read as "not deleted" again until the
-    // next Search response drops it. Carrying the group keys last seen fully pending-delete forward keeps the row
-    // out of the list across that window. A key is dropped as soon as the group has a child that is not pending
-    // delete (the delete failed and was rolled back) or the group leaves the snapshot.
-    const [lastSeen, setLastSeen] = useState<{data: SearchListItem[] | undefined; keys: ReadonlySet<string>}>({data: undefined, keys: EMPTY_GROUP_KEYS});
-    let groupKeysPendingDelete = lastSeen.keys;
-    if (lastSeen.data !== sourceData) {
-        const nextKeys = new Set<string>();
-        for (const item of sourceData) {
-            const key = item.keyForList;
-            if (!key || !isTransactionGroupListItemType(item)) {
-                continue;
-            }
-            if (item.transactions.length === 0 ? lastSeen.keys.has(key) : item.transactions.every(isRowDeleted)) {
-                nextKeys.add(key);
-            }
-        }
-        groupKeysPendingDelete = nextKeys;
-        setLastSeen({data: sourceData, keys: nextKeys});
-    }
-
-    const isGroupPendingDelete = (item: SearchListItem) => isRowDeleted(item) || isGroupFullyDeleted(item) || (!!item.keyForList && groupKeysPendingDelete.has(item.keyForList));
-
-    // Once a deleted group's children are gone the row has nothing left to render, so drop it from the list and
-    // let its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
-    const data = useMemo(
-        () =>
-            isOffline
-                ? sourceData
-                : sourceData.filter((item) => !(isTransactionGroupListItemType(item) && item.transactions.length === 0 && groupKeysPendingDelete.has(item.keyForList ?? ''))),
-        [sourceData, isOffline, groupKeysPendingDelete],
-    );
+    // Deleting every expense in a group flags the group's own snapshot entry, so drop the row from the list and let
+    // its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
+    const data = useMemo(() => (isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item))), [sourceData, isOffline]);
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -308,7 +273,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
-                isRowExiting={isGroupPendingDelete(item)}
+                isRowExiting={isRowDeleted(item)}
             >
                 <TransactionGroupListItem
                     showTooltip

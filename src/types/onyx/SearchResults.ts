@@ -134,11 +134,8 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of member grouped search result */
-type SearchMemberGroup = {
-    /** Account ID */
-    accountID: number;
-
+/** Fields every grouped search result carries, whatever it is grouped by */
+type SearchGroupBase = {
     /** Number of transactions */
     count: number;
 
@@ -147,21 +144,21 @@ type SearchMemberGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/** Model of member grouped search result */
+type SearchMemberGroup = SearchGroupBase & {
+    /** Account ID */
+    accountID: number;
 };
 
 /** Model of card grouped search result */
-type SearchCardGroup = {
+type SearchCardGroup = SearchGroupBase & {
     /** Cardholder account ID */
     accountID: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 
     /** Bank name */
     bank: string;
@@ -180,18 +177,9 @@ type SearchCardGroup = {
 };
 
 /** Model of withdrawal ID grouped search result */
-type SearchWithdrawalIDGroup = {
+type SearchWithdrawalIDGroup = SearchGroupBase & {
     /** Withdrawal ID */
     entryID: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 
     /** Masked account number */
     accountNumber: string;
@@ -231,114 +219,51 @@ type SearchWithdrawalIDGroup = {
 };
 
 /** Model of category grouped search result */
-type SearchCategoryGroup = {
+type SearchCategoryGroup = SearchGroupBase & {
     /** Category name */
     category: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of merchant grouped search result */
-type SearchMerchantGroup = {
+type SearchMerchantGroup = SearchGroupBase & {
     /** Merchant name */
     merchant: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of tag grouped search result */
-type SearchTagGroup = {
+type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = {
+type SearchMonthGroup = SearchGroupBase & {
     /** Year */
     year: number;
 
     /** Month (1-12) */
     month: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = {
+type SearchWeekGroup = SearchGroupBase & {
     /** Week start date in YYYY-MM-DD format */
     week: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of year grouped search result */
-type SearchYearGroup = {
+type SearchYearGroup = SearchGroupBase & {
     /** Year */
     year: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = {
+type SearchQuarterGroup = SearchGroupBase & {
     /** Year */
     year: number;
 
     /** Quarter (1-4) */
     quarter: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** SearchResultDataType */

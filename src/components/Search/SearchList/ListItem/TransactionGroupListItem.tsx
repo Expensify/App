@@ -462,12 +462,6 @@ function TransactionGroupListItemImpl({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
-
     const snapshotData = transactionsSnapshot?.data;
     const groupViolations: Record<string, TransactionViolations | undefined> = {};
     if (snapshotData) {
@@ -513,7 +507,7 @@ function TransactionGroupListItemImpl({
     }
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
