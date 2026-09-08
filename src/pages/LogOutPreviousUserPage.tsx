@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -44,9 +45,27 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
+        const linkEmail = new URLSearchParams(transitionURL ?? undefined).get('email');
+
         if (isLoggingInAsNewUser) {
-            // We don't want to close react-native app in this particular case.
-            signOutAndRedirectToSignIn(false, isSupportalLogin);
+            if (isSupportalLogin) {
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin);
+                return;
+            }
+
+            showConfirmModal({
+                title: translate('deeplinkWrapper.switchAccount.title'),
+                prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: linkEmail ?? '', currentEmail: sessionEmail ?? ''}),
+                confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                // We don't want to close react-native app in this particular case.
+                signOutAndRedirectToSignIn(false, isSupportalLogin);
+            });
             return;
         }
 
