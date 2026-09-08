@@ -3084,6 +3084,102 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(originalTransactionAfter?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
     });
 
+    it('does not revert the remaining split when its draft reportID is stale but the live transaction moved to an Approved report', async () => {
+        // Given an expense report that is Approved and present in Onyx.
+        const approvedReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const originalTransactionID = 'stale-draft-report-original';
+        const approvedChildTransactionID = 'stale-draft-report-approved-child';
+        const staleOpenReportID = 'stale-draft-report-open-report-id';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            // Hidden while split into children, same as `updateSplitTransactions` leaves it after creation
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        // The transaction has since moved to the Approved report - this is the live source of truth.
+        const approvedChildTransaction: Transaction = {
+            transactionID: approvedChildTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: approvedReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`, approvedChildTransaction);
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+
+        // When saving with a single split left (the Approved one) - which would normally look like a
+        // reverse-split (1 split + existing children) - while the draft's own cached `reportID` still points
+        // at a stale, never-submitted report (e.g. because the split moved reports while the editor was open).
+        // The live transaction's Approved report must be used instead of that stale cached field.
+        updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots: undefined,
+            transactionData: {
+                reportID: approvedReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: approvedChildTransactionID, amount: 5000, created: DateUtils.getDBTime(), reportID: staleOpenReportID}],
+                splitExpensesTotal: 5000,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: approvedReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: approvedReport,
+            expenseReport: approvedReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the Approved split is not reverted/deleted, and the original transaction is not revived -
+        // both of which would happen if the stale cached `reportID` were used to decide reversal.
+        const approvedChildAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`);
+        expect(approvedChildAfter).toBeTruthy();
+        const originalTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransactionAfter?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
     it('should show the reverted transaction in search snapshots (not stale children) when reverting a pure selfDM split', async () => {
         // Given a selfDM report with an unreported expense that was split into two selfDM children
         const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);
