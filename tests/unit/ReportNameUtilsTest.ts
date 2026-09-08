@@ -434,6 +434,9 @@ describe('ReportNameUtils', () => {
 
             return computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID,
                 report: thread,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`]: conciergeDM},
