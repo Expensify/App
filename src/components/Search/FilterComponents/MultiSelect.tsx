@@ -130,7 +130,7 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
-    const isSearchInProgress = isSearching || isLoading;
+    const isSearchInProgress = isSearching ?? isLoading;
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
     const headerMessage = isSearchable && listData.length === 0 && !isSearchInProgress ? translate('common.noResultsFound') : undefined;
 
