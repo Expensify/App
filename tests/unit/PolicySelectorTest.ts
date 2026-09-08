@@ -294,6 +294,7 @@ describe('createWorkspaceListPoliciesSelector', () => {
         };
         const [item] = createWorkspaceListPoliciesSelector(userLogin)(policies);
         expect(item?.isJoinRequestPending).toBe(true);
+        expect(item?.id).toBeUndefined();
         expect(item?.nonMemberDetails?.policyID).toBe('p1');
     });
 
