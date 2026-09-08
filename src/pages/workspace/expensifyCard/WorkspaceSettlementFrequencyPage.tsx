@@ -79,6 +79,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             return;
         }
         updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, settings?.monthlySettlementDate);
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
     };
 
     const confirmButtonOptions = {
