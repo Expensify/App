@@ -19,6 +19,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/bunTests.yml'
+      # tests/tooling asserts the Jest transform cache key stays in sync across these three workflows.
       - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
       - '.github/workflows/seedCache.yml'
