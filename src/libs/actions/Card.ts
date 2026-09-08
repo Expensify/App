@@ -77,7 +77,8 @@ type CardListUpdateData = Omit<PartialDeep<Card>, 'errors'> & {
 };
 
 /**
- * Shared isLoading updates so both card writes show and hide the same spinner.
+ * Shared isLoading updates so both card writes show and hide the same spinner. The generic failure error is a
+ * fallback for responses that carry no message of their own; a backend error keyed by a later timestamp wins.
  */
 function buildCardLoadingOnyxData(cardID: number) {
     const mergeCard = (value: CardListUpdateData): Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> => [
@@ -91,7 +92,7 @@ function buildCardLoadingOnyxData(cardID: number) {
     return {
         optimisticData: mergeCard({errors: null, isLoading: true}),
         successData: mergeCard({isLoading: false}),
-        failureData: mergeCard({isLoading: false}),
+        failureData: mergeCard({errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isLoading: false}),
     };
 }
 

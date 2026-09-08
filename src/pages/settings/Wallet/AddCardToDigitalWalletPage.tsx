@@ -38,8 +38,8 @@ import {View} from 'react-native';
 type AddCardToDigitalWalletPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET>;
 
 type SubmittedWalletRequest = {
-    answer: 'approve' | 'deny';
-    walletName: string;
+    isApproved: boolean;
+    walletNameKey: ReturnType<typeof getWalletProviderNameKey>;
 };
 
 function AddCardToDigitalWalletPage({
@@ -52,8 +52,8 @@ function AddCardToDigitalWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
 
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
-    const card = cardList?.[cardID];
+    const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => cardList?.[cardID]});
+    const currentCardID = card?.cardID;
     const latestError = getLatestErrorMessageField(card);
 
     const [isVerifying, setIsVerifying] = useState(false);
@@ -64,8 +64,8 @@ function AddCardToDigitalWalletPage({
     // Last four digits the cardholder confirmed, or the card's own last four
     const lastFourDigits = pendingApproval?.cardLastFourDigits ?? card?.lastFourPAN ?? '';
 
-    const currentWalletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(pendingApproval?.walletProvider)}`);
-    const walletName = submittedRequest?.walletName ?? currentWalletName;
+    const currentWalletNameKey = getWalletProviderNameKey(pendingApproval?.walletProvider);
+    const walletName = translate(`addCardToDigitalWallet.${submittedRequest?.walletNameKey ?? currentWalletNameKey}`);
 
     // The backend drops the pending approval after the request is resolved, so a still-pending card means it failed
     const hasPendingApproval = isCardPendingDigitalWalletApproval(card);
@@ -80,13 +80,14 @@ function AddCardToDigitalWalletPage({
     })();
 
     useEffect(() => {
-        if (!card?.cardID) {
+        if (!currentCardID) {
             return;
         }
-        clearCardListErrors(card.cardID);
-    }, [card?.cardID]);
+        clearCardListErrors(currentCardID);
+        return () => clearCardListErrors(currentCardID);
+    }, [currentCardID]);
 
-    if (!card && isLoadingOnyxValue(cardListMetadata)) {
+    if (!card && isLoadingOnyxValue(cardMetadata)) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
@@ -95,12 +96,12 @@ function AddCardToDigitalWalletPage({
     }
 
     const denyRequest = () => {
-        setSubmittedRequest({answer: 'deny', walletName: currentWalletName});
+        setSubmittedRequest({isApproved: false, walletNameKey: currentWalletNameKey});
         approveDigitalWalletCardAddition(card.cardID, false);
     };
 
     const confirmRequest = (validateCode: string) => {
-        setSubmittedRequest({answer: 'approve', walletName: currentWalletName});
+        setSubmittedRequest({isApproved: true, walletNameKey: currentWalletNameKey});
         approveDigitalWalletCardAddition(card.cardID, true, validateCode);
     };
 
@@ -113,6 +114,7 @@ function AddCardToDigitalWalletPage({
                 title={translate('addCardToDigitalWallet.verifyTitle')}
                 descriptionPrimary={translate('addCardToDigitalWallet.enterSecurityCode', primaryLogin ?? '')}
                 sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON, reasonCardID: card.cardID})}
+                validateCodeReasonCode={CONST.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON}
                 validateError={latestError}
                 clearError={() => clearCardListErrors(card.cardID)}
                 onClose={() => setIsVerifying(false)}
@@ -121,17 +123,14 @@ function AddCardToDigitalWalletPage({
     }
 
     if (requestStatus === 'resolved') {
-        const isSuccess = submittedRequest?.answer === 'approve';
+        const isSuccess = !!submittedRequest?.isApproved;
 
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
                 testID={AddCardToDigitalWalletPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('addCardToDigitalWallet.title', {walletName})}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
                 <ConfirmationPage
                     heading={translate(isSuccess ? 'addCardToDigitalWallet.successHeading' : 'addCardToDigitalWallet.deniedHeading')}
                     description={translate(isSuccess ? 'addCardToDigitalWallet.successDescription' : 'addCardToDigitalWallet.deniedDescription', {walletName})}
@@ -151,10 +150,7 @@ function AddCardToDigitalWalletPage({
             includeSafeAreaPaddingBottom
             testID={AddCardToDigitalWalletPage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('addCardToDigitalWallet.title', {walletName})}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}
