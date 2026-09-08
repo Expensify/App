@@ -1,4 +1,3 @@
-import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -35,6 +34,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -270,6 +270,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
             Navigation.goBack();
         });
     };
+
+    const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const deleteHeaderProps = useRuleDeleteHeaderProps({
+        canDelete: canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted,
+        onDelete: deleteRule,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
+    });
 
     const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
         if (!canWriteSpendRules) {
@@ -512,7 +519,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
             >
-                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)} />
+                <HeaderWithBackButton
+                    title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{isRulesRevampEnabled ? revampFormContent : legacyFormContent}</ScrollView>
                 {canWriteSpendRules && (
                     <FormAlertWithSubmitButton
@@ -525,19 +535,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
-                        shouldRenderFooterAboveSubmit
-                        footerContent={
-                            isEditingRule ? (
-                                <Button
-                                    size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={deleteRule}
-                                    style={[styles.mb4]}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                >
-                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
-                                </Button>
-                            ) : undefined
-                        }
                     />
                 )}
             </ScreenWrapper>

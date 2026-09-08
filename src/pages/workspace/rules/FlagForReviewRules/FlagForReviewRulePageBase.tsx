@@ -1,11 +1,13 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,12 +23,13 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, hasExplicitFlagAmount, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -74,6 +77,7 @@ function FlagForReviewRulePageBase({
     const {policy} = policyData;
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
@@ -181,6 +185,38 @@ function FlagForReviewRulePageBase({
         handleSave();
     };
 
+    // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
+    // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
+    const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const handleDelete = () => {
+        if (!canWriteRules || !categoryName) {
+            return;
+        }
+
+        showConfirmModal({
+            // The same copy the table's bulk delete already shows on this tab, so one rule and several read alike. It
+            // lives under `merchantRules` because that table had delete first, not because it is merchant-specific.
+            title: translate('workspace.rules.merchantRules.deleteRule'),
+            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteFlagForReviewRule(policyID, categoryName, policyData.categories);
+            Navigation.goBack();
+        });
+    };
+
+    const deleteHeaderProps = useRuleDeleteHeaderProps({
+        canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
+        onDelete: handleDelete,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DELETE,
+    });
+
     if (isEditing && categoryName && !category) {
         return <NotFoundPage />;
     }
@@ -214,7 +250,10 @@ function FlagForReviewRulePageBase({
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.flagForReviewRule.title')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.flagForReviewRule.title')}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>

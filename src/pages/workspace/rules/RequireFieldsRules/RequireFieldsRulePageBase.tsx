@@ -1,12 +1,14 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +25,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
+    categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
@@ -30,6 +33,7 @@ import {
     getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     hasRequireFieldsRuleChanges,
@@ -39,6 +43,7 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -68,6 +73,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
@@ -397,6 +403,38 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         handleSave();
     };
 
+    // The rule is the set of field requirements on the category, so it only exists once one of them is on, and the
+    // category's own pending state is the rule's: while a delete is in flight, deleting again would repeat the writes.
+    const isRuleBeingDeleted = !!category && getRequireFieldsPendingActionForCategory(category) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const handleDelete = () => {
+        if (!canWriteRules || !categoryName) {
+            return;
+        }
+
+        showConfirmModal({
+            // The same copy the table's bulk delete already shows on this tab, so one rule and several read alike. It
+            // lives under `merchantRules` because that table had delete first, not because it is merchant-specific.
+            title: translate('workspace.rules.merchantRules.deleteRule'),
+            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName));
+            Navigation.goBack();
+        });
+    };
+
+    const deleteHeaderProps = useRuleDeleteHeaderProps({
+        canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
+        onDelete: handleDelete,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
+    });
+
     if (isEditing && categoryName && !category) {
         return <NotFoundPage />;
     }
@@ -431,7 +469,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.requireFieldsRule.title')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.requireFieldsRule.title')}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>

@@ -1,4 +1,3 @@
-import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,7 +9,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -22,6 +20,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -48,7 +47,6 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
@@ -110,6 +108,12 @@ function EditAgentRulePage({
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
+    const deleteHeaderProps = useRuleDeleteHeaderProps({
+        canDelete: !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        onDelete: handleDelete,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
+    });
+
     if (!agentRule) {
         return <NotFoundPage />;
     }
@@ -128,7 +132,10 @@ function EditAgentRulePage({
                 shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
                 <CollapsibleHeaderOnKeyboard>
-                    <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                    <HeaderWithBackButton
+                        title={translate('workspace.rules.agentRules.editRuleTitle')}
+                        {...deleteHeaderProps}
+                    />
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
@@ -144,19 +151,6 @@ function EditAgentRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                    shouldRenderFooterAboveSubmit
-                    submitButtonAndFooterContainerStyles={isInLandscapeMode ? [styles.flexRow, styles.gap3] : undefined}
-                    submitButtonInnerStyles={isInLandscapeMode ? styles.flex1 : undefined}
-                    footerContent={
-                        <Button
-                            onPress={handleDelete}
-                            style={[isInLandscapeMode ? styles.flex1 : styles.mb4]}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        >
-                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
-                        </Button>
-                    }
                 >
                     <View style={styles.flexGrow1}>
                         <View style={inputWrapperStyles}>
