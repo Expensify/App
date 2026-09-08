@@ -3,6 +3,7 @@ import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProv
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 import GPSInProgressModal from '@components/GPSInProgressModal';
 import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import HoldEducationalModalManager from '@components/HoldEducationalModalManager';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
@@ -164,6 +165,7 @@ function AuthScreens() {
 
     return (
         <>
+            <HoldEducationalModalManager />
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
             <SubmitIntentDeeplinkHandler />
