@@ -1,6 +1,8 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
+import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
+import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
 /**
  * Shared persistence helpers for inline editing of workspace policy items (categories, tags, distance
@@ -12,6 +14,7 @@ import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
  * Add new items as additional sections below rather than creating a file per item.
  */
 import {renamePolicyCategory} from './Category';
+import {renamePolicyTag} from './Tag';
 
 // #region Categories
 
@@ -32,5 +35,26 @@ function renameCategoryInline(policyData: PolicyData, currentName: string, newNa
 
 // #endregion Categories
 
-// eslint-disable-next-line import/prefer-default-export -- Named exports are intentional: this module aggregates inline-edit helpers for multiple policy items (tags, distance rates, etc. to follow).
-export {renameCategoryInline};
+// #region Tags
+
+/**
+ * Renames a single-level tag from an inline table edit. `oldName` is the raw (escaped) tag name used as
+ * the Onyx key, while the cell edits the decoded display name. Sanitizes the input and delegates to the
+ * canonical rename action. Silently no-ops when the name is unchanged or fails validation (matching the
+ * Spend inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ */
+function renameTagInline(policyData: PolicyData, oldName: string, newName: string): void {
+    const sanitized = sanitizeTagName(newName);
+    const currentDisplayName = getCleanedTagName(oldName);
+    const {tags} = getTagList(policyData.tags, 0);
+
+    if (sanitized === currentDisplayName || getTagNameError(tags, newName, currentDisplayName)) {
+        return;
+    }
+
+    renamePolicyTag(policyData, {oldName, newName: sanitized}, 0);
+}
+
+// #endregion Tags
+
+export {renameCategoryInline, renameTagInline};
