@@ -18,6 +18,7 @@ import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import {joinAccessiblePolicy} from '@userActions/Policy/Member';
 import {createWorkspace} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
+import {createJoinWorkspaceOnboardingContent} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -37,6 +38,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const mockCreateWorkspace = jest.mocked(createWorkspace);
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
+const mockCreateJoinWorkspaceOnboardingContent = jest.mocked(createJoinWorkspaceOnboardingContent);
 
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -45,6 +47,16 @@ jest.mock('@userActions/Report', () => {
     return {
         ...actual,
         completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Welcome', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Welcome');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createJoinWorkspaceOnboardingContent: jest.fn(),
     };
 });
 
@@ -250,6 +262,7 @@ describe('OnboardingWorkspaces Page', () => {
             expect(dismissModal).toHaveBeenCalled();
             expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
         });
+        expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
