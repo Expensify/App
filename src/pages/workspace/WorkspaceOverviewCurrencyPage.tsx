@@ -9,12 +9,11 @@ import usePermissions from '@hooks/usePermissions';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard, isCurrencySupportedForECards} from '@libs/CardUtils';
+import {getExpensifyCardEnrollmentRoute, isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
-import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
@@ -64,19 +63,9 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         const isUkEuCurrencySupported = isCurrencySupportedForECards(item.currencyCode) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
         const canEnrollNewCardProgram = item.currencyCode === CONST.CURRENCY.USD || isUkEuCurrencySupported;
         if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
-            const eligibleBankAccounts = isUkEuCurrencySupported
-                ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, item.currencyCode)
-                : getEligibleBankAccountsForCard(bankAccountList);
-            if (!eligibleBankAccounts.length || hasInProgressUSDVBBA(reimbursementAccount?.achData)) {
-                Navigation.navigate(
-                    ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
-                        policyID: policy.id,
-                        backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id),
-                    }),
-                );
-                return;
-            }
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy.id));
+            Navigation.navigate(
+                getExpensifyCardEnrollmentRoute(policy.id, item.currencyCode, isUkEuCurrencySupported, bankAccountList, supportedCountriesByCurrency, reimbursementAccount?.achData),
+            );
             return;
         }
 

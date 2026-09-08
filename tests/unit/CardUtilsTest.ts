@@ -47,6 +47,7 @@ import {
     getDomainByFundID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getExpensifyCardEnrollmentRoute,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -83,6 +84,7 @@ import {
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -98,6 +100,7 @@ import type {
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {FC} from 'react';
@@ -4641,6 +4644,33 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
         const result = getEligibleBankAccountsForUkEuCard(bankAccounts, undefined, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.bankCountry).toBe('GB');
+    });
+});
+
+describe('getExpensifyCardEnrollmentRoute', () => {
+    const policyID = 'policy123';
+    const addBankAccountRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)});
+    const eligibleBankAccounts: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: 'US',
+        },
+    };
+
+    it('returns the add bank account route when no eligible account exists', () => {
+        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, {}, undefined, undefined)).toBe(addBankAccountRoute);
+    });
+
+    it('returns the bank account selector route when an eligible account exists', () => {
+        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, eligibleBankAccounts, undefined, undefined)).toBe(
+            ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID),
+        );
+    });
+
+    it('returns the add bank account route when setup is in progress', () => {
+        const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP});
+        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, eligibleBankAccounts, undefined, achData)).toBe(addBankAccountRoute);
     });
 });
 

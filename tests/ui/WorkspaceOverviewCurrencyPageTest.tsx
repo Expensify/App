@@ -25,7 +25,7 @@ const mockPolicy = createMock<Policy>({
     name: 'Acme',
     outputCurrency: CONST.CURRENCY.AUD,
 });
-let mockEligibleBankAccounts: unknown[] = [];
+let mockEnrollmentRoute = '';
 let mockIsBetaEnabled = false;
 let mockIsUkEuCurrencySupported = false;
 const mockOnyxKeys = ONYXKEYS;
@@ -90,8 +90,7 @@ jest.mock('@hooks/useShouldBlockCurrencyChange', () => ({
     default: () => false,
 }));
 jest.mock('@libs/CardUtils', () => ({
-    getEligibleBankAccountsForCard: () => mockEligibleBankAccounts,
-    getEligibleBankAccountsForUkEuCard: () => mockEligibleBankAccounts,
+    getExpensifyCardEnrollmentRoute: () => mockEnrollmentRoute,
     isCurrencySupportedForECards: () => mockIsUkEuCurrencySupported,
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -141,7 +140,7 @@ function renderPage(shouldStartExpensifyCardEnrollment = true) {
 describe('WorkspaceOverviewCurrencyPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockEligibleBankAccounts = [];
+        mockEnrollmentRoute = ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: POLICY_ID, backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)});
         mockIsBetaEnabled = false;
         mockIsUkEuCurrencySupported = false;
     });
@@ -160,7 +159,7 @@ describe('WorkspaceOverviewCurrencyPage', () => {
     });
 
     it('opens the bank account selector after selecting a supported currency when an eligible account exists', () => {
-        mockEligibleBankAccounts = [{}];
+        mockEnrollmentRoute = ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(POLICY_ID);
         mockIsBetaEnabled = true;
         mockIsUkEuCurrencySupported = true;
         renderPage();
