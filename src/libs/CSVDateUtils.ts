@@ -30,13 +30,8 @@ function parseCSVDate(input: string): string | null {
 
     const trimmedInput = input.trim();
 
-    // Try native Date parsing first (handles ISO and some other formats)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
-    }
-
-    // Try parsing with common date formats using date-fns
+    // Try parsing with common date formats using date-fns first. These are parsed in the local time zone, while `new Date()`
+    // reads a bare yyyy-MM-dd string as UTC midnight, which formats back to the previous day for anyone west of UTC.
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(trimmedInput, dateFormat, new Date());
         if (isValid(parsedDate)) {
@@ -44,34 +39,44 @@ function parseCSVDate(input: string): string | null {
         }
     }
 
-    // If the date didn't parse, try taking just the first 10 characters
-    if (trimmedInput.length > 10) {
-        const shortInput = trimmedInput.substring(0, 10);
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
-        }
-
-        // Also try format parsing on the shortened input
-        for (const dateFormat of CSV_DATE_FORMATS) {
-            const parsedDate = parse(shortInput, dateFormat, new Date());
+    // Next, check for an Excel date serial number. This has to run before `new Date()` because V8 reads a bare number above 31
+    // as a year, so "45678" would otherwise become the year 45678 instead of 2025-01-21.
+    // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
+    // Excel thinks that 1900 was a leap year and adds an extra day to account for that
+    // Only 5-digit values are treated as serial numbers so that a year-only value like "2025" keeps parsing as a year rather
+    // than turning into 1905.
+    if (/^\d{5}$/.test(trimmedInput)) {
+        const inputInt = parseInt(trimmedInput, 10);
+        if (inputInt > 0) {
+            const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
+            const parsedDate = addDays(excelEpoch, inputInt - 2);
             if (isValid(parsedDate)) {
                 return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
             }
         }
     }
 
-    // If it didn't parse, maybe it's an Excel date number
-    // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
-    // Excel thinks that 1900 was a leap year and adds an extra day to account for that
-    if (/^\d+$/.test(trimmedInput)) {
-        const inputInt = parseInt(trimmedInput, 10);
-        if (inputInt > 0 && inputInt < 100000) {
-            const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
-            const parsedDate = addDays(excelEpoch, inputInt - 2);
+    // Fall back to native Date parsing (handles ISO date-times and other formats not listed above)
+    let date = new Date(trimmedInput);
+    if (isValid(date) && !Number.isNaN(date.getTime())) {
+        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    }
+
+    // If the date didn't parse, try taking just the first 10 characters
+    if (trimmedInput.length > 10) {
+        const shortInput = trimmedInput.substring(0, 10);
+
+        // Formats run before native parsing here for the same time zone reason as above
+        for (const dateFormat of CSV_DATE_FORMATS) {
+            const parsedDate = parse(shortInput, dateFormat, new Date());
             if (isValid(parsedDate)) {
                 return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
             }
+        }
+
+        date = new Date(shortInput);
+        if (isValid(date) && !Number.isNaN(date.getTime())) {
+            return format(date, CONST.DATE.FNS_FORMAT_STRING);
         }
     }
 
