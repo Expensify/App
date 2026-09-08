@@ -14,17 +14,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchSavedSearchParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
 import React from 'react';
 
-function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
+type SavedSearchRenamePageProps = PlatformStackScreenProps<SearchSavedSearchParamList, typeof SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP>;
+
+function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {id} = route.params;
