@@ -12893,7 +12893,7 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getHasOptions', () => {
-        test('returns expense has options including submitted violation', () => {
+        test('returns expense has options including submitted and approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
             expect(result).toEqual([
@@ -12902,10 +12902,11 @@ describe('SearchUIUtils', () => {
                 {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
                 {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+                {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ]);
         });
 
-        test('returns chat has options without submitted violation', () => {
+        test('returns chat has options without submitted or approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
 
             expect(result).toEqual([
@@ -12916,6 +12917,21 @@ describe('SearchUIUtils', () => {
 
         test('returns empty array for unsupported search types', () => {
             expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+
+        test('does not include approved-violation for non-expense search types', () => {
+            const nonExpenseTypes = [
+                CONST.SEARCH.DATA_TYPES.CHAT,
+                CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                CONST.SEARCH.DATA_TYPES.INVOICE,
+                CONST.SEARCH.DATA_TYPES.TASK,
+                CONST.SEARCH.DATA_TYPES.TRIP,
+            ];
+
+            for (const type of nonExpenseTypes) {
+                const result = SearchUIUtils.getHasOptions(translateLocal, type);
+                expect(result.some((option) => option.value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)).toBe(false);
+            }
         });
     });
 
@@ -13105,6 +13121,12 @@ describe('SearchUIUtils', () => {
             expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
         });
 
+        test('returns translated approved violation has option label', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.approvedViolation'));
+        });
+
         test('returns multiple has option labels joined by comma', () => {
             const result = SearchUIUtils.getDisplayValue(
                 'has',
@@ -13131,12 +13153,18 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation, approved-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
+            const hasValues = [
+                CONST.SEARCH.HAS_VALUES.RECEIPT,
+                CONST.SEARCH.HAS_VALUES.TAG,
+                CONST.SEARCH.HAS_VALUES.LINK,
+                CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION,
+                CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+            ];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
         });
     });
 

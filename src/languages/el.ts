@@ -9660,7 +9660,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Πληρωμή',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
-            has: {submittedViolation: 'Υποβληθείσα παράβαση'},
+            has: {submittedViolation: 'Υποβληθείσα παράβαση', approvedViolation: 'Εγκεκριμένη παράβαση'},
             filterType: {
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},

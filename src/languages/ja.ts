@@ -9283,7 +9283,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
-            has: {submittedViolation: '違反を送信しました'},
+            has: {submittedViolation: '違反を送信しました', approvedViolation: '承認された違反'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',

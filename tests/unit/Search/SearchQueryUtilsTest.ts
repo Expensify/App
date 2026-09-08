@@ -1861,6 +1861,46 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('has:approved-violation filter', () => {
+        test('round-trips a positive has:approved-violation filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            expect(result.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(result.hasNot).toBeUndefined();
+        });
+
+        test('round-trips a negated -has:approved-violation filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                hasNot: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues);
+            expect(queryString).toBe(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+
+            const queryJSON = buildSearchQueryJSON(queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            expect(result.hasNot).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+            expect(result.has).toBeUndefined();
+        });
+    });
+
     describe('shouldHighlight', () => {
         it('returns false if either input is empty', () => {
             expect(shouldHighlight('', 'test')).toBe(false);
