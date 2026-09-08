@@ -82,7 +82,6 @@ type WorkspaceDetails = {
 };
 
 type ConnectionWithLastSyncData = {
-    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
 

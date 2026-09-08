@@ -64,7 +64,6 @@ import TravelBillingLearnHow from './TravelBillingLearnHow';
 import TravelBillingSubtitleWrapper from './TravelBillingSubtitleWrapper';
 
 type WorkspaceTravelBillingSectionProps = {
-    /** The ID of the policy */
     policyID: string;
 };
 

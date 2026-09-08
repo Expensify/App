@@ -36,10 +36,7 @@ type ConfirmationStepProps = {
     /** ID of the policy that the card will be issued under */
     policyID: string;
 
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** Start from step index */
     startStepIndex: number;
 };
 
