@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 
 import ExpenseReportAvatar from '@components/Avatar/connected/ExpenseReportAvatar';
 
@@ -89,6 +89,8 @@ describe('ExpenseReportAvatar (connected)', () => {
     });
 
     afterEach(async () => {
+        // Unmount before clearing so the store updates from the clear don't reach a mounted component outside act().
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -106,6 +108,8 @@ describe('ExpenseReportAvatar (connected)', () => {
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        // useOnyx delivers its initial value asynchronously, so flush it inside act() before asserting.
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSubscriptAvatar')).toBeOnTheScreen();
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(
@@ -162,6 +166,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />,
             );
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({source: expectedSource}));
         },
@@ -204,6 +209,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                     size={CONST.AVATAR_SIZE.DEFAULT}
                 />,
             );
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({name: expectedName}));
         },
@@ -221,6 +227,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({id: POLICY_ID, name: POLICY_NAME, source: POLICY_AVATAR_URL}));
     });
@@ -237,6 +244,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({name: 'Chat Policy Name'}));
     });
@@ -252,6 +260,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: MockFallbackAvatar}));
     });
@@ -268,6 +277,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.DEFAULT}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(
             expect.objectContaining({id: OWNER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, source: getDefaultAvatarURL({accountID: OWNER_ACCOUNT_ID})}),
@@ -291,6 +301,7 @@ describe('ExpenseReportAvatar (connected)', () => {
                 containerStyle={containerStyle}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.containerStyle).toBe(expectedContainerStyle);
     });
