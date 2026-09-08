@@ -2,7 +2,6 @@ import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPCon
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
@@ -24,7 +23,6 @@ import {Animated} from 'react-native';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
@@ -85,7 +83,7 @@ function useWideModalStackScreenOptions() {
                 },
             };
         },
-        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

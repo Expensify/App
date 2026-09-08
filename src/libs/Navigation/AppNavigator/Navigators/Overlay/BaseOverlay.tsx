@@ -38,7 +38,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
 
     const activeProgress = progress ?? current.progress;
     const scrimStyle = [styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: activeProgress, positionLeftValue, positionRightValue})];
-    // Transparent: keep positioning and pressability, drop the dimming background.
+    // Transparent: keep positioning and press handling, drop the dimming background.
     const transparentStyle = [styles.pFixed, styles.t0, styles.b0, styles.overlayStyles({progress: activeProgress, positionLeftValue, positionRightValue})];
 
     const overlayStyle = transparent ? transparentStyle : scrimStyle;
