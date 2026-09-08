@@ -2560,7 +2560,7 @@ type NavigateToAndOpenReportParams = {
     betas: OnyxEntry<Beta[]>;
     conciergeChat: OnyxEntry<Report>;
 
-    /** Whether the current session is a supportal session. Read with useIsSupportalSession at the call site — support agents cannot create chats on a user's behalf. */
+    /** Whether the current session is a supportal session.*/
     isSupportalSession: boolean;
     shouldDismissModal?: boolean;
     shouldRevalidateExistingChat?: boolean;
@@ -2686,7 +2686,7 @@ type NavigateToAndCreateGroupChatParams = {
     conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
 
-    /** Whether the current session is a supportal session. Read with useIsSupportalSession at the call site — support agents cannot create chats on a user's behalf. */
+    /** Whether the current session is a supportal session.*/
     isSupportalSession: boolean;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
@@ -2748,7 +2748,7 @@ type NavigateToAndOpenReportWithAccountIDsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     conciergeChat: OnyxEntry<Report>;
 
-    /** Whether the current session is a supportal session. Read with useIsSupportalSession at the call site — support agents cannot create chats on a user's behalf. */
+    /** Whether the current session is a supportal session.*/
     isSupportalSession: boolean;
     shouldRevalidateExistingChat?: boolean;
     hasReportActions?: boolean;
