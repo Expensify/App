@@ -260,6 +260,50 @@ describe('OnboardingGuard', () => {
             }
         });
 
+        it('should allow a completed join-workspace user to navigate to a task screen', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            });
+            await waitForBatchedUpdates();
+
+            const navigateToWorkEmailTaskAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.WORK_EMAIL},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, navigateToWorkEmailTaskAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should redirect a completed join-workspace user away from non-task onboarding screens', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            });
+            await waitForBatchedUpdates();
+
+            const navigateToPurposeAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {
+                    name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+                    params: {screen: SCREENS.ONBOARDING.PURPOSE},
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(mockState, navigateToPurposeAction, authenticatedContext);
+
+            expect(result.type).toBe('REDIRECT');
+        });
+
         it('should ALLOW when completed user navigates to a non-onboarding route', async () => {
             // Given a user who has completed the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {

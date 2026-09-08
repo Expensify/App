@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {getEmailDomain} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -55,7 +56,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
-    const {onboardingMessages} = useOnboardingMessages();
+    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
+    const joinWorkspaceMessagesAddWorkEmail = joinWorkspaceMessages.addWorkEmail;
+    const joinWorkspaceMessagesValidateEmail = joinWorkspaceMessages.validateEmail;
+    const joinWorkspaceMessagesEmpty = joinWorkspaceMessages.empty;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -75,6 +79,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const workEmail = session?.email ?? '';
+    const isFromPublicDomain = account?.isFromPublicDomain;
 
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -91,9 +97,15 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             setIsLoading(true);
             try {
+                // Reaching this screen while validated only happens when the join-workspace list turned up empty, since
+                // a non-empty list completes directly from the workspaces screen instead of coming here.
+                let joinWorkspaceMessage = joinWorkspaceMessagesEmpty;
+                if (!isValidated) {
+                    joinWorkspaceMessage = isFromPublicDomain ? joinWorkspaceMessagesAddWorkEmail : joinWorkspaceMessagesValidateEmail;
+                }
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
-                    onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+                    onboardingMessage: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? joinWorkspaceMessage : onboardingMessages[onboardingPurposeSelected],
                     firstName,
                     lastName,
                     adminsChatReportID: onboardingAdminsChatReportID,
@@ -101,6 +113,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     introSelected,
                     isSelfTourViewed,
                     conciergeChat,
+                    companyDomain: getEmailDomain(workEmail),
+                    workEmail,
                 });
 
                 setOnboardingAdminsChatReportID();
@@ -126,6 +140,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             onboardingPurposeSelected,
             onboardingAdminsChatReportID,
             onboardingMessages,
+            joinWorkspaceMessagesAddWorkEmail,
+            joinWorkspaceMessagesValidateEmail,
+            joinWorkspaceMessagesEmpty,
+            isValidated,
+            isFromPublicDomain,
+            workEmail,
             onboardingPolicyID,
             isBetaEnabled,
             reportNameValuePairs,
@@ -252,6 +272,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
                     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
                         Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                        return;
+                    }
+
+                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                        Navigation.goBack();
                         return;
                     }
 

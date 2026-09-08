@@ -115,6 +115,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.TRAVEL.MY_TRIPS,
             SCREENS.WORKSPACE.TRAVEL,
         ],
+        getRoute: (isJoinWorkspaceTask?: boolean) => getUrlWithParams('verify-account', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
+        queryParams: ['isJoinWorkspaceTask'],
     },
     CONTACT_METHODS: {
         path: 'contact-methods',

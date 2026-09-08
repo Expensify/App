@@ -50,6 +50,11 @@ type OnboardingTaskLinks = Partial<{
     workspaceConfirmationLink: string;
     testDriveURL: string;
     corporateCardLink: string;
+    companyDomain: string;
+    workEmail: string;
+    validateEmailLink: string;
+    workEmailLink: string;
+    joinWorkspaceLink: string;
 }>;
 
 type OnboardingTask = {
@@ -132,7 +137,12 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isIndividual) {
-        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [
+            CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+            CONST.ONBOARDING_CHOICES.EMPLOYER,
+            CONST.ONBOARDING_CHOICES.TRACK_BUSINESS,
+            CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
+        ]);
     }
     // A validated account has no reason to be on the onboarding "add work email" screen.
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {
@@ -257,6 +267,24 @@ const getOnboardingMessages = (locale?: Locale) => {
         autoCompleted: false,
         title: translate(resolvedLocale, 'onboarding.tasks.createReportTask.title'),
         description: translate(resolvedLocale, 'onboarding.tasks.createReportTask.description'),
+    };
+    const addWorkEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.title'),
+        description: ({workEmailLink}) => translate(resolvedLocale, 'onboarding.tasks.addWorkEmailTask.description', {workEmailLink}),
+    };
+    const validateEmailTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.title'),
+        description: ({validateEmailLink, workEmail}) => translate(resolvedLocale, 'onboarding.tasks.validateEmailTask.description', {validateEmailLink, workEmail}),
+    };
+    const joinWorkspaceTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,
+        autoCompleted: false,
+        title: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title'),
+        description: ({joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description', {joinWorkspaceLink}),
     };
     const testDriveAdminTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
@@ -435,8 +463,22 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
     };
 
+    const onboardingJoinWorkspaceAddWorkEmailMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceAddWorkEmailMessage'),
+        tasks: [addWorkEmailTask],
+    };
+    const onboardingJoinWorkspaceValidateEmailMessage: OnboardingMessage = {
+        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceValidateEmailMessage', {companyDomain}),
+        tasks: [validateEmailTask],
+    };
+    const onboardingJoinWorkspaceMessage: OnboardingMessage = {
+        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceMessage', {companyDomain}),
+        tasks: [joinWorkspaceTask],
+    };
+
     return {
         onboardingMessages: {
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: onboardingJoinWorkspaceAddWorkEmailMessage,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
@@ -454,6 +496,12 @@ const getOnboardingMessages = (locale?: Locale) => {
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
         } satisfies Record<ValueOf<typeof CONST.CREATE_EXPENSE_ONBOARDING_CHOICES>, OnboardingMessage>,
         testDrive,
+        joinWorkspaceMessages: {
+            addWorkEmail: onboardingJoinWorkspaceAddWorkEmailMessage,
+            validateEmail: onboardingJoinWorkspaceValidateEmailMessage,
+            joinWorkspace: onboardingJoinWorkspaceMessage,
+            empty: onboardingLookingAroundMessage,
+        },
     };
 };
 
