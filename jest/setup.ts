@@ -58,13 +58,10 @@ jest.mock('expo-web-browser', () => ({
 // index.ios.tsx which imports expo-image. expo-image has no jest-expo mock, so requireNativeModule
 // throws. Stub the package so UI tests can load Icon/ImageSVG.
 jest.mock('expo-image', () => ({
-    Image: Object.assign(
-        jest.fn(() => null),
-        {
-            clearMemoryCache: jest.fn(() => Promise.resolve(true)),
-            prefetch: jest.fn(() => Promise.resolve(true)),
-        },
-    ),
+    Image: Object.assign(({source}: {source?: unknown}) => (typeof source === 'string' ? source : null), {
+        clearMemoryCache: jest.fn(() => Promise.resolve(true)),
+        prefetch: jest.fn(() => Promise.resolve(true)),
+    }),
 }));
 
 jest.mock('expo-store-review', () => ({
