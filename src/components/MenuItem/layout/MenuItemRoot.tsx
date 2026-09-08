@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type WithTestID from '@src/types/utils/TestID';
 
 import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -22,7 +23,8 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
-    WithSentryLabel & {
+    WithSentryLabel &
+    WithTestID & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -37,7 +39,7 @@ type MenuItemRootProps = PropsWithChildren &
         accessibilityLabel?: string;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, accessibilityLabel}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -77,7 +79,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(isHovered, pressed, false, isDisabled, isInteractive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
                             ] as StyleProp<ViewStyle>
@@ -89,6 +91,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
+                        testID={testID}
                     >
                         {({pressed}) => (
                             <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
@@ -110,3 +113,4 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, acces
 }
 
 export default MenuItemRoot;
+export type {MenuItemRootProps};

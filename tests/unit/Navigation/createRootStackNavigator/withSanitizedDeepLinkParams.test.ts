@@ -1,7 +1,7 @@
 import {withSanitizedDeepLinkParams} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 
 describe('withSanitizedDeepLinkParams', () => {
-    describe('deep-link chain detection (gated on `params.screen` presence)', () => {
+    describe('deep-link chain detection', () => {
         it('strips the full RN initial-state chain when `params.screen` is set, preserving non-chain keys', () => {
             const route = {
                 key: 'k-1',
@@ -41,6 +41,33 @@ describe('withSanitizedDeepLinkParams', () => {
 
             expect('params' in result).toBe(false);
             expect(result.params).toBeUndefined();
+        });
+
+        it('strips the long-form RN initial-state chain when `params.state` contains routes', () => {
+            const route = {
+                key: 'k-1',
+                name: 'WorkspaceSplit',
+                params: {
+                    state: {routes: [{name: 'WorkspaceOverview'}], index: 0},
+                    policyID: 'p1',
+                },
+            };
+
+            const result = withSanitizedDeepLinkParams(route, undefined);
+
+            expect(result.params).toEqual({policyID: 'p1'});
+        });
+
+        it('preserves a legitimate scalar `state` param', () => {
+            const route = {
+                key: 'k-1',
+                name: 'DynamicAddressState',
+                params: {state: 'California'},
+            };
+
+            const result = withSanitizedDeepLinkParams(route, undefined);
+
+            expect(result.params).toEqual(route.params);
         });
 
         it('PRESERVES `params` as-is when `params.screen` is absent, even if other "chain-like" keys are present', () => {

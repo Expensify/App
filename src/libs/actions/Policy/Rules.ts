@@ -296,7 +296,11 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     const importFinalModal: ImportFinalModal = {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMerchantRulesSuccessfulDescription',
-        promptKeyParams: {rules: Object.keys(rules).length, invalidCategories: invalidCategoryCount},
+        promptKeyParams: {count: Object.keys(rules).length},
+        ...(invalidCategoryCount > 0 && {
+            pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
+            pendingMessageKeyParams: {count: invalidCategoryCount},
+        }),
     };
 
     const parameters: ImportMerchantRulesSpreadsheetParams = {

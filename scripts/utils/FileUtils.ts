@@ -39,6 +39,28 @@ const FileUtils = {
     },
 
     /**
+     * Convert an absolute path to a path relative to the directory containing `baseFile`.
+     * Already-relative paths are returned unchanged.
+     */
+    toRelativePath: (baseFile: string, filename: string): string => {
+        if (!path.isAbsolute(filename)) {
+            return filename;
+        }
+        return path.relative(path.dirname(baseFile), filename);
+    },
+
+    /**
+     * Convert a path relative to the directory containing `baseFile` to an absolute path.
+     * Already-absolute paths are returned unchanged.
+     */
+    toAbsolutePath: (baseFile: string, filename: string): string => {
+        if (path.isAbsolute(filename)) {
+            return filename;
+        }
+        return path.resolve(path.dirname(baseFile), filename);
+    },
+
+    /**
      * Resolve a list of inputs (file paths, directories, or glob patterns) to concrete file paths.
      * Directories are expanded recursively. Results are deduplicated.
      *

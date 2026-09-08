@@ -15,10 +15,6 @@
 
 html {
     line-height: 1;
-
-    @include maxBreakpoint($breakpoint-tablet) {
-        scroll-padding-top: 80px;
-    }
 }
 
 table {
@@ -65,6 +61,18 @@ body {
     background: var(--color-appBG);
     color: var(--color-text-supporting);
     overflow-x: hidden;
+}
+
+/* `overflow-x: hidden` above makes `overflow-y` compute to `auto`, so `body` is the element that
+scrolls the page and therefore the one whose scroll padding applies to a heading scrolled to by an
+anchor. Below the tablet breakpoint the LHN is a fixed 80px header the heading has to clear; above it
+the LHN is a left sidebar and the padding is only breathing room. */
+body {
+    scroll-padding-top: 80px;
+
+    @include breakpoint($breakpoint-tablet) {
+        scroll-padding-top: 24px;
+    }
 }
 
 hr {

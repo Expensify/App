@@ -211,6 +211,30 @@ describe('maskOnyxState', () => {
         });
     });
 
+    it('should mask policy vendor names while preserving the matching fields', () => {
+        const vendorKey = `${ONYXKEYS.COLLECTION.POLICY_VENDORS}123`;
+        const externalID = 'vendor-1';
+        const input = {
+            [vendorKey]: {
+                [externalID]: {
+                    externalID,
+                    name: 'Acme Supplies',
+                    enabled: true,
+                    origin: 'quickbooksOnline',
+                },
+            },
+        };
+
+        const result = maskOnyxState(input);
+        const vendors = result[vendorKey];
+        if (!isRecord(vendors) || !isRecord(vendors[externalID])) {
+            throw new Error('Expected policy vendors record');
+        }
+
+        expect(vendors[externalID]).toMatchObject({externalID, enabled: true, origin: 'quickbooksOnline'});
+        expect(vendors[externalID].name).not.toBe('Acme Supplies');
+    });
+
     describe('full pass-through safe collection keys', () => {
         it('should pass through data as-is for safe collection keys', () => {
             const mockViolations = [
@@ -475,6 +499,20 @@ describe('Onyx key export coverage', () => {
         }
     });
 
+    it('removes the Cloudflare QA session from the export entirely', () => {
+        // The classification lists only prove the key is bucketed. This pins the actual behavior:
+        // both OAuth tokens must vanish from the exported state, not just get masked.
+        const input = {
+            [ONYXKEYS.CLOUDFLARE_SESSION]: {accessToken: 'oauth:access-token', refreshToken: 'oauth:refresh-token', expiresAt: 1753600000000},
+            [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: true,
+        };
+
+        const result = maskOnyxState(input, true);
+
+        expect(result[ONYXKEYS.CLOUDFLARE_SESSION]).toBeUndefined();
+        expect(Object.keys(result)).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
+    });
+
     it('known-sensitive keys must never be classified as safe', () => {
         // Anything in safeOnyxKeys is exported with no masking at all. Every key below carries
         // credentials, tokens, banking data or personal details, so none of them may ever end up
@@ -504,6 +542,7 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.ONFIDO_TOKEN,
             ONYXKEYS.ONFIDO_APPLICANT_ID,
+            ONYXKEYS.CLOUDFLARE_SESSION,
             ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
             ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,

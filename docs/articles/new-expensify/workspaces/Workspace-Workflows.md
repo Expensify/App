@@ -103,6 +103,20 @@ Only the authorized payer is prompted to pay reports. They'll see a payment remi
 
 ---
 
+## How to download your workflow configuration
+
+You can export your workspace's workflow configuration to a CSV file—for example, to review approver assignments or keep an offline record. Admins who can manage workflows will see the **More** menu on the **Workflows** page.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. In the top-right corner, click **More**.
+3. Select **Download workflows**.
+
+A CSV file containing your workspace's member and approval workflow details downloads to your device.
+
+**Note:** Downloading requires an internet connection. If you're offline, you'll be prompted to reconnect before the download can start.
+
+---
+
 # FAQ
 
 ## What happens if I don’t choose a submission frequency?
