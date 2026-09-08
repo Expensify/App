@@ -2359,6 +2359,9 @@ const CONST = {
         ATTRIBUTE_SKELETON_SHOWN: 'skeleton_shown',
         // Whether the Reports tab was preloaded and still unopened when this navigation started.
         ATTRIBUTE_IS_PRELOADED: 'is_preloaded',
+        // Whether the tab navigation also opened a report. Those navigations wait on OpenReport, so their duration
+        // includes a network round trip the tab render has no control over - exclude them from render comparisons.
+        ATTRIBUTE_OPENED_REPORT: 'opened_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SCENARIO: 'scenario',
         // Start type stamped on the navigate-to-reports spans: cold, warm_first, or warm_subsequent.

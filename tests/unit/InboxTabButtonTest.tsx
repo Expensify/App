@@ -94,6 +94,9 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
         mockStartSpan(...args);
         return undefined;
     },
+    // The tab button stamps `opened_report` on the already-started span, so this has to resolve even though
+    // `startSpan` above returns undefined.
+    getSpan: () => undefined,
 }));
 
 function buildRootState() {
