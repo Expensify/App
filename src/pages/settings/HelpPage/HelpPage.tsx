@@ -8,7 +8,6 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
-import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,7 +62,6 @@ function HelpPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
-    const isSupportalSession = useIsSupportalSession();
 
     // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
     // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
@@ -79,17 +77,16 @@ function HelpPage() {
                   icon: partnerManagerDetails.avatar,
                   iconType: CONST.ICON_TYPE_AVATAR,
                   onPress: () =>
-                      navigateToAndOpenReportWithAccountIDs({
-                          participantAccountIDs: [partnerManagerDetails.accountID],
+                      navigateToAndOpenReportWithAccountIDs(
+                          [partnerManagerDetails.accountID],
                           currentUserAccountID,
                           introSelected,
-                          isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                          hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
                           conciergeChat,
-                          isSupportalSession,
-                      }),
+                      ),
                   shouldShowRightIcon: !partnerManagerCalendarLink,
                   shouldShowRightComponent: !!partnerManagerCalendarLink,
                   shouldBeAccessible: shouldBeAccessibleWithBookCallButton(partnerManagerCalendarLink),
@@ -114,17 +111,16 @@ function HelpPage() {
                   icon: guideDetails.avatar,
                   iconType: CONST.ICON_TYPE_AVATAR,
                   onPress: () =>
-                      navigateToAndOpenReportWithAccountIDs({
-                          participantAccountIDs: [guideDetails.accountID],
+                      navigateToAndOpenReportWithAccountIDs(
+                          [guideDetails.accountID],
                           currentUserAccountID,
                           introSelected,
-                          isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                          hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
                           conciergeChat,
-                          isSupportalSession,
-                      }),
+                      ),
                   shouldShowRightIcon: !guideCalendarLink,
                   shouldShowRightComponent: !!guideCalendarLink,
                   shouldBeAccessible: shouldBeAccessibleWithBookCallButton(guideCalendarLink),
@@ -149,17 +145,16 @@ function HelpPage() {
                   icon: accountManagerDetails.avatar,
                   iconType: CONST.ICON_TYPE_AVATAR,
                   onPress: () =>
-                      navigateToAndOpenReportWithAccountIDs({
-                          participantAccountIDs: [accountManagerDetails.accountID],
+                      navigateToAndOpenReportWithAccountIDs(
+                          [accountManagerDetails.accountID],
                           currentUserAccountID,
                           introSelected,
-                          isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                          hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                          guidedSetupAndTourStatus?.isSelfTourViewed,
+                          guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                           betas,
                           personalDetails,
                           conciergeChat,
-                          isSupportalSession,
-                      }),
+                      ),
                   shouldShowRightIcon: !accountManagerCalendarLink,
                   shouldShowRightComponent: !!accountManagerCalendarLink,
                   shouldBeAccessible: shouldBeAccessibleWithBookCallButton(accountManagerCalendarLink),

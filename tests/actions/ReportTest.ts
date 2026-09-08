@@ -8778,17 +8778,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs({
-                participantAccountIDs: [PARTICIPANT_ACCOUNT_ID],
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                introSelected: testIntroSelected,
-                isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: undefined,
-                betas: undefined,
-                personalDetails: undefined,
-                conciergeChat: undefined,
-                isSupportalSession: false,
-            });
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, isSelfTourViewed, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8815,17 +8805,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs({
-                participantAccountIDs: [PARTICIPANT_ACCOUNT_ID],
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                introSelected: testIntroSelected,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
-                betas: undefined,
-                personalDetails: undefined,
-                conciergeChat: undefined,
-                isSupportalSession: false,
-            });
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
@@ -8852,18 +8832,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs({
-                participantAccountIDs: [PARTICIPANT_ACCOUNT_ID],
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                introSelected: testIntroSelected,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
-                betas: undefined,
-                personalDetails: {},
-                conciergeChat: undefined,
-                isSupportalSession: false,
-                shouldRevalidateExistingChat: true,
-            });
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8896,18 +8865,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
-            Report.navigateToAndOpenReportWithAccountIDs({
-                participantAccountIDs: [PARTICIPANT_ACCOUNT_ID],
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                introSelected: testIntroSelected,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
-                betas: undefined,
-                personalDetails: {},
-                conciergeChat: undefined,
-                isSupportalSession: false,
-                shouldRevalidateExistingChat: true,
-            });
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, {}, undefined, true);
             await waitForBatchedUpdates();
 
             const openReportCalls = mockFetch.mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${WRITE_COMMANDS.OPEN_REPORT}?`);
@@ -9041,27 +8999,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toEqual({command: WRITE_COMMANDS.OPEN_REPORT});
-        });
-
-        it('should block navigateToAndOpenReportWithAccountIDs from creating a new chat', async () => {
-            await signInAsSupportAgent();
-
-            Report.navigateToAndOpenReportWithAccountIDs({
-                participantAccountIDs: [PARTICIPANT_ACCOUNT_ID],
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                introSelected: testIntroSelected,
-                isSelfTourViewed: false,
-                hasCompletedGuidedSetupFlow: undefined,
-                betas: undefined,
-                personalDetails: {},
-                conciergeChat: undefined,
-                isSupportalSession: true,
-            });
-            await waitForBatchedUpdates();
-
-            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
             await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toEqual({command: WRITE_COMMANDS.OPEN_REPORT});
         });
 

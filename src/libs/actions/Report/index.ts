@@ -2737,39 +2737,23 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
 
-type NavigateToAndOpenReportWithAccountIDsParams = {
-    /** The accountIDs to start a chat report with */
-    participantAccountIDs: number[];
-    currentUserAccountID: number;
-    introSelected: OnyxEntry<IntroSelected>;
-    isSelfTourViewed: boolean | undefined;
-    hasCompletedGuidedSetupFlow: boolean | undefined;
-    betas: OnyxEntry<Beta[]>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    conciergeChat: OnyxEntry<Report>;
-
-    /** Whether the current session is a supportal session.*/
-    isSupportalSession: boolean;
-    shouldRevalidateExistingChat?: boolean;
-    hasReportActions?: boolean;
-};
-
 /**
  * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
+ *
+ * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs({
-    participantAccountIDs,
-    currentUserAccountID,
-    introSelected,
-    isSelfTourViewed,
-    hasCompletedGuidedSetupFlow,
-    betas,
-    personalDetails,
-    conciergeChat,
-    isSupportalSession,
+function navigateToAndOpenReportWithAccountIDs(
+    participantAccountIDs: number[],
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    conciergeChat: OnyxEntry<Report>,
     shouldRevalidateExistingChat = false,
-    hasReportActions,
-}: NavigateToAndOpenReportWithAccountIDsParams) {
+    hasReportActions?: boolean,
+) {
     const participants = participantAccountIDs.map((accountID): ParticipantInfo => {
         return {
             login: '',
@@ -2778,12 +2762,6 @@ function navigateToAndOpenReportWithAccountIDs({
     });
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     const createAndOpenNewOptimisticChat = (sourceCachedReportID?: string) => {
-        // See navigateToAndOpenReport for why the supportal block belongs inside the create closure.
-        if (isSupportalSession) {
-            showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
-            return;
-        }
-
         const fallbackChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
             currentUserAccountID,

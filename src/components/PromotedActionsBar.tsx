@@ -124,8 +124,8 @@ const PromotedActions = {
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs({
-                    participantAccountIDs: [accountID],
+                navigateToAndOpenReportWithAccountIDs(
+                    [accountID],
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
@@ -133,10 +133,9 @@ const PromotedActions = {
                     betas,
                     personalDetails,
                     conciergeChat,
-                    isSupportalSession,
-                    shouldRevalidateExistingChat: true,
+                    true,
                     hasReportActions,
-                });
+                );
                 return;
             }
 
