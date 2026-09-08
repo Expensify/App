@@ -28,6 +28,11 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
+const typeToGenericKey: Record<string, SearchKey> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+};
+
 function selectSearchQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
     return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
@@ -91,10 +96,6 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             return savedSearchIDToSearchKey(savedSearchID);
         }
 
-        const typeToGenericKey: Record<string, SearchKey> = {
-            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-        };
         return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
     };
 
