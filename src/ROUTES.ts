@@ -2853,12 +2853,19 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string, isForcedToChangeCurrency?: boolean) => {
-            let queryParams = '';
+        getRoute: (
+            policyID: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
             if (isForcedToChangeCurrency) {
-                queryParams += `?isForcedToChangeCurrency=true`;
+                params.set('isForcedToChangeCurrency', 'true');
             }
-            return `workspaces/${policyID}/overview/currency${queryParams}` as const;
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
