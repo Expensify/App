@@ -934,27 +934,30 @@ describe('actions/Workflow', () => {
                 },
             });
 
+            const members = [{email: employee1Email, displayName: employee1Email}];
+            const approvers = [{email: employee2Email, displayName: employee2Email}];
             const approvalWorkflow = {
-                members: [{email: employee1Email, displayName: employee1Email}],
-                approvers: [{email: employee2Email, displayName: employee2Email}],
+                members,
+                approvers,
                 availableMembers: [],
                 usedApproverEmails: [],
                 isDefault: false,
                 action: 'update',
-                originalApprovers: [{email: employee2Email, displayName: employee2Email}],
+                originalApprovers: approvers,
             };
+            // Stands in for the draft a newer edit session has already seeded.
+            const seededDraft: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, members, approvers};
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
-            // Stands in for the draft a newer edit session has already seeded.
-            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow as ApprovalWorkflowOnyx);
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, seededDraft);
             await waitForBatchedUpdates();
 
             updateApprovalWorkflow(approvalWorkflow, [], [], policy, false);
             await waitForBatchedUpdates();
 
             const draft = await getApprovalWorkflowState();
-            expect(draft?.members).toEqual(approvalWorkflow.members);
+            expect(draft?.members).toEqual(members);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
