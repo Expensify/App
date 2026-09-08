@@ -917,10 +917,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: '从这里开始！',
     },
     homePage: {
-        forYou: '为你',
+        toDos: '待办事项',
         timeSensitiveSection: {
             title: '时间敏感',
-            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
@@ -943,7 +943,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
             validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
-            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加地址'},
+            addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
                 workspaceTitle: '您的企业银行账户已被锁定',
@@ -951,7 +951,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: '钱包',
             },
-            addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加详细信息'},
+            addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1054,6 +1054,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '邀请你的会计',
             customizeSpendCategories: '自定义支出类别',
             customizeSpendCategoriesSubText: '整理并分类支出',
+            customizeExpenseCategories: '自定义您的支出类别',
+            customizeExpenseCategoriesSubText: '添加贵公司的类别以对支出进行编码',
             createExpense: '创建报销费用',
             createExpenseSubText: '使用 + 按钮扫描、拖放或手动输入支出',
             linkPersonalCard: '关联个人银行卡',
@@ -1075,7 +1077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravel: '设置差旅',
             setupTravelSubText: '配置差旅专用规则',
         },
-        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还', recentTransactions: ({lastFour}: {lastFour: string}) => `最近交易 • ${lastFour}`},
+        yourSpend: {title: '您的支出', awaitingApproval: '等待审批', repaidLast30Days: '过去30天已偿还'},
         seeMore: ({count}: {count: number}) => `再查看 ${count} 个`,
         recentlyAddedSection: {title: '最近添加', viewAll: '查看所有报销费用', emptyStateTitle: '最近没有报销记录', emptyStateMessage: '创建一个或将收据拖到这里'},
         insightsSection: {chartUnavailable: '图表不可用', notEnoughData: '我们目前没有足够的数据来填充此图表'},
@@ -1220,6 +1222,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -3629,11 +3632,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         thisBankAccount: '此银行账户将用于您工作区的业务付款',
         accountNumber: '账号编号',
         routingNumber: '路由号码',
-        internationalBankAccountDetails: '国际银行账户信息',
-        internationalBankAccountDetailsTitle: '您的国际账户信息是什么？',
-        internationalBankAccountDetailsSubtitle: '您的其中一个工作区需要国际账户信息来处理报销',
-        iban: 'IBAN',
-        swiftBicCode: 'SWIFT/BIC 代码',
         chooseAnAccountBelow: '在下方选择一个账户',
         addBankAccount: '添加银行账户',
         chooseAnAccount: '选择一个账户',
@@ -3682,8 +3680,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             restrictedBusiness: '请确认该企业不在受限制业务列表中',
             routingNumber: '请输入有效的路由号码',
             accountNumber: '请输入有效的账户号码',
-            iban: '请输入有效的 IBAN',
-            swiftCode: '请输入有效的 SWIFT/BIC 代码',
             routingAndAccountNumberCannotBeSame: '路由号码和账号不能相同',
             companyType: '请选择一个有效的公司类型',
             tooManyAttempts: '由于登录尝试次数过多，此选项已被禁用 24 小时。请稍后重试，或改为手动输入详细信息。',
@@ -4036,8 +4032,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         enterTheDateOfBirthOfTheOwner: '所有者的出生日期是什么？',
-        enterTheLast4: '所有者社会安全号码的后四位数字是多少？',
-        last4SSN: '社保号后4位',
+        enterTheSSN: '所有者的社会安全号码是多少？',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         enterTheOwnersAddress: '所有者的地址是什么？',
         letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
@@ -4064,13 +4059,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         whatsYourDOB: '你的出生日期是？',
         whatsTheOwnersAddress: '所有者的地址是什么？',
         whatsYourAddress: '你的地址是什么？',
-        whatAreTheLast: '所有者社会安全号码的后 4 位数字是多少？',
-        whatsYourLast: '您的社会安全号码的后四位是多少？',
+        whatsTheOwnersSSN: '所有者的社会安全号码是多少？',
+        whatsYourSSN: '您的社会安全号码是多少？',
         whatsYourNationality: '您的国籍是哪个国家？',
         whatsTheOwnersNationality: '所有者的国籍是哪个国家？',
         countryOfCitizenship: '国籍',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
-        last4: '社保号后4位',
         whyDoWeAsk: '我们为什么要询问这个？',
         letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
         legalName: '法定姓名',
@@ -4092,6 +4086,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOfBeneficialOwner: '受益所有人证明',
         proofOfBeneficialOwnerDescription:
             '请提供由注册会计师、公证人或律师出具并签署的声明和组织结构图，以核实对该企业25%或以上的持股情况。文件日期必须在最近三个月内，并包含签署人的执业证书号码。',
+        proofOfBeneficialOwnerDescriptionCA: '请提供您最近一次 T2 公司所得税申报表中的 Schedule 50（股东信息），需显示所有持有公司 25% 或以上股份的个人。',
         copyOfID: '受益所有人身份证复印件',
         copyOfIDDescription: '示例：护照、驾驶证等。',
         proofOfAddress: '实益所有人地址证明',
@@ -4579,6 +4574,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            recruiting: '招聘',
             rooms: '房间',
             findDomain: '查找域名',
             cardAdminAlternateText: '管理工作区卡片。',
@@ -4798,7 +4794,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `在将发票导出到 ${integrationName} 时使用此账户。`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `设置公司卡消费如何导出到 ${integrationName}。`,
             vendor: '供应商',
-            defaultVendorDescription: '设置一个默认供应商，在导出时应用于所有信用卡交易。',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `设置自付费用导出到 ${integrationName} 的方式。`,
             exportCheckDescription: '我们会为每份 Expensify 报告创建一张分项支票，并从下方的银行账户寄出。',
             exportJournalEntryDescription: '我们将为每份 Expensify 报告创建分录明细的日记账分录，并将其过账到下方的账户。',
@@ -4952,8 +4947,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Xero 中添加该账户，然后再次同步连接',
-            defaultSupplier: '默认供应商',
-            defaultSupplierDescription: '设置一个默认供应商，在导出时应用于所有信用卡交易。',
             noSuppliersFound: '未找到供应商',
             noSuppliersFoundDescription: '请在 Xero 中添加该供应商，然后再次同步连接。',
             accountingMethods: {
@@ -5953,6 +5946,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             finishSetup: '完成设置',
             chooseBankAccount: '选择银行账户',
             chooseExistingBank: '选择一个现有的企业银行账户来支付您的 Expensify 卡余额，或添加一个新的银行账户',
+            chooseExistingBankForTravelBilling: '选择一个现有的企业银行账户来支付您的合并差旅账单余额，或添加新银行账户',
             accountEndingIn: '账号末尾为',
             addNewBankAccount: '添加新银行账户',
             settlementAccount: '结算账户',
@@ -6021,7 +6015,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
-            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -6333,6 +6326,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             subtitle: '报表字段适用于所有支出，当你想提示填写额外信息时会很有帮助。',
             disableReportFields: '禁用报表字段',
             disableReportFieldsConfirmation: '确定要这样做吗？文本和日期字段将被删除，列表将被禁用。',
+            cannotDisableImportedReportFields: '从您的会计连接导入的报表字段无法被禁用。',
             importedFromAccountingSoftware: '以下报表字段是从你的',
             textType: '文本',
             dateType: '日期',
@@ -6982,8 +6976,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             exportCompanyCard: '导出公司卡费用为',
             exportDate: '导出日期',
             defaultVendor: '默认供应商',
-            defaultVendorHelperText: (isSet: boolean) => (isSet ? `未自动匹配的报销将默认归属到此供应商。` : `未自动匹配的报销将默认为此供应商，否则将以“信用卡杂项”导出。`),
-            defaultVendorSelectHeader: (connectionName: string) => `为未能自动匹配的报销选择一个默认的 ${connectionName} 供应商。`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName ? `未自动匹配的报销将默认归属为此供应商。` : `未自动匹配的报销将默认归属于此供应商。否则，它们将按“${fallbackVendorName}.”导出。`,
+            defaultVendorSelectHeader: `为未自动匹配的费用选择一个默认供应商。`,
             defaultAccount: '默认账户',
             autoSync: '自动同步',
             autoSyncDescription: '每天自动同步 NetSuite 和 Expensify。实时导出已完成报表',
@@ -7002,6 +6997,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的合并差旅账单结算账户（以 ${lastFourPAN} 结尾）一致，以便连续对账功能正常运行。`,
             },
             syncTravelInvoicingSettlements: '同步合并差旅结算',
+            syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7057,12 +7054,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `每次报销排除 ${distance} ${unit}`,
                 optionDisabledTitle: '不要排除通勤',
                 optionDisabledHelp: '未从报销中移除任何通勤费用。',
-                optionFixedDistanceTitle: '为每笔报销排除固定距离',
-                optionFixedDistanceHelp: '从每笔报销中扣除相同的通勤距离。最适合每个工作日提交一笔报销的成员使用。',
+                optionFixedDistanceTitle: '移除固定距离',
+                optionFixedDistanceHelp: '从每一笔报销中减去相同的距离。',
                 distanceLabel: '距离',
                 summaryHomeAndOffice: '使用家庭和办公地点',
-                optionHomeAndOfficeTitle: '按家庭和办公室计算',
-                optionHomeAndOfficeHelp: '使用成员的家庭住址、工作安排和办公室分配来计算通勤免税额。',
+                optionHomeAndOfficeTitle: '排除日常通勤',
+                optionHomeAndOfficeHelp: '根据每位成员的家庭住址、工作安排和办公地点，扣除其日常通勤距离。',
                 workspaceAddressRequired: {
                     title: '别急……',
                     promptStart: '在您先添加一个办公地点之前，无法启用按家庭和办公室计算的设置，添加位置于',
@@ -7671,6 +7668,14 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '然后应用以下默认设置：',
                 vendorUnavailable: '供应商不可用',
                 supplierUnavailable: '供应商不可用',
+                confirmErrorCategory: '请选择一个类别',
+                confirmErrorCategoryTax: '请选择税率',
+                confirmErrorCondition: '请输入商家',
+                confirmErrorConditionAndDefault: '输入商家，并至少应用一个默认设置',
+                turnOnTaxesFirstTitle: '请先启用税费',
+                turnOnTaxesFirstPrompt: '类别规则会设置默认税率。请在工作区设置中启用税费以使用此功能。',
+                categoryRulesApplyGoingForwardTitle: '类别规则将从现在起生效',
+                categoryRulesApplyGoingForwardPrompt: '此类别中的新报销将应用默认税率，已存在的报销不会改变。',
             },
             categoryRules: {
                 title: '类别规则',
@@ -7954,10 +7959,10 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: '在提交人无须执行任何操作的情况下更新字段',
                 flagForReview: '标记以供审核',
                 flagForReviewDescription: '当费用超出类别限额时通知审批人',
-                requireFields: '字段要求',
+                requireFields: '设置字段要求',
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
-                createAgentRule: '代理规则',
-                createAgentRuleDescription: '按需运行的灵活规则描述',
+                createAgentRule: '描述代理规则',
+                createAgentRuleDescription: '创建可按需运行的灵活规则。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -7968,6 +7973,7 @@ ${reportName}`,
                 update: '更新',
                 merchantIs: (merchant: string) => `商户为“${merchant}”`,
                 merchantTypeIs: (merchantType: string) => `商户类型为"${merchantType}"`,
+                categoryIs: (category: string) => `类别为“${category}”`,
             },
             merchantTypeRule: {merchantType: '商户类型', saveRule: '保存规则', confirmErrorCategory: '请选择一个类别。'},
             requireFieldsTable: {
@@ -7984,6 +7990,7 @@ ${reportName}`,
                 requireReceipt: '需要收据',
                 doNotRequireReceipt: '不需要收据',
                 doNotRequireItemizedReceipt: '不要求明细收据',
+                typeLabel: '必填',
             },
             requireFieldsEmptyState: {title: '提前补全缺失信息', subtitle: '为特定类别设置报销字段为必填或可选。', cta: '创建字段必填规则'},
             requireFieldsRule: {
@@ -8024,6 +8031,15 @@ ${reportName}`,
             },
             agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
             categoriesDisabledEmptyState: {title: '类别未启用', subtitle: '启用类别以更好地控制您的支出。'},
+            expenseDefaultType: {
+                title: '应用报销默认值',
+                subtitle: '此规则应匹配什么内容？',
+                merchant: '商户',
+                merchantDescription: '更新来自特定商家的报销项目字段',
+                category: '类别',
+                categoryDescription: '为特定类别设置默认税率',
+            },
+            taxesDisabledEmptyState: {title: '税费未启用', subtitle: '启用税费以记录并追回符合条件的税款。', cta: '启用税费'},
         },
         planTypePage: {
             planTypes: {
@@ -8050,36 +8066,25 @@ ${reportName}`,
         },
         hr: {
             title: '人力资源',
-            connections: '连接',
             connectionsSubtitle: '连接您的 HR 系统以同步员工数据，自动将报销匹配到正确的员工，并在无需手动操作的情况下保持团队报销的准确性。',
             subtitle: '连接人力资源工具，保持员工审批同步。',
-            connect: '连接',
-            syncNow: '立即同步',
-            disconnect: '断开连接',
-            disconnectTitle: (providerName: string) => `断开 ${providerName}`,
-            disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
             alreadyConnectedTitle: '无法连接到多个人力资源平台',
             alreadyConnectedPrompt: '在连接其他人力资源平台之前，您必须先断开当前的人力资源平台。',
-            lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
-            syncError: (providerName: string) => `无法连接到 ${providerName}`,
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
-            approvalMode: '审批模式',
             providerApprovalMode: (providerName: string) => `${providerName} 审批模式`,
-            finalApprover: '最终审批人',
             providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
-            notSet: '未设置',
+            syncing: '正在同步员工',
+            syncingModalTitle: '您的连接正在同步',
+            syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
             approvalModeWarningTitle: '更改审批模式？',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 ${providerName} 启用的工作流模式的信息。`,
             approvalModeWarningConfirm: '更改审批模式',
-            approvalModes: {
-                basic: {label: '基本审批', description: '所有用户都提交给同一个人进行处理和审批。'},
-                manager: {
-                    label: '经理审批',
-                    description: (providerName: string) => `员工会将报销单提交给在 ${providerName} 中配置的直属经理。`,
-                },
-                custom: {label: '自定义审批', description: '我将在 Expensify 中手动设置审批工作流程。'},
+            approvalModeDescriptions: {
+                basic: '所有用户都提交给同一个人进行处理和审批。',
+                manager: (providerName: string) => `员工会将报销单提交给在 ${providerName} 中配置的直属经理。`,
+                custom: '我将在 Expensify 中手动设置审批工作流程。',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8119,22 +8124,49 @@ ${reportName}`,
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: '您的连接正在同步',
-            syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
-            syncing: '正在同步员工',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                completeSetup: '完成设置',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
                 groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
             },
+        },
+        recruiting: {
+            title: '招聘',
+            connectionsSubtitle: '连接招聘系统以同步候选人数据，自动将报销匹配到正确的人员，并在无需手动操作的情况下保持团队报销数据的准确。',
+            alreadyConnectedTitle: '无法连接到多个 ATS 平台',
+            alreadyConnectedPrompt: '在连接其他 ATS 之前，必须先断开当前的 ATS。',
+            syncing: '正在同步候选人',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 个可导入候选项。</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
+            importSettings: '导入设置',
+            defaultApprover: '默认审批人',
+            approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+        },
+        merge: {
+            connections: '连接',
+            connect: '连接',
+            findIntegration: '查找集成',
+            syncNow: '立即同步',
+            disconnect: '断开连接',
+            disconnectTitle: (providerName: string) => `断开 ${providerName}`,
+            disconnectPrompt: (providerName: string) => `确定要断开 ${providerName} 吗？`,
+            lastSync: (relativeDate: string) => `上次同步 ${relativeDate}`,
             notSync: '未同步',
+            syncError: (providerName: string) => `无法连接到 ${providerName}`,
             authenticationError: (providerName: string) => `由于连接已过期，无法连接到 ${providerName}。`,
             reconnect: '重新连接',
             reconnectLink: '重新连接。',
-            findIntegration: '查找集成',
-        },
-        merge: {
+            notSet: '未设置',
+            completeSetup: '完成设置',
+            approvalMode: '审批模式',
+            finalApprover: '最终审批人',
+            approvalModes: {
+                basic: '基本审批',
+                manager: '经理审批',
+                custom: '自定义审批',
+                advanced: '高级审批',
+            },
             syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
@@ -9072,7 +9104,7 @@ ${reportName}`,
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
         exportedTo: '已导出到',
-        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
+        exportAll: {selectAllMatchingItems: '选择所有匹配的项目', allMatchingItemsSelected: '已选择所有匹配的项目', selectAllOnThisPage: '选择本页全部内容'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
@@ -9096,6 +9128,7 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
+        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -9696,7 +9729,7 @@ ${reportName}`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
@@ -9705,34 +9738,38 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return '由于临时的银行问题，无法自动匹配收据。请稍后重试。';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return '由于您的银行连接需要重新验证，无法自动匹配收据。';
+                        return '无法自动匹配收据，因为您的银行连接需要重新验证。';
                     }
                     return isMarkAsCash
-                        ? `由于您的银行连接需要重新验证，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>以匹配收据。`
-                        : `由于您的银行连接需要重新验证，无法自动匹配收据。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
+                        ? `无法自动匹配收据，因为你的银行连接需要重新验证。标记为现金以忽略，或<a href="${connectionLink}">重新连接</a>来匹配收据。`
+                        : `无法自动匹配收据，因为您的银行连接需要重新验证。请<a href="${connectionLink}">重新连接</a>以匹配该收据。`;
                 }
-                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请让管理员重新连接以匹配收据。';
+                return isAdmin ? `银行连接需要重新验证。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接需要重新验证。请联系管理员重新连接以匹配收据。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '由于银行连接中断，无法自动匹配收据。';
                 }
                 return isMarkAsCash
-                    ? `由于银行卡连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复银行卡</a>以匹配收据。`
-                    : `由于银行卡连接异常，无法自动匹配收据。请<a href="${connectionLink}">修复银行卡</a>以匹配该收据。`;
+                    ? `由于卡片连接异常，无法自动匹配收据。标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : `由于卡片连接中断，无法自动匹配收据。请<a href="${connectionLink}">修复此卡</a>以匹配收据。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已断开。请让管理员重新连接以匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后再试` : '正在等待与信用卡交易合并。';
+                return isAdmin ? `请让 ${member} 将其标记为现金，或等待 7 天后重试` : '正在等待与卡片交易合并。';
             }
             return '';
         },
         brokenConnection530Error: '由于银行连接中断，收据待处理',
+        brokenConnection531Error: '由于临时的银行问题，无法自动匹配收据。请稍后重试。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>由于银行连接中断，收据暂时待处理。请前往<a href="${workspaceCompanyCardRoute}">公司卡</a>中解决。</muted-text-label>`,
         memberBrokenConnectionError: '由于银行连接中断，收据处于待处理状态。请联系工作区管理员解决。',

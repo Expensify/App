@@ -3,6 +3,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
@@ -185,6 +186,13 @@ function useReportActionsScroll({
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
+    // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
+    // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
+    // MoneyRequestReportActionsList. A report holding a single expense renders this list instead, so it has to honor
+    // the same route param. The value is latched on mount because clearing the param below must not flip the list
+    // back to the top while the user is reading.
+    const [shouldScrollToLatestOnOpen] = useState(() => route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true');
+
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.
     let initialScrollKey = linkedReportActionID;
@@ -197,7 +205,7 @@ function useReportActionsScroll({
         initialScrollKey = undefined;
     }
 
-    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
+    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey && !shouldScrollToLatestOnOpen;
     const shouldMaintainVisibleContentPosition = hasScrolledOverThreshold || shouldFocusToTopOnMount;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
@@ -231,6 +239,8 @@ function useReportActionsScroll({
         reportID,
         introSelected,
         betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -299,6 +309,16 @@ function useReportActionsScroll({
         const handle = scheduleInitialScrollToBottom();
         return () => handle?.cancel();
     }, []);
+
+    // Clear the shouldScrollToLatest route param once the mount scroll above has consumed it, so a later remount of
+    // this report doesn't pull the user down again. MoneyRequestReportActionsList clears it the same way for the
+    // multi-expense view.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen) {
+            return;
+        }
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen]);
 
     // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
     // https://github.com/Expensify/App/issues/54520

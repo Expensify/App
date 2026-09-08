@@ -1,5 +1,4 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
 import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
@@ -14,7 +13,7 @@ import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import TimeSensitiveGroup from '@pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import CONST from '@src/CONST';
@@ -25,10 +24,10 @@ import {accountIDSelector} from '@src/selectors/Session';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 
 import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
+import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
@@ -55,7 +54,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
-    // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
     const timeSensitiveItems = useTimeSensitiveItems();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -164,20 +162,16 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         ],
     );
 
-    const renderTodoItems = () => (
-        <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
-                <BaseWidgetItem
-                    key={key}
-                    icon={icon}
-                    title={translate(translationKey, {count})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handler}
-                    buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
-                />
-            ))}
-        </View>
-    );
+    const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
+        <BaseWidgetItem
+            key={key}
+            icon={icon}
+            title={translate(translationKey, {count})}
+            ctaText={translate('homePage.forYouSection.begin')}
+            onCtaPress={handler}
+            buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
+        />
+    ));
 
     // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
     useEffect(() => {
@@ -186,14 +180,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         }
         setHasSeenForYouTodo();
     }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
-
-    const renderContent = () => {
-        if (isInitialLoad) {
-            return <ForYouSkeleton />;
-        }
-
-        return hasAnyTodos ? renderTodoItems() : null;
-    };
 
     const hideForYou = shouldHideForYouSection({
         isInitialLoad,
@@ -205,14 +191,27 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
         isOnboardingStatusKnown,
     });
 
-    // The card always renders so the Concierge input stays on the home page. `hideForYou` only gates the to-do group
-    // below the time-sensitive one. With neither, the card is just the box.
-    const hasTodoContent = !hideForYou && (isInitialLoad || hasAnyTodos);
-    const hasSectionContent = timeSensitiveItems.length > 0 || hasTodoContent;
+    const visibleForYouRows = hideForYou ? [] : forYouRows;
+
+    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty.
+    const showSkeleton = isInitialLoad && !hideForYou;
+    const showEmptyState = !isInitialLoad && !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
+    const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && visibleForYouRows.length === 0 && !showSkeleton && !showEmptyState;
+
+    const getForYouFallback = () => {
+        if (showSkeleton) {
+            return <ForYouSkeleton />;
+        }
+        if (showEmptyState) {
+            return <EmptyState />;
+        }
+        return null;
+    };
 
     return (
         <WidgetContainer
             backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
+            containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
@@ -220,19 +219,17 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                 />
             }
         >
-            <TimeSensitiveGroup items={timeSensitiveItems} />
-            {hasTodoContent && (
-                <>
-                    <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
-                        <Text style={styles.textLabelSupporting}>{translate('homePage.forYou')}</Text>
-                    </View>
-                    {renderContent()}
-                </>
-            )}
-            {!hasSectionContent && (
-                // Stands in for the groups so the card keeps some breathing room under the Concierge box.
-                <View style={styles.pb3} />
-            )}
+            <HomeTaskGroup
+                title={translate('homePage.timeSensitiveSection.title')}
+                rows={timeSensitiveItems}
+            />
+            <HomeTaskGroup
+                title={translate('homePage.toDos')}
+                rows={visibleForYouRows}
+                reducedTopGap={timeSensitiveItems.length > 0}
+            >
+                {getForYouFallback()}
+            </HomeTaskGroup>
         </WidgetContainer>
     );
 }

@@ -39,13 +39,14 @@ To create an expense using distance between the starting and ending locations of
 2. Select **Map** from the top row.
 3. Enter the **Start** and **Stop** locations.
    - To include additional stops, select **Add stop**.
-4. Select **Next**.
-5. On the confirmation screen, review and confirm:
+4. If more than one driving route is available, the map draws both routes. The selected route is highlighted in darker green with its distance shown in a dark label, and the alternate route appears in lighter green with a lighter distance label. To choose the alternate route, tap it on the map — it becomes the selected route, and the distance and amount update to match.
+5. Select **Next**.
+6. On the confirmation screen, review and confirm:
    - Distance
    - Amount
    - Date
    - Other optional fields
-6. Select **Create expense**. 
+7. Select **Create expense**. 
 
 ---
 
@@ -94,7 +95,7 @@ Once a Distance expense is created, it can be submitted on a report. To learn ho
 
 You can update the distance on a manual or map-based Distance expense before it is approved. When you open the expense and select the **Distance** field, you can choose between two editing methods:
 
-- **Map** — Update the start and stop locations or add/remove waypoints. The distance and amount are recalculated automatically based on the new route.
+- **Map** — Update the start and stop locations or add/remove waypoints. The distance and amount are recalculated automatically based on the new route. If more than one driving route is available, the previously selected route stays highlighted, and you can tap the alternate route to switch to it.
 - **Manual** — Type in a new distance value directly. The amount is recalculated based on the updated distance and the applicable rate.
 
 To edit the distance:
@@ -102,8 +103,10 @@ To edit the distance:
 1. Open the Distance expense.
 2. Select the **Distance** field.
 3. Select **Map** or **Manual** from the top row.
-4. Update the route or distance value.
+4. Update the route or distance value. On the **Map** tab, tap a different route to select it when more than one is available.
 5. Select **Save**.
+
+When you switch the route on an already-created expense, the distance, amount, and merchant update to the newly selected route, and a "changed the distance" system message is posted in the expense thread.
 
 ---
 
@@ -143,6 +146,10 @@ To create a round-trip Distance expense, enter the same location for both the st
 
 For example, if you're starting and ending in San Francisco but making a stop in Los Angeles, enter:
 **San Francisco → Los Angeles → San Francisco**
+
+## Can I choose a different route for a map-based Distance expense?
+
+Yes. When your start and stop locations have more than one driving route, the map draws both. The selected route appears in darker green and the alternate route in lighter green. Tap the alternate route to select it, and the distance and amount update to match. You can also switch routes when editing an existing map-based Distance expense on the **Map** tab.
 
 ## How are Distance expense amounts calculated?
 

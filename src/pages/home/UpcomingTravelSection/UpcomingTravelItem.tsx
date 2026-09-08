@@ -118,7 +118,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
-                <View style={styles.homeWidgetIconContainer}>
+                <View style={styles.widgetItemIconContainer}>
                     <Icon
                         src={reservationIcon}
                         width={variables.iconSizeNormal}
