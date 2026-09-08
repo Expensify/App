@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessagePhases, startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import CONST from '@src/CONST';
@@ -35,11 +35,19 @@ function getEndOrder() {
     return (Sentry as unknown as {endOrder: string[]}).endOrder;
 }
 
-function startSendWithOpenPropagate(reportActionID: string) {
-    startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`, {
+function startSendSpan(reportActionID: string) {
+    return startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`, {
         name: 'send-message-visible',
         op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
     });
+}
+
+function buildForeignSpanIDThatSlicesToReportActionID(reportActionID: string) {
+    return `${'OtherSpanFamily_'.padEnd(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE.length + 1, 'x')}${reportActionID}`;
+}
+
+function startSendWithOpenPropagate(reportActionID: string) {
+    startSendSpan(reportActionID);
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 }
 
@@ -77,5 +85,52 @@ describe('useSendMessageSpanMarks', () => {
         expect(getEndOrder()).toEqual([]);
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_3`)).toBeDefined();
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_3`)).toBeDefined();
+    });
+});
+
+describe('startSendMessagePhase', () => {
+    it('does not start a phase when the parent send span is not active', () => {
+        startSendMessagePhase('10', CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
+
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_10`)).toBeUndefined();
+    });
+
+    it('does not start a phase against a parent whose id was built from an undefined reportActionID', () => {
+        startSendSpan('undefined');
+
+        startSendMessagePhase(undefined, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
+
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_undefined`)).toBeUndefined();
+    });
+});
+
+describe('cancelSendMessagePhases', () => {
+    it('is a no-op for an undefined parent span id', () => {
+        startSendWithOpenPropagate('20');
+
+        expect(() => cancelSendMessagePhases(undefined)).not.toThrow();
+
+        expect(getEndOrder()).toEqual([]);
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_20`)).toBeDefined();
+    });
+
+    it('is a no-op for a span id from another family', () => {
+        startSendWithOpenPropagate('21');
+
+        cancelSendMessagePhases(buildForeignSpanIDThatSlicesToReportActionID('21'));
+        cancelSendMessagePhases('SomeOtherSpan_21');
+
+        expect(getEndOrder()).toEqual([]);
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_21`)).toBeDefined();
+    });
+
+    it('cancels the open phases but leaves the parent to its own caller', () => {
+        startSendWithOpenPropagate('22');
+
+        cancelSendMessagePhases(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_22`);
+
+        expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE]);
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_22`)).toBeUndefined();
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_22`)).toBeDefined();
     });
 });
