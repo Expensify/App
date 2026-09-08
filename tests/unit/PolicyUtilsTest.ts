@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
-    canAccessPolicyBankAccount,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -15,7 +14,6 @@ import {
     canMemberWrite,
     canSendInvoiceFromWorkspace,
     findVendorByID,
-    getAccessiblePolicyBankAccount,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -71,6 +69,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -4576,104 +4575,6 @@ describe('getDefaultWorkspacePlanType', () => {
     });
 });
 
-describe('canAccessPolicyBankAccount', () => {
-    const PAYER_EMAIL = 'payer@test.com';
-    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    const policyWithBankAccount: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        role: CONST.POLICY.ROLE.ADMIN,
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1111',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: PAYER_EMAIL,
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-        employeeList: {
-            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-        },
-    };
-
-    const bankAccountListWithPolicyAccount = {
-        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-    };
-
-    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
-    // button but never shared with them, so the backend debited a different account.
-    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
-    });
-
-    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
-    });
-
-    it('returns false when the bank account list only holds other accounts', () => {
-        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
-        expect(
-            canAccessPolicyBankAccount(policyWithBankAccount, {
-                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            }),
-        ).toBe(false);
-    });
-
-    it('returns false when the workspace has no connected bank account', () => {
-        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-
-    it('returns false when there is no policy', () => {
-        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-});
-
-describe('getAccessiblePolicyBankAccount', () => {
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
-    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
-    // account other than the one the payment debits.
-    const policyWithStaleAccountNumber: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX9999',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: 'payer@test.com',
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-    };
-
-    const bankAccountList = {
-        [POLICY_BANK_ACCOUNT_ID]: {
-            methodID: POLICY_BANK_ACCOUNT_ID,
-            bankCurrency: CONST.CURRENCY.USD,
-            bankCountry: CONST.COUNTRY.US,
-            accountData: {accountNumber: 'XXXXXX1234'},
-        },
-    };
-
-    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
-    });
-
-    it('returns undefined when the workspace account is not shared with the user', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
-    });
-
-    it('returns undefined when the workspace has no connected bank account', () => {
-        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
-    });
-});
-
 describe('getPolicyApproverLogins', () => {
     it('returns an empty set when policy is undefined', () => {
         expect(getPolicyApproverLogins(undefined).size).toBe(0);
@@ -4729,5 +4630,27 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('shouldHideDynamicExternalWorkflowPeople', () => {
+    it('returns false when the policy is undefined', () => {
+        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+    });
+
+    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+    });
+
+    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+    it('returns false for a Dynamic External Workflow policy without the flag', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+
+    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
     });
 });

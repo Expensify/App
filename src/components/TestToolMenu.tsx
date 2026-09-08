@@ -5,11 +5,11 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+import {setActiveServer, setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -30,7 +30,7 @@ import Text from './Text';
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
@@ -131,8 +131,8 @@ function TestToolMenu() {
                 >
                     <Switch
                         accessibilityLabel="Use Staging Server"
-                        isOn={shouldUseStagingServer}
-                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
+                        isOn={activeServer === CONST.SERVER.STAGING}
+                        onToggle={(isOn) => setActiveServer(isOn ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION)}
                     />
                 </TestToolRow>
             )}

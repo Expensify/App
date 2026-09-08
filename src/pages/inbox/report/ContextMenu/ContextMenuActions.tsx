@@ -347,6 +347,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     harvestReport?: OnyxEntry<ReportType>;
     harvestReportOriginalID?: string;
@@ -1011,6 +1012,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 translate,
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 formatPhoneNumber,
                 harvestReport,
                 harvestReportOriginalID,
@@ -1064,7 +1066,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
-                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy, transaction, bankAccountList);
+                    const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, policy?.achAccount?.accountNumber, transaction, bankAccountList);
                     if (displayMessage === Parser.htmlToText(displayMessage)) {
                         Clipboard.setString(displayMessage);
                     } else {
@@ -1330,6 +1332,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             shouldRenderHTML: true,
                             shouldNavigateToCardDetails,
                             policyID: report?.policyID,
+                            buildDynamicRoute: createDynamicRoute,
                             expensifyCard: card,
                             translate,
                             currentUserAccountID,
@@ -1429,7 +1432,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, dateFnsLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
+                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction, convertToDisplayString, convertToDisplayStringWithoutCurrency));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
