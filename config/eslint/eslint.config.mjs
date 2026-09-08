@@ -695,12 +695,6 @@ const config = defineConfig([
         },
     },
 
-    // `OnyxUtils` lives in `react-native-onyx/dist/*`, which is package internals rather than the public API.
-    // This uses the typescript-eslint variant of `no-restricted-imports` (a separate rule name, so it stacks
-    // with the base rule above instead of overriding it) because only that variant supports `allowTypeImports`,
-    // and `src/types/onyx/Request.ts` legitimately does `import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils'`.
-    // The 14 existing runtime imports are grandfathered via the seatbelt baseline so they stay visible and can be
-    // paid down under https://github.com/Expensify/App/issues/98610; this only blocks NEW usages.
     {
         files: ['**/*.ts', '**/*.tsx'],
         plugins: {
