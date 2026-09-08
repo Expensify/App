@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -43,6 +44,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -59,13 +61,16 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -86,6 +91,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         () =>
             getReportDisplayOption({
                 dateFnsLocale,
+                convertToDisplayString,
                 report,
                 unknownUserDetails,
                 personalDetails,
@@ -96,7 +102,19 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 currentUserAccountID,
                 reportAttributesDerived,
             }),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, dateFnsLocale],
+        [
+            report,
+            unknownUserDetails,
+            personalDetails,
+            privateIsArchived,
+            policy,
+            conciergeReportID,
+            translate,
+            currentUserAccountID,
+            reportAttributesDerived,
+            dateFnsLocale,
+            convertToDisplayString,
+        ],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -175,8 +193,11 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         personalDetails,
                         newReportObject: report,
                         betas,
+                        conciergeChat,
                         hasReportActions: false,
                         currentUserAccountID: personalDetail.accountID,
+                        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     });
                 }
                 if (report.reportID) {
@@ -247,7 +268,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 }}
                                 pressableStyle={[styles.flexRow]}
                                 shouldSyncFocus={false}
-                                keyForList={displayReport.keyForList}
                             />
                         </View>
                     )}

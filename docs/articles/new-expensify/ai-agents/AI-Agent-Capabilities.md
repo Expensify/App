@@ -52,7 +52,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that reject expense reports
 
-**Goal:** Sends an Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
+**Goal:** Sends an entire Outstanding (submitted) expense report back to the submitter with a user-facing rejection comment explaining why.
 
 To accomplish this, include phrases like:
 - Reject reports that have violations
@@ -61,6 +61,18 @@ To accomplish this, include phrases like:
 - Reject reports that contain duplicate expenses
 - Reject reports from submitters who have outstanding compliance issues
 - Reject and explain why the report was returned
+
+---
+
+## How to write instructions that reject individual expenses
+
+**Goal:** Rejects selected expenses from an Outstanding (submitted) report individually, giving the submitter a reason for each expense while compliant expenses continue through approval.
+
+To accomplish this, include phrases like:
+- Reject each expense over $500 and approve the rest
+- Reject individual expenses that are not reimbursable and were not paid with a company card
+- Reject every duplicate expense with a reason specific to that expense
+- Reject noncompliant expenses without rejecting the whole report
 
 ---
 
@@ -257,4 +269,4 @@ To accomplish this, include phrases like:
 
 ---
 
-*This reference covers all 19 AI Agent capabilities.*
+*This reference covers all 20 AI Agent capabilities.*

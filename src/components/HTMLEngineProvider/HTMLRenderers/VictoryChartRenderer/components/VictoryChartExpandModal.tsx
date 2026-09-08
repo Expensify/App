@@ -20,7 +20,6 @@ import VictoryChartExpandedContent from './VictoryChartExpandedContent';
 import useExpandedChartLayout from './VictoryChartExpandedContent/useExpandedChartLayout';
 
 type VictoryChartExpandModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Called when the modal should close */

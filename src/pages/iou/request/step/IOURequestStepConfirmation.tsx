@@ -100,7 +100,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {startTransition, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -127,7 +127,7 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
     };
 
-function IOURequestStepConfirmation({
+function IOURequestStepConfirmationContent({
     report: reportReal,
     reportDraft,
     route,
@@ -136,7 +136,7 @@ function IOURequestStepConfirmation({
     shouldHideHeader = false,
     navigation,
 }: IOURequestStepConfirmationProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
     const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
@@ -178,7 +178,6 @@ function IOURequestStepConfirmation({
     const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
@@ -199,10 +198,9 @@ function IOURequestStepConfirmation({
                 transaction,
                 transactionReport,
                 routeReport: reportWithDraftFallback,
-                policy: policyReal,
                 reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -323,7 +321,7 @@ function IOURequestStepConfirmation({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale},
+                          {translate, dateFnsLocale, convertToDisplayString},
                       );
             }) ?? [],
         [
@@ -338,6 +336,7 @@ function IOURequestStepConfirmation({
             conciergeReportID,
             reportDrafts,
             translate,
+            convertToDisplayString,
             currentUserPersonalDetails.accountID,
         ],
     );
@@ -345,14 +344,14 @@ function IOURequestStepConfirmation({
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
+    const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
     const defaultParticipants = useMemo(() => {
         // Don't override the participants the user has already selected, and bail when there is no source report.
-        const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
         if (hasSelectedParticipants || !sourceReportID) {
             return [];
         }
         return resolvedDefaultParticipants;
-    }, [transaction?.participants, sourceReportID, resolvedDefaultParticipants]);
+    }, [hasSelectedParticipants, sourceReportID, resolvedDefaultParticipants]);
 
     const shouldAutoOpenParticipantPicker = useMemo(() => {
         if (!transaction?.transactionID) {
@@ -379,6 +378,36 @@ function IOURequestStepConfirmation({
         }
         setDismissedAutoOpenParticipantPickerForTransactionID(activeTransactionID);
     }, [activeTransactionID]);
+
+    const shouldReopenParticipantPickerOnFocusRef = useRef(false);
+
+    // The referral banner inside the picker navigates to its own RHP, which the picker would otherwise cover, so the
+    // picker closes first and is reopened when the user comes back. This goes through `closeParticipantPicker`, which
+    // permanently marks the auto-open as dismissed, so the reopen below deliberately re-enters through the manual path.
+    // That is what we want: after the round trip a genuine dismissal must close the picker for good.
+    const closeParticipantPickerForReferralNavigation = useCallback(() => {
+        shouldReopenParticipantPickerOnFocusRef.current = isParticipantPickerVisible;
+        closeParticipantPicker();
+    }, [closeParticipantPicker, isParticipantPickerVisible]);
+
+    useEffect(
+        () =>
+            // This screen is also rendered embedded by `IOURequestStartPage`, so the listener fires on every refocus of
+            // that screen, not only on back from the referral page. Re-checking that the expense still has no recipient
+            // keeps an unrelated RHP round trip (or a recipient resolved meanwhile) from slamming the picker open over a
+            // form the user wasn't editing.
+            navigation.addListener('focus', () => {
+                if (!shouldReopenParticipantPickerOnFocusRef.current) {
+                    return;
+                }
+                shouldReopenParticipantPickerOnFocusRef.current = false;
+                if (!activeTransactionID || hasSelectedParticipants) {
+                    return;
+                }
+                setManuallyOpenedParticipantPickerForTransactionID(activeTransactionID);
+            }),
+        [navigation, activeTransactionID, hasSelectedParticipants],
+    );
 
     const handleParticipantsAdded = useCallback(
         (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>) => {
@@ -887,11 +916,7 @@ function IOURequestStepConfirmation({
 
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
-            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
-            testID="IOURequestStepConfirmation"
-        >
+        <>
             <TelemetrySpanManager
                 iouType={iouType}
                 requestType={requestType}
@@ -1062,6 +1087,7 @@ function IOURequestStepConfirmation({
                                 onFinish={closeParticipantPicker}
                                 isVisible={isParticipantPickerVisible}
                                 onClose={closeParticipantPicker}
+                                onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
                                 // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
                                 // matching standard RHP behavior, not just close the stacked participant picker.
                                 onBackdropPress={() => Navigation.dismissModal()}
@@ -1071,6 +1097,25 @@ function IOURequestStepConfirmation({
                     </View>
                 </View>
             </DragAndDropProvider>
+        </>
+    );
+}
+
+/**
+ * The standalone RHP route. It owns the chrome for this screen - the ScreenWrapper, its focus trap and its
+ * viewport sizing - and renders the same body inside it. IOURequestStartPage composes the body directly instead,
+ * because it already owns a trap whose containers are its header (with the Back button), its tab bar and the
+ * active tab; a second ScreenWrapper there would push another FocusTrapForScreen onto the shared trap stack,
+ * pause that one, and confine Tab to the confirmation form.
+ */
+function IOURequestStepConfirmation(props: IOURequestStepConfirmationProps) {
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            testID="IOURequestStepConfirmation"
+        >
+            <IOURequestStepConfirmationContent {...props} />
         </ScreenWrapper>
     );
 }
@@ -1079,4 +1124,11 @@ const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransact
 
 const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
 
+const IOURequestStepConfirmationContentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationContent);
+
+const IOURequestStepConfirmationContentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationContentWithFullTransactionOrNotFound);
+
 export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+
+/** The body on its own, for a parent that already owns this screen's ScreenWrapper and focus trap. */
+export {IOURequestStepConfirmationContentWithWritableReportOrNotFound};

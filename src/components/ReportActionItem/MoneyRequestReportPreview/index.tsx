@@ -1,6 +1,8 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -11,11 +13,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {
+    getIOUActionForReportID,
+    getOriginalMessage,
+    isMoneyRequestAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
+} from '@libs/ReportActionsUtils';
 import {areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getTransactionsWithReceipts, isIOUReport} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils} from '@libs/TransactionUtils';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -24,18 +34,25 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasOnceLoadedReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {Transaction} from '@src/types/onyx';
+import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {MoneyRequestReportPreviewProps} from './types';
 
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
+import resolvePressOrigin from './resolvePressOrigin';
+
+const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length > 0;
+
+// The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
+const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -54,7 +71,13 @@ function MoneyRequestReportPreview({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const personalDetailsList = usePersonalDetails();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
@@ -65,6 +88,29 @@ function MoneyRequestReportPreview({
     // Kept local to this component rather than passed down, so children only receive the derived values they need.
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const orderedTransactionsRef = useRef<Transaction[]>([]);
+    const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
+        orderedTransactionsRef.current = orderedTransactions;
+    }, []);
+    const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: hasReportActionsSelector,
+    });
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
+    // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
+    // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
+    const pendingPressActionCountSelector = useCallback((reportActions: OnyxEntry<ReportActions>) => {
+        if (!pendingExpenseTransactionRef.current) {
+            return undefined;
+        }
+        return Object.keys(reportActions ?? {}).length;
+    }, []);
+    const [pendingPressActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: pendingPressActionCountSelector,
+    });
+    const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const cascadeTimerRef = useRef<{timer: ReturnType<typeof setTimeout>; release: () => void} | null>(null);
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
@@ -118,8 +164,28 @@ function MoneyRequestReportPreview({
         return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
+    const cancelPendingPress = useCallback(() => {
+        pendingExpenseTransactionRef.current = null;
+        if (!cascadeTimerRef.current) {
+            return;
+        }
+        clearTimeout(cascadeTimerRef.current.timer);
+        cascadeTimerRef.current.release();
+        cascadeTimerRef.current = null;
+    }, []);
+
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
+
+        const routeAtPress = Navigation.getActiveRoute();
+        cancelPendingPress();
+
+        // "View" pressed inside the cascade window lands on a report a card press already opened, so there is
+        // nothing left to push; pushing it again would nest the report under itself.
+        const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, isSmallScreenWidth ? `r/${iouReportID}` : `e/${iouReportID}`);
+        if (wasPressedFromReport) {
             return;
         }
 
@@ -130,11 +196,11 @@ function MoneyRequestReportPreview({
         // Small screens navigate to full report view since super wide RHP
         // is not available on narrow layouts and would break the navigation logic.
         if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo));
         } else {
-            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth]);
+    }, [cancelPendingPress, iouReportID, isSmallScreenWidth]);
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
@@ -161,26 +227,236 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const renderItem: ListRenderItem<Transaction> = ({item}) => (
-        <TransactionPreview
-            chatReport={chatReport}
-            action={getIOUActionForReportID(item.reportID, item.transactionID)}
-            contextAction={action}
-            reportID={item.reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
-            isWhisper={isWhisper}
-            isHovered={isHovered}
-            iouReportID={iouReportID}
-            containerStyles={transactionPreviewContainerStyles}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
-            transactionID={item.transactionID}
-            reportPreviewAction={action}
-            onPreviewPressed={openReportFromPreview}
-            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
-        />
+    const resolveChildReportID = useCallback(
+        (transaction: Transaction) => {
+            const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
+            if (childReportID) {
+                setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
+            } else if (transactionIOUAction?.reportActionID) {
+                const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
+                if (transactionID) {
+                    childReportID = createTransactionThreadReport({
+                        introSelected,
+                        conciergeChat,
+                        currentUserLogin: currentUserEmail ?? '',
+                        currentUserAccountID,
+                        betas,
+                        iouReport,
+                        iouReportAction: transactionIOUAction,
+                        personalDetails: personalDetailsList,
+                    })?.reportID;
+                }
+            }
+            return childReportID;
+        },
+        [betas, conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
+
+    // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
+    // runs after the first press already navigated, so the live route is the report we opened and `backTo` would
+    // point at itself.
+    const navigateToExpense = useCallback(
+        (childReportID: string, routeAtPress: string) => {
+            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
+                name: 'MoneyRequestReportPreview.Transaction',
+                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+            });
+
+            const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+                .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
+                .map((pressedTransaction) => pressedTransaction.transactionID);
+
+            if (isSmallScreenWidth && iouReportID) {
+                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
+                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+                if (!wasPressedFromReport) {
+                    Navigation.navigate(reportRoute);
+                }
+                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                const release = () => {
+                    seeded.then(() => {
+                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
+                            return;
+                        }
+                        clearActiveTransactionIDs();
+                    });
+                };
+                const timer = setTimeout(() => {
+                    cascadeTimerRef.current = null;
+                    if (!Navigation.isActiveRoute(reportRoute)) {
+                        release();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                }, PRESSED_EXPENSE_CASCADE_DELAY);
+                cascadeTimerRef.current = {timer, release};
+                return;
+            }
+
+            if (isSmallScreenWidth) {
+                setActiveTransactionIDs(openableTransactionIDs);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
+                return;
+            }
+
+            if (iouReportID) {
+                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `e/${iouReportID}`);
+                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo});
+                markReportRHPWidth(iouReportID, 'super-wide');
+                if (!wasPressedFromReport) {
+                    Navigation.navigate(reportRoute);
+                }
+                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                markReportRHPWidth(childReportID, 'wide');
+                const release = () => {
+                    unmarkReportRHPWidth(childReportID);
+                    // Only clears if the report still carries our hint, so it can't undo one set by the report itself.
+                    unmarkReportRHPWidth(iouReportID, 'super-wide');
+                    seeded.then(() => {
+                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
+                            return;
+                        }
+                        clearActiveTransactionIDs();
+                    });
+                };
+                const timer = setTimeout(() => {
+                    cascadeTimerRef.current = null;
+                    if (!Navigation.isActiveRoute(reportRoute)) {
+                        release();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                }, PRESSED_EXPENSE_CASCADE_DELAY);
+                cascadeTimerRef.current = {timer, release};
+                return;
+            }
+
+            setActiveTransactionIDs(openableTransactionIDs).then(() => {
+                markReportRHPWidth(childReportID, 'wide');
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
+            });
+        },
+        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, transactions],
+    );
+
+    const openTransactionFromPreview = useCallback(
+        (transaction: Transaction) => {
+            if (contextMenuRef.current?.isContextMenuOpening) {
+                return;
+            }
+
+            const routeAtPress = Navigation.getActiveRoute();
+
+            pendingExpenseTransactionRef.current = null;
+            if (cascadeTimerRef.current) {
+                clearTimeout(cascadeTimerRef.current.timer);
+                cascadeTimerRef.current.release();
+                cascadeTimerRef.current = null;
+            }
+
+            if (transactions.length <= 1) {
+                openReportFromPreview();
+                return;
+            }
+
+            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                openReportFromPreview();
+                return;
+            }
+
+            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+            const childReportID = resolveChildReportID(transaction);
+            if (childReportID) {
+                if (!isIOUActionLoaded && iouReportID) {
+                    if (isOffline) {
+                        openReportFromPreview();
+                        return;
+                    }
+                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                }
+                navigateToExpense(childReportID, routeAtPress);
+                return;
+            }
+
+            if (!isIOUActionLoaded && iouReportID && !isOffline) {
+                pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
+                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                return;
+            }
+
+            openReportFromPreview();
+        },
+        [
+            betas,
+            conciergeChat,
+            currentUserAccountID,
+            hasIOUReportActions,
+            introSelected,
+            iouReportID,
+            isOffline,
+            navigateToExpense,
+            openReportFromPreview,
+            resolveChildReportID,
+            transactions.length,
+        ],
+    );
+
+    useEffect(() => {
+        const pendingPress = pendingExpenseTransactionRef.current;
+        if (!pendingPress || isLoadingInitialIOUReportActions) {
+            return;
+        }
+        if (!isFocused || Navigation.getActiveRoute() !== pendingPress.originRoute) {
+            pendingExpenseTransactionRef.current = null;
+            return;
+        }
+        const pendingTransaction = pendingPress.transaction;
+        const childReportID = resolveChildReportID(pendingTransaction);
+        if (childReportID) {
+            pendingExpenseTransactionRef.current = null;
+            navigateToExpense(childReportID, pendingPress.originRoute);
+            return;
+        }
+        pendingExpenseTransactionRef.current = null;
+        openReportFromPreview();
+    }, [pendingPressActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
+
+    useEffect(
+        () => () => {
+            if (!cascadeTimerRef.current) {
+                return;
+            }
+            clearTimeout(cascadeTimerRef.current.timer);
+            cascadeTimerRef.current.release();
+            cascadeTimerRef.current = null;
+        },
+        [],
+    );
+
+    const renderItem: ListRenderItem<Transaction> = ({item}) => {
+        const transactionIOUAction = getIOUActionForReportID(item.reportID, item.transactionID);
+        return (
+            <TransactionPreview
+                chatReport={chatReport}
+                action={transactionIOUAction}
+                contextAction={action}
+                reportID={item.reportID}
+                isBillSplit={isSplitBillAction}
+                isTrackExpense={isTrackExpenseAction}
+                isWhisper={isWhisper}
+                isHovered={isHovered}
+                iouReportID={iouReportID}
+                containerStyles={transactionPreviewContainerStyles}
+                transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
+                transactionID={item.transactionID}
+                reportPreviewAction={action}
+                onPreviewPressed={() => openTransactionFromPreview(item)}
+                shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+                shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+            />
+        );
+    };
 
     return (
         <MoneyRequestReportPreviewContent
@@ -204,6 +480,8 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
+            onOrderedTransactionsChange={handleOrderedTransactionsChange}
+            onCancelPendingPress={cancelPendingPress}
             onCarouselLayout={onCarouselLayout}
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}
