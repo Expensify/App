@@ -3372,16 +3372,16 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
         return true;
     }
 
-    const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
-
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
     }
 
-    if (isDraft) {
-        return (isOwner || isReportPolicyAdmin) && canCardTransactionBeDeleted;
+    // Admins can delete a draft report even when they are not its submitter.
+    const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
+    if (isDraft && isReportPolicyAdmin) {
+        return canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport(report)) {
