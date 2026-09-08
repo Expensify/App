@@ -5896,6 +5896,7 @@ type CompleteOnboardingProps = {
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean | undefined;
+    /** The concierge chat report, looked up by ONYXKEYS.CONCIERGE_REPORT_ID. */
     conciergeChat: OnyxEntry<Report>;
     /** The admins chat report, looked up by ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID. */
     adminsChatReport?: OnyxEntry<Report>;

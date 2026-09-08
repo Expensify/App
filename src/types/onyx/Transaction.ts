@@ -93,6 +93,7 @@ type Comment = {
         unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
     };
 
+    /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
     /** Source of the transaction which when specified matches `split` */

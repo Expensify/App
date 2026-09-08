@@ -467,7 +467,6 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
-    /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
