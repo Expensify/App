@@ -179,13 +179,22 @@ jest.mock('@shopify/flash-list', () => {
             ref: React.Ref<{
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
+                scrollToOffset: (params: {offset: number; animated?: boolean}) => void;
                 getLayout: typeof mockFlashListGetLayout;
                 computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
                 getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
+            const nativeScrollRef = ReactLocal.useRef<typeof mockFlashListScrollToOffset | null>(null);
+            // Animated.ScrollView detaches its callback ref during updates and attaches it after its
+            // children's layout effects. FlashList silently ignores scrollToOffset while that ref is null.
+            ReactLocal.useLayoutEffect(() => {
+                nativeScrollRef.current = mockFlashListScrollToOffset;
+                return () => {
+                    nativeScrollRef.current = null;
+                };
+            });
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
@@ -203,7 +212,7 @@ jest.mock('@shopify/flash-list', () => {
                 () => ({
                     scrollToIndex: mockFlashListScrollToIndex,
                     scrollToItem: mockFlashListScrollToItem,
-                    scrollToOffset: mockFlashListScrollToOffset,
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => nativeScrollRef.current?.(params),
                     getLayout: mockFlashListGetLayout,
                     computeVisibleIndices: mockFlashListComputeVisibleIndices,
                     getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
