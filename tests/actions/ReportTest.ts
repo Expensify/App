@@ -3317,6 +3317,58 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('readNewestAction', () => {
+        const READ_NEWEST_REPORT_ID = '9001';
+
+        /** Puts the report in the state left behind by an explicit mark-as-unread. */
+        async function givenManuallyMarkedUnreadReport() {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${READ_NEWEST_REPORT_ID}`, {
+                ...createRandomReport(Number(READ_NEWEST_REPORT_ID), undefined),
+                reportID: READ_NEWEST_REPORT_ID,
+                manuallyMarkedUnreadReportActionID: '1',
+            });
+            await waitForBatchedUpdates();
+        }
+
+        function getManuallyMarkedUnreadReportActionID() {
+            return new Promise<string | null | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${READ_NEWEST_REPORT_ID}`,
+                    callback: (reportVal) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportVal?.manuallyMarkedUnreadReportActionID);
+                    },
+                });
+            });
+        }
+
+        it('should keep the manual unread mark when the report is auto-read', async () => {
+            // Given a report the user explicitly marked as unread
+            await givenManuallyMarkedUnreadReport();
+
+            // When the report is auto-read (focused/visible), i.e. without resetting the unread marker
+            Report.readNewestAction(READ_NEWEST_REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // Then the "New" marker stays anchored on the action the user marked
+            expect(await getManuallyMarkedUnreadReportActionID()).toBe('1');
+        });
+
+        it('should clear the manual unread mark when the user explicitly marks the report as read', async () => {
+            // Given a report the user explicitly marked as unread
+            await givenManuallyMarkedUnreadReport();
+
+            // When the user picks "Mark as read" from the LHN context menu, which resets the unread marker
+            Report.readNewestAction(READ_NEWEST_REPORT_ID, true, true);
+            await waitForBatchedUpdates();
+
+            // Then the "New" marker is no longer anchored on that action. A `null` in an Onyx MERGE removes
+            // the key, so the field reads back as `undefined` rather than `null`.
+            expect(await getManuallyMarkedUnreadReportActionID()).toBeUndefined();
+        });
+    });
+
     describe('updateDescription', () => {
         const currentUserAccountID = 1;
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
