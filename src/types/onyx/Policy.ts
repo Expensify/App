@@ -3727,4 +3727,5 @@ export type {
     CampfireExportDate,
     CampfireVendor,
     CampfireAccount,
+    CampfireExport,
 };
