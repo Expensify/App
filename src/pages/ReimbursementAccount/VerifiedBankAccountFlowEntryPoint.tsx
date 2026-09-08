@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,7 +16,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -68,7 +67,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Back to url passed from page */
     backTo?: Route;
 
-    /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
     /** Whether the workspace currency is set to non USD currency */
@@ -80,7 +78,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 
     /** Whether this instance is starting a fresh setup from a "change bank account" flow */
@@ -105,7 +102,6 @@ function VerifiedBankAccountFlowEntryPoint({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -289,55 +285,46 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
+                                contentContainerStyle={styles.mhn5}
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                                 {shouldShowChangeBankAccount && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
-                                        shouldShowRightIcon
-                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                        disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                        isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                     />
                                 )}
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                             </OfflineWithFeedback>
                         ) : (
-                            <>
+                            <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
-                                        disabled={!!isPlaidDisabled}
+                                        isDisabled={!!isPlaidDisabled}
                                         onPress={handleConnectPlaid}
-                                        shouldShowRightIcon
-                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                     />
                                 )}
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                 />
-                            </>
+                            </View>
                         )}
                     </View>
                 </Section>

@@ -482,6 +482,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -531,6 +532,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -562,6 +564,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -597,6 +600,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: undefined,
                 policyID: mockPolicyID,
@@ -659,6 +663,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -700,6 +705,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
@@ -748,6 +754,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockCurrentUserAccountID, // assignee is current user
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -809,6 +816,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -847,6 +855,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 assigneeChatReport: mockAssigneeChatReport,
                 policyID: mockPolicyID,
@@ -889,6 +898,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -918,6 +928,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: undefined,
                 currentUserAvatar: undefined,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -947,6 +958,7 @@ describe('actions/Task', () => {
                 currentUserEmail: '',
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -978,6 +990,7 @@ describe('actions/Task', () => {
                 currentUserEmail: mockCurrentUserEmail,
                 currentUserDisplayName: mockCurrentUserDisplayName,
                 currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
                 assigneeAccountID: mockAssigneeAccountID,
                 policyID: mockPolicyID,
                 isCreatedUsingMarkdown: false,
@@ -997,6 +1010,66 @@ describe('actions/Task', () => {
                 expect.objectContaining({
                     currentUserAccountID: overrideUserAccountID,
                 }),
+            );
+        });
+
+        it('should set the passed delegateAccountID on the optimistic task comment in the parent report', () => {
+            const DELEGATE_ACCOUNT_ID = 999;
+
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            // `buildOptimisticTaskCommentReportAction` is spied on in this suite, so assert on the forwarded argument
+            // rather than the emitted action. The builder itself is covered in ReportUtilsTest.
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                DELEGATE_ACCOUNT_ID,
+            );
+        });
+
+        it('should leave delegateAccountID unset on the optimistic task comment when no delegate is passed', () => {
+            createTaskAndNavigate({
+                parentReport: {reportID: mockParentReportID},
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                currentUserDisplayName: mockCurrentUserDisplayName,
+                currentUserAvatar: mockCurrentUserAvatar,
+                delegateAccountID: undefined,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+                taskCreatorAndAssigneeDetails: undefined,
+            });
+
+            expect(mockBuildOptimisticTaskCommentReportAction).toHaveBeenCalledWith(
+                'task_report_123',
+                mockTitle,
+                mockAssigneeAccountID,
+                `task for ${mockTitle}`,
+                mockParentReportID,
+                undefined,
             );
         });
     });
@@ -1049,13 +1122,13 @@ describe('actions/Task', () => {
         });
 
         it('does not create a task from text that is not the markdown shorthand', () => {
-            expect(createTaskFromMarkdown({text: 'Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: 'Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(false);
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('does not create a task when the shorthand has no title', () => {
-            expect(createTaskFromMarkdown({text: '[]', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
-            expect(createTaskFromMarkdown({text: '[] ', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: '[]', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: '[] ', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(false);
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
@@ -1064,7 +1137,7 @@ describe('actions/Task', () => {
             const overLimitTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
 
             // Then it is refused, so the caller falls back to sending it as a plain comment
-            expect(createTaskFromMarkdown({text: `[] ${overLimitTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: `[] ${overLimitTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(false);
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
@@ -1073,18 +1146,18 @@ describe('actions/Task', () => {
             const maxLengthTitle = 'a'.repeat(CONST.TITLE_CHARACTER_LIMIT);
 
             // Then the task is still created
-            expect(createTaskFromMarkdown({text: `[] ${maxLengthTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(createTaskFromMarkdown({text: `[] ${maxLengthTitle}`, parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(true);
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_TASK, expect.anything(), expect.anything());
         });
 
         it('does not create a task when there is no parent report', () => {
-            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport: undefined, currentUserPersonalDetails, quickAction: undefined})).toBe(false);
+            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport: undefined, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(false);
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('creates an unassigned task from the shorthand', () => {
             // When the shorthand is sent without a mention
-            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(true);
 
             // Then the task is created with the remaining text as its title and nobody assigned
             expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(currentUserAccountID, parentReportID, 0, 'Buy milk', '', CONST.POLICY.OWNER_EMAIL_FAKE, expect.anything(), undefined);
@@ -1093,7 +1166,7 @@ describe('actions/Task', () => {
 
         it('assigns the task to the user resolved from a same-private-domain short mention', () => {
             // When the shorthand mentions a coworker by their short login
-            expect(createTaskFromMarkdown({text: '[] @mat Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(createTaskFromMarkdown({text: '[] @mat Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(true);
 
             // Then the mention is resolved to the full login and dropped from the title
             expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(
@@ -1111,7 +1184,7 @@ describe('actions/Task', () => {
 
         it('keeps an unresolvable mention in the title instead of assigning it', () => {
             // When the mention cannot be resolved to a known login
-            expect(createTaskFromMarkdown({text: '[] @nobody Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined})).toBe(true);
+            expect(createTaskFromMarkdown({text: '[] @nobody Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined})).toBe(true);
 
             // Then it stays part of the title and the task is left unassigned
             expect(mockBuildOptimisticTaskReport).toHaveBeenCalledWith(
@@ -1127,7 +1200,7 @@ describe('actions/Task', () => {
         });
 
         it('does not navigate, so it is safe to call from outside a modal flow', () => {
-            createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined});
+            createTaskFromMarkdown({text: '[] Buy milk', parentReport, currentUserPersonalDetails, quickAction: undefined, delegateAccountID: undefined});
 
             expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
         });
@@ -1518,6 +1591,7 @@ describe('actions/Task', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasOutstandingChildTask: false,
                 delegateEmail: DELEGATE_EMAIL,
+                delegateAccountID: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
             });
@@ -1549,6 +1623,7 @@ describe('actions/Task', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasOutstandingChildTask: false,
                 delegateEmail: undefined,
+                delegateAccountID: undefined,
                 assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
                 formatPhoneNumber,
             });

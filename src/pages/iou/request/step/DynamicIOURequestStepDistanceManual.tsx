@@ -5,7 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -67,7 +67,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type DynamicIOURequestStepDistanceManualProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -157,7 +156,7 @@ function DynamicIOURequestStepDistanceManual({
         currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
     });
@@ -288,6 +287,7 @@ function DynamicIOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
@@ -306,6 +306,7 @@ function DynamicIOURequestStepDistanceManual({
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,
@@ -354,7 +355,7 @@ function DynamicIOURequestStepDistanceManual({
     };
 
     const submitAndNavigateToNextPage = () => {
-        if (blockManualOrOdometerDistanceRequestIfNeeded()) {
+        if (blockDistanceRequestIfNeeded()) {
             return;
         }
 

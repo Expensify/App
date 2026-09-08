@@ -45,7 +45,6 @@ type UpgradeIntroViewProps = {
     /** Primary button label. */
     buttonText: string;
 
-    /** Unlock badge text. */
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */
@@ -87,7 +86,7 @@ function UpgradeIntroView({
     const subscriptionLink = subscriptionPlan ? `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}` : CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
 
     const iconSize = StyleUtils.getAvatarSize(isIllustration ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.DEFAULT);
-    const iconStyles = isIllustration ? iconAdditionalStyles : StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR);
+    const iconStyles = isIllustration ? iconAdditionalStyles : StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE);
 
     return (
         <View style={styles.p5}>

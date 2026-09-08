@@ -371,6 +371,9 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
         }
 
         for (const [key, val] of Object.entries(test)) {
+            if (val === null) {
+                continue;
+            }
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {
@@ -381,6 +384,22 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
                 throw new ObjectError(expectedType);
             }
         }
+    }
+}
+
+/**
+ * Validates that a value is a flat object mapping string keys to string values (e.g. Record<string, string>).
+ */
+function validateStringRecord(value: string) {
+    if (isEmptyValue(value)) {
+        return;
+    }
+
+    const object = parseJSON(value);
+    if (typeof object !== 'object' || object === null || Array.isArray(object) || Object.values(object).some((val) => typeof val !== 'string')) {
+        throw new SyntaxError('debug.invalidValue', {
+            cause: {expectedValues: 'Record<string, string> | undefined'},
+        });
     }
 }
 
@@ -839,6 +858,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1043,6 +1063,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
         case 'selectedTransactionIDs':
             return validateArray(value, 'string');
+        case 'bulkEditTagChanges':
+            return validateStringRecord(value);
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1147,6 +1169,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    bulkEditTagChanges: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1208,6 +1231,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                pageCount: 'number',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1482,6 +1506,7 @@ function getReasonForShowingRowInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
+    hasGuidesEmails,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1493,6 +1518,7 @@ function getReasonForShowingRowInLHN({
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
+    hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
@@ -1514,6 +1540,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        hasGuidesEmails,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1619,6 +1646,7 @@ const DebugUtils = {
     validateDate,
     validateConstantEnum,
     validateArray,
+    validateStringRecord,
     validateObject,
     validateString,
     validateReportDraftProperty,

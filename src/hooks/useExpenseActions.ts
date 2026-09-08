@@ -14,6 +14,7 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
@@ -56,7 +57,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
-import useCommuterExclusionGuard from './useCommuterExclusionGuard';
+import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -291,11 +292,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         }
     };
 
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
-        isManualDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-        isOdometerDistanceRequest: lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
     });
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
@@ -306,7 +306,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         draftTransactionIDs,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        lastDistanceExpenseType,
+        lastDistanceExpenseType: distanceExpenseType,
         currentUserAccountID: accountID,
         blockDistanceRequestIfNeeded,
     });
@@ -539,7 +539,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         prompt: getDeleteConfirmationPrompt(translate, transaction),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -601,7 +601,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     prompt: translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
                 if (result.action !== ModalActions.CONFIRM) {
                     return;

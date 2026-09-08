@@ -26,8 +26,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
@@ -48,13 +48,8 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 type TaskViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The parent report */
     parentReport: OnyxEntry<Report>;
-
-    /** The task report action */
     action: OnyxEntry<ReportAction>;
 };
 
@@ -170,7 +165,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     style={({pressed}) => [
                                         styles.ph5,
                                         styles.pv2,
-                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                        StyleUtils.getButtonBackgroundColorStyle(
+                                            getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState, isInteractive: !isDisableInteractive}),
+                                            true,
+                                        ),
                                         isDisableInteractive && styles.cursorDefault,
                                     ]}
                                     accessibilityLabel={taskAccessibilityLabel}
@@ -188,7 +186,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         <Icon
                                                             additionalStyles={[styles.alignItemsCenter]}
                                                             src={icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                            fill={StyleUtils.getIconFillColor({
+                                                                buttonState: getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState}),
+                                                            })}
                                                         />
                                                     </View>
                                                 )}

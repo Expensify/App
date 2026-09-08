@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
-import useCommuterExclusionGuard from './useCommuterExclusionGuard';
+import useBlockDistanceRequest from './useBlockDistanceRequest';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -53,7 +53,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         role: policy.role,
         owner: policy.owner,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
 
@@ -105,7 +104,7 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isDistanceRequest: isDistanceRequest(initialTransaction),
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
@@ -373,10 +372,10 @@ function useParticipantSubmission({
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
-            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
+            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
-                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDetails.displayName),
                 currentUserAccountID: userDetails.accountID,
                 currentUserEmail: email,
                 currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

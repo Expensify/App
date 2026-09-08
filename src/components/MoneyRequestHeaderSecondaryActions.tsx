@@ -151,6 +151,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
     const transactionIDFromAction = isMoneyRequestAction(parentReportAction)
         ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
         : CONST.DEFAULT_NUMBER_ID;
@@ -520,7 +521,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     prompt: isPending(transaction) ? translate('iou.deleteConfirmationPendingBYOC') : translate('iou.deleteConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
-                    danger: true,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     shouldEnableNewFocusManagement: true,
                 }).then((result) => {
                     if (result.action !== ModalActions.CONFIRM) {
@@ -538,6 +539,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,
                             chatReportActions: parentReportActions,
+                            transactionThreadReportActions,
                             transactionID: transaction.transactionID,
                             reportAction: parentReportAction,
                             iouReport,

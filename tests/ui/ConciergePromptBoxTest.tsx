@@ -16,6 +16,8 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session'
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ViewProps} from 'react-native';
+
 import React, {useState} from 'react';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -219,6 +221,20 @@ describe('ConciergePromptBox', () => {
             // Then neither the send nor the "+" button can be used
             expect(screen.getByLabelText(SEND_BUTTON)).toBeDisabled();
             expect(screen.getByLabelText(PLUS_BUTTON)).toBeDisabled();
+        });
+    });
+
+    describe('focus', () => {
+        it('claims taps that land on the box itself', () => {
+            // Given a rendered prompt box
+            render(<ConciergePromptBoxWrapper />);
+
+            // When the box is asked whether it wants the touch
+            // Then it claims it, so the surrounding ScrollView never becomes the responder and cannot blur the input,
+            // and nothing is handled on release, so the tap neither steals nor grants focus
+            const box = screen.getByTestId('ConciergePromptBox');
+            expect(fireEvent(box, 'startShouldSetResponder')).toBe(true);
+            expect((box.props as ViewProps).onResponderRelease).toBeUndefined();
         });
     });
 
