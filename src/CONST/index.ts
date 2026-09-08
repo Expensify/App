@@ -3274,6 +3274,10 @@ const CONST = {
             RECRUITER: 'recruiter',
             RECRUITING_COORDINATOR: 'recruitingCoordinator',
         },
+        CATEGORY: {
+            HRIS: 'hris',
+            ATS: 'ats',
+        },
         COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
             SYNCING: 'SYNCING',

@@ -132,7 +132,7 @@ function getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, ic
             connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
             displayName: providerEntry.displayName,
             icon: providerEntry.iconUrl,
-            setupLink: getMergeSetupLink(policyID, slug),
+            setupLink: getMergeSetupLink(policyID, slug, CONST.MERGE.CATEGORY.ATS),
             completeSetupRoute: needsSetup ? ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.getRoute(policyID) : undefined,
             configRows: state.isConnected && !state.needsReconnect ? getConfigRows(policy, policyID, policyEmployeePersonalDetails, icons, translate, formatPhoneNumber) : [],
             ...state,

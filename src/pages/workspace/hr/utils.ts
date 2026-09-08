@@ -285,7 +285,7 @@ function getHRCards({
             connectionName: mergeConnectionName,
             displayName: providerEntry.displayName,
             icon: providerEntry.iconUrl,
-            setupLink: getMergeSetupLink(policyID, slug),
+            setupLink: getMergeSetupLink(policyID, slug, CONST.MERGE.CATEGORY.HRIS),
             ...(state.isConnected ? state : disconnectedState),
             completeSetupRoute: needsSetup ? groupsRoute : undefined,
             configRows,

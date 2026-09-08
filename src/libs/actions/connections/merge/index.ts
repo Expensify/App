@@ -23,8 +23,8 @@ type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
 type RecruitingConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'filters' | 'approverField';
 type MergeConnectionErrorFieldName = HRConnectionErrorFieldName | RecruitingConnectionErrorFieldName;
 
-function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug) {
-    const params: ConnectPolicyToMergeParams = {policyID, integration};
+function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug, category: ValueOf<typeof CONST.MERGE.CATEGORY>) {
+    const params: ConnectPolicyToMergeParams = {policyID, integration, category};
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_MERGE,
         shouldSkipWebProxy: true,
