@@ -10,6 +10,7 @@ import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx'
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePolicyFeatureWriteAccess from './usePolicyFeatureWriteAccess';
 import useReportTransactions from './useReportTransactions';
 
@@ -37,6 +38,8 @@ type MerchantRuleSuggestionResult = {
  * @param reportID - the report showing the expense: its transaction thread, or a report holding only that expense
  */
 function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined): MerchantRuleSuggestionResult {
+    const {isBetaEnabled} = usePermissions();
+
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -53,7 +56,10 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     // Offer it to exactly who the rule page lets in: write access to Rules on a Control workspace. Admins today, and
     // editors, who can already create the same rule from workspace settings. The rule page is Control-only, so
     // without that check a Collect workspace would be offered a callout that lands on Not Found.
-    const canCreateMerchantRule = canWriteRules && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
+    //
+    // The callout ships with the rules revamp, so it waits for that beta. This is its own condition rather than the
+    // one `arePolicyRulesEnabled` takes, which decides something else: whether Collect can reach Rules at all.
+    const canCreateMerchantRule = isBetaEnabled(CONST.BETAS.RULES_REVAMP) && canWriteRules && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
     // Filtered from the canonical list, not the record's own keys, so the order is fixed and only known fields reach
