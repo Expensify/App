@@ -24,22 +24,21 @@ function EnableGlobalReimbursementsPayModal() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const isModalOpenRef = useRef(false);
 
-    const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
+    const showCorpayPayModal = useEffectEvent((modalData: CorpayPayModal) => {
         if (isModalOpenRef.current) {
             return;
         }
         isModalOpenRef.current = true;
-        try {
-            const navigationPathAtSignal = Navigation.getActiveRoute();
-            const result = await showConfirmModal({
-                id: 'corpayPayModal',
-                title: translate('common.corpayPayModalTitle'),
-                prompt: translate('common.corpayPayModalPrompt'),
-                confirmText: translate('common.enableGlobalReimbursements'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
-            });
-
+        const navigationPathAtSignal = Navigation.getActiveRoute();
+        showConfirmModal({
+            id: 'corpayPayModal',
+            title: translate('common.corpayPayModalTitle'),
+            prompt: translate('common.corpayPayModalPrompt'),
+            confirmText: translate('common.enableGlobalReimbursements'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        }).then((result) => {
+            isModalOpenRef.current = false;
             if (result.action === ModalActions.CONFIRM) {
                 if (isAccountLocked) {
                     showLockedAccountModal();
@@ -59,10 +58,8 @@ function EnableGlobalReimbursementsPayModal() {
                     );
                 }
             }
-        } finally {
-            isModalOpenRef.current = false;
             clearCorpayPayModal();
-        }
+        });
     });
 
     useEffect(() => {
