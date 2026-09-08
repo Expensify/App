@@ -25,7 +25,16 @@ type WorkspaceAvatarProps = AvatarCommonProps & {
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */
-function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, name, avatarID = CONST.DEFAULT_NUMBER_ID, testID}: WorkspaceAvatarProps) {
+function WorkspaceAvatar({
+    source,
+    imageStyles,
+    iconAdditionalStyles,
+    containerStyles,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    name,
+    avatarID = CONST.DEFAULT_NUMBER_ID,
+    testID,
+}: WorkspaceAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
