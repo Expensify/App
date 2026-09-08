@@ -134,7 +134,11 @@ function useUnreadMarker({
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
-    // Track whatever the marker last landed on. The self-message guard lives in shouldDisplayNewMarkerOnReportAction.
+    // `prevUnreadMarkerReportActionID` records the action the marker was last anchored on and gates the
+    // self-authored-message branch in `shouldDisplayNewMarkerOnReportAction`, which only runs once no manual
+    // mark is active. The #91940 regression (a persisted self-authored action wrongly keeping the "New"
+    // marker after the marker moves) is prevented there via the `isDifferentUnread` check, so we simply track
+    // whatever the marker last landed on here.
     if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
     }
