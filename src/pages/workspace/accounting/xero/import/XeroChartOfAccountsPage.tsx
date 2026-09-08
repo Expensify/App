@@ -13,7 +13,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import {updateXeroEnableNewCategories} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
@@ -42,7 +42,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
         >
             <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
+                    <Text fontSize={fontScale.text}>{translate('workspace.accounting.import')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                     <Switch

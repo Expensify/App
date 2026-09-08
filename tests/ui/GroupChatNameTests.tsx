@@ -39,8 +39,23 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 
 jest.mock('@react-navigation/native');
 
-// Mock Avatar component to prevent act() warnings from state updates during render
-jest.mock('@src/components/Avatar', () => {
+// Mock avatar components to prevent act() warnings from state updates during render
+jest.mock('@src/components/Avatar/UserAvatar', () => {
+    const {View} = require('react-native');
+    return ({source, accountID, testID = 'Avatar'}: {source?: unknown; accountID?: number; testID?: string}) => {
+        return (
+            <View
+                dataSet={{
+                    avatarID: accountID,
+                    uri: typeof source === 'string' ? source : 'No Source',
+                    parent: testID,
+                }}
+                testID="MockedAvatarData"
+            />
+        );
+    };
+});
+jest.mock('@src/components/Avatar/WorkspaceAvatar', () => {
     const {View} = require('react-native');
     return ({source, name, avatarID, testID = 'Avatar'}: {source?: unknown; name?: string; avatarID?: string; testID?: string}) => {
         return (
