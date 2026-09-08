@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -68,14 +69,20 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={styles.ph5}>{translate('delegate.confirmCopilot')}</Text>
-                <MenuItem
-                    avatarID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    icon={avatarIcon}
-                    title={displayName}
-                    description={formattedLogin}
-                    interactive={false}
-                />
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={avatarIcon}
+                                accountID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
+                            <MenuItem.Description>{formattedLogin}</MenuItem.Description>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
                 <MenuItemWithTopDescription
                     title={translate('delegate.role', role)}
                     description={translate('delegate.accessLevel')}
