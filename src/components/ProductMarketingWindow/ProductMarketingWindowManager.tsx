@@ -72,6 +72,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         selector: isAnonymousSessionSelector,
     });
     const [currentAccountID, currentAccountIDMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [stashedAccountID, stashedAccountIDMetadata] = useOnyx(ONYXKEYS.STASHED_SESSION, {selector: accountIDSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
     const [hasCompletedGuidedSetupFlow, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
@@ -79,8 +80,11 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
-    const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, accountMetadata, onboardingMetadata, isLoadingAppMetadata);
-    const shouldRecordActiveOnboarding = !isLoadingOnboardingContext && !isLoadingApp && !isActingAsDelegate && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
+    // The session changes before loading/delegate data during Copilot entry. A failed connection keeps the original account ID.
+    const isSwitchingToDelegator = stashedAccountID !== undefined && stashedAccountID !== currentAccountID;
+    const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, stashedAccountIDMetadata, accountMetadata, onboardingMetadata, isLoadingAppMetadata);
+    const shouldRecordActiveOnboarding =
+        !isLoadingOnboardingContext && !isLoadingApp && !isActingAsDelegate && !isSwitchingToDelegator && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
     if (shouldRecordActiveOnboarding && !accountIDsWithObservedActiveOnboarding.has(currentAccountID)) {
         setAccountIDsWithObservedActiveOnboarding((accountIDs) => new Set(accountIDs).add(currentAccountID));
     }
@@ -105,6 +109,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
             activePolicyIDMetadata,
             isLoadingAppMetadata,
             currentAccountIDMetadata,
+            stashedAccountIDMetadata,
             accountMetadata,
             onboardingMetadata,
         ) || isLoadingApp;
@@ -125,6 +130,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         isProductMarketingWindowCovered ||
         isAnonymousSession ||
         isActingAsDelegate ||
+        isSwitchingToDelegator ||
         shouldSuppressForOnboardingSession ||
         isCoveredByCenteredModalScreen ||
         shouldShowRequire2FAPage ||
