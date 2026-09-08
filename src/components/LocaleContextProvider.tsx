@@ -88,6 +88,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const {locale: currentLocale, isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    // A cold `en` start reads `en` before and after its table lands, so every callback that translates must close over this or stay memoized on the untranslated keys.
     const translationLocale = isCurrentLocaleLoaded ? currentLocale : undefined;
 
     let localeToApply: Locale | undefined;

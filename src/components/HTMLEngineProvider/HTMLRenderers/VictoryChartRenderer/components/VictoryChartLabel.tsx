@@ -35,10 +35,12 @@ type ProcessedLine = {
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
     // Not `useLocalize`, whose `LocaleContextProvider` import chain breaks the CLI renderer's standalone binary build.
-    const preferredLocale = useSyncExternalStore(IntlStore.subscribe, IntlStore.getCurrentLocale, IntlStore.getCurrentLocale);
+    const {locale, isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    // A cold `en` start reads `en` before and after its table lands, so the label must close over this or stay memoized on the untranslated key.
+    const translationLocale = isCurrentLocaleLoaded ? locale : undefined;
     const typefaces = useChartTypefaces();
     const theme = useTheme();
-    const displayText = getLocalizedVictoryChartLabelText(text, timezone, preferredLocale);
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone, translationLocale ?? locale);
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = resolveChartThemeColor(color?.[index], theme);
