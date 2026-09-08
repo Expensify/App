@@ -46,8 +46,8 @@ async function main(rootDirectory: string): Promise<void> {
                 description: 'Base bundle identifier or Android application ID for the Expensify app',
                 required: false,
             },
-            suffix: {
-                description: 'Optional segment appended to the base bundle identifier',
+            'identifier-suffix': {
+                description: 'Suffix added to native app identifiers and launcher display names for side-by-side installations',
                 required: false,
             },
             'github-username': {
@@ -68,7 +68,12 @@ async function main(rootDirectory: string): Promise<void> {
     for (const platform of platforms) {
         const bundleIdentifier = cli.namedArgs['bundle-identifier'] ?? defaultBundleIdentifier(username ?? '', platform);
         if (platform === 'android') {
-            await bootstrapAndroidForDevice({rootDirectory, bundleIdentifier, buildVariants: cli.namedArgs['build-variants'], suffix: cli.namedArgs.suffix});
+            await bootstrapAndroidForDevice({
+                rootDirectory,
+                bundleIdentifier,
+                buildVariants: cli.namedArgs['build-variants'],
+                identifierSuffix: cli.namedArgs['identifier-suffix'],
+            });
             continue;
         }
         const developmentTeam = await resolveDevelopmentTeam(cli.namedArgs['development-team']);
@@ -77,7 +82,7 @@ async function main(rootDirectory: string): Promise<void> {
             developmentTeam,
             bundleIdentifier,
             buildVariants: cli.namedArgs['build-variants'],
-            suffix: cli.namedArgs.suffix,
+            identifierSuffix: cli.namedArgs['identifier-suffix'],
         });
     }
 }
@@ -157,6 +162,6 @@ export {
     validateAndroidApplicationID,
 } from './lib/bootstrapForDevice/android';
 export {entitlementContents, patchIOSAppDisplayName, patchProject, targetBundleIdentifier} from './lib/bootstrapForDevice/ios';
-export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, parseBuildVariants, validateSuffix} from './lib/bootstrapForDevice/shared';
+export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, parseBuildVariants, validateIdentifierSuffix} from './lib/bootstrapForDevice/shared';
 export {installedDevelopmentTeams, parseDevelopmentTeamFromProvisioningProfile} from './lib/bootstrapForDevice/developmentTeams';
 export type {AndroidApplicationIDs, AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants, Configuration, DevelopmentTeam, Platform, Platforms, Target};

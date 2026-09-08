@@ -28,27 +28,27 @@ Use the device bootstrap script before producing a local native build. When the 
 2. The user returned by `gh api user` when the GitHub CLI is installed. The CLI checks `GH_TOKEN`, then `GITHUB_TOKEN`, then its stored active account.
 3. The user returned by the GitHub API using `GH_TOKEN` when the GitHub CLI is not installed.
 
-If the GitHub CLI is installed but cannot resolve a user, run `gh auth login` or pass `--github-username` or `--bundle-identifier`. If the CLI is not installed, set `GH_TOKEN` or pass one of those identifier options. A suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
+If the GitHub CLI is installed but cannot resolve a user, run `gh auth login` or pass `--github-username` or `--bundle-identifier`. If the CLI is not installed, set `GH_TOKEN` or pass one of those identifier options. An identifier suffix is useful when the same developer needs separate apps for multiple branches or worktrees:
 
 ```shell
-nr bootstrap-device -- --suffix baseline
+nr bootstrap-device -- --identifier-suffix baseline
 ```
 
 Pass a platform to bootstrap only that native project:
 
 ```shell
-nr bootstrap-device -- android --suffix baseline
-nr bootstrap-device -- ios --suffix baseline
+nr bootstrap-device -- android --identifier-suffix baseline
+nr bootstrap-device -- ios --identifier-suffix baseline
 ```
 
 Pass a comma-separated list to `--build-variants` to patch `release`, `debug`, or `adhoc` builds. Select every variant that you intend to build after bootstrapping:
 
 ```shell
-nr bootstrap-device -- android --suffix baseline --build-variants release,debug,adhoc
-nr bootstrap-device -- ios --suffix baseline --build-variants release,debug,adhoc
+nr bootstrap-device -- android --identifier-suffix baseline --build-variants release,debug,adhoc
+nr bootstrap-device -- ios --identifier-suffix baseline --build-variants release,debug,adhoc
 ```
 
-Pass `--bundle-identifier` to replace the generated base identifier, or `--github-username` to override only the username used by the default. Android converts hyphens in GitHub usernames and suffixes to underscores because Android application ID segments are Java identifiers. The suffix is also included in the launcher display name, for example `Expensify (baseline)` and `Expensify Debug (baseline)`.
+Pass `--bundle-identifier` to replace the generated base identifier, or `--github-username` to override only the username used by the default. Android converts hyphens in GitHub usernames and identifier suffixes to underscores because Android application ID segments are Java identifiers. The identifier suffix is also included in the launcher display name, for example `Expensify (baseline)` and `Expensify Debug (baseline)`.
 
 On Android, bootstrapping changes the shared base application ID, then patches only the selected variants' Firebase clients, shortcut resources, and app names. Selected release-derived variants use the checked-in debug keystore with minification disabled so they can be signed and assembled locally. The package-matched entries added to `google-services.json` reuse the registered Expensify Firebase resources. This avoids a Firebase dashboard change and keeps Firebase startup behavior present in benchmark builds.
 

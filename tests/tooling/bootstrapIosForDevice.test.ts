@@ -10,7 +10,7 @@ import {
     patchProject,
     resolveDevelopmentTeam,
     targetBundleIdentifier,
-    validateSuffix,
+    validateIdentifierSuffix,
 } from '../../scripts/bootstrapForDevice';
 
 const configuration = (identifier: string, name: string, bundleIdentifier: string) => `
@@ -101,11 +101,11 @@ describe('bootstrapIOSForDevice', () => {
         expect(targetBundleIdentifier('com.example.expensify', 'SmartScanExtension', 'AdHoc', 'local')).toBe('com.example.expensify.local.adhoc.SmartScanExtension');
     });
 
-    test('rejects an invalid suffix', () => {
-        expect(() => validateSuffix('not.valid')).toThrow('Bundle identifier suffix');
+    test('rejects an invalid identifier suffix', () => {
+        expect(() => validateIdentifierSuffix('not.valid')).toThrow('Identifier suffix');
     });
 
-    test('adds the suffix to the iOS app display name in parentheses', () => {
+    test('adds the identifier suffix to the iOS app display name in parentheses', () => {
         const productNameBuildSetting = ['$', '{PRODUCT_NAME}'].join('');
         const infoPlist = `<key>CFBundleDisplayName</key>\n<string>${productNameBuildSetting}</string>`;
 
@@ -113,7 +113,7 @@ describe('bootstrapIOSForDevice', () => {
         expect(patchIOSAppDisplayName(infoPlist, undefined)).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify</string>');
     });
 
-    test('replaces an existing iOS app display name suffix', () => {
+    test('replaces an existing identifier suffix in the iOS app display name', () => {
         const infoPlist = '<key>CFBundleDisplayName</key>\n<string>Expensify (old)</string>';
 
         expect(patchIOSAppDisplayName(infoPlist, 'new')).toBe('<key>CFBundleDisplayName</key>\n<string>Expensify (new)</string>');

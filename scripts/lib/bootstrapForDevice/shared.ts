@@ -15,7 +15,7 @@ type BootstrapOptions = {
     developmentTeam: string;
     bundleIdentifier: string;
     buildVariants?: BuildVariants;
-    suffix?: string;
+    identifierSuffix?: string;
 };
 type AndroidBootstrapOptions = Omit<BootstrapOptions, 'developmentTeam'>;
 
@@ -27,12 +27,12 @@ function parseBuildVariants(value: string): BuildVariants {
     return [firstVariant, ...remainingVariants];
 }
 
-function validateSuffix(value: string | undefined): string | undefined {
+function validateIdentifierSuffix(value: string | undefined): string | undefined {
     if (!value) {
         return undefined;
     }
     if (!/^[A-Za-z0-9-]+$/.test(value)) {
-        throw new Error(`Bundle identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
+        throw new Error(`Identifier suffix must contain only letters, numbers, or hyphens. Received: ${value}`);
     }
     return value;
 }
@@ -47,5 +47,5 @@ function parseBuildVariant(value: string): BuildVariant {
     return buildVariant;
 }
 
-export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, PLATFORMS, parseBuildVariants, validateSuffix};
+export {BUILD_VARIANTS, DEFAULT_BUILD_VARIANTS, PLATFORMS, parseBuildVariants, validateIdentifierSuffix};
 export type {AndroidBootstrapOptions, BootstrapOptions, BuildVariant, BuildVariants};

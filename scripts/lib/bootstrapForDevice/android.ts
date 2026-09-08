@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 
 import type {AndroidBootstrapOptions, BuildVariant, BuildVariants} from './shared';
 
-import {DEFAULT_BUILD_VARIANTS, validateSuffix} from './shared';
+import {DEFAULT_BUILD_VARIANTS, validateIdentifierSuffix} from './shared';
 
 const REGISTERED_ANDROID_APPLICATION_IDS = {
     release: 'org.me.mobiexpensifyg',
@@ -30,10 +30,10 @@ type GoogleServicesClient = JsonObject & Record<'client_info', GoogleServicesCli
 async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Promise<void> {
     const androidDirectory = resolve(options.rootDirectory, 'Mobile-Expensify/Android');
     const buildVariants = options.buildVariants ?? DEFAULT_BUILD_VARIANTS;
-    const suffix = validateSuffix(options.suffix);
-    const androidSuffix = suffix ? normalizeAndroidIdentifierSegment(suffix) : undefined;
+    const identifierSuffix = validateIdentifierSuffix(options.identifierSuffix);
+    const androidIdentifierSuffix = identifierSuffix ? normalizeAndroidIdentifierSegment(identifierSuffix) : undefined;
     const baseIdentifier = validateAndroidApplicationID(options.bundleIdentifier);
-    const applicationIDs = androidApplicationIDs(baseIdentifier, androidSuffix);
+    const applicationIDs = androidApplicationIDs(baseIdentifier, androidIdentifierSuffix);
 
     const buildGradlePath = resolve(androidDirectory, 'build.gradle');
     const buildGradle = await file(buildGradlePath).text();
@@ -59,11 +59,11 @@ async function bootstrapAndroidForDevice(options: AndroidBootstrapOptions): Prom
         await write(shortcutsPath, patchAndroidShortcutPackage(await file(shortcutsPath).text(), applicationIDs[buildType]));
     }
 
-    const suffixLabel = suffix ? ` (${suffix})` : '';
+    const identifierSuffixLabel = identifierSuffix ? ` (${identifierSuffix})` : '';
     const appNamesByBuildType = {
-        release: {path: 'res/values/strings.xml', name: `Expensify${suffixLabel}`},
-        debug: {path: 'build-types/debug/res/values/strings.xml', name: `Expensify Debug${suffixLabel}`},
-        adhoc: {path: 'build-types/adhoc/res/values/strings.xml', name: `Expensify AdHoc${suffixLabel}`},
+        release: {path: 'res/values/strings.xml', name: `Expensify${identifierSuffixLabel}`},
+        debug: {path: 'build-types/debug/res/values/strings.xml', name: `Expensify Debug${identifierSuffixLabel}`},
+        adhoc: {path: 'build-types/adhoc/res/values/strings.xml', name: `Expensify AdHoc${identifierSuffixLabel}`},
     } as const;
     for (const buildType of buildVariants) {
         const {path, name} = appNamesByBuildType[buildType];
@@ -134,8 +134,8 @@ function patchAndroidAppName(strings: string, name: string): string {
 }
 
 /** Derives the package names used by every Android build type from the local release identifier. */
-function androidApplicationIDs(baseIdentifier: string, suffix?: string): AndroidApplicationIDs {
-    const release = [baseIdentifier, suffix].filter(Boolean).join('.');
+function androidApplicationIDs(baseIdentifier: string, identifierSuffix?: string): AndroidApplicationIDs {
+    const release = [baseIdentifier, identifierSuffix].filter(Boolean).join('.');
     return {
         release,
         debug: `${release}.dev`,
