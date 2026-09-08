@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {updateApprovalWorkflow, updateApprovalWorkflowRules} from '@libs/actions/Workflow';
+import {selectApprovalWorkflowForEdit, updateApprovalWorkflow, updateApprovalWorkflowRules} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicWorkspaceWorkflowsApprovalsExpensesFromPage from '@pages/workspace/workflows/approvals/DynamicWorkspaceWorkflowsApprovalsExpensesFromPage';
@@ -54,11 +54,29 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-// The real helper defers the callback until the screen transition finishes, which never happens in a test.
+// The real helper defers the callback until the screen transition finishes, which never happens in a test. Callbacks
+// run synchronously by default; set `shouldDefer` to hold them so a test can interleave work with an in-flight save
+// the way the real helper does (it can wait up to MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS).
+const mockPredictedTransition = {
+    shouldDefer: false,
+    pendingCallbacks: [] as Array<() => void>,
+    flush() {
+        const callbacks = mockPredictedTransition.pendingCallbacks;
+        mockPredictedTransition.pendingCallbacks = [];
+        for (const callback of callbacks) {
+            callback();
+        }
+    },
+};
+
 jest.mock('@libs/Navigation/runAfterPredictedTransition', () => ({
     __esModule: true,
     default: (callback: () => void) => {
-        callback();
+        if (mockPredictedTransition.shouldDefer) {
+            mockPredictedTransition.pendingCallbacks.push(callback);
+        } else {
+            callback();
+        }
         return {cancel: jest.fn()};
     },
 }));
@@ -177,6 +195,8 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         updateApprovalWorkflowMock.mockClear();
         updateApprovalWorkflowRulesMock.mockClear();
         goBackMock.mockClear();
+        mockPredictedTransition.shouldDefer = false;
+        mockPredictedTransition.pendingCallbacks = [];
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -271,9 +291,10 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
-    it('validates before navigating, so a failed validation keeps the admin on the page and saves nothing', async () => {
-        // A circular forwardsTo is approver-level state this page cannot edit, so the admin can hit this
-        // without doing anything wrong on this screen.
+    it('does not block a fast edit on approver-level errors this page cannot fix', async () => {
+        // A circular forwardsTo is approver-level state this page has no field for. Rejecting the save on it would
+        // dead-end every fast edit on such a policy: a generic alert the admin can't act on, and a Back that
+        // discards the member change. That validation belongs on the edit page.
         await seedWorkflow({isFastEdit: true, approvers: [{...CAROL_APPROVER, isCircularReference: true}], originalApprovers: [CAROL_APPROVER]});
 
         renderExpensesFromPage();
@@ -281,12 +302,74 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
 
         await pressSave();
 
-        expect(goBackMock).not.toHaveBeenCalled();
+        expect(goBackMock).toHaveBeenCalledTimes(1);
+        expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('discards the draft when a fast edit is abandoned without saving', async () => {
+        await seedWorkflowWithBobDeselected(true);
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
         expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
-        expect(updateApprovalWorkflowRulesMock).not.toHaveBeenCalled();
-        // The draft has to survive so the errors stay on screen and the member change isn't silently dropped.
+        await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+    });
+
+    it('keeps the draft when a non-fast-edit session unmounts, so the edit page can resume it', async () => {
+        await seedWorkflowWithBobDeselected(false);
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
         const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
-        expect(draft?.errors?.['approver-0']).toBe('workflowsPage.approverCircularReference');
+        expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL]);
+    });
+
+    it('lets a superseded in-flight save land without wiping the draft a newer session already seeded', async () => {
+        await seedWorkflowWithBobDeselected(true);
+        // Hold the save behind the screen transition, the way the real helper does for up to ~2s.
+        mockPredictedTransition.shouldDefer = true;
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await pressSave();
+        // Navigating back tears this page down while its save is still queued.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        // The admin taps another workflow's "+N more" before the queued save runs.
+        await act(async () => {
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: CAROL_EMAIL, displayName: 'carol'}], approvers: [{email: ALICE_EMAIL, displayName: 'alice'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        await act(async () => {
+            mockPredictedTransition.flush();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // The write the admin already confirmed still has to land...
+        expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+        const [, membersToRemove, , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);
+        // ...but it must not clear the newer draft, directly or through its optimistic data.
+        expect(shouldClearApprovalWorkflowDraft).toBe(false);
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
+        expect(draft?.isFastEdit).toBe(true);
     });
 
     it('navigates back before saving on a successful fast edit', async () => {

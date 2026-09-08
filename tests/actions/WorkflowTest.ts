@@ -15,6 +15,7 @@ import {
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    validateFastEditApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
 import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -229,6 +230,75 @@ describe('actions/Workflow', () => {
             expect(approvalWorkflow?.members).toEqual(members);
             expect(approvalWorkflow?.originalMembers).toEqual(members);
             expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+    });
+
+    describe('validateFastEditApprovalWorkflow', () => {
+        it('should ignore approver-level state the expenses-from page cannot fix', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                // Both of these fail the whole-workflow validateApprovalWorkflow, and neither has a field on the
+                // expenses-from page, so blocking a fast edit on them would be a dead end for the admin.
+                approvers: [{email: ownerEmail, displayName: 'Owner', isCircularReference: true, approvalLimit: 100}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(true);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
+        });
+
+        it('should reject an empty member list on a non-default workflow and record a translatable error', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+                isDefault: false,
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(false);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toEqual({members: 'common.error.fieldRequired'});
+        });
+
+        it('should still reject a missing approver slot, which the save would write back truncated', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}, undefined],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(false);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toEqual({'approver-1': 'common.error.fieldRequired'});
+        });
+
+        it('should clear a previous run of errors once the workflow validates', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {...currentApprovalWorkflow, errors: {members: 'common.error.fieldRequired'}});
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(true);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
         });
     });
 

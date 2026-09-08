@@ -18,7 +18,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {clearApprovalWorkflow, setApprovalWorkflowMembers, updateApprovalWorkflow, updateApprovalWorkflowRules, validateApprovalWorkflow} from '@libs/actions/Workflow';
+import {
+    clearApprovalWorkflow,
+    getApprovalWorkflowSessionID,
+    setApprovalWorkflowMembers,
+    updateApprovalWorkflow,
+    updateApprovalWorkflowRules,
+    validateFastEditApprovalWorkflow,
+} from '@libs/actions/Workflow';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -453,24 +460,38 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         }
 
         const workflowToSave = {...approvalWorkflow, members: allMembers};
-        // Validate before navigating. validateApprovalWorkflow also rejects approver-level state this page
-        // can't edit (a circular forwardsTo, an overLimitForwardsTo without a positive approvalLimit), so on
-        // a policy that already has one of those every fast edit would otherwise navigate away and silently
-        // discard the member change. Stay put instead and let the footer alert surface approvalWorkflow.errors.
-        if (!validateApprovalWorkflow(workflowToSave)) {
+        // Validate before navigating, so a rejected save keeps the admin on the page instead of navigating away and
+        // silently discarding the member change. The fast-edit validator deliberately skips the approver rules the
+        // whole-workflow one applies: this page has no approver field, so failing on a pre-existing circular
+        // forwardsTo would dead-end every fast edit on that policy. See validateFastEditApprovalWorkflow.
+        if (!validateFastEditApprovalWorkflow(workflowToSave)) {
             return;
         }
 
         Navigation.goBack(backPath, {compareParams: false});
 
         const originalMembers = approvalWorkflow.originalMembers ?? [];
+        // Snapshot the session before navigating. The callback below runs after the screen transition, which
+        // runAfterPredictedTransition can stretch to ~2s, and this page's unmount cleanup has already discarded the
+        // draft by then. If the admin opens another workflow's "+N more" inside that window, a new draft is seeded
+        // and this save must leave it alone — but it still has to land, or the change the admin already confirmed
+        // is lost. So a superseded save writes the workflow and skips every APPROVAL_WORKFLOW write instead of
+        // being cancelled outright.
+        const sessionID = getApprovalWorkflowSessionID();
         // Wait for the transition so the save doesn't blank this page's list while it is still sliding away.
         runAfterPredictedTransition(() => {
+            const isSupersededByNewerSession = getApprovalWorkflowSessionID() !== sessionID;
+
             if (isMultipleApproversBetaEnabled) {
+                // The rules path never touches APPROVAL_WORKFLOW, so it is safe to run either way.
                 updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
             } else {
                 const membersToRemove = originalMembers.filter((originalMember) => !allMembers.some((member) => member.email === originalMember.email));
-                updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy);
+                updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy, !isSupersededByNewerSession);
+            }
+
+            if (isSupersededByNewerSession) {
+                return;
             }
 
             // This session owns the draft: no edit page will consume it, and neither save path reliably clears
@@ -488,15 +509,20 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             buttonText = translate('common.buttonConfirm');
         }
 
+        // Only a fast edit validates and saves from this page, so it is the only case that can leave errors on the
+        // draft for this footer to report. Translate the error rather than falling through to FormAlertWrapper's
+        // generic "please fix the errors in the form" — this form has no field to point that at, and no
+        // onFixTheErrorsLinkPressed to jump to one.
+        const validationError = approvalWorkflow?.isFastEdit ? Object.values(approvalWorkflow?.errors ?? {}).at(0) : undefined;
+
         return (
             <FormAlertWithSubmitButton
                 isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
                 buttonText={buttonText}
                 onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                // Only a fast edit validates and saves from this page, so it is the only case that can leave
-                // errors on the draft for this footer to report.
-                isAlertVisible={!!approvalWorkflow?.isFastEdit && !isEmptyObject(approvalWorkflow?.errors)}
+                isAlertVisible={!!validationError}
+                message={validationError ? translate(validationError) : undefined}
                 sentryLabel={approvalWorkflow?.isFastEdit ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_FAST_EDIT_SAVE : undefined}
                 enabledWhenOffline
             />

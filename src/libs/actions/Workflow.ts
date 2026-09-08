@@ -121,7 +121,18 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
     }
 }
 
-function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
+/**
+ * @param shouldClearApprovalWorkflowDraft whether the optimistic data should drop the in-progress draft. Callers
+ * that defer this write past their own teardown (the expenses-from fast edit) pass `false` once a newer session
+ * has seeded a draft, so this save can't null the draft that session is editing.
+ */
+function updateApprovalWorkflow(
+    approvalWorkflow: ApprovalWorkflow,
+    membersToRemove: Member[],
+    approversToRemove: Approver[],
+    policy: OnyxEntry<Policy>,
+    shouldClearApprovalWorkflowDraft = true,
+) {
     if (!policy) {
         return;
     }
@@ -180,11 +191,15 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
     const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: null,
-        },
+        ...(shouldClearApprovalWorkflowDraft
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.APPROVAL_WORKFLOW,
+                      value: null,
+                  } as const,
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -616,7 +631,22 @@ function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
 }
 
+/**
+ * Bumped every time a new draft is seeded into `ONYXKEYS.APPROVAL_WORKFLOW`, i.e. every time an edit session
+ * starts. The expenses-from fast edit defers its save until after the screen transition, which
+ * `runAfterPredictedTransition` can stretch to `MAX_TRANSITION_START_WAIT_MS + MAX_TRANSITION_DURATION_MS`. If the
+ * admin opens another workflow's "+N more" inside that window, the deferred callback must not write over the draft
+ * that newer session is editing, so it captures this value before navigating and re-reads it when it runs.
+ */
+let approvalWorkflowSessionID = 0;
+
+/** @see approvalWorkflowSessionID */
+function getApprovalWorkflowSessionID() {
+    return approvalWorkflowSessionID;
+}
+
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
+    approvalWorkflowSessionID++;
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
@@ -704,6 +734,44 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
     return isEmptyObject(errors);
 }
 
+/**
+ * Validates a workflow being saved from a fast edit, i.e. from a sub-page entered without the edit RHP.
+ *
+ * `validateApprovalWorkflow` rejects the whole workflow, including approver-level state such a page has no field
+ * for: a circular `forwardsTo`, or an `approvalLimit` and `overLimitForwardsTo` that don't agree. On a policy that
+ * already carries one of those, every fast edit would fail with an error the admin cannot fix from that screen —
+ * the edit looks like a no-op, and backing out discards the member change. Those rules belong on the edit page,
+ * which has the fields to fix them.
+ *
+ * What is still checked is the structure the save itself depends on: a workflow with no members (unless it is the
+ * default one), or with a missing approver slot, would be written back truncated rather than merely imperfect.
+ * Neither is reachable from a workflow the workflows page rendered, so this can only fire on a corrupted draft.
+ *
+ * @returns true if the workflow is safe for a fast edit to save, false otherwise
+ */
+function validateFastEditApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
+    const errors: Record<string, TranslationPaths> = {};
+
+    for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
+        if (approver) {
+            continue;
+        }
+        errors[`approver-${approverIndex}`] = 'common.error.fieldRequired';
+    }
+
+    if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
+        errors.members = 'common.error.fieldRequired';
+    }
+
+    if (!approvalWorkflow.approvers.length) {
+        errors.additionalApprover = 'common.error.fieldRequired';
+    }
+
+    // Merging an empty object would leave a previous run's errors in place, so clear the key outright instead.
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {errors: isEmptyObject(errors) ? null : errors});
+    return isEmptyObject(errors);
+}
+
 export {
     createApprovalWorkflow,
     createApprovalWorkflowRules,
@@ -720,5 +788,7 @@ export {
     clearApprovalWorkflow,
     clearApprovalWorkflowFastEdit,
     validateApprovalWorkflow,
+    validateFastEditApprovalWorkflow,
+    getApprovalWorkflowSessionID,
     setApprovalWorkflowIsInitialFlow,
 };
