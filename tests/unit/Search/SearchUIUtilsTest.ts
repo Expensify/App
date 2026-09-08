@@ -13720,16 +13720,16 @@ describe('SearchUIUtils', () => {
             },
         });
 
-        test('returns all expense has options when policies are omitted (display/validation path)', () => {
+        test('returns all expense has options when shouldShowAllOptions is set (display/validation path)', () => {
             const {receipt, attachment, tag, category, submittedViolation} = getExpenseHasOptions();
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {shouldShowAllOptions: true});
 
             expect(result).toEqual([receipt, attachment, tag, category, submittedViolation]);
         });
 
         test('hides Tag, Category, and Submitted violation when the user has no workspaces', () => {
             const {receipt, attachment} = getExpenseHasOptions();
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {});
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies: {}});
 
             expect(result).toEqual([receipt, attachment]);
         });
@@ -13745,7 +13745,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment, tag]);
         });
@@ -13760,7 +13760,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.TAG);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
@@ -13778,7 +13778,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment, category]);
         });
@@ -13793,7 +13793,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
@@ -13811,7 +13811,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment, submittedViolation]);
         });
@@ -13826,7 +13826,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
@@ -13844,7 +13844,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment]);
         });
@@ -13861,12 +13861,12 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment]);
         });
 
-        test('shows Submitted violation for Collect workspaces when Rules Revamp is enabled', () => {
+        test('shows Submitted violation for Collect workspaces with Rules enabled without Rules Revamp', () => {
             const {receipt, attachment, submittedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
@@ -13877,24 +13877,9 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies, undefined, true);
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
             expect(result).toEqual([receipt, attachment, submittedViolation]);
-        });
-
-        test('hides Submitted violation for Collect workspaces when Rules Revamp is disabled', () => {
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    areTagsEnabled: false,
-                    areCategoriesEnabled: false,
-                    areRulesEnabled: true,
-                },
-            };
-
-            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, policies, undefined, false);
-
-            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
         });
 
         test('returns chat has options without submitted violation', () => {

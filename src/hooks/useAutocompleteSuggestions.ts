@@ -9,7 +9,6 @@ import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtil
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     getAutocompleteCategories,
@@ -591,7 +590,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-            const hasAutocompleteList = getHasOptions(translate, currentType, policies, allPolicyCategories, Permissions.isBetaEnabled(CONST.BETAS.RULES_REVAMP, betas));
+            // Use {} while policies load so every has: option does not flash before the collection arrives.
+            const hasAutocompleteList = getHasOptions(translate, currentType, {
+                policies: policies ?? {},
+                policyCategories: allPolicyCategories,
+            });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
             });

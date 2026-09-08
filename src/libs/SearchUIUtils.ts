@@ -5537,28 +5537,23 @@ type HasOptionAvailability = {
     shouldShowSubmittedViolation: boolean;
 };
 
+type GetHasOptionsConfig = {
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    /** Skip workspace feature filtering so already-selected values still resolve to labels. */
+    shouldShowAllOptions?: boolean;
+};
+
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
- * When `policies` is omitted, every option is treated as available (display/validation paths).
+ * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted violation stay hidden.
  */
-function getHasOptionAvailability(
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
-    isRulesRevampEnabled = false,
-): HasOptionAvailability {
-    if (policies === undefined) {
-        return {
-            shouldShowTag: true,
-            shouldShowCategory: true,
-            shouldShowSubmittedViolation: true,
-        };
-    }
-
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
 
-    for (const policy of Object.values(policies)) {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy)) {
             continue;
         }
@@ -5566,11 +5561,8 @@ function getHasOptionAvailability(
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
         // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
-        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(
-            policy,
-            policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined,
-            isRulesRevampEnabled,
-        );
+        // Pass true for Rules Revamp so Collect workspaces with Rules enabled still count. This filter is not gated on that beta.
+        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined, true);
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation) {
             break;
@@ -5583,20 +5575,20 @@ function getHasOptionAvailability(
 /**
  * Options for the `has:` filter / autocomplete. Tag, Category, and Submitted violation are omitted when
  * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
- * Omit it for display/validation so already-selected values still resolve to labels.
- * Callers that already reduced Onyx via a selector can pass `availability` to skip recomputing it.
+ * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  */
-function getHasOptions(
-    translate: LocalizedTranslate,
-    type: SearchDataTypes,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
-    isRulesRevampEnabled = false,
-    availability?: HasOptionAvailability,
-) {
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
+    const {policies, policyCategories, shouldShowAllOptions = false} = config;
+
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
-            const {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation} = availability ?? getHasOptionAvailability(policies, policyCategories, isRulesRevampEnabled);
+            const {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation} = shouldShowAllOptions
+                ? {
+                      shouldShowTag: true,
+                      shouldShowCategory: true,
+                      shouldShowSubmittedViolation: true,
+                  }
+                : getHasOptionAvailability(policies, policyCategories);
             return [
                 {
                     text: translate('common.receipt'),
@@ -6382,7 +6374,9 @@ function getDisplayValue(
         if (!hasValues?.length) {
             return;
         }
-        const hasOptions = getHasOptions(translate, type);
+        const hasOptions = getHasOptions(translate, type, {
+            shouldShowAllOptions: true,
+        });
         return hasOptions
             .filter((option) => hasValues.includes(option.value))
             .map((option) => option.text)
@@ -6595,10 +6589,9 @@ function getMultiSelectFilterOptions(
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
-    isRulesRevampEnabled = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, policies, policyCategories, isRulesRevampEnabled);
+        return getHasOptions(translate, type, {policies, policyCategories});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7431,7 +7424,9 @@ function filterValidHasValues(hasValues: HasFilterValues | undefined, type: Sear
         return undefined;
     }
 
-    const validHasOptions = getHasOptions(translate, type);
+    const validHasOptions = getHasOptions(translate, type, {
+        shouldShowAllOptions: true,
+    });
     const validHasValues = new Set(validHasOptions.map((option) => option.value));
     const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue));
 
