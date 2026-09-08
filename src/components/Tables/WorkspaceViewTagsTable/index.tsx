@@ -123,10 +123,6 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
         />
     );
 
-    if (tags.length === 0) {
-        return null;
-    }
-
     const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.tags.findTag')} />);
 
     return (
