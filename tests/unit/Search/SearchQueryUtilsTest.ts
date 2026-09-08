@@ -2622,6 +2622,12 @@ describe('SearchQueryUtils', () => {
                 'merchant=I merchant*:I merchant*:g',
                 'merchant=I merchant*:I -merchant:Ig',
                 'merchant*:Coffee merchant*:Shop',
+                'merchant*:Amazon,Uber',
+                'merchant:Amazon,Uber',
+                'merchant=Amazon,Uber',
+                'merchant*:"Amazon,Uber"',
+                'merchant="Amazon,Uber"',
+                'merchant*:"Coffee, Shop",Uber',
                 'merchant=I',
                 'merchant*:I',
                 '-merchant:I',
@@ -2647,6 +2653,15 @@ describe('SearchQueryUtils', () => {
 
                 expect(secondUpdate.updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(firstUpdate.originalQuery.flatFilters);
                 expect(secondUpdate.updatedQuery.flatFilters).toContainEqual({key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]});
+            });
+
+            test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
+                {updates: {merchant: 'Tea'}, expected: 'merchant*:Tea'},
+                {updates: {merchant: undefined}, expected: ''},
+            ])('replaces or removes a Merchant list on an explicit change: %j', ({updates, expected}) => {
+                const {updatedQuery} = updateQuery('merchant*:Amazon,Uber', updates);
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(buildSearchQueryJSON(expected)?.flatFilters);
             });
 
             test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
