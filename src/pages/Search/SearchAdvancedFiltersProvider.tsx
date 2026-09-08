@@ -6,9 +6,12 @@ import useOnyx from '@hooks/useOnyx';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault} from '@libs/SearchQueryUtils';
+import {shouldShowFilter, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import React, {useState} from 'react';
 
@@ -71,8 +74,10 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
         shouldShowResetFilters:
             currentDefaultSearchQueryJSON && currentSearchQueryJSON
                 ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON)
-                : // Show the reset button only if a non-"type" filter is applied.
-                  Object.values(searchAdvancedFiltersForm ?? {}).length > 1,
+                : !!searchAdvancedFiltersForm &&
+                  ObjectUtils.typedKeys<SearchAdvancedFiltersKey, SearchAdvancedFiltersForm[SearchAdvancedFiltersKey]>(searchAdvancedFiltersForm).filter((key) =>
+                      shouldShowFilter(SKIPPED_SEARCH_FILTERS, key, searchAdvancedFiltersForm?.[key], searchAdvancedFiltersForm?.type),
+                  ).length > 0,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {
