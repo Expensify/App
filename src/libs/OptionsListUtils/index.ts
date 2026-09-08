@@ -2114,26 +2114,6 @@ function getValidOptions(
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
 
-        const isSearchTermsFound = (report: SearchOption<Report>) => {
-            let searchText = `${report.text ?? ''}${report.login ?? ''}`;
-            if (report.isThread) {
-                searchText += report.alternateText ?? '';
-            } else if (report.isChatRoom) {
-                searchText += report.subtitle ?? '';
-            } else if (report.isPolicyExpenseChat) {
-                searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
-            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
-                searchText += participantsSearchText;
-            }
-            searchText = deburr(searchText.toLocaleLowerCase());
-
-            // Keep the pre-filter a superset of filterReports(). The canonical matcher handles apostrophes,
-            // hyphens, zero-width characters, diacritics, and email searches without dots that this cheap
-            // substring check may miss. Run it only when the cheap check does not find a match.
-            return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
-        };
-
         const filteringFunction = (report: SearchOption<Report>) => {
             if (excludeHidden) {
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -2157,7 +2137,7 @@ function getValidOptions(
             }
 
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            if (!isSearchTermsFound(report)) {
+            if (!doesReportMatchSearchTerms(report, searchTerms)) {
                 return false;
             }
 
@@ -2733,7 +2713,7 @@ function filteredPersonalDetailsOfRecentReports<T extends SearchOptionData>(rece
 /**
  * Filters options based on the search input value
  */
-function filterReports(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
+function filterReports(reports: SearchOptionData[], searchTerms: string[], includeLogin = true): SearchOptionData[] {
     const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term));
     // We search eventually for multiple whitespace separated search terms.
     // We start with the search term at the end, and then narrow down those filtered search results with the next search term.
@@ -2747,7 +2727,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
                     values.push(StringUtils.normalizeForMatch(item.text).replaceAll(/['-]/g, ''));
                 }
 
-                if (item.login) {
+                if (includeLogin && item.login) {
                     values.push(StringUtils.normalizeForMatch(item.login));
                     values.push(StringUtils.normalizeForMatch(item.login.replace(CONST.EMAIL_SEARCH_REGEX, '')));
                 }
@@ -2771,8 +2751,11 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
     return filteredReports;
 }
 
-function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
-    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[], includeLogin = true): boolean {
+    let searchText = report.text ?? '';
+    if (includeLogin) {
+        searchText += report.login ?? '';
+    }
     if (report.isThread) {
         searchText += report.alternateText ?? '';
     } else if (report.isChatRoom) {
@@ -2780,12 +2763,13 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
     } else if (report.isPolicyExpenseChat) {
         searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
     } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+        const participantsSearchText =
+            report.participantsList?.map((participant) => [participant.displayName, includeLogin ? participant.login : undefined].filter(Boolean).join(' ')).join(' ') ?? '';
         searchText += participantsSearchText;
     }
     searchText = deburr(searchText.toLocaleLowerCase());
 
-    return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms).length > 0;
+    return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms, includeLogin).length > 0;
 }
 
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {
