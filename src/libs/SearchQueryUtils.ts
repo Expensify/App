@@ -283,24 +283,9 @@ function tokenizeKeywordSegments(keywords: string) {
                 continue;
             }
 
-            if (char === '"') {
+            if (char === '"' && startsWithQuote) {
                 index++;
-                if (startsWithQuote) {
-                    break;
-                }
-
-                while (index < keywords.length) {
-                    const quotedChar = keywords.at(index);
-                    if (quotedChar === '\\') {
-                        index += index + 1 < keywords.length ? 2 : 1;
-                        continue;
-                    }
-                    index++;
-                    if (quotedChar === '"') {
-                        break;
-                    }
-                }
-                continue;
+                break;
             }
 
             index++;

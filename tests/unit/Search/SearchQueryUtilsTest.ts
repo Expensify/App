@@ -3684,7 +3684,7 @@ describe('SearchQueryUtils', () => {
             expect(displayedKeyword).toBe('"merchant: description:" coffee');
         });
 
-        it('should preserve syntax with a quoted multi-word value as keyword text', () => {
+        it('should preserve syntax with a quoted multi-word value as separate keyword terms', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
 
             const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from:"John Doe"', currentQueryJSON) : '';
@@ -3692,10 +3692,12 @@ describe('SearchQueryUtils', () => {
             const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
             const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
 
-            expect(keywordFilter?.filters.at(0)?.value).toBe('from:"John Doe"');
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['from:"John', 'Doe"']);
             expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
 
             const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe('from:\\"John Doe\\"');
+
             const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
             const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
             const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
