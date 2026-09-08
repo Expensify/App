@@ -290,6 +290,19 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
+/**
+ * `cardFeedsForDomain` must be scoped to the card's own domain (keyed by `card.fundID`), not the full
+ * cross-domain collection: a user in two domains can have the same feed key with a different nickname in each.
+ */
+function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeedsForDomain: OnyxEntry<CardFeeds>): string | undefined {
+    if (!card?.lastFourPAN || !isCustomFeed(card.bank)) {
+        return undefined;
+    }
+
+    const customFeedName = cardFeedsForDomain?.settings?.companyCardNicknames?.[card.bank];
+    return `${getCustomOrFormattedFeedName(translate, card.bank, customFeedName)} - ${card.lastFourPAN}`;
+}
+
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -1763,14 +1776,18 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCardFeedWithoutDomainID(feedWithDomainID: string): string {
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed;
+}
+
 /** Extract feed from feed with domainID */
 function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
     if (!feedWithDomainID) {
         return '' as CompanyCardFeedWithNumber;
     }
 
-    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-    return feed as CompanyCardFeedWithNumber;
+    return getCardFeedWithoutDomainID(feedWithDomainID) as CompanyCardFeedWithNumber;
 }
 
 /**
@@ -2242,12 +2259,14 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCommercialFeedCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
     getOriginalCompanyFeeds,
+    getCardFeedWithoutDomainID,
     getCompanyCardFeed,
     getCardFeedWithDomainID,
     getCompanyCardFeedWithDomainIDForCard,

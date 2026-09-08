@@ -1,4 +1,4 @@
-import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/MergeHR';
+import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/merge/HR';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Visibility from '@libs/Visibility';
 
@@ -42,7 +42,7 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
     const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
 
     useEffect(() => {
-        const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE_HR.SYNC_TYPE.INITIAL;
+        const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL;
         if (!isFocused || !isInitialSyncInProgress || !isAppVisible || isAnyModalVisible) {
             return;
         }
