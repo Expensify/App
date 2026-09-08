@@ -22,6 +22,7 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Whether modal is visible */
     isVisible: boolean;
 
+    /** The report currently being looked at */
     moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
 
     /** Not held amount of expense report */
@@ -30,12 +31,11 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Callback for closing modal */
     onClose: () => void;
 
+    /** Type of payment */
     paymentType?: PaymentMethodType;
 
     /** Selected VBBA ID for payment */
     methodID?: number;
-
-    requestType?: ActionHandledType;
 
     /** Number of transaction of a money request */
     transactionCount: number;
@@ -43,11 +43,11 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Callback invoked after the user confirms pay/approve, receives whether the full amount was chosen */
     onConfirm?: (full: boolean) => void;
 
+    /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
 };
 
 function ProcessMoneyReportHoldMenu({
-    requestType,
     nonHeldAmount = '0',
     fullAmount,
     onClose,
@@ -65,28 +65,24 @@ function ProcessMoneyReportHoldMenu({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const {onSubmit, isApprove} = useHoldMenuSubmit({
+    const {onSubmit} = useHoldMenuSubmit({
         moneyRequestReport,
         chatReport,
-        requestType,
         paymentType,
         methodID,
         onClose,
         onConfirm,
     });
+    const promptText = hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
-            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
+            title={translate('iou.confirmPay')}
             onClose={onClose}
             isVisible={isVisible}
-            prompt={
-                hasNonHeldExpenses
-                    ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
-                    : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount})
-            }
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
-            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
+            prompt={promptText}
+            firstOptionText={hasNonHeldExpenses ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
+            secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
             isSmallScreenWidth={isSmallScreenWidth}

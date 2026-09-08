@@ -72,6 +72,7 @@ function SelectionDropdown({
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     shouldShowSuccessStyle
                     ref={kycWallRef}
+                    shouldPutHeaderTextAfterBackButton
                 />
             </View>
         );
@@ -87,6 +88,7 @@ function SelectionDropdown({
             })}
             isSplitButton={false}
             shouldAlwaysShowDropdownMenu
+            shouldPutHeaderTextAfterBackButton
             shouldPopoverUseScrollView={shouldPopoverUseScrollView}
             wrapperStyle={isInLandscapeMode ? undefined : [styles.w100, styles.ph5]}
         />

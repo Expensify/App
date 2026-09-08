@@ -287,6 +287,7 @@ function DynamicIOURequestStepDistanceManual({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
@@ -305,6 +306,7 @@ function DynamicIOURequestStepDistanceManual({
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,

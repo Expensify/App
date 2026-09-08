@@ -49,7 +49,7 @@ type ApprovalWorkflowEditorProps = {
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -90,7 +90,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
     );
 
-    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
     const memberPills = useMemo(
         () =>
@@ -117,12 +119,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 if (!previousApprover || !approver) {
                     return;
                 }
-                return translate('workflowsPage.approverCircularReference', Str.removeSMSDomain(approver.displayName), Str.removeSMSDomain(previousApprover.displayName));
+                return translate(
+                    'workflowsPage.approverCircularReference',
+                    Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : approver.displayName,
+                    Str.isSMSLogin(previousApprover.displayName) ? formatPhoneNumber(previousApprover.displayName) : previousApprover.displayName,
+                );
             }
 
             return translate(error);
         },
-        [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
+        [approvalWorkflow.approvers, approvalWorkflow.errors, translate, formatPhoneNumber],
     );
 
     const editApprover = useCallback(
@@ -204,6 +210,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                         approver,
                         currency,
                         translate,
+                        formatPhoneNumber,
                         convertToDisplayString,
                     });
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
@@ -215,7 +222,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                accessibilityLabel={Str.removeSMSDomain(approver?.displayName ?? '')}
+                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}
