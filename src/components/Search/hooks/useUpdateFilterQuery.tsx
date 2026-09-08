@@ -55,7 +55,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         if (values.type && searchAdvancedFiltersForm.type !== values.type) {
             const newQueryJSON = buildSearchQueryJSON(queryString);
             if (currentSearchHash !== newQueryJSON?.hash) {
-                resetSearchKey(true, newQueryJSON);
+                resetSearchKey(newQueryJSON);
             }
         }
 

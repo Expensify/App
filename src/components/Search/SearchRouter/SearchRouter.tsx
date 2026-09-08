@@ -377,7 +377,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 setSearchContext(true);
                 const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
                 if (currentSearchHash !== updatedQueryJSON?.hash) {
-                    resetSearchKey(true, updatedQueryJSON);
+                    resetSearchKey(updatedQueryJSON);
                 }
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),

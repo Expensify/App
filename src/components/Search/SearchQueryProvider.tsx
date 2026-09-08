@@ -107,9 +107,9 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
-    const resetSearchKey = (pending = false, queryJSON = currentSearchQueryJSON) => {
+    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
         const searchKey = getInitialCurrentSearchKey(queryJSON);
-        if (pending && queryJSON?.hash !== currentSearchHash) {
+        if (queryJSON?.hash !== currentSearchHash) {
             setPendingCurrentSearchKey(searchKey);
         } else {
             setCurrentSearchKey(searchKey);

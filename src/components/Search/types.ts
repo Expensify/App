@@ -198,7 +198,7 @@ type SearchQueryContextValue = {
 type SearchQueryActionsValue = {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
     setCurrentSearchKey: (searchKey: SearchKey, pendingQuery?: string) => void;
-    resetSearchKey: (pending: boolean, queryJSON: SearchQueryJSON | undefined) => void;
+    resetSearchKey: (queryJSON: SearchQueryJSON | undefined) => void;
 };
 
 type SearchResultsContextValue = {
