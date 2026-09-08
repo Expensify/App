@@ -17,6 +17,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
@@ -109,6 +110,7 @@ function useMoneyRequestReportScroll({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     // The unified list writes its last item index here (see updateLastItemIndex). We jump to the bottom via
     // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
@@ -272,7 +274,16 @@ function useMoneyRequestReportScroll({
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({
+                reportID,
+                introSelected,
+                conciergeChat,
+                betas,
+                hasReportActions: true,
+                currentUserAccountID,
+                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            });
             scrollToBottom();
             return;
         }

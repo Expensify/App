@@ -168,6 +168,21 @@ function getReportFromSearchSnapshot(reportID: string | undefined, searchData: S
     return snapshotReport ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
+function getReportActionsFromSearchSnapshot(
+    reportID: string | undefined,
+    searchData: SearchResultDataType | undefined,
+    allReportActions: OnyxCollection<ReportActions>,
+): OnyxEntry<ReportActions> {
+    if (!reportID) {
+        return undefined;
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+
+    // Prefer the search snapshot so the actions match what the user selected on the search page, fall back to live report actions.
+    return searchData?.[key] ?? allReportActions?.[key];
+}
+
 function getPolicyFromSearchSnapshot(policyID: string | undefined, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): OnyxEntry<Policy> {
     if (!policyID) {
         return undefined;
@@ -772,7 +787,7 @@ function getOnyxLoadingData(
                     ...(isSearchAPI && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
                     ...(offset !== undefined ? {offset} : {}),
-                    ...(shouldClearTotals ? {count: null, total: null, currency: null} : {}),
+                    ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
             },
         },
@@ -1161,7 +1176,10 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        const needsTotalsUpgrade = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+        // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
+        // to one type let a totals request for another type collide with an in-flight request and get
+        // silently dropped, so the total never arrived and the bulk-actions button spun forever.
+        const needsTotalsUpgrade = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
         const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
@@ -1729,6 +1747,9 @@ function rejectMoneyRequestsOnSearch(
     let urlToNavigateBack;
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
+        }
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
@@ -2400,6 +2421,7 @@ export {
     openSearchCategoryFiltersPage,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
+    getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
 };
 export type {TransactionPreviewData};
