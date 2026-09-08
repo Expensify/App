@@ -1669,11 +1669,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
-        confirmApprovalAmount: 'Approuvez uniquement les dépenses conformes, ou approuvez l’intégralité de la note de frais.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Cette dépense est en attente. Voulez-vous l’approuver quand même ?',
-            other: 'Ces dépenses sont en attente. Voulez-vous tout de même approuver ?',
-        }),
+        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
+        confirmApprovalAllHoldAmount: 'Toutes les dépenses sont en attente. Approuver quand même ?',
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
@@ -3351,6 +3348,7 @@ ${amount} pour ${merchant} - ${date}`,
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4762,6 +4760,7 @@ ${amount} pour ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fournisseur de voyages',
             travelInvoicingPayableAccount: 'Compte fournisseur déplacements',
             hr: 'RH',
+            recruiting: 'Recrutement',
             rooms: 'Salons',
             findDomain: 'Trouver un domaine',
             cardAdminAlternateText: 'Gérer les cartes de l’espace de travail.',
@@ -6400,6 +6399,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
+                        setUpNewFeed: 'Configurer un nouveau flux de voyage',
+                        feedSelectorIntro:
+                            'Votre organisation dispose déjà d’un flux de facturation de voyage consolidée configuré. Sélectionnez-le pour conserver les dépenses de voyage de cet espace de travail sur la même facture mensuelle.',
                     },
                     disableModal: {
                         title: 'Désactiver la facturation voyage consolidée ?',
@@ -8455,43 +8457,26 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         hr: {
             title: 'RH',
-            connections: 'Connexions',
             connectionsSubtitle:
                 'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
             subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
-            connect: 'Connecter',
-            syncNow: 'Synchroniser maintenant',
-            disconnect: 'Déconnecter',
-            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes RH',
             alreadyConnectedPrompt: 'Vous devez déconnecter votre plateforme RH actuelle avant d’en connecter une autre.',
-            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
-            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
-            approvalMode: "Mode d'approbation",
             providerApprovalMode: (providerName: string) => `Mode d'approbation ${providerName}`,
-            finalApprover: 'Approbateur final',
             providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
-            notSet: 'Non défini',
+            syncing: 'Synchronisation des employés',
+            syncingModalTitle: 'Votre connexion est en cours de synchronisation',
+            syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
             approvalModeWarningTitle: 'Changer le mode d’approbation ?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
             approvalModeWarningConfirm: 'Modifier le mode d’approbation',
-            approvalModes: {
-                basic: {
-                    label: 'Approbation simple',
-                    description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
-                },
-                manager: {
-                    label: 'Approbation du responsable',
-                    description: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
-                },
-                custom: {
-                    label: 'Approbation personnalisée',
-                    description: 'Je configurerai manuellement les circuits de validation dans Expensify.',
-                },
+            approvalModeDescriptions: {
+                basic: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
+                manager: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
+                custom: 'Je configurerai manuellement les circuits de validation dans Expensify.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8531,22 +8516,50 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Votre connexion est en cours de synchronisation',
-            syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
-            syncing: 'Synchronisation des employés',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Terminer la configuration',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer les employés.</muted-text-label>`,
                 groups: {title: 'Groupes', description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail'},
             },
+        },
+        recruiting: {
+            title: 'Recrutement',
+            connectionsSubtitle:
+                'Connectez votre système de recrutement pour synchroniser les données des candidats, faire correspondre automatiquement les remboursements aux bonnes personnes et maintenir des dépenses d’équipe exactes sans travail manuel.',
+            alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes ATS',
+            alreadyConnectedPrompt: 'Vous devez déconnecter votre ATS actuel avant d’en connecter un autre.',
+            syncing: 'Synchronisation des candidats',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer des candidats.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
+            importSettings: 'Paramètres d’importation',
+            defaultApprover: 'Approbateur par défaut',
+            approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+        },
+        merge: {
+            connections: 'Connexions',
+            connect: 'Connecter',
+            findIntegration: 'Rechercher une intégration',
+            syncNow: 'Synchroniser maintenant',
+            disconnect: 'Déconnecter',
+            disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Êtes-vous sûr de vouloir déconnecter ${providerName} ?`,
+            lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
             notSync: 'Non synchronisé',
+            syncError: (providerName: string) => `Impossible de se connecter à ${providerName}`,
             authenticationError: (providerName: string) => `Connexion à ${providerName} impossible en raison d'une connexion expirée.`,
             reconnect: 'Reconnect',
             reconnectLink: 'Reconnectez-vous.',
-            findIntegration: 'Rechercher une intégration',
-        },
-        merge: {
+            notSet: 'Non défini',
+            completeSetup: 'Terminer la configuration',
+            approvalMode: "Mode d'approbation",
+            finalApprover: 'Approbateur final',
+            approvalModes: {
+                basic: 'Approbation simple',
+                manager: 'Approbation du responsable',
+                custom: 'Approbation personnalisée',
+                advanced: 'Approbation avancée',
+            },
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
         },
         emptyDomain: {
@@ -9532,6 +9545,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportedTo: 'Exporté vers',
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
+            allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
             selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
@@ -9644,6 +9658,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exporté vers ${translatedLabel}`;
@@ -10886,6 +10901,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',
         multipleTaxExport: 'Export canadien à taxes multiples',
+        reconciliationAllExpenses: 'Rapprochement - Toutes les dépenses',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',

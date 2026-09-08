@@ -88,12 +88,10 @@ type AccessOrNotFoundWrapperChildrenProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<Policy>;
 
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
 type AccessOrNotFoundWrapperProps = {
-    /** The children to render */
     children: ((props: AccessOrNotFoundWrapperChildrenProps) => React.ReactNode) | React.ReactNode;
 
     /** The id of the report that holds the transaction */
