@@ -194,6 +194,12 @@ function sanitizeSearchValuePreservingEscapes(str: string) {
 
         const backslashCount = nextIndex - index;
         const nextChar = str.at(nextIndex);
+        if (nextChar === ',') {
+            escaped += `${'\\'.repeat(backslashCount)}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
         if (nextChar && /["“”]/.test(nextChar)) {
             escaped += `${'\\'.repeat(backslashCount + (backslashCount % 2 === 0 ? 1 : 0))}${nextChar}`;
             index = nextIndex;

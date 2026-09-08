@@ -3744,6 +3744,21 @@ describe('SearchQueryUtils', () => {
             expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
         });
 
+        it('should consume a backslash used to escape a comma in keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`foo\,bar`, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe('foo,bar');
+            expect(displayedKeyword).toBe('"foo,bar"');
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
