@@ -355,6 +355,61 @@ describe('getExportTemplates', () => {
 
         expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT);
     });
+
+    it('includes the Reconciliation - All Expenses template when the user is a workspace admin of a policy with company cards enabled', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
+
+    it('includes the Reconciliation - All Expenses template when the user is a card admin of a policy with the Expensify Card enabled', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, {
+            ...createRandomPolicy(1),
+            role: CONST.POLICY.ROLE.CARD_ADMIN,
+            areExpensifyCardsEnabled: true,
+        });
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
+
+    it('excludes the Reconciliation - All Expenses template when the user is a workspace member', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, {...createRandomPolicy(1), role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
+
+    it('excludes the Reconciliation - All Expenses template when the admin policy has no card product enabled', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, {
+            ...createRandomPolicy(1),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCompanyCardsEnabled: false,
+            areExpensifyCardsEnabled: false,
+        });
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
+
+    it('includes the Reconciliation - All Expenses template when includeReconciliationAllExpenses is true without a policy', () => {
+        const {defaultTemplates} = getExportTemplates([], {}, translateForTemplates, localeCompare, undefined, true, false, false, true);
+
+        expect(defaultTemplates.map((template) => template.templateName)).toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
+
+    it('excludes the Reconciliation - All Expenses template when includeReconciliationAllExpenses is false for an admin policy', () => {
+        const {defaultTemplates} = getExportTemplates(
+            [],
+            {},
+            translateForTemplates,
+            localeCompare,
+            {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true},
+            true,
+            false,
+            false,
+            false,
+        );
+
+        expect(defaultTemplates.map((template) => template.templateName)).not.toContain(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
+    });
 });
 
 describe('getChatReportWithFallback', () => {
