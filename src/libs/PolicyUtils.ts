@@ -55,6 +55,7 @@ import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
+import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -1116,6 +1117,16 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
+ * Checks whether a policy max expense amount (e.g. `maxExpenseAmountNoReceipt`) is actually configured.
+ *
+ * `0` is a valid limit meaning "always required", so a falsy check would wrongly treat an explicit $0.00 as unset.
+ * Only `undefined` and `CONST.DISABLED_MAX_EXPENSE_VALUE` mean the amount is not set.
+ */
+function isMaxExpenseAmountSet(value: number | undefined): value is number {
+    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
+}
+
+/**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
 function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
@@ -1465,7 +1476,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1556,7 +1571,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -1596,6 +1611,16 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
  */
 function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
+ * Checks if the approval workflow configuration must stay hidden because the workspace's Dynamic External Workflow has
+ * "Hide People Table Columns" set. The backend only returns `dynamicExternalWorkflowHidePeople` when it is `true`, so an
+ * absent flag means "show". The approval mode is checked too, so a stale flag can't hide workflows on a policy that no
+ * longer uses a Dynamic External Workflow.
+ */
+function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boolean {
+    return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
 /**
@@ -1710,6 +1735,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) {
+        return policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -3154,6 +3182,7 @@ export {
     hasTags,
     hasCustomCategories,
     hasConfiguredRules,
+    isMaxExpenseAmountSet,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -3309,6 +3338,7 @@ export {
     getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
+    shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,

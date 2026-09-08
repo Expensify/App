@@ -458,6 +458,21 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
+ * Whether the query includes a positive `has:submitted-violation` filter.
+ * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
+ */
+function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
+    if (hasFilterGroups.length === 0) {
+        return false;
+    }
+
+    return hasFilterGroups.some((group) =>
+        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+    );
+}
+
+/**
  * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
  * guessing which workspace was meant.
  */
@@ -610,7 +625,7 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -2683,6 +2698,7 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasSubmittedViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};
