@@ -41,6 +41,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
