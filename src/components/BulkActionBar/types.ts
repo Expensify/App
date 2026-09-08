@@ -15,7 +15,7 @@ type BulkActionBarProps<TValueType> = {
     options: Array<DropdownOption<TValueType>>;
 
     /**
-     * Whether `selectedCount` is still being resolved — a "select all matching" selection only learns its real size
+     * Whether `selectedCount` is still being resolved. A "select all matching" selection only learns its real size
      * once the server reports it. The bar shows a spinner in place of the count while this is true, rather than a
      * number that is about to change.
      */

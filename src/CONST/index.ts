@@ -6508,7 +6508,7 @@ const CONST = {
 
         /**
          * The bar's height: a small (28px) button plus its 14px of padding above and below. The bar sizes itself from
-         * its contents, so this is only used to reserve the space it floats over — keep it in step with `bulkActionBar`.
+         * its contents, so this is only used to reserve the space it floats over. Keep it in step with `bulkActionBar`.
          */
         HEIGHT: 56,
 
@@ -6520,7 +6520,7 @@ const CONST = {
 
         /**
          * Spring the bar settles into place with. Overdamped, matching the canvas gestures, so it arrives quickly and
-         * without a bounce — the default spring wobbles noticeably over this short a travel.
+         * without a bounce. The default spring wobbles noticeably over this short a travel.
          */
         SLIDE_IN_SPRING: {mass: 1, stiffness: 1000, damping: 500},
     },

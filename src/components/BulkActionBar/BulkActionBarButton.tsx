@@ -19,7 +19,7 @@ import {defaultPopoverAnchorPosition, SUB_MENU_ANCHOR_ALIGNMENT} from './popover
 
 /**
  * A single action in the bulk action bar. An action that carries `subMenuItems` renders a dropdown caret and opens
- * those items in a menu above itself; every other action runs `onSelected` directly.
+ * those items in a menu above itself. Every other action runs `onSelected` directly.
  */
 function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkActionBarButtonProps<TValueType>) {
     const theme = useTheme();
@@ -38,7 +38,21 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
             return;
         }
 
-        calculatePopoverPosition(anchorRef, SUB_MENU_ANCHOR_ALIGNMENT).then(setAnchorPosition);
+        // The position is measured asynchronously, so a measurement still in flight when the menu is reopened would
+        // otherwise land after the newer one and place the menu against the button's previous position.
+        let ignore = false;
+
+        calculatePopoverPosition(anchorRef, SUB_MENU_ANCHOR_ALIGNMENT).then((position) => {
+            if (ignore) {
+                return;
+            }
+
+            setAnchorPosition(position);
+        });
+
+        return () => {
+            ignore = true;
+        };
     }, [isMenuVisible, calculatePopoverPosition]);
 
     return (

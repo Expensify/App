@@ -33,12 +33,12 @@ import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popove
 
 /**
  * The bar's contents. Everything here takes its colors from the theme it is rendered under, which `BulkActionBar`
- * inverts — so the surface, the buttons and the "More" menu all read as one layer without any of them being styled
+ * inverts, so the surface, the buttons and the "More" menu all read as one layer without any of them being styled
  * specially. Split out from `BulkActionBar` because these styles have to resolve from the inverted theme, while the
  * positioning layer around it belongs to the page's own.
  */
 type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>, 'style'> & {
-    /** How many actions to give a button of their own; the rest go behind "More". Decided by the fitting pass. */
+    /** How many actions to give a button of their own. The rest go behind "More". Decided by the fitting pass. */
     inlineActionCount: number;
 
     /** Reports the width the bar wants at this action count, so the fitting pass can tell whether it fits. */
@@ -65,8 +65,8 @@ function BulkActionBarContent<TValueType>({
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
     const [moreMenuAnchorPosition, setMoreMenuAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
-    // Only the highest-priority actions are given a button of their own; the rest stay reachable behind "More". How
-    // many that is comes from the bar's own fitting pass — see `BulkActionBar` below.
+    // Only the highest-priority actions are given a button of their own. The rest stay reachable behind "More". How
+    // many that is comes from the bar's own fitting pass. See `BulkActionBar` below.
     const hasMoreMenu = options.length > inlineActionCount;
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
@@ -80,7 +80,21 @@ function BulkActionBarContent<TValueType>({
             return;
         }
 
-        calculatePopoverPosition(moreAnchorRef, MORE_MENU_ANCHOR_ALIGNMENT).then(setMoreMenuAnchorPosition);
+        // The position is measured asynchronously, so a measurement still in flight when the menu is reopened would
+        // otherwise land after the newer one and place the menu against the bar's previous position.
+        let ignore = false;
+
+        calculatePopoverPosition(moreAnchorRef, MORE_MENU_ANCHOR_ALIGNMENT).then((position) => {
+            if (ignore) {
+                return;
+            }
+
+            setMoreMenuAnchorPosition(position);
+        });
+
+        return () => {
+            ignore = true;
+        };
     }, [isMoreMenuVisible, calculatePopoverPosition]);
 
     return (
@@ -166,7 +180,7 @@ function BulkActionBarContent<TValueType>({
 
 /**
  * A floating bar of bulk actions for the current selection. It floats over the bottom of the container it is rendered
- * in, so render it as the last child of the view the table fills — pass a `bottom` through `style` to clear anything
+ * in, so render it as the last child of the view the table fills. Pass a `bottom` through `style` to clear anything
  * else pinned to that container, such as a totals footer.
  *
  * The bar renders under the inverted theme so that it stands out against the table behind it. That also inverts its
@@ -188,7 +202,7 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     const [availableWidth, setAvailableWidth] = useState<number>();
 
     // The width the bar took at each action count it has been laid out at. The bar is sized by its contents, so a given
-    // count always comes out the same width whatever the container is doing — which makes these worth keeping. Once a
+    // count always comes out the same width whatever the container is doing, which makes these worth keeping. Once a
     // count has been measured, resizing picks the right one outright instead of laying the bar out to find it again.
     const [measuredWidths, setMeasuredWidths] = useState<Record<number, number>>({});
     const [fitKey, setFitKey] = useState<string>();
@@ -215,7 +229,7 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     }
 
     // Laying out a count for the first time is a guess that may not survive its own measurement, so it is kept hidden
-    // until it lands — otherwise a bar that turns out to be too wide is briefly on screen at that width. The exception
+    // until it lands. Otherwise a bar that turns out to be too wide is briefly on screen at that width. The exception
     // is the very first layout of all, which shows immediately: there is nothing on screen yet for a correction to
     // disturb, and waiting for a measurement there is what would make the bar late to appear.
     //

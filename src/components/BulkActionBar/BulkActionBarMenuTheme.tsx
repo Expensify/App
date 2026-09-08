@@ -7,7 +7,7 @@ import React from 'react';
 
 /**
  * Puts the app's own theme back for the menus that open off the bar, which would otherwise inherit the inverted theme
- * the bar itself renders under. The bar stays inverted so it stands out against the table; its menus read as the
+ * the bar itself renders under. The bar stays inverted so it stands out against the table. Its menus read as the
  * popovers they are everywhere else in the app.
  *
  * `useThemePreference` reads the preference rather than the surrounding context, so this reports the page's theme even
