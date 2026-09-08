@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, open expense from report preview, expense card, carousel navigation, previous and next expense, View button, single expense report preview]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -27,11 +27,25 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 - **+X more** link if there are over 10 expenses  
 - Action button: Submit, Approve, Pay, etc., depending on the role
 
+## How to open a single expense from a report preview
+
+1. In the **Inbox**, open the workspace chat that shows the report preview.
+2. Click or tap the expense card you want to review.
+3. The expense opens in the right-hand panel, with its report open behind it.
+4. Use the back arrow in the top-left corner of the right-hand panel to return to the report, then use it again to return to the workspace chat.
+
+If the report preview lists only one expense, clicking or tapping its card opens the **report** instead of the expense. **View** always opens the report, no matter how many expenses it contains.
+
+## How to move between expenses on a report
+
+Once an expense is open in the right-hand panel, use the previous and next arrows in the expense header to step through the expenses on that report. The arrows follow the order the report shows, and they reach every expense on the report — including expenses beyond the cards shown in the carousel. The previous arrow is disabled on the first expense and the next arrow is disabled on the last.
+
 ## Preview Behavior and Updates
 
   - Updates in **real time** as expenses are added.
   - If a report is deleted, the preview is removed.
   - Comments on a report create a **Comments** section within the preview, and the layout will adjust to include room for the discussion.
+  - If you delete an expense while offline, its card stays in the carousel until you reconnect. Clicking or tapping that card opens the **report**, and the deleted expense is skipped by the previous and next arrows.
 
 ---
 
@@ -200,6 +214,9 @@ Yes, smart suggestions also appear in the mobile Inbox and draft reports.
 
 ## When do report previews update?
 Previews update **in real time** as expenses are added or removed. Deleted reports are removed from the chat preview.
+
+## Why did clicking an expense card open the whole report?
+This happens in two cases: the report preview lists only one expense, or the expense you clicked was deleted while you were offline. In both cases the report opens instead of the expense.
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
