@@ -6137,6 +6137,8 @@ const translations = {
             },
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in Campfire and sync the connection again',
         },
         type: {
             free: 'Free',
