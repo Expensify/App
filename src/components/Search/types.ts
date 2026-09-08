@@ -190,7 +190,7 @@ type SearchQueryContextValue = {
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
     currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
-    currentDefaultSearchQueryFilterKeys: Set<QueryFilters[number]['key']>;
+    currentDefaultSearchQueryFilterKeys: Set<QueryFilterKey>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
 };
@@ -353,13 +353,14 @@ type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
+type QueryFilterKey = SyntaxFilterKey | ReportFieldTextKey;
 type QueryFilters = Array<{
-    key: SyntaxFilterKey | ReportFieldTextKey;
+    key: QueryFilterKey;
     filters: QueryFilter[];
 }>;
 
 type SearchFilterKey =
-    | QueryFilters[number]['key']
+    | QueryFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
@@ -511,6 +512,7 @@ export type {
     QueryFilter,
     Filter,
     QueryFilters,
+    QueryFilterKey,
     SyntaxFilterKey,
     RawQueryFilter,
     SearchFilterKey,
