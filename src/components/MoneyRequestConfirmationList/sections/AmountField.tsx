@@ -21,7 +21,6 @@ import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepC
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,22 +35,14 @@ import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
-    action: IOUAction;
     amount: number;
     formattedAmount: string;
-    distanceRateCurrency: string;
+    distanceRateCurrency?: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
-    didConfirm: boolean;
-    isReadOnly: boolean;
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
-    transactionID: string | undefined;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
@@ -60,29 +51,21 @@ type AmountFieldProps = {
 };
 
 function AmountField({
-    action,
     amount,
     formattedAmount,
-    distanceRateCurrency,
+    distanceRateCurrency = CONST.CURRENCY.USD,
     iouCurrencyCode,
     isDistanceRequest,
-    isNewManualExpenseFlowEnabled,
-    didConfirm,
-    isReadOnly,
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
     formError,
-    transactionID,
-    iouType,
-    reportID,
-    reportActionID,
     policy,
     clearFormErrors,
     setFormError,
     autoFocus = false,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

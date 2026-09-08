@@ -19,7 +19,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {search} from '@libs/actions/Search';
@@ -80,12 +79,11 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {keyboardActiveHeight} = useKeyboardState();
+    const {keyboardActiveHeight, isKeyboardActive} = useKeyboardState();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -213,6 +211,7 @@ function ReportSubmitToContent({
 
         const inviteOption = getUserToInviteOption({
             dateFnsLocale,
+            convertToDisplayString,
             searchValue: trimmed,
             personalDetails,
             loginList,
@@ -233,7 +232,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, convertToDisplayString]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
@@ -458,15 +457,10 @@ function ReportSubmitToContent({
         [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode, shouldUseNarrowLayout],
     );
 
-    const containerStyle = useMemo(() => {
-        // `FixedFooter` already pads 20px below the Confirm button, so no extra bottom padding is added here.
-        const baseStyle = [styles.w100, styles.flex1, styles.pt3];
-        if (isInLandscapeMode) {
-            return baseStyle;
-        }
-
-        return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
-    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pt3, styles.w100]);
+    // `flex1` fills the popover height owned by the wrapper `View` in `useReportSubmitToPopover`, so the recipient list
+    // scrolls inside a constant-size popover rather than resizing it on the empty state. No bottom padding here because
+    // `FixedFooter` already pads below the Confirm button.
+    const containerStyle = [styles.w100, styles.flex1, styles.pt3];
 
     if (shouldShowNotFoundView) {
         return (
@@ -491,7 +485,7 @@ function ReportSubmitToContent({
                 initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
-                addBottomSafeAreaPadding={!isInLandscapeMode}
+                addBottomSafeAreaPadding={!isInLandscapeMode && !isKeyboardActive}
             >
                 {errorContent}
             </SelectionList>

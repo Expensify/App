@@ -1,0 +1,82 @@
+import addTrailingForwardSlash from '@libs/UrlUtils';
+
+import variables from '@styles/variables';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+
+import Config from 'react-native-config';
+import * as KeyCommand from 'react-native-key-command';
+
+import type {ConstRuntime} from './runtimeDefaults';
+
+import CONST_RUNTIME_DEFAULTS from './runtimeDefaults';
+
+/**
+ * Web and native builds resolve their platform files to this implementation, which replaces the
+ * Bun-safe defaults with values from React Native Config, key commands, styles, Onyx, and screens.
+ */
+const CONST_RUNTIME: ConstRuntime = {
+    NEW_EXPENSIFY_URL: addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? CONST_RUNTIME_DEFAULTS.NEW_EXPENSIFY_URL),
+    KEY_COMMANDS: {
+        keyModifierControl: KeyCommand?.constants?.keyModifierControl ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyModifierControl,
+        keyModifierCommand: KeyCommand?.constants?.keyModifierCommand ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyModifierCommand,
+        keyModifierShift: KeyCommand?.constants?.keyModifierShift ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyModifierShift,
+        keyModifierShiftControl: KeyCommand?.constants?.keyModifierShiftControl ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyModifierShiftControl,
+        keyModifierShiftCommand: KeyCommand?.constants?.keyModifierShiftCommand ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyModifierShiftCommand,
+        keyInputEscape: KeyCommand?.constants?.keyInputEscape ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputEscape,
+        keyInputEnter: KeyCommand?.constants?.keyInputEnter ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputEnter,
+        keyInputUpArrow: KeyCommand?.constants?.keyInputUpArrow ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputUpArrow,
+        keyInputDownArrow: KeyCommand?.constants?.keyInputDownArrow ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputDownArrow,
+        keyInputLeftArrow: KeyCommand?.constants?.keyInputLeftArrow ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputLeftArrow,
+        keyInputRightArrow: KeyCommand?.constants?.keyInputRightArrow ?? CONST_RUNTIME_DEFAULTS.KEY_COMMANDS.keyInputRightArrow,
+    },
+    STYLE_VARIABLES: {
+        componentSizeNormal: variables.componentSizeNormal,
+        navigationTabBarSize: variables.navigationTabBarSize,
+        receiptPreviewMaxWidth: variables.receiptPreviewMaxWidth,
+    },
+    EXPENSIFY_ACCOUNT_IDS: {
+        ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.ACCOUNTING),
+        ACCOUNTS_PAYABLE: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTS_PAYABLE ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.ACCOUNTS_PAYABLE),
+        ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.ADMIN),
+        BILLS: Number(Config?.EXPENSIFY_ACCOUNT_ID_BILLS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.BILLS),
+        CHRONOS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CHRONOS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.CHRONOS),
+        CONCIERGE: Number(Config?.EXPENSIFY_ACCOUNT_ID_CONCIERGE ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.CONCIERGE),
+        CONTRIBUTORS: Number(Config?.EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.CONTRIBUTORS),
+        FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.FIRST_RESPONDER),
+        HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.HELP),
+        INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.INTEGRATION_TESTING_CREDS),
+        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.NOTIFICATIONS),
+        PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.PAYROLL),
+        QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.QA),
+        QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.QA_TRAVIS),
+        RECEIPTS: Number(Config?.EXPENSIFY_ACCOUNT_ID_RECEIPTS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.RECEIPTS),
+        REWARDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_REWARDS ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.REWARDS),
+        STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.STUDENT_AMBASSADOR),
+        SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.SVFG),
+        QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? CONST_RUNTIME_DEFAULTS.EXPENSIFY_ACCOUNT_IDS.QA_GUIDE),
+    },
+    SEARCH_SNAPSHOT_ONYX_KEYS: [
+        ONYXKEYS.COLLECTION.REPORT,
+        ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    ],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [
+        SCREENS.NOT_FOUND,
+        SCREENS.SAML_SIGN_IN,
+        SCREENS.VALIDATE_LOGIN,
+        SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.SUBMIT_PLAN_WELCOME_MODAL.DYNAMIC_ROOT,
+        SCREENS.AI_FEATURES_PROMO_MODAL.DYNAMIC_ROOT,
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN,
+        SCREENS.DOMAIN.MEMBERS_MOVE_TO_GROUP,
+        ...Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION),
+    ],
+};
+
+export default CONST_RUNTIME;

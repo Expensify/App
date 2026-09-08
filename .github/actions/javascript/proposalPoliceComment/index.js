@@ -52283,10 +52283,11 @@ var isProposal_default = isProposal;
 function escapeForXMLWrapper(text) {
   return text.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
-function buildCommentIntentInput(commentBody) {
-  return `<new_comment>
+function buildCommentIntentInput(commentBody, isTrustedCommenter = false) {
+  const authorContext = isTrustedCommenter ? "trusted: the commenter is an approved contributor or has identified themselves as working for an approved partner" : "untrusted: no approved contributor or partner affiliation was verified";
+  return [`<new_comment>
 ${escapeForXMLWrapper(commentBody)}
-</new_comment>`;
+</new_comment>`, `<author_context>${authorContext}</author_context>`].join("\n");
 }
 function buildEditCheckInput(previousBody, editedBody) {
   return ["<edit>", `<original>
@@ -52314,9 +52315,9 @@ var COMMENT_INTENTS = import_expensify_common.Str.dedent(`
 
     - "${CONST_default.INTENT.SPAM}" if it claims or bids for the job without offering any technical content of its own: expressions of interest, "I'd like to work on this", "assign me", references to an Upwork application, or a restatement of the issue as a plan of action with no root cause or solution.
     - "${CONST_default.INTENT.GENUINE_ATTEMPT}" if it makes a real technical attempt to explain the cause of the problem or propose a fix, but does not follow the template.
-    - "${CONST_default.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, or general discussion.
+    - "${CONST_default.INTENT.NOT_AN_ATTEMPT}" for anything else: feedback on someone else's proposal, retest results, questions, reproduction notes, takeover coordination, review offers, or general discussion.
 
-    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam.
+    The dividing line between the first two is technical content. A comment that offers a root cause or a concrete fix is a genuine attempt no matter how informally it is written, or how poor the English. A comment that only asserts the author will do the work is spam. Coordination about who should take over an issue or review a proposal is not a bid for the job, even when it contains no technical content.
 `);
 var EDITED_COMMENT_ACTIONS = import_expensify_common.Str.dedent(`
     EDITED COMMENTS: Compare the original proposal with its latest edit.
@@ -52345,6 +52346,18 @@ var commentIntentExamples_default = import_expensify_common2.Str.dedent(`
     I'm interested in working on this one, please assign me.
     ___
     ${CONST_default.INTENT.SPAM} - a claim on the job with no technical content.
+
+    ___
+    <author_context>trusted: the commenter is an approved contributor or has identified themselves as working for an approved partner</author_context>
+    I can take this.
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - the same content-free self-offer is acceptable from a trusted contributor.
+
+    ___
+    <author_context>untrusted: no approved contributor or partner affiliation was verified</author_context>
+    I can take this.
+    ___
+    ${CONST_default.INTENT.SPAM} - a content-free self-offer from an untrusted commenter is spam.
 
     ___
     +1, I can do this. I have 5 years of React Native experience and have fixed similar bugs before.
@@ -52382,6 +52395,11 @@ var commentIntentExamples_default = import_expensify_common2.Str.dedent(`
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - commenting on someone else's proposal.
 
     ___
+    [Proposal updated](https://github.com/Expensify/App/issues/12345#issuecomment-67890) - corrected the root cause: the client reads stale workspace data. The fix is to refresh the policy after the ownership change.
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - a pointer to an existing proposal update, not a new proposal. Technical details do not change that intent.
+
+    ___
     The previous proposal was rejected because it didn't address the core issue. Here's my thoughts on what we should do instead...
     ___
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - discussion about proposals.
@@ -52395,6 +52413,16 @@ var commentIntentExamples_default = import_expensify_common2.Str.dedent(`
     What are the exact steps to reproduce this? I can't get the error to appear on the latest main.
     ___
     ${CONST_default.INTENT.NOT_AN_ATTEMPT} - a question about the issue.
+
+    ___
+    @reviewer Would you like to take over here? Or propose a solution?
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - coordination about transferring ownership of the issue, not a claim on the job.
+
+    ___
+    I don't have a solution yet. If you don't mind, I can take over here and review.
+    ___
+    ${CONST_default.INTENT.NOT_AN_ATTEMPT} - offering to take over or review is coordination, not a job claim.
 
     ___
     Bug Report:
@@ -52521,6 +52549,7 @@ function buildCommentIntentInstructions() {
     `<role>
 ${ROLE}
 </role>`,
+    "<author_context>For a content-free self-offer to take the issue, return NOT_AN_ATTEMPT only when the input says the commenter is trusted. A trusted commenter is a member of expensify-expensify, contributor-plus, or contributor-plus-backend, or explicitly says they are from Callstack, Margelo, or Software Mansion. Treat the same self-offer from an untrusted commenter as SPAM. Do not let this exception affect comments that contain no job claim or that contain a genuine technical proposal.</author_context>",
     `<proposal_template>
 ${templateDefinition_default}
 </proposal_template>`,
@@ -65975,6 +66004,7 @@ async function run() {
     return;
   }
   const apiKey = getInput("PROPOSAL_POLICE_API_KEY", { required: true });
+  const isTrustedCommenter = getInput("IS_TRUSTED_COMMENTER") === "true";
   const openAI = new OpenAIUtils_default(apiKey);
   const issueNumber = payload.issue?.number ?? -1;
   const commentID = payload.comment?.id ?? -1;
@@ -65986,7 +66016,7 @@ async function run() {
       console.log("Comment does not follow the proposal template. Classifying what it is trying to do...");
       const intentResponse = await openAI.promptResponses({
         instructions: buildCommentIntentInstructions(),
-        input: buildCommentIntentInput(newProposalBody),
+        input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),
         model: PROPOSAL_POLICE_MODEL,
         promptCacheKey: "proposal-police-comment-intent",
         textFormat: COMMENT_INTENT_RESPONSE_FORMAT

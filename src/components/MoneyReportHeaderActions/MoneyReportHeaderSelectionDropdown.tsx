@@ -12,7 +12,6 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useExportActions from '@hooks/useExportActions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
@@ -96,7 +95,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {showConfirmModal} = useConfirmModal();
-    const {isProduction} = useEnvironment();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 
@@ -169,7 +167,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               policies: allPolicies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
-              isProduction,
               isOffline,
           })
         : [];
@@ -223,7 +220,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

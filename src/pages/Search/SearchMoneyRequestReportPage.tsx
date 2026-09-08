@@ -51,6 +51,7 @@ import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
@@ -128,6 +129,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
@@ -204,6 +206,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport({
                 introSelected,
+                conciergeChat,
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
@@ -214,7 +217,16 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID});
+        openReport({
+            reportID: reportIDFromRoute,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
@@ -230,7 +242,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         return () => {
             // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
+            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
         };
     }, [reportIDFromRoute]);
 
@@ -280,6 +292,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
         createTransactionThreadReport({
             introSelected,
+            conciergeChat,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -292,6 +307,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         allReportTransactions,
         allReportViolations,
         introSelected,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
         betas,
@@ -306,6 +323,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         snapshotViolations,
         transactionThreadReportID,
         visibleTransactions,
+        conciergeChat,
     ]);
 
     const shouldUseSnapshotTransaction = reportTransactions.length === 0 && !!snapshotTransaction;

@@ -103,6 +103,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
+    /** Whether the default (unfiltered) view resolves to zero visible rows even though data exists (e.g. a default `isItemInFilter` hides everything). */
+    isDefaultViewEmpty: boolean;
+
     /** Whether or not table selection is enabled on mobile */
     isMobileSelectionEnabled: boolean;
 
@@ -143,6 +146,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
         listDataRowOffset: 0,
     },
     isEmptyResult: false,
+    isDefaultViewEmpty: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };

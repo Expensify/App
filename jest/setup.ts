@@ -131,6 +131,9 @@ jest.mock('react-native-share', () => ({
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
+    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
+    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
+    dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
