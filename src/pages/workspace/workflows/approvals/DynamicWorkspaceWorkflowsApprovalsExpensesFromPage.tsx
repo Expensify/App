@@ -468,16 +468,17 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             return;
         }
 
+        // Snapshot the session before navigating. The deferred callback below runs after the screen transition,
+        // which runAfterPredictedTransition can stretch to ~2s, and this page's unmount cleanup has already
+        // discarded the draft by then. If the admin opens another workflow's "+N more" inside that window, a new
+        // draft is seeded and this save must leave it alone — but it still has to land, or the change the admin
+        // already confirmed is lost. So a superseded save writes the workflow and skips every APPROVAL_WORKFLOW
+        // write instead of being cancelled outright.
+        const sessionID = getApprovalWorkflowSessionID();
+
         Navigation.goBack(backPath, {compareParams: false});
 
         const originalMembers = approvalWorkflow.originalMembers ?? [];
-        // Snapshot the session before navigating. The callback below runs after the screen transition, which
-        // runAfterPredictedTransition can stretch to ~2s, and this page's unmount cleanup has already discarded the
-        // draft by then. If the admin opens another workflow's "+N more" inside that window, a new draft is seeded
-        // and this save must leave it alone — but it still has to land, or the change the admin already confirmed
-        // is lost. So a superseded save writes the workflow and skips every APPROVAL_WORKFLOW write instead of
-        // being cancelled outright.
-        const sessionID = getApprovalWorkflowSessionID();
         // Wait for the transition so the save doesn't blank this page's list while it is still sliding away.
         runAfterPredictedTransition(() => {
             const isSupersededByNewerSession = getApprovalWorkflowSessionID() !== sessionID;

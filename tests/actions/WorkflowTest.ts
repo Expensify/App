@@ -281,8 +281,11 @@ describe('actions/Workflow', () => {
             expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(false);
             await waitForBatchedUpdates();
 
+            // Asserted key by key rather than with an object literal, whose `approver-1` property name would
+            // trip @typescript-eslint/naming-convention.
             const approvalWorkflow = await getApprovalWorkflowState();
-            expect(approvalWorkflow?.errors).toEqual({'approver-1': 'common.error.fieldRequired'});
+            expect(Object.keys(approvalWorkflow?.errors ?? {})).toEqual(['approver-1']);
+            expect(approvalWorkflow?.errors?.['approver-1']).toBe('common.error.fieldRequired');
         });
 
         it('should clear a previous run of errors once the workflow validates', async () => {
@@ -905,6 +908,53 @@ describe('actions/Workflow', () => {
             // Then approvalMode should be BASIC because no forwardsTo chain remains
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should leave the draft alone when the caller opts out of clearing it', async () => {
+            mockFetch.pause();
+
+            // A deferred fast-edit save opts out once a newer session has seeded a draft, so the optimistic data
+            // must not null APPROVAL_WORKFLOW out from under the screen that is editing it. The default (clearing)
+            // is covered by the surrounding tests.
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email}],
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [{email: employee2Email, displayName: employee2Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            // Stands in for the draft a newer edit session has already seeded.
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow as ApprovalWorkflowOnyx);
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflow(approvalWorkflow, [], [], policy, false);
+            await waitForBatchedUpdates();
+
+            const draft = await getApprovalWorkflowState();
+            expect(draft?.members).toEqual(approvalWorkflow.members);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
