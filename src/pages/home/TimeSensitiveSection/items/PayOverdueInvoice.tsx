@@ -20,7 +20,7 @@ type PayOverdueInvoiceProps = {
 
 function PayOverdueInvoice({gracePeriodEndUnixSeconds}: PayOverdueInvoiceProps) {
     const {translate, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Bill']);
+    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
 
     // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
     const dueDate = DateUtils.formatWithUTCTimeZone(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
@@ -32,7 +32,7 @@ function PayOverdueInvoice({gracePeriodEndUnixSeconds}: PayOverdueInvoiceProps) 
 
     return (
         <BaseWidgetItem
-            icon={icons.Bill}
+            icon={icons.InvoiceGeneric}
             title={translate('homePage.timeSensitiveSection.payOverdueInvoice.title', {date: dueDate})}
             ctaText={translate('homePage.timeSensitiveSection.payOverdueInvoice.cta')}
             onCtaPress={handleReviewPress}
