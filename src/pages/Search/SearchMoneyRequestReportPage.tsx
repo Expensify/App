@@ -294,6 +294,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         createTransactionThreadReport({
             introSelected,
             conciergeChat,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -306,6 +308,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         allReportTransactions,
         allReportViolations,
         introSelected,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
         betas,
