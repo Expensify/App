@@ -167,7 +167,7 @@ function BaseReportActionContextMenu({
     ]);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
@@ -426,6 +426,7 @@ function BaseReportActionContextMenu({
                                 translate,
                                 dateFnsLocale,
                                 convertToDisplayString,
+                                convertToDisplayStringWithoutCurrency,
                                 formatPhoneNumber,
                                 harvestReport,
                                 harvestReportOriginalID,
