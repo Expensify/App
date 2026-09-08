@@ -102,7 +102,6 @@ function AuthScreensInitHandler() {
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const reportAttributesRef = useRef(reportAttributes);
     reportAttributesRef.current = reportAttributes;
-    const formatPhoneNumberRef = useRef(formatPhoneNumber);
 
     useReconcileHighContrastIntent();
     useAIFeaturesPromoModal(session);
@@ -117,10 +116,6 @@ function AuthScreensInitHandler() {
     }, [topmostOneTransactionThreadReportID]);
 
     useEffect(() => {
-        formatPhoneNumberRef.current = formatPhoneNumber;
-    }, [formatPhoneNumber]);
-
-    useEffect(() => {
         registerPusherReinitializeHandler(({accountID, email}: PusherReinitializeHandlerParams = {}) => {
             const currentAccountID = accountID ?? session?.accountID;
             const currentEmail = email ?? session?.email ?? '';
@@ -133,7 +128,7 @@ function AuthScreensInitHandler() {
                 currentAccountID,
                 currentEmail,
                 () => topmostOneTransactionThreadReportIDRef.current,
-                formatPhoneNumberRef.current,
+                formatPhoneNumber,
                 () => reportAttributesRef.current,
             );
         });
@@ -141,6 +136,7 @@ function AuthScreensInitHandler() {
         return () => {
             registerPusherReinitializeHandler(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
     useEffect(() => {
