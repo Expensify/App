@@ -4,6 +4,8 @@
         "types": ["bun"],
         "lib": ["ESNext"]
     },
-    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals"],
+    // oxlint-migration is named file by file, not as a directory: port-probe/fixtures holds code that is
+    // deliberately invalid, which is the point of a fixture.
+    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals", "oxlint-migration/applyLintProcessors.ts"],
     "exclude": ["**/node_modules/*", "**/dist/*", "server/victory-chart-renderer/**"]
 }

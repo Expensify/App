@@ -52,7 +52,6 @@ LEDGER = {
     'rulesdir/boolean-conditional-rendering': (ACCEPTED, 'needs the type of the && left operand, and no syntactic stand-in exists'),
     '@typescript-eslint/no-deprecated': (ACCEPTED, 'off for the 83 files in the write-site override. tsgolint reports writes to deprecated properties that typescript-eslint misses (typescript-eslint#10643), and no option separates reads from writes'),
     'no-invalid-this': (ACCEPTED, 'oxlint\'s plugin bridge throws on sourceCode.getJSDocComment, so the rule cannot run there. TS files are largely covered by noImplicitThis'),
-    'eslint-seatbelt/configure': (ACCEPTED, 'pseudo-rule driven by an ESLint processor, not a rule oxlint could run. Dies with the seatbelt counterpart, step 11'),
     'progress/activate': (ACCEPTED, 'progress-bar plugin; oxlint prints its own progress. No behavior to preserve'),
     'react-hooks/config': (ACCEPTED, 'not a compiler-category rule and not ported. Left behind when the rh/ sidecar was deleted'),
     'react-hooks/gating': (ACCEPTED, 'same'),

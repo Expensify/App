@@ -40,9 +40,14 @@ TS_EXTENSION_RULES = {
 
 PORT_PLAN = {
     'eslint-seatbelt/configure': {
-        'mechanism': 'none - debt-tracker pseudo-rule driven by an ESLint processor',
-        'effort': 'blocker', 'proven': False,
-        'notes': 'obstacle #1; needs an oxlint-native baseline or a custom differ over oxlint JSON',
+        'mechanism': 'resolved upstream - the pseudo-rule no longer exists',
+        'effort': 'none', 'proven': True,
+        'notes': 'was obstacle #1: a debt-tracker pseudo-rule contributed by the eslint-seatbelt plugin, which only '
+                 'ESLint could run. Expensify/App#99259 replaced the dependency with scripts/lint/processors/Seatbelt.ts, '
+                 'a pipeline stage over the normalized LintMessage[] that scripts/lint/types.ts defines. Nothing in it '
+                 'reads an ESLint type, so the baseline follows whichever Linter implementation the pipeline is given. '
+                 'The rule id is dead: eslint-seatbelt is gone from package.json and no seatbelt rule appears in the '
+                 'resolved ESLint config. Kept as the record of how the blocker went away',
     },
     'progress/activate': {
         'mechanism': 'drop - oxlint prints its own progress',

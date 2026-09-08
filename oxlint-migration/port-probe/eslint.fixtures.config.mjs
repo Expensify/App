@@ -19,6 +19,7 @@ const reactNativeA11y = fromRepo('node_modules/eslint-plugin-react-native-a11y')
 const noInlineUseOnyxSelector = fromRepo('node_modules/eslint-config-expensify/eslint-plugin-expensify/no-inline-useOnyx-selector.js');
 // require() of an ESM module returns its namespace, which here is {name, meta, create}.
 const requireLocaleForLocalizedDateFormat = fromRepo('eslint-plugin-local-rules/require-locale-for-localized-date-format.js');
+const noRawTypography = fromRepo('eslint-plugin-local-rules/no-raw-typography.js');
 // The same nested copy oxlint loads, so both tools run one plugin instance.
 const reactHooks = fromRepo('node_modules/eslint-config-expensify/node_modules/eslint-plugin-react-hooks');
 
@@ -40,7 +41,13 @@ export default [
             'testing-library': plugin(testingLibrary),
             'you-dont-need-lodash-underscore': plugin(lodashUnderscore),
             'react-native-a11y': plugin(reactNativeA11y),
-            rulesdir: {rules: {'no-inline-useOnyx-selector': noInlineUseOnyxSelector, 'require-locale-for-localized-date-format': requireLocaleForLocalizedDateFormat}},
+            rulesdir: {
+                rules: {
+                    'no-inline-useOnyx-selector': noInlineUseOnyxSelector,
+                    'require-locale-for-localized-date-format': requireLocaleForLocalizedDateFormat,
+                    'no-raw-typography': noRawTypography,
+                },
+            },
         },
         // The extra object form {property: 'exact', exact: true} is not in the repo config: with only
         // the repo's plain strings, react/prefer-exact-props stays inert on both tools.
@@ -62,6 +69,7 @@ export default [
                 {selector: ['parameter', 'method'], format: ['camelCase', 'PascalCase'], leadingUnderscore: 'allow'},
             ],
             'rulesdir/no-inline-useOnyx-selector': 'error',
+            'rulesdir/no-raw-typography': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'no-restricted-syntax': [
                 'error',

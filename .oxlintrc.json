@@ -445,6 +445,7 @@
         "rulesdir/no-multiple-onyx-in-file": "error",
         "rulesdir/no-negated-variables": "error",
         "rulesdir/no-onyx-connect": "error",
+        "rulesdir/no-raw-typography": "error",
         "rulesdir/no-set-or-map-return-in-useOnyx-selector": "error",
         "rulesdir/no-thenable-actions-in-views": "error",
         "rulesdir/no-unstable-hook-defaults": "error",
@@ -2007,6 +2008,21 @@
             "rules": {
                 "rulesdir/no-object-keys-includes": "error",
                 "rulesdir/prefer-locale-compare-from-context": "error"
+            }
+        },
+        {
+            // The typography token files are where raw font sizes and line heights are defined.
+            "files": ["src/styles/typography.ts", "src/styles/variables.ts"],
+            "rules": {
+                "rulesdir/no-raw-typography": "off"
+            }
+        },
+        {
+            // The styles layer composes tokens out of `variables`, so it reads them by name. Raw numeric literals stay banned.
+            "files": ["src/styles/**"],
+            "excludeFiles": ["src/styles/typography.ts", "src/styles/variables.ts"],
+            "rules": {
+                "rulesdir/no-raw-typography": ["error", {"allowVariablesReferences": true}]
             }
         },
         {

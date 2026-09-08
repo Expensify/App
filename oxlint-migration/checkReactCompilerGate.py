@@ -1,11 +1,16 @@
-"""Does oxlint's React Compiler gate behave like ESLint's processor?
+"""Does oxlint's React Compiler gate suppress what the ESLint side suppresses?
 
     python3 oxlint-migration/checkReactCompilerGate.py
 
-Two rules are suppressed wholesale in files both React compilers memoize. ESLint does it in a
-processor (oxlint-migration/rule-tester/eslint-processor-react-compiler-compat.mjs); oxlint has no
-processor, so config/oxlint/reactCompilerGate.mjs does it by wrapping `context.report` inside the
-JS plugin. This checks the two agree, on both answers.
+Two rules are suppressed wholesale in files both React compilers memoize. On the ESLint side that is
+a pipeline stage, `scripts/lint/processors/ReactCompilerFilter.ts`, which runs over ESLint's output
+rather than inside it; oxlint has no processor concept, so config/oxlint/reactCompilerGate.mjs does
+it by wrapping `context.report` inside the JS plugin. This checks the two agree, on both answers.
+
+Because the suppression is no longer wired into the ESLint config, `npx eslint` alone reports the
+findings the repo's gate does not. The ESLint side here therefore pipes its report through
+oxlint-migration/applyLintProcessors.ts, which applies the production stage. Comparing against raw
+ESLint would fail on the memoized variant no matter what oxlint does.
 
 The per-rule fixtures in oxlint-migration/port-probe cannot check this. They deliberately opt out of
 memoization with 'use no memo', because their job is "does the rule run at all" and a gate that
@@ -88,10 +93,14 @@ def eslint_findings(paths):
         capture_output=True, text=True, cwd=ROOT,
         env={**os.environ, 'NODE_OPTIONS': '--max-old-space-size=8192'},
     )
+    filtered = subprocess.run(
+        ['bun', os.path.join('oxlint-migration', 'applyLintProcessors.ts')],
+        input=out.stdout, capture_output=True, text=True, cwd=ROOT,
+    )
     try:
-        report = json.loads(out.stdout)
+        report = json.loads(filtered.stdout)
     except json.JSONDecodeError:
-        sys.exit(f'eslint run failed:\n{out.stdout[:600]}{out.stderr[:600]}')
+        sys.exit(f'eslint run failed:\n{out.stdout[:600]}{out.stderr[:600]}{filtered.stderr[:600]}')
     return {(os.path.relpath(f['filePath'], ROOT), m.get('ruleId')) for f in report for m in f['messages']}
 
 
@@ -127,7 +136,7 @@ def main():
         for failure in failures:
             print(f'   {failure}')
         sys.exit(1)
-    print('The gate matches ESLint\'s processor: silent where both compilers memoize, live where they do not.')
+    print('The gate matches the ESLint side: silent where both compilers memoize, live where they do not.')
 
 
 if __name__ == '__main__':

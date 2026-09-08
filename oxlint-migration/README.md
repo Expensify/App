@@ -7,6 +7,21 @@ script in here runs both linters and compares them, so none of it has a job once
 linter left. Nothing in the app, in CI's production lint gate, or in `.oxlintrc.json` depends on this
 directory. Deleting it is a `git rm -r` plus removing the `oxlint-*` scripts from `package.json`.
 
+One thing to know before reading any of it: "what ESLint reports" is no longer `npx eslint`. The
+React Compiler suppression and the `@typescript-eslint/no-deprecated` stratification used to be
+ESLint processors wired into `config/eslint/eslint.config.mjs`; they are now stages in
+`scripts/lint/`, which runs them over ESLint's output rather than inside it. Scripts whose rule of
+interest one of those stages filters pipe their report through `applyLintProcessors.ts`, which
+applies the production stages rather than reimplementing them. The rest read raw ESLint and say so
+at the call site.
+
+The same move retired this migration's first blocker. The seatbelt baseline used to be a pseudo-rule
+contributed by the `eslint-seatbelt` plugin, which only ESLint could run, so switching to Oxlint
+needed a baseline mechanism built from scratch. Expensify/App#99259 dropped the dependency for
+`scripts/lint/processors/Seatbelt.ts`, a stage over the normalized `LintMessage[]` in
+`scripts/lint/types.ts`. It reads no ESLint type, and `scripts/lint/Linter.ts` is already a port with
+`ESLintLinter` as one implementation, so the baseline follows whichever linter the pipeline is handed.
+
 What is *not* here, on purpose:
 
 | lives in | what |
@@ -36,7 +51,8 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `port-probe/` | one fixture per rule that deliberately violates it, so a rule with no findings in this repo is still proven to run | `npm run oxlint-rule-fixtures` |
 | `rule-tester/` | harvests the upstream `RuleTester` cases for the custom rules and replays them as real files through both tools | `npm run oxlint-rule-tester` |
 | `checkSidecarCoverage.py` | fails if any hand-hosted sidecar rule has no fixture, replayed case or probe | `npm run oxlint-sidecar-coverage` |
-| `checkReactCompilerGate.py` | asserts the gate suppresses exactly what the ESLint processor suppresses | `npm run oxlint-react-compiler-gate` |
+| `checkReactCompilerGate.py` | asserts the gate suppresses exactly what the ESLint side suppresses | `npm run oxlint-react-compiler-gate` |
+| `applyLintProcessors.ts` | filter, not a check: applies the repo's lint processors to an ESLint JSON report so the ESLint side of a comparison means what the repo's gate reports | piped into the scripts above |
 | `checkLocaleComparePort.py` | asserts the type-free rule rewrite matches the type-aware original, receiver shape by receiver shape | `npm run oxlint-locale-compare-port` |
 | `checkJsxUsesPort.py` | the two rules that cannot report anything, asserted by outcome instead | `npm run oxlint-jsx-uses-port` |
 | `listAllRules.py` | inventory of every rule either tool enables, and why anything is off | `npm run oxlint-rule-inventory`, `npm run oxlint-rule-availability` |

@@ -82,15 +82,20 @@ elif [[ "$DIRTY_SPEC" != "0" ]]; then
     done <<<"$CHANGED"
 fi
 
-# Match scripts/lint.ts exactly: a different flag set is a different cache, and the prime is wasted.
+# Match the flags scripts/lint/eslint/ESLintLinter.ts spawns ESLint with: a flag that changes which
+# rules run is a different cache, and the prime is wasted. Notably no `--quiet` -- the pipeline
+# deliberately does not pass it (ESLintLinter.ts:111-118), because warnings have to reach the
+# formatter for seatbelt to demote grandfathered errors into them first. `--format` is left off as
+# the one intentional difference: it changes nothing ESLint computes, and the prime log stays
+# readable.
 # Concurrency and heap default to what the CI job sets (.github/workflows/lint.yml:83-84) rather than
-# what scripts/lint.ts defaults to, both because CI is what this reproduces and because
+# what the runner defaults to, both because CI is what this reproduces and because
 # `--concurrency=auto` gives every core its own worker at ~12 GB of type-aware program each, which
 # the OS kills long before the run finishes. compareFullRepo.sh hit the same wall.
 export ESLINT_CONCURRENCY="${ESLINT_CONCURRENCY:-2}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max_old_space_size=14336}"
 export SEATBELT_FROZEN="${SEATBELT_FROZEN:-0}"
-ESLINT_FLAGS=(--cache --cache-location="$CACHE" --cache-strategy content --quiet
+ESLINT_FLAGS=(--cache --cache-location="$CACHE" --cache-strategy content
     "--concurrency=$ESLINT_CONCURRENCY" --no-warn-ignored)
 
 STAMP_VALUE=$(printf '%s\n' ${DIRTY_FILES[@]+"${DIRTY_FILES[@]}"} | shasum | cut -d' ' -f1)
@@ -129,10 +134,11 @@ for ((i = 1; i <= RUNS; i++)); do
     WARM_TIMES+=("$SECONDS")
 done
 
-# `--quiet` mirrors the flag scripts/lint.ts passes ESLint. It is a no-op while every oxlint finding
-# here is an error, and becomes the matching flag if the seatbelt counterpart lands as a downgrade to
-# warning. Set OXLINT_SILENT=1 to drop diagnostic output entirely, which is what the check costs once
-# the findings are baselined rather than printed 4498 at a time.
+# `--quiet` matches how the ESLint side ends up reporting: the pipeline's formatter drops warnings
+# unless --show-warnings is passed. It is a no-op while every oxlint finding here is an error, and
+# becomes the matching flag if the seatbelt counterpart lands as a downgrade to warning. Set
+# OXLINT_SILENT=1 to drop diagnostic output entirely, which is what the check costs once the findings
+# are baselined rather than printed 4498 at a time.
 OXLINT_FLAGS=(--type-aware --quiet)
 if [[ -n "${OXLINT_SILENT:-}" ]]; then
     OXLINT_FLAGS+=(--silent)

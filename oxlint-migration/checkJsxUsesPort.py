@@ -66,6 +66,8 @@ def unused_var_lines_oxlint(extra_arguments):
 
 
 def unused_var_lines_eslint(extra_arguments):
+    # Raw ESLint, not the pipeline: no-unused-vars is not filtered by any pipeline stage, and this needs
+    # `--rule` passthrough anyway. See the same note in checkLocaleComparePort.py.
     out = subprocess.run(
         ['npx', 'eslint', '--no-warn-ignored', '--format', 'json', *extra_arguments, os.path.relpath(PROBE_PATH, ROOT)],
         capture_output=True, text=True, cwd=ROOT,

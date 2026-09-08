@@ -278,5 +278,11 @@
         "oxlintRule": "hosted/no-invalid-html-attribute",
         "expected": 1,
         "why": "WIRED 2026-08-11; no native oxlint port"
+    },
+    "rulesdir/no-raw-typography": {
+        "fixture": "fixtures/rawTypography.ts",
+        "oxlintRule": "rulesdir/no-raw-typography",
+        "expected": 1,
+        "why": "WIRED 2026-09-08; ESLint enabled it and .oxlintrc.json did not, which no findings comparison could surface on its own. The rule needs no type information, so the production rulesdir sidecar loads it unchanged"
     }
 }
