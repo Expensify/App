@@ -70,28 +70,19 @@ type MoneyRequestOptions = Record<
 
 type AttachmentPickerWithMenuItemsProps = {
     report: OnyxEntry<OnyxTypes.Report>;
-
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
-
     onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
     isComposerFullSize: boolean;
-
     disabled?: boolean;
-
     setMenuVisibility: (isVisible: boolean) => void;
-
     isMenuVisible: boolean;
-
     reportID: string;
-
     onTriggerAttachmentPicker: () => void;
-
     onCanceledAttachmentPicker?: () => void;
-
     onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */

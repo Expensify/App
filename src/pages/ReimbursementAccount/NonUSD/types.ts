@@ -3,7 +3,6 @@ type NonUSDPageProps = {
     onSubmit: () => void;
 
     onBackButtonPress: () => void;
-
     policyID?: string;
 
     /** Currency of Business Bank Account */
@@ -13,7 +12,6 @@ type NonUSDPageProps = {
     stepNames?: readonly string[];
 
     currentSubPage?: string;
-
     isComingFromExpensifyCard?: boolean;
 
     /** Optional route name to navigate back to after flow completion - will be removed after https://github.com/Expensify/App/issues/73825 is done */

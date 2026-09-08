@@ -54,7 +54,6 @@ type PopoverMenuItem = MenuItemProps & {
     badgeText?: string;
 
     onSelected?: () => void;
-
     subMenuItems?: PopoverMenuItem[];
 
     /** Header text to be displayed when this item's sub menu is opened */
@@ -72,7 +71,6 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCallAfterModalHide?: boolean;
 
     shouldCloseAllModals?: boolean;
-
     pendingAction?: PendingAction;
 
     rightIcon?: IconAsset;

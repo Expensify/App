@@ -84,7 +84,6 @@ type ReanimatedModalProps = ViewProps &
         hasBackdrop?: boolean;
 
         backdropColor?: string;
-
         backdropOpacity?: number;
 
         /** Duration of backdrop transition when modal appears */
@@ -94,9 +93,7 @@ type ReanimatedModalProps = ViewProps &
         backdropTransitionOutTiming?: number;
 
         customBackdrop?: ReactNode;
-
         hideModalContentWhileAnimating?: boolean;
-
         isVisible?: boolean;
 
         /** Callback when modal has fully appeared */
@@ -123,9 +120,7 @@ type ReanimatedModalProps = ViewProps &
         supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
 
         navigationBarTranslucent?: boolean;
-
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-
         shouldPreventScrollOnFocus?: boolean;
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
@@ -156,18 +151,14 @@ type BackdropProps = {
     style: StyleProp<ViewStyle>;
 
     customBackdrop?: ReactNode;
-
     onBackdropPress?: () => void;
-
     animationInDelay?: number;
-
     animationInTiming?: number;
 
     /** Timing of animation on exit */
     animationOutTiming?: number;
 
     backdropOpacity?: number;
-
     isBackdropVisible: boolean;
 };
 

@@ -23,7 +23,6 @@ type YesNoStepProps = {
     defaultValue: boolean;
 
     onSelectedValue: (value: boolean) => void;
-
     submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Whether the submit button should be flex enabled, allowing it to grow and fill available space */

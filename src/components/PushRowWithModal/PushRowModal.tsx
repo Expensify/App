@@ -18,18 +18,14 @@ import React, {useMemo} from 'react';
 
 type PushRowModalProps = {
     isVisible: boolean;
-
     selectedOption: string;
-
     onOptionChange: (option: string) => void;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
     optionsList: Record<string, string>;
-
     headerTitle: string;
-
     searchInputTitle?: string;
 };
 

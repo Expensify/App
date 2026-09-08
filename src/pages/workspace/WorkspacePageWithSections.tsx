@@ -41,7 +41,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
-
         headerText: string;
 
         /** Main content of the page */
@@ -83,7 +82,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         icon?: IconAsset;
 
         headerContent?: ReactNode;
-
         testID?: string;
 
         /** Whether the page is loading, example any other API call in progress */

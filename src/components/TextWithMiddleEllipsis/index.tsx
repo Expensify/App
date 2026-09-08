@@ -11,9 +11,7 @@ import {View} from 'react-native';
 
 type TextWithMiddleEllipsisProps = {
     text: string;
-
     style?: StyleProp<ViewStyle>;
-
     textStyle?: StyleProp<TextStyle>;
 };
 

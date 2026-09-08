@@ -39,7 +39,6 @@ type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, value
  */
 type FilteringMethods<FilterKey extends string = string> = {
     updateFilter: (params: {key: FilterKey; value: string[]}) => void;
-
     getActiveFilters: () => Record<FilterKey, string[]>;
 };
 

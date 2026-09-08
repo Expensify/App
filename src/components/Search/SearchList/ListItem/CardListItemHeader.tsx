@@ -27,7 +27,6 @@ import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     card: TransactionCardGroupListItemType;
-
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */

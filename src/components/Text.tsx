@@ -36,13 +36,9 @@ type TextProps = RNTextProps &
         fontSize?: number;
 
         textAlign?: TextStyle['textAlign'];
-
         children: React.ReactNode;
-
         family?: keyof FontUtilsType['fontFamily']['platform'];
-
         shouldUseDefaultLineHeight?: boolean;
-
         ref?: ForwardedRef<RNText>;
     };
 

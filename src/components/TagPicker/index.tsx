@@ -38,7 +38,6 @@ type TagPickerProps = {
     tagListName: string;
 
     onSubmit: (selectedTag: Partial<OptionData>) => void;
-
     shouldShowDisabledAndSelectedOption?: boolean;
 
     /** Whether the list should be sorted by tag name. default is false */

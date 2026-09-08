@@ -21,7 +21,6 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
     renderSuggestionMenuItem: (item: TSuggestion, index: number) => ReactElement;
 
     keyExtractor: (item: TSuggestion, index: number) => string;
-
     highlightedSuggestionIndex: number;
 
     /** Fired when the user selects a suggestion */

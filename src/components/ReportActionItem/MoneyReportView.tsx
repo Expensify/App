@@ -65,9 +65,7 @@ type MoneyReportViewProps = {
     isCombinedReport?: boolean;
 
     shouldShowTotal?: boolean;
-
     shouldHideThreadDividerLine: boolean;
-
     pendingAction?: PendingAction;
 
     /** Whether we should display the animated banner above the component */

@@ -328,7 +328,6 @@ type ParticipantInfo = {
 
 type OpenReportActionParams = {
     reportID: string | undefined;
-
     introSelected: OnyxEntry<IntroSelected>;
 
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
@@ -365,7 +364,6 @@ type OpenReportActionParams = {
     optimisticSelfDMReport?: Report;
 
     currentUserLogin?: string;
-
     currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
@@ -2386,9 +2384,7 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 
 type CreateTransactionThreadReportParams = {
     introSelected: OnyxEntry<IntroSelected>;
-
     currentUserLogin: string;
-
     currentUserAccountID: number;
 
     /** Beta features list */

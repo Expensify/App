@@ -21,7 +21,6 @@ import {View} from 'react-native';
 
 type ConfirmWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
-
     reportID: string | undefined;
 
     /** ID of the original report from which the given reportAction is first created */

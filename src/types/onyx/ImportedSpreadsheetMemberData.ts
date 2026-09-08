@@ -1,7 +1,6 @@
 /** Model of imported spreadsheet member data */
 type ImportedSpreadsheetMemberData = {
     email: string;
-
     role: string;
 
     /** The email of the member who approves this member's expenses */

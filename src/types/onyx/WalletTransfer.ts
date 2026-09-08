@@ -8,18 +8,14 @@ import type PaymentMethod from './PaymentMethod';
 /** Model of user wallet transfer */
 type WalletTransfer = {
     selectedAccountID?: string | number;
-
     selectedAccountType?: string;
-
     filterPaymentMethodType?: FilterMethodPaymentType;
-
     shouldShowSuccess?: boolean;
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
     loading?: boolean;
-
     paymentMethodType?: ValueOf<Pick<PaymentMethod, 'accountType'>>;
 };
 

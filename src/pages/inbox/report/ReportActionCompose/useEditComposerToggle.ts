@@ -14,7 +14,6 @@ import updateNativeTextInputValue from './updateNativeTextInputValue';
 
 type UseEditComposerToggleProps = {
     selection: TextSelection;
-
     composerRef: RefObject<ComposerRef | null>;
 
     /** Handle changing the selection of the composer */

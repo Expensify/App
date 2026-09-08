@@ -34,7 +34,6 @@ import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
-
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */

@@ -13,11 +13,8 @@ import {View} from 'react-native';
 
 type RangeDatePickerProps = {
     fromValue?: string;
-
     toValue?: string;
-
     onFromSelected: (date: string) => void;
-
     onToSelected: (date: string) => void;
 
     /** Force vertical stacking of calendars */

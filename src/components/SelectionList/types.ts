@@ -17,29 +17,17 @@ import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} fr
  */
 type BaseSelectionListProps<TItem extends ListItem> = {
     ListItem: ValidListItem;
-
     initiallyFocusedItemKey?: string;
-
     onSelectRow: (item: TItem) => void;
-
     canSelectMultiple?: boolean;
-
     footerContent?: React.ReactNode;
-
     listFooterContent?: React.JSX.Element | null | undefined;
-
     shouldShowLoadingPlaceholder?: boolean;
-
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
-
     shouldShowTooltips?: boolean;
-
     customListHeaderContent?: React.JSX.Element | null;
-
     onSelectionButtonPress?: (item: TItem) => void;
-
     onDismissError?: (item: TItem) => void;
-
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to single execution onRowSelect to avoid double clicks on mobile app */
@@ -52,15 +40,10 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     searchValueForFocusSync?: string;
 
     shouldShowTextInput?: boolean;
-
     isLoadingNewOptions?: boolean;
-
     listEmptyContent?: React.JSX.Element | null | undefined;
-
     shouldShowListEmptyContent?: boolean;
-
     addBottomSafeAreaPadding?: boolean;
-
     style?: SelectionListStyle;
 
     /** Whether to debounce scrolling on focused item change */
@@ -103,7 +86,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     shouldClearInputOnSelect?: boolean;
 
     shouldDisableHoverStyle?: boolean;
-
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 
     /** Which side of the row to render the selection button on */
@@ -120,7 +102,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
     BaseSelectionListProps<TItem> & {
         data: TItem[];
-
         ref?: React.Ref<SelectionListHandle<TItem>>;
 
         /** Called when "Select All" button is pressed */
@@ -140,7 +121,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         selectedItems?: readonly string[];
 
         isSelected?: (item: TItem) => boolean;
-
         isDisabled?: boolean;
 
         /** Whether the layout is narrow */
@@ -174,20 +154,15 @@ type SelectionListStyle = {
     listFooterContentStyle?: StyleProp<ViewStyle>;
 
     containerStyle?: StyleProp<ViewStyle>;
-
     listItemTitleStyles?: StyleProp<TextStyle>;
-
     listItemWrapperStyle?: StyleProp<ViewStyle>;
-
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the default "Select all" label in the list header (merged after textStrong) */
     listHeaderSelectAllTextStyle?: StyleProp<TextStyle>;
 
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
-
     listItemErrorRowStyles?: StyleProp<ViewStyle>;
-
     sectionTitleStyles?: StyleProp<TextStyle>;
 };
 
@@ -196,7 +171,6 @@ type TextInputOptions = {
     onChangeText?: (text: string) => void;
 
     label?: string;
-
     value?: string;
 
     /** Hint text to display below */
@@ -265,7 +239,6 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
 type SelectionListHandle<TItem extends ListItem> = {
     scrollAndHighlightItem: (items: string[]) => void;
-
     scrollToIndex: (index: number) => void;
 
     /** Updates the focused index and optionally scrolls to it */
@@ -279,9 +252,7 @@ type SelectionListHandle<TItem extends ListItem> = {
 
 type DataDetailsType<TItem extends ListItem> = {
     data: TItem[];
-
     selectedOptions: TItem[];
-
     allSelected: boolean;
 
     /** Whether some (but not all) selectable items are selected */

@@ -4,11 +4,8 @@ type PlaidBankAccount = {
     accountNumber: string;
 
     addressName?: string;
-
     isSavings?: boolean;
-
     plaidAccountID: string;
-
     routingNumber: string;
 
     /** Last 4 digits of the account number */

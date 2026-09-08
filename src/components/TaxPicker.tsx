@@ -26,15 +26,10 @@ type TaxPickerProps = {
     selectedTaxRate?: string;
 
     policyID?: string;
-
     transactionID?: string;
-
     onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
-
     action?: IOUAction;
-
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
     onDismiss: () => void;
 
     /**

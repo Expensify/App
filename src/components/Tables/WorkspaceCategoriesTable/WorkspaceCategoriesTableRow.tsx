@@ -21,9 +21,7 @@ import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
     item: WorkspaceCategoryTableRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */

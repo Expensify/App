@@ -21,7 +21,6 @@ type WorkspacePerDiemTableRowProps = {
     item: PerDiemTableRowData;
 
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

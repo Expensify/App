@@ -6,9 +6,7 @@ type LocationPermissionModalProps = {
     onDeny: (wasUserInitiated: boolean) => void;
 
     startPermissionFlow: boolean;
-
     resetPermissionFlow: () => void;
-
     onInitialGetLocationCompleted?: () => void;
 };
 

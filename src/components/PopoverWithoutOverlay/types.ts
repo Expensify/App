@@ -21,7 +21,6 @@ type PopoverWithoutOverlayProps = ChildrenProps &
         animationInTiming?: number;
 
         disableAnimation?: boolean;
-
         withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
 
         /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */

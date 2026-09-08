@@ -110,9 +110,7 @@ type MoneyRequestReceiptViewProps = {
     mergeTransactionID?: string;
 
     fillSpace?: boolean;
-
     isDisplayedInWideRHP?: boolean;
-
     hasParentPendingAction?: boolean;
 };
 

@@ -24,11 +24,8 @@ import Text from './Text';
 
 type ConfirmationPageProps = {
     illustration?: DotLottieAnimation | IconAsset;
-
     heading: string;
-
     description?: React.ReactNode;
-
     descriptionComponent?: React.ReactNode;
 
     /** The text for the call to action */
@@ -56,25 +53,20 @@ type ConfirmationPageProps = {
     secondaryButtonText?: string;
 
     onSecondaryButtonPress?: () => void;
-
     shouldShowSecondaryButton?: boolean;
-
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
     illustrationStyle?: StyleProp<ViewStyle>;
 
     descriptionStyle?: StyleProp<TextStyle>;
-
     ctaStyle?: TextStyle;
-
     footerStyle?: ViewStyle;
 
     /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
     footerComponent?: React.ReactNode;
 
     containerStyle?: ViewStyle;
-
     innerContainerStyle?: ViewStyle;
 };
 

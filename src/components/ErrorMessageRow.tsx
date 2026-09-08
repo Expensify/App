@@ -11,9 +11,7 @@ import MessagesRow from './MessagesRow';
 
 type ErrorMessageRowProps = {
     errors?: OnyxCommon.Errors | ReceiptErrors | OnyxCommon.TranslationKeyErrors | null;
-
     errorRowStyles?: StyleProp<ViewStyle>;
-
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** If passed, an X button next to the error will be shown and which triggers this callback */

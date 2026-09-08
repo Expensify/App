@@ -82,7 +82,6 @@ type BasePickerProps<TPickerValue> = {
     onInputChange?: (value: TPickerValue, index?: number) => void;
 
     size?: PickerSize;
-
     icon?: (size: PickerSize) => ReactElement;
 
     /** Whether we should forward the focus/blur calls to the inner picker * */

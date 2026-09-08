@@ -15,7 +15,6 @@ type AnchorForCommentsOnlyProps = ChildrenProps & {
     target?: string;
 
     style: StyleProp<TextStyle>;
-
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Press handler for the link, when not passed, default href is used to create a link like behaviour */

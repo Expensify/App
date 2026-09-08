@@ -99,25 +99,15 @@ type Split = {
     accountID?: number;
 
     chatReportID?: string;
-
     iouReportID?: string;
-
     reportActionID?: string;
-
     transactionID?: string;
-
     policyID?: string;
-
     createdChatReportActionID?: string;
-
     createdIOUReportActionID?: string;
-
     reportPreviewReportActionID?: string;
-
     transactionThreadReportID?: string;
-
     createdReportActionIDForThread?: string;
-
     taxAmount?: number;
 };
 

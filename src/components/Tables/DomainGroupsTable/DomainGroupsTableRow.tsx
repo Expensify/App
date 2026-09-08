@@ -35,9 +35,7 @@ type DomainGroupRowData = TableData & {
 
 type DomainGroupsTableRowProps = {
     item: DomainGroupRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

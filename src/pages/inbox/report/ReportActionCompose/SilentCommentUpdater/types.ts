@@ -5,7 +5,6 @@ type SilentCommentUpdaterProps = {
     reportID: string;
 
     value: string;
-
     commentRef: React.RefObject<string>;
 
     /** The ref to check whether the comment saving is in progress */

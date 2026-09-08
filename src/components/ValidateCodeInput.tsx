@@ -71,9 +71,7 @@ type ValidateCodeInputProps = {
     name?: string;
 
     value?: string;
-
     autoFocus?: boolean;
-
     errorText?: string;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
@@ -102,9 +100,7 @@ type ValidateCodeInputProps = {
     lastPressedDigit?: string;
 
     testID?: string;
-
     accessibilityLabel?: string;
-
     ref?: ForwardedRef<ValidateCodeInputHandle>;
 
     /** Whether to mask the input characters (display as dots) */

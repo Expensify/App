@@ -51,7 +51,6 @@ type MapViewProps = {
     onMapReady?: () => void;
 
     interactive?: boolean;
-
     distanceInMeters?: number;
 
     /** Unit of measurement for distance */
@@ -68,11 +67,8 @@ type MapViewProps = {
 
 type CompassProps = {
     interactive: boolean;
-
     shouldDisplayCompass: boolean;
-
     mapHeading: SharedValue<number>;
-
     cameraRef: RefObject<Camera | null>;
 };
 
@@ -145,7 +141,6 @@ type DirectionsProps = {
     alternateDirection?: AlternateDirection;
 
     setIsAlternateDirectionSelected?: (isAlternateDirectionSelected: boolean) => void;
-
     distanceInMeters?: number;
 
     /** Unit of measurement for distance */

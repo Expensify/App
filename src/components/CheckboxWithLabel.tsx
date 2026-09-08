@@ -57,7 +57,6 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     shouldSaveDraft?: boolean;
 
     accessibilityLabel?: string;
-
     ref?: ForwardedRef<View>;
 };
 

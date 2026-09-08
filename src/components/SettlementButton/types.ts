@@ -53,9 +53,7 @@ type SettlementButtonProps = WithSentryLabel & {
     policyID: string | undefined;
 
     style?: StyleProp<ViewStyle>;
-
     wrapperStyle?: StyleProp<ViewStyle>;
-
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Total money amount in form <currency><amount> */
@@ -89,7 +87,6 @@ type SettlementButtonProps = WithSentryLabel & {
     useKeyboardShortcuts?: boolean;
 
     onlyShowPayElsewhere?: boolean;
-
     shouldUseShortForm?: boolean;
 
     /** Whether we the report has only held expenses */

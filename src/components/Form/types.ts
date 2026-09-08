@@ -144,7 +144,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         formID: TFormID;
 
         submitButtonText: string;
-
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Controls the submit button's visibility */

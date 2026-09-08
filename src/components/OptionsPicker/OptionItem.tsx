@@ -30,7 +30,6 @@ type OptionItemProps = {
     isSelected?: boolean;
 
     isDisabled?: boolean;
-
     style?: StyleProp<ViewStyle>;
 };
 

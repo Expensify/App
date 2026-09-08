@@ -92,9 +92,7 @@ type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsRef = ComposerRef & {
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
-
     replaceSelectionWithText: OnEmojiSelected;
-
     getCurrentText: () => string;
 
     /**
@@ -109,9 +107,7 @@ type ComposerWithSuggestionsRef = ComposerRef & {
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
         reportID: string;
-
         onFocus: () => void;
-
         onBlur: (event: BlurEvent) => void;
 
         /** Callback when layout of composer changes */
@@ -124,13 +120,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         onClear?: (text: string) => void;
 
         isComposerFullSize: boolean;
-
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
         isMenuVisible: boolean;
-
         inputPlaceholder: string;
-
         onPasteFile: (file: FileObject | FileObject[]) => void;
 
         /** Whether the input is disabled, defaults to false */
@@ -140,21 +132,13 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         onEnterKeyPress: () => void;
 
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
-
         raiseIsScrollLikelyLayoutTriggered: () => void;
-
         suggestionsRef: React.RefObject<SuggestionsRef | null>;
-
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
         includeChronos?: boolean;
-
         isGroupPolicyReport: boolean;
-
         policyID?: string;
-
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 

@@ -8,7 +8,6 @@ type AnchorForAttachmentsOnlyProps = {
     displayName?: string;
 
     style?: StyleProp<ViewStyle>;
-
     isDeleted?: boolean;
 };
 

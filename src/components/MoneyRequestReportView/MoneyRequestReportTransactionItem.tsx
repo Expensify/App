@@ -62,15 +62,10 @@ type MoneyRequestReportTransactionItemProps = {
     handleLongPress: (transactionID: string) => void;
 
     isSelected: boolean;
-
     dateColumnSize: TableColumnSize;
-
     postedColumnSize: TableColumnSize;
-
     amountColumnSize: TableColumnSize;
-
     taxAmountColumnSize: TableColumnSize;
-
     columns: SearchColumnType[];
 
     /** Callback function that navigates to the transaction thread */
@@ -80,9 +75,7 @@ type MoneyRequestReportTransactionItemProps = {
     shouldBeHighlighted: boolean;
 
     nonPersonalAndWorkspaceCards: CardList;
-
     isLastItem?: boolean;
-
     shouldScrollHorizontally?: boolean;
 
     /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows

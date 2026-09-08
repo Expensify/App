@@ -42,7 +42,6 @@ type CardDetailsProps = {
     onUpdateAddressPress?: () => void;
 
     limitType?: CardLimitType;
-
     cardHintText?: string;
 };
 

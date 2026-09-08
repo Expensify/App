@@ -113,9 +113,7 @@ type ReportActionItemProps = {
     chatReport: OnyxEntry<OnyxTypes.Report>;
 
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
     parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
-
     action: OnyxTypes.ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -141,9 +139,7 @@ type ReportActionItemProps = {
     isThreadReportParentAction?: boolean;
 
     shouldUseThreadDividerLine?: boolean;
-
     shouldDisplayContextMenu?: boolean;
-
     linkedTransactionRouteError?: Errors;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */

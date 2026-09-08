@@ -20,7 +20,6 @@ type RoomVisibility = ValueOf<typeof CONST.REPORT.VISIBILITY>;
 /** Model of report private note */
 type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
     note: string;
-
     errors?: OnyxCommon.Errors;
 }>;
 
@@ -40,12 +39,10 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type InvoiceReceiver =
     | {
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-
           accountID: number;
       }
     | {
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
-
           policyID: string;
       };
 
@@ -58,7 +55,6 @@ type Participants = Record<number, Participant>;
 /** Report next step */
 type ReportNextStep = {
     messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
-
     icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 
     /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
@@ -144,36 +140,28 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMentionedTime?: string | null;
 
         policyAvatar?: string | null;
-
         policyName?: string | null;
 
         /** The policy name to use for an archived report */
         oldPolicyName?: string;
 
         hasParentAccess?: boolean;
-
         description?: string;
-
         isDeletedParentAction?: boolean;
 
         /** Linked policy's ID */
         policyID?: string;
 
         reportName?: string;
-
         reportID: string;
-
         chatReportID?: string;
-
         stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
-
         statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
         /** Which user role is capable of posting messages on the report */
         writeCapability?: WriteCapability;
 
         type?: string;
-
         visibility?: RoomVisibility;
 
         /** Invoice room receiver data */
@@ -183,7 +171,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionCount?: number;
 
         parentReportID?: string;
-
         parentReportActionID?: string;
 
         /** Account ID of the report manager */
@@ -198,7 +185,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActorAccountID?: number;
 
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
         ownerAccountID?: number;
 
         /** Collection of report participants, indexed by their accountID */
@@ -229,18 +215,14 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
-
         isCancelledIOU?: boolean;
-
         hasReportBeenRetracted?: boolean;
-
         hasReportBeenReopened?: boolean;
 
         /** Whether the report has been exported to integration */
         isExportedToIntegration?: boolean;
 
         hasExportError?: boolean;
-
         iouReportID?: string;
 
         /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
@@ -273,7 +255,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         welcomeMessage?: string;
-
         nextStep?: ReportNextStep;
     },
     'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName' | 'export'

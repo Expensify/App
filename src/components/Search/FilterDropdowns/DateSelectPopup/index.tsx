@@ -29,13 +29,9 @@ type DateSelectPopupProps = {
     label?: string;
 
     value: SearchDateValues;
-
     presets?: SearchDatePreset[];
-
     style?: StyleProp<ViewStyle>;
-
     onChange: (value: SearchDateValues) => void;
-
     closeOverlay: () => void;
 
     /** Function to set the popover width dynamically */

@@ -14,7 +14,6 @@ import {View} from 'react-native';
 
 type ShowPreviousMessagesButtonProps = {
     reportID: string;
-
     actionType: ReportAction['actionName'];
 
     /** Whether there are previous messages hidden before the session start */

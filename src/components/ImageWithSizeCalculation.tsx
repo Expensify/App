@@ -25,9 +25,7 @@ type OnLoadNativeEvent = {
 
 type ImageWithSizeCalculationProps = {
     url: string | ImageSourcePropType;
-
     altText?: string;
-
     style?: StyleProp<ViewStyle>;
 
     /** Callback fired when the image has been measured. */
@@ -39,9 +37,7 @@ type ImageWithSizeCalculationProps = {
     isAuthTokenRequired: boolean;
 
     objectPosition?: ImageObjectPosition;
-
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Callback to be called when the image loads */

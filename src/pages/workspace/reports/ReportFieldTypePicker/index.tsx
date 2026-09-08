@@ -12,17 +12,13 @@ import React from 'react';
 
 type ReportFieldItemType = {
     value: PolicyReportFieldType;
-
     text: string;
-
     keyForList: string;
-
     isSelected: boolean;
 };
 
 type ReportFieldTypePickerProps = {
     defaultValue?: PolicyReportFieldType;
-
     onOptionSelected: (reportField: ReportFieldItemType) => void;
 };
 

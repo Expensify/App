@@ -12,22 +12,16 @@ type PersonalCardFeedProvider = typeof CONST.PERSONAL_CARDS.BANK_NAME.AMEX_DIREC
 /** Data required to be sent to add a new card */
 type AddNewPersonalCardFeedData = {
     feedType: PersonalCardFeedProvider;
-
     cardTitle: string;
-
     selectedBank: ValueOf<typeof CONST.PERSONAL_CARDS.BANKS> | null;
-
     bankName?: string;
-
     selectedCountry?: string;
 
     /** Public token from Plaid connection */
     publicToken?: string;
 
     plaidConnectedFeed?: string;
-
     plaidConnectedFeedName?: string;
-
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 

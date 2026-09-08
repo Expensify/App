@@ -21,9 +21,7 @@ import type {ReportParticipantRowData} from '.';
 
 type ReportParticipantsTableRowProps = {
     item: ReportParticipantRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

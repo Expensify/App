@@ -17,7 +17,6 @@ import {View} from 'react-native';
 type EmptyCardViewProps = {
     isBankAccountVerified: boolean;
     policyID?: string;
-
     buttons: EmptyStateButton[] | undefined;
 };
 

@@ -134,15 +134,10 @@ type LegendItemEntry = {
     color?: Color;
 
     fontSize?: number;
-
     fontWeight?: 'normal' | 'bold';
-
     fontFamily?: string;
-
     fontStyle?: string;
-
     symbolColor?: Color;
-
     symbolSize?: number;
 };
 

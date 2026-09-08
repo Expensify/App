@@ -24,16 +24,13 @@ import FilterPopupButton from './FilterPopupButton';
 type DropdownButtonProps = WithSentryLabel &
     Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
         label: string;
-
         value: string | string[] | null;
 
         /** Whether to use medium size button instead of small */
         medium?: boolean;
 
         innerStyles?: StyleProp<ViewStyle>;
-
         labelStyle?: StyleProp<TextStyle>;
-
         caretWrapperStyle?: StyleProp<ViewStyle>;
         onClosePress?: () => void;
     };

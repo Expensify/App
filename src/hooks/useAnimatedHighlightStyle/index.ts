@@ -17,7 +17,6 @@ type Props = {
     itemEnterDelay?: number;
 
     itemEnterDuration?: number;
-
     highlightStartDelay?: number;
 
     /** Duration in which the item gets fully highlighted */

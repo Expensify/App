@@ -37,14 +37,10 @@ type ButtonComponentProps = {
 
 type FilterPopupButtonProps = {
     viewportOffsetTop: number;
-
     wrapperStyle?: StyleProp<ViewStyle>;
-
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
-
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
-
     renderButton: (props: ButtonComponentProps) => ReactNode;
 };
 

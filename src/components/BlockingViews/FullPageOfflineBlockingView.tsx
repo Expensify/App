@@ -11,7 +11,6 @@ import BlockingView from './BlockingView';
 
 type FullPageOfflineBlockingViewProps = ChildrenProps & {
     addBottomSafeAreaPadding?: boolean;
-
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 

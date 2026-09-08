@@ -14,7 +14,6 @@ type SettingsFieldsProps = {
     selectedParticipants: Participant[];
 
     shouldShowBillable: boolean;
-
     shouldShowReimbursable: boolean;
 
     /** Toggle callbacks for billable/reimbursable */

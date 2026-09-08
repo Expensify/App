@@ -26,11 +26,8 @@ type UploadFileProps = {
     buttonText: string;
 
     uploadedFiles: FileObject[];
-
     onUpload: (files: FileObject[]) => void;
-
     onRemove: (fileUri: string) => void;
-
     acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */

@@ -5,18 +5,14 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 type ImageSVGProps = {
     src: IconAsset | undefined;
-
     width?: number | `${number}%` | 'auto';
-
     height?: number | `${number}%` | 'auto';
 
     /** The fill color for the image. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill?: string;
 
     hovered?: boolean;
-
     pressed?: boolean;
-
     style?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Determines how the image should be resized to fit its container */

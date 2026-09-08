@@ -67,7 +67,6 @@ type AttachmentModalBaseContentProps = {
     report?: OnyxEntry<OnyxTypes.Report>;
 
     reportID?: string;
-
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
@@ -82,24 +81,17 @@ type AttachmentModalBaseContentProps = {
     maybeIcon?: boolean;
 
     shouldShowNotFoundPage?: boolean;
-
     shouldShowCarousel?: boolean;
-
     shouldShowDownloadButton?: boolean;
-
     shouldShowRotateButton?: boolean;
-
     onRotateButtonPress?: () => void;
 
     /** Whether we should show a loading indicator replacing the rotate button */
     isRotating?: boolean;
 
     shouldDisableSendButton?: boolean;
-
     shouldDisplayHelpButton?: boolean;
-
     shouldMinimizeMenuButton?: boolean;
-
     attachmentLink?: string;
 
     /** Ref to the submit button */

@@ -5,9 +5,7 @@ import type {ValidateCodeReason} from '@src/types/onyx/VerifyValidateCodeAction'
 
 type ValidateCodeActionContentProps = {
     title: string;
-
     descriptionPrimary: string;
-
     descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */

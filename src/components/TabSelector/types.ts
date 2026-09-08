@@ -11,7 +11,6 @@ import type {Animated, StyleProp, View, ViewStyle} from 'react-native';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     onTabPress?: (name: string) => void;
-
     onLongTabPress?: (key: string) => void;
 
     /** Callback to register focus trap container element */
@@ -65,13 +64,9 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
 
 type TabSelectorBaseProps<K extends string = string> = {
     tabs: Array<TabSelectorBaseItem<K>>;
-
     activeTabKey: K | undefined;
-
     onTabPress?: (key: K) => void;
-
     onLongTabPress?: (key: K) => void;
-
     onActiveTabPress?: (key: K) => void;
 
     /** Animated position from a navigator (optional). */
@@ -112,7 +107,6 @@ type TabSelectorItemProps = WithSentryLabel & {
     isActive?: boolean;
 
     shouldShowLabelWhenInactive?: boolean;
-
     testID?: string;
 
     /** Whether tabs should have equal width */
@@ -141,7 +135,6 @@ type TabSelectorItemProps = WithSentryLabel & {
 
 type AnimationConfigBase = {
     routesLength: number;
-
     tabIndex: number;
 
     /**
@@ -150,7 +143,6 @@ type AnimationConfigBase = {
     affectedTabs: number[];
 
     position: Animated.AnimatedInterpolation<number> | undefined;
-
     isActive: boolean;
 };
 

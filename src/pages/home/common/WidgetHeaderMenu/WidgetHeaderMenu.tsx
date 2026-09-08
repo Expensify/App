@@ -19,7 +19,6 @@ type WidgetHeaderMenuProps = {
     menuItems: PopoverMenuItem[];
 
     testID?: string;
-
     sentryLabel?: string;
 };
 

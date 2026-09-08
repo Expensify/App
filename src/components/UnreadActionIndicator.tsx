@@ -10,7 +10,6 @@ import Text from './Text';
 
 type UnreadActionIndicatorProps = {
     reportActionID: string | undefined;
-
     shouldHideThreadDividerLine?: boolean;
 };
 

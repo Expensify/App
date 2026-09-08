@@ -45,17 +45,13 @@ type SharedTooltipProps = {
     shouldUseOverlay?: boolean;
 
     shouldTeleportPortalToModalLayer?: boolean;
-
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
     computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
     isVisible: boolean;
-
     showTooltip: () => void;
-
     hideTooltip: () => void;
 
     /** Update the tooltip's target bounding rectangle */

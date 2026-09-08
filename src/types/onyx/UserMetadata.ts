@@ -1,11 +1,8 @@
 /** Model of user metadata */
 type UserMetadata = {
     planType?: string;
-
     role?: string;
-
     freeTrial?: boolean;
-
     accountID?: number;
 
     /** User email so we can filter out certain accounts */
@@ -18,7 +15,6 @@ type UserMetadata = {
     tryNewDotDismissed?: 'empty' | boolean;
 
     freeTrialStartDate?: string;
-
     freeTrialEndDate?: string;
 
     /** Information if the user is a paid member in any policy they're part of */

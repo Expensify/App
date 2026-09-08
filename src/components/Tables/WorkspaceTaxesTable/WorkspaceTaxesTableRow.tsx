@@ -37,7 +37,6 @@ type WorkspaceTaxesTableRowProps = {
     item: WorkspaceTaxTableRowData;
 
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

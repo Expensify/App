@@ -21,7 +21,6 @@ import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
     policyErrorStatus: IndicatorStatus | undefined;
-
     policyInfoStatus: IndicatorStatus | undefined;
 
     /** The domain error indicator status. */

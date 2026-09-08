@@ -14,7 +14,6 @@ import Text from './Text';
 
 type DelegatorListProps = {
     delegators?: string[];
-
     message: string;
 };
 

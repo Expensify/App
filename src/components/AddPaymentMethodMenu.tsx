@@ -28,9 +28,7 @@ import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuProps = {
     isVisible: boolean;
-
     onClose: () => void;
-
     onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */

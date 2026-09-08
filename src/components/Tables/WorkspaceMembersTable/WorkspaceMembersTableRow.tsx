@@ -21,9 +21,7 @@ import type {WorkspaceMemberRowData} from '.';
 
 type WorkspaceMembersTableRowProps = {
     item: WorkspaceMemberRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the custom field 1 column is visible on web screens or not */

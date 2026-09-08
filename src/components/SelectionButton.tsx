@@ -49,7 +49,6 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         caretSize?: number;
 
         accessibilityLabel: string;
-
         accessibilityHint?: string;
 
         /** stop propagation of the mouse down event */
@@ -64,7 +63,6 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         testID?: string;
 
         ref?: ForwardedRef<View>;
-
         tabIndex?: 0 | -1;
 
         /** Whether the button is accessible to screen readers */

@@ -19,16 +19,13 @@ type MoneyRequestReportTotalSpendProps = {
     report: OnyxTypes.Report;
 
     hasComments?: boolean;
-
     isLoadingReportActions?: boolean;
 
     /** Whether the report has any transactions */
     isEmptyTransactions: boolean;
 
     totalDisplaySpend: number;
-
     hasPendingAction: boolean;
-
     textContainerStyle?: StyleProp<ViewStyle>;
 };
 

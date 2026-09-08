@@ -28,7 +28,6 @@ type UnitPosition = 'left' | 'right';
 
 type ChartProps = {
     data: ChartDataPoint[];
-
     isLoading?: boolean;
 };
 

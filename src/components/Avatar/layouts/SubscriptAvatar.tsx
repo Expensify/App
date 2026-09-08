@@ -23,7 +23,6 @@ type SubscriptAvatarProps = BaseAvatarProps & {
     secondaryAvatar?: IconType;
 
     subscriptAvatarBorderColor?: ColorValue;
-
     containerStyle?: StyleProp<ViewStyle>;
 };
 

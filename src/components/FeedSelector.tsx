@@ -15,11 +15,8 @@ import Text from './Text';
 
 type Props = {
     onFeedSelect: () => void;
-
     CardFeedIcon: React.ReactNode;
-
     feedName?: string;
-
     supportingText?: string;
 
     /** Whether the RBR indicator should be shown */

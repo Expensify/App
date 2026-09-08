@@ -48,9 +48,7 @@ type PossibleFraudData = {
 /** Model of Expensify card */
 type Card = OnyxValueWithOfflineFeedback<{
     cardID: number;
-
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
-
     bank: CardFeedWithNumber;
 
     /** Available amount to spend */
@@ -77,13 +75,9 @@ type Card = OnyxValueWithOfflineFeedback<{
     lastFourPAN?: string;
 
     pin?: string;
-
     cardNumber?: string;
-
     encryptedCardNumber?: string;
-
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-
     cardName?: string;
 
     /** Related policy account id */
@@ -99,7 +93,6 @@ type Card = OnyxValueWithOfflineFeedback<{
     reimbursable?: boolean;
 
     lastScrapeResult?: number;
-
     lastImportAttempt?: string;
 
     /** Card related error messages */
@@ -153,15 +146,10 @@ type Card = OnyxValueWithOfflineFeedback<{
         currency?: string;
 
         isVirtual?: boolean;
-
         isTravelCard?: boolean;
-
         previousState?: number;
-
         expirationDate?: string;
-
         statusChanges?: CardStatusChanges[];
-
         terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
 
         /** Card's primary account identifier */
@@ -203,7 +191,6 @@ type Card = OnyxValueWithOfflineFeedback<{
 /** Model of card just added to a wallet */
 type ProvisioningCardData = {
     cardToken: string;
-
     displayName: string;
 
     /** Last 4 digits of the card */
@@ -301,7 +288,6 @@ type IssueNewCardData = {
     invitingMemberEmail: string;
 
     invitingMemberAccountID: number;
-
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
@@ -311,7 +297,6 @@ type IssueNewCardData = {
     limit: number;
 
     cardTitle: string;
-
     currency: string;
 
     /** Optional start date for card validity (YYYY-MM-DD) */
@@ -401,7 +386,6 @@ type CardAssignmentData = {
     customCardName?: string;
 
     cardholder?: PersonalDetails | null;
-
     errors?: Errors;
 
     /**

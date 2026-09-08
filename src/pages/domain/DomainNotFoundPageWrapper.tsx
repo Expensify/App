@@ -17,7 +17,6 @@ import React, {useEffect} from 'react';
 
 type DomainNotFoundPageWrapperProps = {
     domainAccountID: number;
-
     children: React.ReactNode;
 
     /** Props for customizing fallback pages */

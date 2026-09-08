@@ -78,7 +78,6 @@ type ParticipantSearchResultsProps = {
     action: IOUAction;
 
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
-
     isWorkspacesOnly: boolean;
 
     /** Whether this is a per diem expense request */

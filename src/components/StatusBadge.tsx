@@ -12,11 +12,8 @@ import Tooltip from './Tooltip';
 
 type StatusBadgeProps = {
     text: string;
-
     backgroundColor?: ColorValue;
-
     textColor?: ColorValue;
-
     badgeStyles?: StyleProp<ViewStyle>;
 
     /** Text to display in a tooltip shown on hover of the badge. The tooltip is omitted when empty. */

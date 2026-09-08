@@ -19,11 +19,8 @@ import type {DomainMemberRowData} from '.';
 
 type DomainMembersTableRowProps = {
     item: DomainMemberRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
-
     shouldShowGroupColumn: boolean;
 };
 

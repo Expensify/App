@@ -122,9 +122,7 @@ type ButtonProps = Partial<ChildrenProps> &
         textHoverStyles?: StyleProp<TextStyle>;
 
         primaryTextNumberOfLines?: number;
-
         shouldUseDefaultHover?: boolean;
-
         hoverStyles?: StyleProp<ViewStyle>;
 
         /** Whether we should use the success theme color */
@@ -143,7 +141,6 @@ type ButtonProps = Partial<ChildrenProps> &
         shouldRemoveLeftBorderRadius?: boolean;
 
         shouldEnableHapticFeedback?: boolean;
-
         isLongPressDisabled?: boolean;
 
         /** Id to use for this button */

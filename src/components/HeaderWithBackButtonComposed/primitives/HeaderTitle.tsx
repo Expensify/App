@@ -17,7 +17,6 @@ type HeaderTitleProps = {
     subtitle?: ReactNode;
 
     titleColor?: string;
-
     titleStyles?: StyleProp<TextStyle>;
 
     /** Data to display a step counter in the header. When set, it replaces the subtitle. */

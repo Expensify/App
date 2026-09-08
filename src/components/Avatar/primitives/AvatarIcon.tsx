@@ -15,9 +15,7 @@ import {View} from 'react-native';
 
 type AvatarIconProps = AvatarPrimitivesCommonProps & {
     avatarSource: IconAsset;
-
     fallbackAvatarTestID: string;
-
     iconContainerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Fill and background colors for the icon, or null to use the defaults. */

@@ -3,9 +3,7 @@ type ReactionListProps = {
     onClose?: () => void;
 
     emojiCodes: string[];
-
     emojiName: string;
-
     emojiCount: number;
 };
 

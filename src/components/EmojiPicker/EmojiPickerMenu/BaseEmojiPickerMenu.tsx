@@ -32,17 +32,11 @@ type BaseEmojiPickerMenuProps = {
     selectedHeaderIndex?: number | null;
 
     listWrapperStyle?: StyleProp<ViewStyle>;
-
     data: EmojiPickerList;
-
     renderItem: ListRenderItem<EmojiPickerListItem>;
-
     extraData?: Array<EmojiPickerList | OnyxEntry<string | number> | ((skinTone: number) => void)>;
-
     stickyHeaderIndices?: number[];
-
     alwaysBounceVertical?: boolean;
-
     onMomentumScrollEnd?: () => void;
 
     /** The current search input value, used for accessibility re-announcements */

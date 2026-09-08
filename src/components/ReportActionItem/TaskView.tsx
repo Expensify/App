@@ -49,9 +49,7 @@ import {View} from 'react-native';
 
 type TaskViewProps = {
     report: OnyxEntry<Report>;
-
     parentReport: OnyxEntry<Report>;
-
     action: OnyxEntry<ReportAction>;
 };
 

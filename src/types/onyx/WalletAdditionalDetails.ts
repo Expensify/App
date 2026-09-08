@@ -14,7 +14,6 @@ type WalletAdditionalQuestionDetails = {
 /** Model of wallet personal details */
 type WalletPersonalDetails = {
     legalFirstName: string;
-
     legalLastName: string;
 
     /** Date of birth */
@@ -24,13 +23,9 @@ type WalletPersonalDetails = {
     ssn: string;
 
     addressStreet: string;
-
     addressCity: string;
-
     addressState: string;
-
     addressZipCode: string;
-
     phoneNumber: string;
 };
 

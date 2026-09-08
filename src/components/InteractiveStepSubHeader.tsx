@@ -14,7 +14,6 @@ type InteractiveStepSubHeaderProps = {
     stepNames: readonly string[];
 
     onStepSelected?: (stepName: string) => void;
-
     startStepIndex?: number;
 
     /** Description of the current step, appended to its accessibility label */
@@ -25,9 +24,7 @@ type InteractiveStepSubHeaderProps = {
 
 type InteractiveStepSubHeaderHandle = {
     moveNext: () => void;
-
     movePrevious: () => void;
-
     moveTo: (step: number) => void;
 };
 

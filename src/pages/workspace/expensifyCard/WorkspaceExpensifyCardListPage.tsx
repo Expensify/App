@@ -61,7 +61,6 @@ type WorkspaceExpensifyCardListPageProps = {
     route: PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
     cardsList: OnyxEntry<WorkspaceCardsList>;
-
     fundID: number;
 };
 

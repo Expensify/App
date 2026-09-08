@@ -128,7 +128,6 @@ type TransactionViolationData = {
 /** Model of a transaction violation */
 type TransactionViolation = {
     type: ValueOf<typeof CONST.VIOLATION_TYPES>;
-
     name: ViolationName;
 
     /** Additional violation information to provide the user */

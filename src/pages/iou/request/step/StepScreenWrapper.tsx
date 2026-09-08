@@ -28,7 +28,6 @@ type StepScreenWrapperProps = {
     shouldShowWrapper: boolean;
 
     shouldShowNotFoundPage?: boolean;
-
     shouldShowOfflineIndicator?: boolean;
 
     /** An ID used for unit testing */

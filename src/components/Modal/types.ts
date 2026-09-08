@@ -91,7 +91,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         swipeThreshold?: number;
 
         swipeDirection?: SwipeDirection;
-
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */

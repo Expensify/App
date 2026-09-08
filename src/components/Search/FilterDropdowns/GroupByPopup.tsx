@@ -23,13 +23,9 @@ type GroupByPopupItem = {
 
 type GroupByPopupProps = {
     sections: GroupBySection[];
-
     value: GroupByPopupItem | null;
-
     onBackButtonPress: () => void;
-
     closeOverlay: () => void;
-
     onChange: (item: GroupByPopupItem | null) => void;
 };
 

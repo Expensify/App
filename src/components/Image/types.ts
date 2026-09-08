@@ -28,7 +28,6 @@ type BaseImageProps = {
     onLoadStart?: () => void;
 
     style?: StyleProp<ImageStyle>;
-
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
     /** Priorities for completing loads. If more than one load is queued at a time,
@@ -48,7 +47,6 @@ type ImageOwnProps = BaseImageProps & {
     resizeMode?: ImageResizeMode;
 
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */

@@ -32,9 +32,7 @@ type CompanyOwnersListUBOProps = {
     handleUBOEdit: (value: string) => void;
 
     beneficialOwnerKeys: string[];
-
     isUserUBO: boolean;
-
     isAnyoneElseUBO: boolean;
 };
 

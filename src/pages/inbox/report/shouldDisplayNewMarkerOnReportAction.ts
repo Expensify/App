@@ -11,9 +11,7 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     nextMessage: OnyxTypes.ReportAction | undefined;
 
     isEarliestReceivedOfflineMessage: boolean;
-
     unreadMarkerTime: string | undefined;
-
     currentUserAccountID: number;
 
     /** Map of reportActions saved via usePrev */

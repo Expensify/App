@@ -52,7 +52,6 @@ type AttachmentCarouselPagerProps = {
     reportID?: string;
 
     onAttachmentError?: (source: AttachmentSource) => void;
-
     ref?: ForwardedRef<AttachmentCarouselPagerHandle>;
 };
 

@@ -35,14 +35,12 @@ import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
     approvalWorkflow: ApprovalWorkflowOnyx;
-
     removeApprovalWorkflow?: () => void | Promise<void>;
 
     /** The policy for the current route */
     policy: OnyxEntry<Policy>;
 
     policyID: string;
-
     ref: ForwardedRef<ScrollViewRN>;
 };
 

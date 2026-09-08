@@ -63,7 +63,6 @@ import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
     report: OnyxEntry<Report>;
-
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Whether if it's an unauthenticated user */
@@ -90,9 +89,7 @@ type AvatarWithDisplayNameProps = {
     avatarBorderColor?: ColorValue;
 
     customDisplayNameStyle?: TextStyle;
-
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
-
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 

@@ -8,9 +8,7 @@ type USDPageProps = {
     onSubmit: () => void;
 
     onBackButtonPress: () => void;
-
     policyID?: string;
-
     currentSubPage?: string;
 
     /** Array of step names for the progress indicator */

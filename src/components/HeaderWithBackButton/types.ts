@@ -29,9 +29,7 @@ type ThreeDotsMenuItem = {
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     title?: string;
-
     subtitle?: ReactNode;
-
     titleColor?: string;
 
     /**
@@ -42,7 +40,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     icon?: IconAsset;
 
     iconWidth?: number;
-
     iconHeight?: number;
 
     /** Any additional styles to pass to the icon container. */
@@ -79,9 +76,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     isRotating?: boolean;
 
     shouldShowPinButton?: boolean;
-
     shouldShowThreeDotsButton?: boolean;
-
     shouldDisableThreeDotsButton?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */
@@ -99,7 +94,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     threeDotsMenuIconFill?: string;
 
     shouldShowCloseButton?: boolean;
-
     shouldShowBackButton?: boolean;
 
     /** Data to display a step counter in the header */
@@ -128,7 +122,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldOverlay?: boolean;
 
     shouldEnableDetailPageNavigation?: boolean;
-
     numberOfTitleLines?: number;
 
     /** Whether we should overlay the 3 dots menu */
@@ -147,7 +140,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     policyAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     titleStyles?: StyleProp<TextStyle>;
-
     style?: StyleProp<ViewStyle>;
 
     /** The URL link associated with the attachment's subtitle, if available */

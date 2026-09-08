@@ -9,9 +9,7 @@ type ExportTemplate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     templateName: string;
 
     type: string;
-
     policyID: string | undefined;
-
     description: string;
 }>;
 

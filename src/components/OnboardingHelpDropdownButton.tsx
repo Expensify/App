@@ -31,7 +31,6 @@ type OnboardingHelpButtonProps = {
     shouldUseNarrowLayout: boolean;
 
     shouldShowRegisterForWebinar: boolean;
-
     shouldShowGuideBooking: boolean;
 
     /** Has user active Schedule call with guide */

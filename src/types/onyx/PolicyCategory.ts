@@ -6,7 +6,6 @@ type PolicyCategoryExpenseLimitType = 'expense' | 'daily';
 /** Model of policy category */
 type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
-
     unencodedName?: string;
 
     /** Flag that determines if a category is active and able to be selected */

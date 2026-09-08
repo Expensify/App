@@ -8,7 +8,6 @@ type LoginFormProps = {
     submitBehavior?: SubmitBehavior;
 
     isVisible: boolean;
-
     ref?: ForwardedRef<InputHandle>;
 };
 

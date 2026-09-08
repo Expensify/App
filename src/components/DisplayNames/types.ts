@@ -30,7 +30,6 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     shouldParseFullTitle?: boolean;
 
     displayNamesWithTooltips?: DisplayNameWithTooltip[];
-
     numberOfLines: number;
 
     /** Is tooltip needed? When true, triggers complex title rendering */

@@ -23,9 +23,7 @@ type OptionsPickerItem<TKey extends string> = {
 
 type OptionsPickerProps<TKey extends string> = {
     options: Array<OptionsPickerItem<TKey>>;
-
     selectedOption: TKey;
-
     onOptionSelected: (option: TKey) => void;
 
     /** Indicates whether the picker is disabled */

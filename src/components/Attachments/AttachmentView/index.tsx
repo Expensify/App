@@ -56,9 +56,7 @@ type AttachmentViewProps = Attachment & {
     isFocused?: boolean;
 
     onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
-
     isUsedInAttachmentModal?: boolean;
-
     shouldShowDownloadIcon?: boolean;
 
     /** Flag to show the loading indicator */
@@ -83,11 +81,8 @@ type AttachmentViewProps = Attachment & {
     fallbackSource?: AttachmentSource;
 
     isHovered?: boolean;
-
     isUsedAsChatAttachment?: boolean;
-
     isUploaded?: boolean;
-
     isDeleted?: boolean;
 
     /** Flag indicating if the attachment is being uploaded. */

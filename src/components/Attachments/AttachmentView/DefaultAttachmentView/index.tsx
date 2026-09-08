@@ -17,15 +17,10 @@ import {View} from 'react-native';
 
 type DefaultAttachmentViewProps = {
     fileName?: string;
-
     shouldShowDownloadIcon?: boolean;
-
     shouldShowLoadingSpinnerIcon?: boolean;
-
     containerStyles?: StyleProp<ViewStyle>;
-
     icon?: IconAsset;
-
     isDeleted?: boolean;
 
     /** Flag indicating if the attachment is being uploaded. */

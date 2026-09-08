@@ -64,7 +64,6 @@ type CommonSearchViewProps = {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     contentContainerStyle: StyleProp<ViewStyle>;
-
     containerStyle: StyleProp<ViewStyle>;
 
     /** Imperative handle for highlight-driven scrolling, set by the router. */

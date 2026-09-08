@@ -9,7 +9,6 @@ type OnboardingWorkEmailValidationProps = Record<string, unknown> & StackScreenP
 
 type BaseOnboardingWorkEmailValidationProps = {
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION>;
 };
 

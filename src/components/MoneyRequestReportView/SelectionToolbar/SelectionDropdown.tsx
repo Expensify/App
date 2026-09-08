@@ -25,9 +25,7 @@ type SelectionDropdownProps = {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     selectedTransactionsOptions: Array<DropdownOption<string>>;
     selectedTransactionIDs: string[];
-
     hasPayInSelectionMode: boolean;
-
     onSelectionModePaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
     /** Callback for the end of the onContinue trigger on option selection */
@@ -37,7 +35,6 @@ type SelectionDropdownProps = {
     onWorkspacePolicySelect: (policy: Policy, triggerKYCFlow: TriggerKYCFlow) => void;
 
     kycWallRef: React.RefObject<KYCWallRef | null>;
-
     shouldPopoverUseScrollView: boolean;
 };
 

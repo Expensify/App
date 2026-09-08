@@ -21,16 +21,13 @@ import React, {useCallback} from 'react';
 type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         formID: TFormID;
-
         formTitle: string;
 
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
         dobInputID: string;
 
         /** The default value for the date of birth input */

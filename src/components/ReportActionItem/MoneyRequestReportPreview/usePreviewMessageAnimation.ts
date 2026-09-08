@@ -34,7 +34,6 @@ type UsePreviewMessageAnimationParams = {
     isInvoiceRoom: boolean;
 
     isApproved: boolean;
-
     iouSettled: boolean;
 
     /** The previewed IOU report */
@@ -61,9 +60,7 @@ type UsePreviewMessageAnimationParams = {
     managerID: number;
 
     isPaidAnimationRunning: boolean;
-
     isApprovedAnimationRunning: boolean;
-
     isSubmittingAnimationRunning: boolean;
 };
 

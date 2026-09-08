@@ -20,7 +20,6 @@ type ImageWithSizeLoadingProps = {
     isAuthTokenRequired: boolean;
 
     objectPosition?: ImageObjectPosition;
-
     shouldShowOfflineIndicator?: boolean;
 
     /** Invoked on mount and layout changes */

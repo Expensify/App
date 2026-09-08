@@ -43,7 +43,6 @@ import {getInitialSubPage, getSubPageValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
-
     headerTitle?: string;
 
     /** Completion handler */

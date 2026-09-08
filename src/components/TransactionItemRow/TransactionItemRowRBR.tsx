@@ -33,9 +33,7 @@ import {View} from 'react-native';
 
 type TransactionItemRowRBRInnerProps = {
     transaction: Transaction;
-
     violations?: TransactionViolation[];
-
     report?: Report;
 
     /** Styles for the RBR messages container */

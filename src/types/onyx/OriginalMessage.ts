@@ -180,7 +180,6 @@ type OriginalMessageActionableMentionWhisper = {
 /** Model of `actionable card fraud alert` report action */
 type OriginalMessageCardFraudAlert = {
     cardID: number;
-
     maskedCardNumber: string;
 
     /** Transaction amount in cents */
@@ -367,7 +366,6 @@ type ChronosOOOEvent = {
     summary: string;
 
     start: ChronosOOOTimestamp;
-
     end: ChronosOOOTimestamp;
 };
 
@@ -422,9 +420,7 @@ type OriginalMessageChangeLog = {
     newName?: string;
 
     email?: string;
-
     role?: string;
-
     lastModified?: string;
 
     /** New role of user or new value of the category/tag field
@@ -440,7 +436,6 @@ type OriginalMessageChangeLog = {
     oldValue?: boolean | string;
 
     connectionName?: AllConnectionName;
-
     categoryName?: string;
 
     /** Avatar URL of workspace room */
@@ -467,9 +462,7 @@ type OriginalMessagePolicyChangeLog = {
     newName?: string;
 
     email?: string;
-
     role?: string;
-
     lastModified?: string;
 
     /** Old currency of the workspace */
@@ -485,19 +478,12 @@ type OriginalMessagePolicyChangeLog = {
     newFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     connectionName?: AllConnectionName;
-
     categoryName?: string;
-
     taxName?: string;
-
     updatedField?: string;
-
     oldMaxExpenseAmountNoReceipt?: number;
-
     newMaxExpenseAmountNoReceipt?: number;
-
     oldMaxExpenseAmountNoItemizedReceipt?: number;
-
     newMaxExpenseAmountNoItemizedReceipt?: number;
 
     /** Currency of the policy */
@@ -516,11 +502,8 @@ type OriginalMessagePolicyChangeLog = {
     newMaxExpenseAge?: number;
 
     oldDefaultBillable?: string;
-
     newDefaultBillable?: string;
-
     oldDefaultReimbursable?: string;
-
     newDefaultReimbursable?: string;
 
     /** MCC group name whose default spend category changed (e.g. "Airlines") */
@@ -542,7 +525,6 @@ type OriginalMessagePolicyChangeLog = {
     value?: boolean;
 
     newDescription?: string;
-
     oldDescription?: string;
 
     /** Report field type */
@@ -561,11 +543,8 @@ type OriginalMessagePolicyChangeLog = {
     fieldName?: string;
 
     customUnitName?: string;
-
     customUnitRateName?: string;
-
     customUnitSubRateName?: string;
-
     removedSubRateName?: string;
 
     /** Custom unit name */
@@ -611,9 +590,7 @@ type OriginalMessagePolicyChangeLog = {
     oldTaxName?: string;
 
     tagName?: string;
-
     tagListName?: string;
-
     tagListsName?: string;
 
     /** Is tag list is required */
@@ -661,17 +638,11 @@ type OriginalMessagePolicyChangeLog = {
     name?: string;
 
     approverAccountID?: string;
-
     newApproverEmail?: string;
-
     newApproverName?: string;
-
     oldApproverEmail?: string;
-
     oldApproverName?: string;
-
     approverEmail?: string;
-
     approverName?: string;
 
     /** Option name of a list report field */
@@ -698,42 +669,24 @@ type OriginalMessagePolicyChangeLog = {
     newRate?: number;
 
     oldProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
-
     newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
-
     oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
     newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
     oldOwnerEmail?: string;
-
     oldOwnerName?: string;
-
     budgetAmount?: string;
-
     budgetFrequency?: string;
-
     budgetName?: string;
-
     budgetTypeForNotificationMessage?: string;
-
     isNewDot?: boolean;
-
     summaryLinkMessage?: string;
-
     thresholdPercentage?: number;
-
     totalSpend?: number;
-
     unsubmittedSpend?: number;
-
     userEmail?: string;
-
     approvedReimbursedClosedSpend?: number;
-
     awaitingApprovalSpend?: number;
     featureName?: string;
-
     reimburser?: {
         /** The email of the new reimburser */
         email: string;
@@ -975,7 +928,6 @@ type OriginalMessageModifiedExpense = {
     movedFromReport?: string;
 
     oldAttendees?: Attendee[];
-
     newAttendees?: Attendee[];
 
     /** Source of category change (agentZero, mccMapping, or manual) */
@@ -988,7 +940,6 @@ type OriginalMessageModifiedExpense = {
     policyID?: string;
 
     policyRulesModifiedFields?: PolicyRulesModifiedFields;
-
     personalRulesModifiedFields?: PersonalRulesModifiedFields;
 
     /** The Concierge reasoning for the action */
@@ -1007,9 +958,7 @@ type OriginalMessageConciergeAutoMatchVendor = {
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PolicyRulesModifiedFields = {
     merchant?: string;
-
     category?: string;
-
     tag?: string;
 
     /** The value that the description was changed to (backend uses "comment" key) */
@@ -1019,9 +968,7 @@ type PolicyRulesModifiedFields = {
     description?: string;
 
     billable?: boolean;
-
     reimbursable?: boolean;
-
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1032,9 +979,7 @@ type PolicyRulesModifiedFields = {
 /** Personal rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PersonalRulesModifiedFields = {
     merchant?: string;
-
     category?: string;
-
     tag?: string;
 
     /** The value that the description was changed to (backend uses "comment" key) */
@@ -1044,9 +989,7 @@ type PersonalRulesModifiedFields = {
     description?: string;
 
     billable?: boolean;
-
     reimbursable?: boolean;
-
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1173,9 +1116,7 @@ type OriginalMessageMoved = {
     fromPolicyID: string | undefined;
 
     toPolicyID: string;
-
     newParentReportID: string;
-
     movedReportID: string;
 };
 
@@ -1508,7 +1449,6 @@ type OriginalPersonalCard = {
     assigneeAccountID: number;
 
     cardID: number;
-
     cardName?: string;
 };
 
@@ -1609,7 +1549,6 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
     currency: string;
 
     policyID: string;
-
     bankAccountID: string;
 
     /** Whether user added signer information */

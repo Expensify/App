@@ -9,7 +9,6 @@ type OnboardingWorkEmailProps = Record<string, unknown> & StackScreenProps<Onboa
 
 type BaseOnboardingWorkEmailProps = {
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL>;
 };
 

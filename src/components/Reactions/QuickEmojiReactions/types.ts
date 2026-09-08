@@ -42,7 +42,6 @@ type BaseQuickEmojiReactionsProps = BaseReactionsProps;
 
 type QuickEmojiReactionsProps = BaseReactionsProps & {
     closeContextMenu: (callback?: CloseContextMenuCallback) => void;
-
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 

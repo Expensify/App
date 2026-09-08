@@ -30,27 +30,21 @@ const thumbnailDimensionsCache = new Map<string, {width: number; height: number}
 
 type ThumbnailImageProps = {
     previewSourceURL: string | ImageSourcePropType;
-
     altText?: string;
-
     style?: StyleProp<ViewStyle>;
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
     imageWidth?: number;
-
     imageHeight?: number;
-
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
     fallbackIconSize?: number;
-
     fallbackIconColor?: string;
 
     /** The background color of fallback icon */
@@ -60,7 +54,6 @@ type ThumbnailImageProps = {
     shouldDynamicallyResize?: boolean;
 
     objectPosition?: ImageObjectPosition;
-
     isDeleted?: boolean;
 
     /** Callback fired when the image fails to load */

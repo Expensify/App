@@ -44,7 +44,6 @@ type SetSpendRulesStepProps = {
     policyID: string;
 
     startStepIndex: number;
-
     stepNames: readonly string[];
 };
 

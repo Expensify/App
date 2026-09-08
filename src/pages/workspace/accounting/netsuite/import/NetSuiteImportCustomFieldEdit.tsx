@@ -38,9 +38,7 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
             importCustomField: ImportCustomFieldsKeys;
 
             valueIndex: number;
-
             fieldName: string;
-
             policyID: string;
         };
     };

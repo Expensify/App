@@ -31,11 +31,8 @@ type ValueSelectorModalProps = {
     isVisible: boolean;
 
     items?: ValuePickerItem[];
-
     selectedItem?: ValuePickerItem;
-
     label?: string;
-
     onItemSelected?: (item: ValuePickerListItem) => void;
 
     /** Function to call when the user closes the modal */
@@ -48,9 +45,7 @@ type ValueSelectorModalProps = {
     shouldShowTooltips?: boolean;
 
     shouldEnableKeyboardAvoidingView?: boolean;
-
     addBottomSafeAreaPadding?: boolean;
-
     disableKeyboardShortcuts?: boolean;
 
     /** Number of lines to show for alternate text */
@@ -67,11 +62,8 @@ type ValueSelectionListProps = Pick<
 
 type ValuePickerProps = ForwardedFSClassProps & {
     value?: string;
-
     label?: string;
-
     items?: ValuePickerItem[];
-
     placeholder?: string;
 
     /** Form Error description */
@@ -93,9 +85,7 @@ type ValuePickerProps = ForwardedFSClassProps & {
     shouldShowModal?: boolean;
 
     ref: ForwardedRef<View>;
-
     addBottomSafeAreaPadding?: boolean;
-
     disableKeyboardShortcuts?: boolean;
 
     /** Number of lines to show for alternate text */

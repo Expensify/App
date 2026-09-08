@@ -32,7 +32,6 @@ import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMemberDetailsComponentProps = {
     domainAccountID: number;
-
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */

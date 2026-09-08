@@ -53,7 +53,6 @@ type ConfirmationFieldListProps = {
     visibilityFlags: VisibilityFlags;
 
     errorState: ErrorState;
-
     toggleHandlers: ToggleHandlers;
 
     /** Compact-mode bookkeeping */

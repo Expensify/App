@@ -39,11 +39,8 @@ import RenderHTML from './RenderHTML';
 type BookTravelButtonProps = WithSentryLabel & {
     text: string;
     activePolicyID?: string;
-
     shouldRenderErrorMessageBelowButton?: boolean;
-
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
-
     shouldShowVerifyAccountModal?: boolean;
 
     /** Whether to render a large button */

@@ -27,7 +27,6 @@ type TrialPaymentReminderModalProps = {
     countdownTime?: CountdownTime;
 
     onClose: () => void;
-
     onAddPaymentCard: () => void;
 };
 

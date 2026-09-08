@@ -9,7 +9,6 @@ type OnboardingWorkspacesProps = StackScreenProps<OnboardingModalNavigatorParamL
 
 type BaseOnboardingWorkspacesProps = {
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORKSPACES>;
 };
 

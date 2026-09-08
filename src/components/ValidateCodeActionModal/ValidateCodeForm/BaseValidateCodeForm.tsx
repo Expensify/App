@@ -53,7 +53,6 @@ type ValidateCodeFormProps = {
     autoComplete?: AutoCompleteVariant;
 
     ref?: ForwardedRef<ValidateCodeFormHandle>;
-
     hasValidateCodeBeenSent?: boolean;
 
     /** The pending action of validateCode being sent
@@ -69,11 +68,8 @@ type ValidateCodeFormProps = {
     validateCodeActionErrorField: string;
 
     validateError?: Errors;
-
     handleSubmitForm: (validateCode: string) => void;
-
     buttonStyles?: StyleProp<ViewStyle>;
-
     clearError: () => void;
 
     /** Whether to show the verify button  */
@@ -86,9 +82,7 @@ type ValidateCodeFormProps = {
     sendValidateCode: () => void;
 
     isLoading?: boolean;
-
     shouldShowSkipButton?: boolean;
-
     handleSkipButtonPress?: () => void;
 
     /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */

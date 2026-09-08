@@ -15,11 +15,8 @@ type MultiSelectPopupProps<T> = {
     label: string;
 
     items: Array<MultiSelectItem<T>>;
-
     value: Array<MultiSelectItem<T>>;
-
     closeOverlay: () => void;
-
     onChange: (item: Array<MultiSelectItem<T>>) => void;
 
     /** Whether the search input should be displayed. */

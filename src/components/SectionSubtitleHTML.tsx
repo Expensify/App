@@ -16,7 +16,6 @@ type SectionSubtitleHTMLProps = {
     subtitleMuted?: boolean;
 
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
-
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 

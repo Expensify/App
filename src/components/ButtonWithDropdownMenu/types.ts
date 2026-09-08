@@ -126,7 +126,6 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     shouldAlwaysShowDropdownMenu?: boolean;
 
     wrapperStyle?: StyleProp<ViewStyle>;
-
     isSplitButton?: boolean;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
@@ -166,7 +165,6 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     headerTextStyles?: StyleProp<TextStyle>;
 
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
 
     /** Whether to put the header text after the back button */

@@ -18,7 +18,6 @@ type CustomLHNOptionsListProps = {
     contentContainerStyles?: StyleProp<ViewStyle>;
 
     data: Report[];
-
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Toggle between compact and default view of the option */
@@ -37,16 +36,13 @@ type OptionRowLHNDataProps = {
     isOptionFocused?: boolean;
 
     personalDetails?: PersonalDetailsList;
-
     fullReport: OnyxEntry<Report>;
-
     oneTransactionThreadReport: OnyxEntry<Report>;
 
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
 
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-
     reportID: string;
 
     /** Toggle between compact and default view */
@@ -59,7 +55,6 @@ type OptionRowLHNDataProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     reportAttributes: OnyxEntry<ReportAttributes>;
-
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** TestID of the row, indicating order */

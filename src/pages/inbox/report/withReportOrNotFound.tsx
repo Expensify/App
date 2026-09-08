@@ -36,9 +36,7 @@ import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
     report: OnyxTypes.Report;
-
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** The policy linked to the report */

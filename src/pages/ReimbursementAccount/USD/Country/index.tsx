@@ -13,7 +13,6 @@ type CountryProps = {
     onSubmit?: () => void;
 
     stepNames: readonly string[];
-
     policyID: string | undefined;
 };
 

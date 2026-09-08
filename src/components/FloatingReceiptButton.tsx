@@ -24,7 +24,6 @@ type FloatingReceiptButtonProps = WithSentryLabel & {
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     accessibilityLabel: string;
-
     role: Role;
 };
 

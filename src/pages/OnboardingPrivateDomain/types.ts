@@ -9,7 +9,6 @@ type OnboardingPrivateDomainProps = Record<string, unknown> & StackScreenProps<O
 
 type BaseOnboardingPrivateDomainProps = {
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN>;
 };
 

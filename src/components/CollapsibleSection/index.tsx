@@ -18,11 +18,8 @@ import Collapsible from './Collapsible';
 
 type CollapsibleSectionProps = ChildrenProps & {
     title: string;
-
     titleStyle?: StyleProp<TextStyle>;
-
     textStyle?: StyleProp<TextStyle>;
-
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Whether or not to show border between section title and expandable items */

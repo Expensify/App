@@ -16,7 +16,6 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type PrevNextButtonsProps = {
     isPrevButtonDisabled?: boolean;
-
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */

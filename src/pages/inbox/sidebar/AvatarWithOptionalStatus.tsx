@@ -12,9 +12,7 @@ import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithOptionalStatusProps = {
     emojiStatus?: string;
-
     isSelected?: boolean;
-
     containerStyle?: StyleProp<ViewStyle>;
 };
 

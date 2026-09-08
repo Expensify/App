@@ -20,7 +20,6 @@ import {View} from 'react-native';
 
 type BillingBannerProps = {
     title: string | React.ReactNode;
-
     subtitle: string | React.ReactNode;
 
     /** The icon to display in the banner. */
@@ -32,14 +31,12 @@ type BillingBannerProps = {
     style?: StyleProp<ViewStyle>;
 
     titleStyle?: StyleProp<TextStyle>;
-
     subtitleStyle?: StyleProp<TextStyle>;
 
     /** An icon to be rendered instead of the RBR / GBR indicator. */
     rightIcon?: IconAsset;
 
     onRightIconPress?: () => void;
-
     rightIconAccessibilityLabel?: string;
 
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */

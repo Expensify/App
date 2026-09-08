@@ -32,9 +32,7 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     onPress: () => void;
 
     isSubmittingAnimationRunning: boolean;
-
     onAnimationFinish: () => void;
-
     isDisabled?: boolean;
 
     /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */

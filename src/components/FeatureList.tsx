@@ -53,13 +53,9 @@ type FeatureListProps = {
     illustrationBackgroundColor?: string;
 
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
     titleStyles?: StyleProp<TextStyle>;
-
     contentPaddingOnLargeScreens?: {padding: number};
-
     footer?: ReactNode;
-
     isButtonDisabled?: boolean;
 
     /** Additional styles to apply to the CTA button inner container */

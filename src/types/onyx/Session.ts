@@ -36,9 +36,7 @@ type Session = {
     errors?: Errors;
 
     signedInWithShortLivedAuthToken?: boolean;
-
     signedInWithSAML?: boolean;
-
     isSupportAuthTokenUsed?: boolean;
 
     /** Timestamp of the session creation date */

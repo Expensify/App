@@ -40,14 +40,12 @@ type HeaderPageLayoutProps = ChildrenProps &
         headerContainerStyles?: StyleProp<ViewStyle>;
 
         scrollViewContainerStyles?: StyleProp<ViewStyle>;
-
         childrenContainerStyles?: StyleProp<ViewStyle>;
 
         /** Style to apply to the whole section container */
         style?: StyleProp<ViewStyle>;
 
         shouldShowOfflineIndicatorInWideScreen?: boolean;
-
         keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
     };
 function HeaderPageLayout({

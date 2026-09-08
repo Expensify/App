@@ -13,7 +13,6 @@ type CurrencyPopupProps = {
     label?: string;
 
     onBackButtonPress?: () => void;
-
     closeOverlay: () => void;
 
     /** Function to call when a currency is selected */

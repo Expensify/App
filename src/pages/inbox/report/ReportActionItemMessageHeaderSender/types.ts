@@ -2,7 +2,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type ReportActionItemMessageHeaderSenderProps = {
     fragmentText: string | undefined;
-
     accountID: number;
 
     /** Should this fragment be contained in a single line? */

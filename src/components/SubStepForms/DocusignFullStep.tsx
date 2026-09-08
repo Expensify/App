@@ -27,7 +27,6 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     defaultValue: FileObject[];
 
     formID: TFormID;
-
     inputID: FormOnyxKeys<TFormID>;
 
     /** Indicates that action is being processed */

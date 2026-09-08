@@ -54,7 +54,6 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
 
 type PromotedActionsBarProps = {
     promotedActions: PromotedAction[];
-
     containerStyle?: StyleProp<ViewStyle>;
 };
 

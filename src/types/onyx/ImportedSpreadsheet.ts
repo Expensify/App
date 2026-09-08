@@ -65,16 +65,13 @@ type ImportedSpreadsheet = {
     containsHeader: boolean;
 
     isImportingMultiLevelTags: boolean;
-
     isImportingIndependentMultiLevelTags: boolean;
 
     /** Whether the GL code is in the adjacent column */
     isGLAdjacent: boolean;
 
     fileURI?: string;
-
     fileType?: string;
-
     fileName?: string;
 
     /** Settings for importing transactions from the spreadsheet */

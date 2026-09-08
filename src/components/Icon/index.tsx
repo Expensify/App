@@ -30,7 +30,6 @@ type IconProps = {
     size?: IconSize;
 
     hovered?: boolean;
-
     pressed?: boolean;
 
     /** Additional styles for the icon wrapper. */

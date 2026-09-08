@@ -23,9 +23,7 @@ type PressableSubscriptAvatarProps = {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     primaryAvatar: IconType;
-
     secondaryAvatar: IconType;
-
     onAvatarPress: (avatar: IconType) => void;
 
     /** Sentry label applied to both pressables */

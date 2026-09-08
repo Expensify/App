@@ -4,7 +4,6 @@ import type {SharedValue} from 'react-native-reanimated';
 
 type BaseGenericTooltipProps = {
     windowWidth: number;
-
     animation: SharedValue<number>;
 
     /** The distance between the left side of the wrapper view and the left side of the window */
@@ -14,7 +13,6 @@ type BaseGenericTooltipProps = {
     yOffset: number;
 
     targetWidth: number;
-
     targetHeight: number;
 
     /** Minimum width for the tooltip */
@@ -32,7 +30,6 @@ type BaseGenericTooltipProps = {
     onHideTooltip?: () => void;
 
     shouldTeleportPortalToModalLayer?: boolean;
-
     isEducationTooltip?: boolean;
 } & Pick<
     SharedTooltipProps,

@@ -31,13 +31,9 @@ type FloatingActionButtonProps = WithSentryLabel & {
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     onLongPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
     isActive: boolean;
-
     accessibilityLabel: string;
-
     role: Role;
-
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 

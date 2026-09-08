@@ -20,9 +20,7 @@ type ValidateCodeActionFormProps = {
     validatePendingAction?: PendingAction | null;
 
     validateError?: Errors;
-
     handleSubmitForm: (validateCode: string) => void;
-
     clearError: () => void;
 
     /** Function is called when validate code modal is mounted and on validateCode resend */
@@ -32,11 +30,8 @@ type ValidateCodeActionFormProps = {
     hasValidateCodeBeenSent?: boolean;
 
     isLoading?: boolean;
-
     shouldShowSkipButton?: boolean;
-
     handleSkipButtonPress?: () => void;
-
     submitButtonText?: string;
 
     /** Skip the call to sendValidateCode fn on initial render */

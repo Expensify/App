@@ -24,9 +24,7 @@ import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeader
 
 type ReportActionItemFragmentProps = {
     accountID: number;
-
     reportActionID?: string;
-
     fragment: Message | undefined;
 
     /** Message(text) of an IOU report action */
@@ -61,11 +59,8 @@ type ReportActionItemFragmentProps = {
     isFragmentContainingDisplayName?: boolean;
 
     pendingAction?: OnyxCommon.PendingAction;
-
     actionName?: ReportActionName;
-
     moderationDecision?: DecisionName;
-
     shouldShowTooltip?: boolean;
 };
 

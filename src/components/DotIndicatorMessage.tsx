@@ -42,7 +42,6 @@ type DotIndicatorMessageProps = {
     style?: StyleProp<ViewStyle>;
 
     textStyles?: StyleProp<TextStyle>;
-
     dismissError?: () => void;
 };
 

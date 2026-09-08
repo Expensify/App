@@ -15,7 +15,6 @@ import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListLabelsProps = {
     policyID: string;
-
     cardSettings: ExpensifyCardSettingsBase | undefined;
 };
 

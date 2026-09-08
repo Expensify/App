@@ -9,7 +9,6 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 
 type SpacerViewProps = {
     shouldShow: boolean;
-
     style?: StyleProp<ViewStyle>;
 };
 

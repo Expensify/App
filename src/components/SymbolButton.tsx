@@ -20,9 +20,7 @@ type SymbolButtonProps = {
     symbol: string;
 
     onSymbolButtonPress: () => void;
-
     isSymbolPressable?: boolean;
-
     textStyle?: StyleProp<TextStyle>;
 };
 

@@ -33,7 +33,6 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     onBackButtonPress?: () => void;
 
     shouldEnableKeyboardAvoidingView?: boolean;
-
     shouldEnableMaxHeight?: boolean;
 };
 

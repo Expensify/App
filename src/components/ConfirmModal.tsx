@@ -45,9 +45,7 @@ type ConfirmModalProps = {
     subtitle?: string | ReactNode;
 
     buttonVariant?: ButtonVariant;
-
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
     shouldShowCancelButton?: boolean;
 
     /** Callback method fired when the modal is hidden */
@@ -63,38 +61,24 @@ type ConfirmModalProps = {
     iconFill?: string | false;
 
     iconWidth?: number;
-
     iconHeight?: number;
-
     shouldCenterIcon?: boolean;
-
     shouldShowDismissIcon?: boolean;
-
     titleContainerStyles?: StyleProp<ViewStyle>;
-
     titleStyles?: StyleProp<TextStyle>;
-
     promptStyles?: StyleProp<TextStyle>;
-
     subtitleStyles?: StyleProp<TextStyle>;
-
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
     shouldStackButtons?: boolean;
-
     shouldReverseStackedButtons?: boolean;
-
     image?: IconAsset;
-
     imageStyles?: StyleProp<ViewStyle>;
-
     imageWidth?: number;
-
     imageHeight?: number;
-
     shouldFitImageToContainer?: boolean;
 
     /**

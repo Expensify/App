@@ -23,7 +23,6 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     shouldUpdateFocusedIndex: boolean;
 
     scrollToIndex: (index: number, animated?: boolean) => void;
-
     setFocusedIndex: (index: number) => void;
 
     /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */

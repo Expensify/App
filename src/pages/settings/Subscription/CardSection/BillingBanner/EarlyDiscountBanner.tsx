@@ -29,7 +29,6 @@ type EarlyDiscountBannerProps = {
     isSubscriptionPage: boolean;
 
     onboardingHelpDropdownButton?: React.JSX.Element;
-
     onDismissedDiscountBanner?: () => void;
 
     /** Has user active Schedule call with guide */

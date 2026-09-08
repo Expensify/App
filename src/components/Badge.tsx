@@ -17,7 +17,6 @@ import Text from './Text';
 
 type BadgeProps = {
     success?: boolean;
-
     error?: boolean;
 
     /** Whether badge uses strong (filled) style instead of outlined */
@@ -36,7 +35,6 @@ type BadgeProps = {
     environment?: string;
 
     badgeStyles?: StyleProp<ViewStyle>;
-
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */

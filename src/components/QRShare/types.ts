@@ -36,7 +36,6 @@ type QRShareProps = {
     logo?: ImageSourcePropType;
 
     logoBackgroundColor?: string;
-
     svgLogoFillColor?: string;
 
     /**
@@ -57,7 +56,6 @@ type QRShareProps = {
     additionalStyles?: StyleProp<ViewStyle>;
 
     size?: ValueOf<typeof CONST.QR_CODE_SIZE>;
-
     ref?: ForwardedRef<QRShareHandle>;
 };
 

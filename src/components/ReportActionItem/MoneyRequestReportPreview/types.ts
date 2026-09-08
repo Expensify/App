@@ -31,7 +31,6 @@ type MoneyRequestReportPreviewProps = {
     policyID: string | undefined;
 
     action: ReportAction;
-
     chatReportID: string | undefined;
 
     /** The chat report this preview belongs to */

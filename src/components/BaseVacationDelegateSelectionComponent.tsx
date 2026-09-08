@@ -27,18 +27,14 @@ import SelectionList from './SelectionList/SelectionListWithSections';
 
 type BaseVacationDelegateSelectionComponentProps = {
     vacationDelegate?: BaseVacationDelegate;
-
     onSelectRow: (option: Participant) => void;
-
     headerTitle: string;
-
     onBackButtonPress?: () => void;
 
     /** Message to display when the user can't set a vacation delegate */
     cannotSetDelegateMessage: string;
 
     additionalExcludeLogins?: Record<string, boolean>;
-
     includeCurrentUser?: boolean;
 };
 

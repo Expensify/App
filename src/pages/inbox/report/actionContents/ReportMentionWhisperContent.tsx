@@ -23,7 +23,6 @@ import {View} from 'react-native';
 
 type ReportMentionWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
-
     reportID: string | undefined;
 
     /** Report that owns this action for mutations (thread / merged-list cases use originalReport). This is a stable projection (heartbeat fields stripped). */

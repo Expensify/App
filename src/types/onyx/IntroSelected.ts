@@ -11,7 +11,6 @@ type IntroSelected = {
     choice?: OnboardingPurpose;
 
     inviteType?: OnboardingInvite;
-
     isInviteOnboardingComplete?: boolean;
 
     /** Task reportID for 'viewTour' type */

@@ -47,9 +47,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     stepNames: readonly string[];
-
     startStepIndex: number;
-
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 };
 

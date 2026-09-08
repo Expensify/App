@@ -63,7 +63,6 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
 
 type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
-
     validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
@@ -97,11 +96,8 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldRenderFooterAboveSubmit?: boolean;
 
     isLoading?: boolean;
-
     addBottomSafeAreaPadding?: boolean;
-
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
     shouldSubmitButtonStickToBottom?: boolean;
 
     /** Fires at most once per frame during scrolling. */
@@ -128,7 +124,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
     ref?: ForwardedRef<FormRef>;
-
     submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 
     /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */

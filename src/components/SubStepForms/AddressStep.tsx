@@ -50,7 +50,6 @@ function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values:
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
         formID: TFormID;
-
         formTitle: string;
 
         /** The disclaimer informing that PO box is not allowed */
@@ -60,31 +59,18 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProp
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
         inputFieldsIDs: AddressInputIDs;
-
         defaultValues: AddressValues;
-
         shouldShowHelpLinks?: boolean;
-
         shouldDisplayCountrySelector?: boolean;
-
         shouldDisplayStateSelector?: boolean;
-
         stateSelectorLabel?: string;
-
         stateSelectorModalHeaderTitle?: string;
-
         stateSelectorSearchInputTitle?: string;
-
         onCountryChange?: (country: unknown) => void;
-
         streetTranslationKey?: TranslationPaths;
-
         shouldAllowCountryChange?: boolean;
-
         shouldValidateZipCodeFormat?: boolean;
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */

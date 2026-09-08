@@ -38,7 +38,6 @@ type AgentRowData = TableData & {
 
 type AgentsTableProps = {
     ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
-
     agents: AgentRowData[];
 
     /** Content rendered above the table header inside the scrollable list */

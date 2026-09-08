@@ -27,7 +27,6 @@ type VideoPlayerThumbnailProps = {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     accessibilityLabel: string;
-
     isDeleted?: boolean;
 };
 

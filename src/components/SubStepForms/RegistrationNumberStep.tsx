@@ -25,9 +25,7 @@ import {View} from 'react-native';
 
 type RegistrationNumberStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps & {
     formID: TFormID;
-
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
     inputID: FormOnyxKeys<TFormID>;
 
     /** The default values for the input */

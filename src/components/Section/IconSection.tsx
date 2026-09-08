@@ -15,7 +15,6 @@ type IconSectionProps = {
     icon?: IconAsset;
     iconContainerStyles?: StyleProp<ViewStyle>;
     width?: number;
-
     height?: number;
 };
 

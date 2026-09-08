@@ -1,7 +1,6 @@
 /** Model of currency */
 type Currency = {
     symbol: string;
-
     name: string;
 
     /** ISO4217 Code for the currency */
@@ -11,9 +10,7 @@ type Currency = {
     decimals?: number;
 
     retired?: boolean;
-
     retirementDate?: string;
-
     cacheBurst?: number;
 
     /** Countries based on ISO4217 code */

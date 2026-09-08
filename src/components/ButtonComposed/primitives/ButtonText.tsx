@@ -14,7 +14,6 @@ type ButtonTextProps = {
     children: string;
 
     numberOfLines?: number;
-
     style?: StyleProp<TextStyle>;
 
     /** Additional text styles to apply when the button is hovered. */

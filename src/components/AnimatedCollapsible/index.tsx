@@ -51,7 +51,6 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
     onPress: () => void;
 
     shouldShowToggleButton?: boolean;
-
     borderBottomStyle?: StyleProp<ViewStyle>;
 };
 

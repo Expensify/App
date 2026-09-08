@@ -50,9 +50,7 @@ type LeaderInfo = {
  */
 type RequestQueuesInfo = {
     mainQueue: MainQueueInfo;
-
     sequentialQueue: SequentialQueueInfo;
-
     persistedRequests: PersistedRequestsInfo;
 
     /** Leader state affecting requests */

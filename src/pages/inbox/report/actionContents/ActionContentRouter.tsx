@@ -107,7 +107,6 @@ type ActionContentRouterProps = {
     displayAsGroup: boolean;
 
     draftMessage: string | undefined;
-
     isWhisper: boolean;
 
     /** Whether the report action is hovered (or context menu / emoji picker active) */
@@ -131,7 +130,6 @@ type ActionContentRouterProps = {
     isOnSearch: boolean;
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
-
     isTrackIntentUser?: boolean;
 };
 

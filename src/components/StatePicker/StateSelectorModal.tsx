@@ -28,9 +28,7 @@ type StateSelectorModalProps = {
     onClose: () => void;
 
     label: string;
-
     currentState: string;
-
     onStateSelected: (value: Option) => void;
 
     /** Function to call when the user presses on the modal backdrop */

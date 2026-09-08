@@ -3,7 +3,6 @@
  */
 type OdometerDraft = {
     odometerStartReading?: number;
-
     odometerEndReading?: number;
 
     /** Draft start image as base64 (web) or file URI (native) */

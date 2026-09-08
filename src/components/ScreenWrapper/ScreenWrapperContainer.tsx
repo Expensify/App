@@ -28,7 +28,6 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 type ScreenWrapperContainerProps = ForwardedFSClassProps &
     React.PropsWithChildren<{
         testID: string;
-
         style?: StyleProp<ViewStyle>;
 
         /** Content to display under the offline indicator */
@@ -73,9 +72,7 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         shouldUseCachedViewportHeight?: boolean;
 
         includeSafeAreaPaddingBottom?: boolean;
-
         includePaddingTop?: boolean;
-
         enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
         /**

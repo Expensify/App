@@ -9,11 +9,8 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Model of debit card account data */
 type AccountData = {
     additionalData?: BankAccountAdditionalData;
-
     addressName?: string;
-
     addressState?: string;
-
     addressStreet?: string;
 
     /** Address zip code */

@@ -19,7 +19,6 @@ import Icon from './Icon';
 
 type ContextMenuItemProps = WithSentryLabel & {
     icon: IconAsset;
-
     text: string;
 
     /** Icon to show when interaction was successful */
@@ -40,7 +39,6 @@ type ContextMenuItemProps = WithSentryLabel & {
     isAnonymousAction?: boolean;
 
     isFocused?: boolean;
-
     shouldLimitWidth?: boolean;
 
     /** Styles to apply to MenuItem wrapper */
@@ -57,7 +55,6 @@ type ContextMenuItemProps = WithSentryLabel & {
     onBlur?: () => void;
 
     disabled?: boolean;
-
     shouldShowLoadingSpinnerIcon?: boolean;
 };
 

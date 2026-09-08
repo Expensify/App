@@ -58,18 +58,14 @@ type BaseBlockingViewProps = {
     onButtonPress?: () => void;
 
     shouldEmbedLinkWithSubtitle?: boolean;
-
     CustomSubtitle?: React.ReactElement;
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
 
     containerStyle?: StyleProp<ViewStyle>;
-
     addBottomSafeAreaPadding?: boolean;
-
     accessibilityLabel?: string;
-
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
     /** A testing ID that can be applied to the element on the page */
@@ -81,7 +77,6 @@ type BlockingViewIconProps = {
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
     iconWidth?: number;
-
     iconHeight?: number;
 
     /** Color for the icon (should be from theme) */
@@ -93,7 +88,6 @@ type BlockingViewAnimationProps = {
     animation: DotLottieAnimation;
 
     animationStyles?: StyleProp<ViewStyle>;
-
     animationWebStyle?: WebStyle;
 };
 

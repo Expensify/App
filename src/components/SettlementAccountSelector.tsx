@@ -19,7 +19,6 @@ type BankAccountListItem = ListItem & {value: number | undefined};
 
 type SettlementAccountSelectorProps = {
     listOptions: BankAccountListItem[];
-
     onSelectAccount: (value: number) => void;
 
     /** Optional callback for "Add new bank account" - if provided, the option will be shown */
@@ -29,7 +28,6 @@ type SettlementAccountSelectorProps = {
     showAddNewAccountOption?: boolean;
 
     customHeaderContent?: React.ReactElement;
-
     initiallyFocusedItemKey?: string;
 };
 

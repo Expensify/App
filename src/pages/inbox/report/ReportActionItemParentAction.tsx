@@ -28,23 +28,16 @@ import RepliesDivider from './RepliesDivider';
 
 type ReportActionItemParentActionProps = {
     action: ReportAction;
-
     shouldHideThreadDividerLine?: boolean;
 
     /** The id of the report */
 
     reportID: string;
-
     report: OnyxEntry<Report>;
-
     transactionThreadReport: OnyxEntry<Report>;
-
     parentReportAction: OnyxEntry<ReportAction>;
-
     shouldDisplayReplyDivider: boolean;
-
     isFirstVisibleReportAction: boolean;
-
     shouldUseThreadDividerLine?: boolean;
 };
 

@@ -29,9 +29,7 @@ type FeedbackSurveyProps = {
     formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
     title: string;
-
     description: string;
-
     onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
 
     /** Optional text to render over the submit button */

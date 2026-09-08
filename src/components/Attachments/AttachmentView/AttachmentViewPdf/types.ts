@@ -6,7 +6,6 @@ import type {AttachmentViewProps} from '..';
 type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isFocused' | 'onToggleKeyboard' | 'isUsedInAttachmentModal'> & {
     encryptedSourceUrl: string;
     onLoadComplete: (path: string) => void;
-
     style?: StyleProp<ViewStyle>;
 
     /** Triggered when the PDF's onScaleChanged event is triggered */

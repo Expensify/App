@@ -49,7 +49,6 @@ type WorkspaceCompanyCardsTableHandle = {
 
 type WorkspaceCompanyCardsTableProps = {
     ref?: React.Ref<WorkspaceCompanyCardsTableHandle>;
-
     policyID: string;
 
     /** Whether the policy is done loading, i.e. its account ID has resolved. Offline this is `true` even without an account ID, since it can never resolve until we reconnect */
@@ -59,7 +58,6 @@ type WorkspaceCompanyCardsTableProps = {
     isPageFetchPending: boolean;
 
     domainOrWorkspaceAccountID: number;
-
     companyCards: UseCompanyCardsResult;
 
     /** Whether to disable assign card button */
@@ -72,9 +70,7 @@ type WorkspaceCompanyCardsTableProps = {
     isSelectionModeEnabled: boolean;
 
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
-
     onReloadPage: () => void;
-
     onReloadFeed: () => void;
 };
 

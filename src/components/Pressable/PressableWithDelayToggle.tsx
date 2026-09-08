@@ -41,9 +41,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     wrapperStyles?: StyleProp<ViewStyle>;
 
     textStyles?: StyleProp<TextStyle>;
-
     iconStyles?: StyleProp<ViewStyle>;
-
     icon?: IconAsset;
 
     /** The icon to display once the pressable is pressed */
@@ -56,7 +54,6 @@ type PressableWithDelayToggleProps = PressableProps & {
      */
     inline?: boolean;
     accessibilityRole?: string;
-
     ref?: PressableRef;
 
     /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */

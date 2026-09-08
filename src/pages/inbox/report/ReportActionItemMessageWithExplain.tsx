@@ -28,9 +28,7 @@ import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemMessageWithExplainProps = {
     message: string;
-
     action: OnyxEntry<ReportAction>;
-
     childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */

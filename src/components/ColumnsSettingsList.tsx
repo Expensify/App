@@ -29,7 +29,6 @@ type ColumnItem = {
     text: string;
 
     value: SearchCustomColumnIds;
-
     keyForList: SearchCustomColumnIds;
 
     /** Whether the column is currently enabled/visible */

@@ -82,11 +82,8 @@ type DatePresetFilterBaseHandle = {
 
 type DatePresetFilterBaseProps = {
     defaultDateValues: SearchDateValues;
-
     selectedDateModifier: SearchDateModifier | null;
-
     onSelectDateModifier: (dateModifier: SearchDateModifier | null) => void;
-
     presets?: SearchDatePreset[];
 
     /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
@@ -96,7 +93,6 @@ type DatePresetFilterBaseProps = {
     isSearchAdvancedFiltersFormLoading?: boolean;
 
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
-
     onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
 
     /** Force vertical stacking of calendars in range picker */

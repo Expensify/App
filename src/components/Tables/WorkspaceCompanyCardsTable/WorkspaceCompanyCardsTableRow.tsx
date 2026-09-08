@@ -29,19 +29,14 @@ import {View} from 'react-native';
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
         isCardDeleted: boolean;
-
         isAssigned: boolean;
-
         assignedCard?: Card;
-
         onDismissError?: () => void;
     };
 
 type WorkspaceCompanyCardTableRowProps = {
     item: WorkspaceCompanyCardTableRowData;
-
     feedName?: CompanyCardFeedWithDomainID;
-
     CardFeedIcon?: React.ReactNode;
 
     /** Whether to disable assign card button */
@@ -51,7 +46,6 @@ type WorkspaceCompanyCardTableRowProps = {
     canWriteCompanyCards: boolean;
 
     shouldUseNarrowTableLayout: boolean;
-
     rowIndex: number;
 
     /**

@@ -11,7 +11,6 @@ type Address = {
     street2?: string;
 
     city?: string;
-
     state?: string;
 
     /** Zip post code */
@@ -47,7 +46,6 @@ type Address = {
 /** Model of user private personal details */
 type PrivatePersonalDetails = {
     legalFirstName?: string;
-
     legalLastName?: string;
 
     /** User's date of birth */

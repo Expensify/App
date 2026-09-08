@@ -36,14 +36,12 @@ const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type CountryFullStepProps = {
     onBackButtonPress: () => void;
-
     stepNames: readonly string[];
 
     /** Handles submit button press */
     onSubmit: () => void;
 
     policyID: string | undefined;
-
     isComingFromExpensifyCard?: boolean;
 };
 

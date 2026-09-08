@@ -15,7 +15,6 @@ import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageErrorViewProps = {
     testID?: string;
-
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "error page" view */

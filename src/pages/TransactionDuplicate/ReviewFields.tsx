@@ -27,11 +27,8 @@ type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
     label: string;
 
     options: Array<{text: string; value: ReviewDuplicates[K]}> | undefined;
-
     index: number;
-
     onSelectRow: (item: FieldItemType<K>) => void;
-
     selectedValue?: ReviewDuplicates[K];
 };
 

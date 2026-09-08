@@ -49,9 +49,7 @@ type ConnectionLayoutProps = {
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
     titleStyle?: StyleProp<TextStyle> | undefined;
-
     shouldIncludeSafeAreaPaddingBottom?: boolean;
-
     shouldUseScrollView?: boolean;
 
     /** Used for dynamic header title translation with parameters */
@@ -61,9 +59,7 @@ type ConnectionLayoutProps = {
     titleAlreadyTranslated?: string;
 
     connectionName: ConnectionName;
-
     shouldLoadForEmptyConnection?: boolean;
-
     onBackButtonPress?: () => void;
 
     /** Whether or not to block user from accessing the page */

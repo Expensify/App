@@ -40,7 +40,6 @@ type MergeTransaction = {
     comment: Comment;
 
     reimbursable: boolean;
-
     billable: boolean;
 
     /** The receipt object associated with the transaction */
@@ -50,7 +49,6 @@ type MergeTransaction = {
     created: string;
 
     reportID: string;
-
     reportName: string;
 
     /** Custom unit data for distance requests */
@@ -71,18 +69,14 @@ type MergeTransaction = {
     odometerEnd?: number;
 
     odometerStartImage?: FileObject | string;
-
     odometerEndImage?: FileObject | string;
-
     attendees?: Attendee[];
-
     originalTransactionID?: string;
 
     /** Tax percentage value of the transaction */
     taxValue: string;
 
     taxAmount: number;
-
     taxCode: string;
 
     /** Tax name to display in merge transaction flow */

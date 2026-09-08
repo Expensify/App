@@ -48,7 +48,6 @@ type HelpLinkComponentProps = {
     translate: LocaleContextProps['translate'];
 
     styles: ThemeStyles;
-
     alignmentStyle: StyleProp<TextStyle>;
 };
 

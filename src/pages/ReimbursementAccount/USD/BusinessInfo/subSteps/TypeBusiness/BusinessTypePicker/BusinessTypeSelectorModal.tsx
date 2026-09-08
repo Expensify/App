@@ -17,9 +17,7 @@ import type {BusinessTypeItemType, IncorporationType} from './types';
 
 type BusinessTypeSelectorModalProps = {
     isVisible: boolean;
-
     currentBusinessType: string;
-
     onBusinessTypeSelected: (value: BusinessTypeItemType) => void;
 
     /** Function to call when the user closes the business type selector modal */

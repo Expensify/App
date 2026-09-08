@@ -69,9 +69,7 @@ type CardFeedDetails = {
     bankName?: string;
 
     companyID?: string;
-
     distributionID?: string;
-
     deliveryFileName?: string;
 };
 
@@ -90,7 +88,6 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     liabilityType?: string;
 
     preferredPolicy?: string;
-
     linkedPolicyIDs?: string[];
 
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
@@ -132,9 +129,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /** Direct card feed data */
 type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     accountList: string[];
-
     credentials: string;
-
     expiration: number;
 
     /** Defines the type of liability for the card */
@@ -229,7 +224,6 @@ type CardFeeds = {
         companyCardCustomNames?: Record<string, string>;
 
         companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
-
         oAuthAccountDetails?: Partial<Record<CardFeedWithNumber, DirectCardFeedData>>;
 
         /** Collection of card feeds status by domain ID */
@@ -258,27 +252,21 @@ type CardFeeds = {
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     feedType: CardFeedProvider;
-
     feedDetails?: CardFeedDetails;
-
     cardTitle: string;
-
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
-
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
     /** Selected Amex bank custom feed */
     selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
 
     bankName?: string;
-
     selectedCountry?: string;
 
     /** Public token from Plaid connection */
     publicToken?: string;
 
     plaidConnectedFeed?: string;
-
     plaidConnectedFeedName?: string;
 
     /** Name of the CSV layout template */
@@ -321,7 +309,6 @@ type CombinedCardFeed = CustomCardFeedData &
         customFeedName?: string;
 
         feed: CardFeedWithNumber;
-
         status?: CardFeedsStatus;
     };
 

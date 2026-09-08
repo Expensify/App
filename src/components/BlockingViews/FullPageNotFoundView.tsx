@@ -22,7 +22,6 @@ import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
     testID?: string;
-
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "not found" view */
@@ -61,7 +60,6 @@ type FullPageNotFoundViewProps = {
     shouldDisplaySearchRouter?: boolean;
 
     addBottomSafeAreaPadding?: boolean;
-
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 

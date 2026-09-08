@@ -15,7 +15,6 @@ import TextLink from './TextLink';
 
 type FormAlertWrapperProps = {
     children: (isOffline?: boolean) => ReactNode;
-
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Style for the error message for submit button */

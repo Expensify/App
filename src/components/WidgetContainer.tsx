@@ -21,7 +21,6 @@ type WidgetContainerProps = {
     children: ReactNode;
 
     containerStyles?: StyleProp<ViewStyle>;
-
     titleRightContent?: ReactNode;
 };
 

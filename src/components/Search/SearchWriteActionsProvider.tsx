@@ -42,7 +42,6 @@ type SearchWriteActionsProviderProps = {
     transactions: OnyxCollection<Transaction>;
 
     isMobileSelectionModeEnabled: boolean;
-
     type: SearchDataTypes;
 
     /** Grouped meaning either a group-by view or the expense-report view. */

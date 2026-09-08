@@ -109,7 +109,6 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         deletable: boolean;
 
         value?: string | null;
-
         target?: 'expense' | 'invoice' | 'paycheck';
 
         /** Options to select from if field is of type dropdown */

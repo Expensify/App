@@ -30,7 +30,6 @@ type UseSearchingProps<T> = {
  */
 type SearchingMethods = {
     updateSearchString: (value: string) => void;
-
     getActiveSearchString: () => string;
 };
 

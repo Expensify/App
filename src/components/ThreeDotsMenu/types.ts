@@ -34,7 +34,6 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     shouldChangeFillOnOpen?: boolean;
 
     testID?: string;
-
     onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
     /** menuItems that'll show up on toggle of the popup menu */
@@ -51,16 +50,13 @@ type ThreeDotsMenuProps = WithSentryLabel & {
     shouldSetModalVisibility?: boolean;
 
     hideProductTrainingTooltip?: () => void;
-
     renderProductTrainingTooltipContent?: () => React.JSX.Element;
-
     shouldShowProductTrainingTooltip?: boolean;
 
     /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
     isNested?: boolean;
 
     threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
-
     isContainerFocused?: boolean;
 };
 

@@ -56,7 +56,6 @@ type SearchResultsInfo = {
     hasResults: boolean;
 
     isLoading: boolean;
-
     sortBy: SearchSortBy;
 
     /** The sort order of the current search */
@@ -160,9 +159,7 @@ type SearchCardGroup = {
     currency: string;
 
     bank: string;
-
     cardName: string;
-
     cardID: number;
 
     /** Last four Primary Account Number digits */
@@ -353,7 +350,6 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 /** Model of search results */
 type SearchResults = {
     search: SearchResultsInfo;
-
     data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */

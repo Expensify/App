@@ -25,7 +25,6 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         defaultValue?: string;
 
         placeholder?: string;
-
         errorText?: string;
 
         /** Icon to display in right side of text input */
@@ -46,7 +45,6 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
         containerStyles?: StyleProp<ViewStyle>;
-
         inputStyle?: StyleProp<TextStyle>;
 
         /** If present, this prop forces the label to remain in a position where it will not collide with input text */
@@ -94,9 +92,7 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         hint?: string;
 
         shouldRenderHintAsHTML?: boolean;
-
         prefixCharacter?: string;
-
         suffixCharacter?: string;
 
         /** Whether autoCorrect functionality should enable  */
@@ -128,9 +124,7 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         hasError?: boolean;
 
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
-
         isLoading?: boolean;
-
         autoCompleteType?: string;
 
         /** List of markdowns that won't be styled as a markdown */
@@ -148,28 +142,19 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         shouldUseDisabledStyles?: boolean;
 
         prefixStyle?: StyleProp<TextStyle>;
-
         prefixContainerStyle?: StyleProp<ViewStyle>;
-
         suffixStyle?: StyleProp<TextStyle>;
-
         suffixContainerStyle?: StyleProp<ViewStyle>;
-
         loadingSpinnerStyle?: StyleProp<ViewStyle>;
-
         iconContainerStyle?: StyleProp<ViewStyle>;
-
         clearButtonStyle?: StyleProp<ViewStyle>;
-
         clearButtonIconSize?: number;
-
         contentWidth?: number;
 
         /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
         type?: InputType;
 
         mask?: MaskedTextInputOwnProps['mask'];
-
         customNotations?: MaskedTextInputOwnProps['customNotations'];
 
         /** A set of permitted characters for the input */

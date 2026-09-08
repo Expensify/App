@@ -18,7 +18,6 @@ import {View} from 'react-native';
 
 type ChronosOOOListActionsProps = {
     reportID: string | undefined;
-
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
 };
 

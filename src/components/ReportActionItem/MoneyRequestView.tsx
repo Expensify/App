@@ -166,7 +166,6 @@ import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-
     parentReportID?: string;
 
     /** Policy that the report belongs to */

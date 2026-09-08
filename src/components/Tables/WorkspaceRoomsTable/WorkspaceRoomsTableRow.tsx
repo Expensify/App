@@ -33,9 +33,7 @@ type WorkspaceRoomRowData = TableData & {
 
 type WorkspaceRoomsTableRowProps = {
     item: WorkspaceRoomRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

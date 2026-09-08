@@ -21,7 +21,6 @@ type UseLoadReportActionsArguments = {
     transactionThreadReportID: string | undefined;
 
     hasNewerActions: boolean;
-
     hasOlderActions: boolean;
 
     /** Newest action ID from the last pagination response, used as cursor to avoid Pusher-delivered actions skipping gaps */

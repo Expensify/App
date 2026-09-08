@@ -60,7 +60,6 @@ type KYCWallProps = {
     anchorAlignment?: AnchorAlignment;
 
     shouldIncludeDebitCard?: boolean;
-
     onSelectPaymentMethod?: (paymentMethod: PaymentMethod) => void;
 
     /** Returns the route to continue into after adding a personal bank account */

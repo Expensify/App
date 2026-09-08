@@ -24,7 +24,6 @@ import {View} from 'react-native';
 
 type ReportActionItemThreadProps = {
     report: OnyxEntry<Report>;
-
     reportAction: ReportAction;
 
     /** Whether the thread item / message is being hovered */

@@ -1,7 +1,6 @@
 /** Model of frequently used emoji */
 type FrequentlyUsedEmoji = {
     code: string;
-
     name: string;
 
     /** Canonical Unicode hexcode when populated from hydrated picker emoji data */

@@ -36,7 +36,6 @@ type HybridApp = {
     loggedOutFromOldDot?: boolean;
 
     shouldRemoveDelegatedAccess?: boolean;
-
     delegateAccessData?: HybridAppDelegateAccessData;
 
     /** Indicates if NewDot is being closed */

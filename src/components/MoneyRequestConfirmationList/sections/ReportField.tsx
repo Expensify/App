@@ -27,20 +27,15 @@ import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
     selectedParticipants: Participant[];
-
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
     reportID: string;
-
     reportActionID: string | undefined;
 
     /** The action to perform */
     action: IOUAction;
 
     transactionID: string | undefined;
-
     isPerDiemRequest: boolean;
-
     isPolicyExpenseChat: boolean;
 };
 

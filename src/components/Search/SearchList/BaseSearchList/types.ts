@@ -24,7 +24,6 @@ type BaseSearchListProps = Pick<
     | 'overrideItemLayout'
 > & {
     data: SearchListItem[];
-
     renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
@@ -39,7 +38,6 @@ type BaseSearchListProps = Pick<
     onSelectRow: (item: SearchListItem) => void;
 
     ref: RefObject<FlashListRef<SearchListItem> | null>;
-
     scrollToIndex?: (index: number, animated?: boolean) => void;
 
     /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */

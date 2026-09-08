@@ -20,11 +20,8 @@ type AmountTextInputProps = {
     onChangeAmount: (amount: string) => void;
 
     placeholder: string;
-
     selection?: TextSelection;
-
     onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
-
     style?: StyleProp<TextStyle>;
 
     /** Style for the container */

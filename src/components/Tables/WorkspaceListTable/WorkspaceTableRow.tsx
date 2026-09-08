@@ -30,9 +30,7 @@ import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
     item: WorkspaceRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 
     /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */

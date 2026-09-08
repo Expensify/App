@@ -51,9 +51,7 @@ import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
-
     value: number;
-
     style?: StyleProp<ViewStyle>;
 };
 

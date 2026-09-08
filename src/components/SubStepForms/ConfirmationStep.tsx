@@ -33,7 +33,6 @@ type SummaryItem = {
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         pageTitle: string;
-
         summaryItems: SummaryItem[];
 
         /** Whether show additional section with Onfido terms etc. */

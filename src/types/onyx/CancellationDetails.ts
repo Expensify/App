@@ -6,14 +6,12 @@ import type PrivateSubscription from './PrivateSubscription';
 /** Cancellation details model */
 type CancellationDetails = {
     cancellationDate?: string;
-
     cancellationReason: FeedbackSurveyOptionID;
 
     /** Cancellation type (manual/automatic/none) */
     cancellationType: CancellationType;
 
     note: string;
-
     requestDate: string;
 
     /** Canceled subscription object */

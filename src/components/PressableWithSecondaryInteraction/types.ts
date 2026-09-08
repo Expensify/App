@@ -6,9 +6,7 @@ import type {GestureResponderEvent} from 'react-native';
 
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     onPress?: (event?: GestureResponderEvent) => void;
-
     onPressIn?: (event?: GestureResponderEvent) => void;
-
     onPressOut?: (event?: GestureResponderEvent) => void;
 
     /**

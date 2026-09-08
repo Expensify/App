@@ -28,7 +28,6 @@ type ImportedFromAccountingSoftwareProps = {
     policyID: string;
 
     currentConnectionName: string;
-
     connectedIntegration: ConnectionName | undefined;
 
     /** The translated text for the "imported from" message */

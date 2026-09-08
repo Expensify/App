@@ -27,9 +27,7 @@ const RE_BR_CLEANUP = /(?:\s*<br\s*\/?>)+\s*(<\/(?:ul|ol)>)|(<\/li>)(?:\s*<br\s*
 
 type RenderHTMLProps = {
     html: string;
-
     onLinkPress?: LinkPressHandler;
-
     onConciergeLinkPress?: ConciergeLinkPressHandler;
 
     /** Whether the rendered text should be selectable */

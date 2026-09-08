@@ -31,9 +31,7 @@ type PressProps = {
 type TextLinkProps = (LinkProps | PressProps) &
     TextProps & {
         style?: StyleProp<TextStyle>;
-
         onMouseDown?: MouseEventHandler;
-
         suppressDefaultStyle?: boolean;
     };
 

@@ -457,7 +457,6 @@ type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedB
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
         formattedYear: string;
-
         sortKey: number;
     };
 

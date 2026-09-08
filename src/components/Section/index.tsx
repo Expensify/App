@@ -60,7 +60,6 @@ type SectionProps = Partial<ChildrenProps> & {
     childrenStyles?: StyleProp<ViewStyle>;
 
     iconContainerStyles?: StyleProp<ViewStyle>;
-
     centralPaneContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether the section is in the central pane of the layout */
@@ -73,9 +72,7 @@ type SectionProps = Partial<ChildrenProps> & {
     illustrationBackgroundColor?: string;
 
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
     illustrationStyle?: StyleProp<ViewStyle>;
-
     contentPaddingOnLargeScreens?: {padding: number};
 
     /** Overlay content to display on top of animation */
@@ -85,9 +82,7 @@ type SectionProps = Partial<ChildrenProps> & {
     renderSubtitle?: () => ReactNode;
 
     renderTitle?: () => ReactNode;
-
     iconWidth?: number;
-
     iconHeight?: number;
 
     /** Banner to display at the top of the section */

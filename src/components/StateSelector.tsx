@@ -31,7 +31,6 @@ type StateSelectorProps = {
     onInputChange?: (value: string) => void;
 
     label?: string;
-
     wrapperStyle?: MenuItemProps['wrapperStyle'];
 
     /** Callback to call when the picker modal is dismissed */

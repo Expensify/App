@@ -20,7 +20,6 @@ type PendingChatMember = {
  *  REPORT_LAST_VISIT_TIMES) and are NOT part of this type. */
 type ReportMetadata = {
     isOptimisticReport?: boolean;
-
     pendingChatMembers?: PendingChatMember[];
 
     /** Whether the report has violations or errors */

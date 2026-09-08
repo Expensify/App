@@ -37,7 +37,6 @@ type ConfirmationStepProps = {
     policyID: string;
 
     stepNames: readonly string[];
-
     startStepIndex: number;
 };
 

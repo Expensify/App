@@ -91,9 +91,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
         ref?: PressableRef | Ref<View>;
-
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
-
         interactive?: boolean;
 
         /** Text to be shown as badge near the right end. */
@@ -111,16 +109,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isBadgeCondensed?: boolean;
 
         isBadgeError?: boolean;
-
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
 
         outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
         wrapperStyle?: StyleProp<ViewStyle>;
-
         titleWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Styles to apply on the inner row containing the icon and text content */
@@ -132,7 +127,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleStyle?: StyleProp<TextStyle>;
 
         badgeStyle?: StyleProp<ViewStyle>;
-
         labelStyle?: StyleProp<ViewStyle>;
 
         /** Additional styles to style the description text below the title */
@@ -148,9 +142,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         secondaryIconFill?: string;
 
         isSecondaryIconHoverable?: boolean;
-
         iconWidth?: number;
-
         iconHeight?: number;
 
         /** Any additional styles to pass to the icon container. */
@@ -177,9 +169,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         iconRight?: IconAsset;
 
         shouldShowRightComponent?: boolean;
-
         rightComponent?: ReactNode;
-
         leftComponent?: ReactNode;
 
         /** A description text to show under the title */
@@ -223,9 +213,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         characterLimit?: number;
 
         isLabelHoverable?: boolean;
-
         rightLabel?: string;
-
         rightLabelIcon?: IconAsset;
 
         /** Text to display for the item */
@@ -237,7 +225,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         titleComponent?: ReactElement;
-
         titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
@@ -249,7 +236,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         shouldShowBasicTitle?: boolean;
 
         shouldTruncateTitle?: boolean;
-
         isSelected?: boolean;
 
         /** Prop to represent the size of the avatar images to be shown */
@@ -273,7 +259,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         shouldRenderAsHTML?: boolean;
 
         shouldEscapeText?: boolean;
-
         shouldGreyOutWhenDisabled?: boolean;
 
         /** Should we remove the background color of the menu item */
@@ -285,7 +270,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
-
         shouldUseDefaultCursorWhenDisabled?: boolean;
 
         /** The action accept for anonymous user or not */
@@ -360,7 +344,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         shouldDisplayEducationalTooltip?: boolean;
 
         tooltipAnchorAlignment?: TooltipAnchorAlignment;
-
         tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Any additional amount to manually adjust the horizontal position of the tooltip */
@@ -370,14 +353,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         tooltipShiftVertical?: number;
 
         renderTooltipContent?: () => ReactNode;
-
         onEducationTooltipPress?: () => void;
 
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
         shouldShowLoadingSpinnerIcon?: boolean;
-
         shouldShowRadioButton?: boolean;
 
         /** Should use auto width for the icon container. */

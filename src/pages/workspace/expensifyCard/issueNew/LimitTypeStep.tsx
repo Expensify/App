@@ -40,7 +40,6 @@ type LimitTypeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     startStepIndex: number;
-
     stepNames: readonly string[];
 };
 

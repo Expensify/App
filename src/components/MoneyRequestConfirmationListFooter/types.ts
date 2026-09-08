@@ -33,9 +33,7 @@ type MoneyRequestConfirmationListFooterProps = {
     visibilityFlags: VisibilityFlags;
 
     errorState: ErrorState;
-
     toggleHandlers?: ToggleHandlers;
-
     receiptOptions: ReceiptOptions;
 
     /** Show-more state for the compact layout */

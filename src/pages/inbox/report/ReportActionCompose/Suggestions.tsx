@@ -20,7 +20,6 @@ type SuggestionProps = {
     value: string;
 
     selection: TextSelection;
-
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
@@ -33,9 +32,7 @@ type SuggestionProps = {
     isComposerFocused?: boolean;
 
     resetKeyboardInput?: () => void;
-
     isAutoSuggestionPickerLarge?: boolean;
-
     composerHeight?: number;
 
     /** If current composer is connected with report from group policy */

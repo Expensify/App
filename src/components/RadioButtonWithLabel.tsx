@@ -34,7 +34,6 @@ type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     hasError?: boolean;
 
     errorText?: string;
-
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /**

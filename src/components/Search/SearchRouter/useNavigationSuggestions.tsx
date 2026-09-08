@@ -132,7 +132,6 @@ type BuildWorkspaceNavigationItemsParams = {
     isOffline: boolean;
 
     isRulesRevampBetaEnabled: boolean;
-
     isVendorMatchingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */

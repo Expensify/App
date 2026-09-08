@@ -36,7 +36,6 @@ type TextCommentFragmentProps = {
     source: OriginalMessageSource;
 
     reportActionID?: string;
-
     fragment: Message | undefined;
 
     /** Should this message fragment be styled as deleted? */

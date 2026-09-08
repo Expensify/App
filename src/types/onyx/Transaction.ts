@@ -110,7 +110,6 @@ type Comment = {
     splitExpensesTotal?: number;
 
     splitsStartDate?: string;
-
     splitsEndDate?: string;
 
     /** Violations that were dismissed */
@@ -165,7 +164,6 @@ type TransactionCustomUnit = {
     };
 
     customUnitID?: string;
-
     customUnitRateID?: string;
 
     /** Custom unit amount */
@@ -266,7 +264,6 @@ type Receipt = {
     pageCount?: number | null;
 
     isTestReceipt?: true;
-
     isTestDriveReceipt?: true;
 
     /** Local thumbnail URI for fast preview on confirmation page */
@@ -320,11 +317,8 @@ type TravelerPersonalDetails = {
 /** Model of reservation */
 type Reservation = {
     reservationID?: string;
-
     start: ReservationTimeDetails;
-
     end: ReservationTimeDetails;
-
     type: ReservationType;
 
     /** In flight reservations, this represents the details of the airline company */
@@ -376,7 +370,6 @@ type Reservation = {
     paymentType?: string;
 
     departureGate?: Gate;
-
     arrivalGate?: Gate;
 
     /** Coach number for rail */
@@ -396,7 +389,6 @@ type Reservation = {
 /** Model of gate for flight reservation */
 type Gate = {
     terminal: string;
-
     gate: string;
 };
 
@@ -418,7 +410,6 @@ type ReservationTimeDetails = {
     shortName?: string;
 
     timezoneOffset?: string;
-
     cityName?: string;
 };
 
@@ -592,7 +583,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         reportName?: string;
 
         routes?: Routes;
-
         transactionID: string;
 
         /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
@@ -660,7 +650,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         actionableWhisperReportActionID?: string;
 
         linkedTrackedExpenseReportAction?: ReportAction;
-
         linkedTrackedExpenseReportID?: string;
 
         /** The bank of the purchaser card, if any */
@@ -698,16 +687,13 @@ type TransactionPendingFieldsKey = KeysOfUnion<Transaction['pendingFields']>;
 /** Additional transaction changes data */
 type AdditionalTransactionChanges = {
     comment?: string;
-
     waypoints?: WaypointCollection;
-
     attendees?: Attendee[];
 
     /** The ID of the distance rate */
     customUnitRateID?: string;
 
     oldAmount?: number;
-
     oldCurrency?: string;
 
     /** Previous distance before changes */

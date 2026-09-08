@@ -19,7 +19,6 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     validateCode?: string;
 
     isValidationPending?: boolean;
-
     hasValidationSucceeded?: boolean;
 
     /** Errors that occurred when validating the domain */

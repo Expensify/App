@@ -17,11 +17,8 @@ import React from 'react';
 
 type CurrencyPickerProps = {
     isPickerVisible: boolean;
-
     hidePickerModal: () => void;
-
     headerText: string;
-
     value?: string;
 
     /** Callback when the list item is selected */

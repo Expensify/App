@@ -21,9 +21,7 @@ import type {DomainAdminRowData} from '.';
 
 type DomainAdminsTableRowProps = {
     item: DomainAdminRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

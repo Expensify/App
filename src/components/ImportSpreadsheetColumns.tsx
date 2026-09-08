@@ -25,24 +25,17 @@ import TextLink from './TextLink';
 
 type ImportSpreadsheetColumnsProps = {
     spreadsheetColumns: string[][];
-
     columnNames: string[];
-
     columnRoles?: ColumnRole[];
-
     importFunction: () => void | Promise<void>;
-
     errors?: Errors | null;
-
     isButtonLoading?: boolean;
 
     /** Link to learn more about the file preparation for import */
     learnMoreLink?: string;
 
     shouldShowColumnHeader?: boolean;
-
     shouldShowDropdownMenu?: boolean;
-
     customHeaderText?: string;
 
     /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */

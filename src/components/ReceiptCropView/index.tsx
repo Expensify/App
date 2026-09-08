@@ -29,11 +29,8 @@ type CropRect = {
 
 type ReceiptCropViewProps = {
     imageUri: string;
-
     onCropChange?: (crop: CropRect) => void;
-
     initialCrop?: CropRect;
-
     isAuthTokenRequired?: boolean;
 };
 

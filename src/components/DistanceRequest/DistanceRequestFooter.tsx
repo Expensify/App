@@ -39,7 +39,6 @@ type DistanceRequestFooterProps = {
     transaction: OnyxEntry<Transaction>;
 
     policy: OnyxEntry<Policy>;
-
     mapContainerStyle?: StyleProp<ViewStyle>;
 
     /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */

@@ -25,9 +25,7 @@ type NavigationStateInfo = {
  */
 type SessionStateInfo = {
     isSessionLoading: boolean;
-
     isAuthenticatingWithShortLivedToken: boolean;
-
     isAuthenticatingFromNetworkStore: boolean;
 };
 

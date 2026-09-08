@@ -18,13 +18,9 @@ type SingleSelectPopupProps<T> = {
     label?: string;
 
     items: Array<SingleSelectItem<T>>;
-
     value: SingleSelectItem<T> | undefined;
-
     onBackButtonPress?: () => void;
-
     closeOverlay: () => void;
-
     onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
@@ -37,7 +33,6 @@ type SingleSelectPopupProps<T> = {
     defaultValue?: string;
 
     style?: StyleProp<ViewStyle>;
-
     selectionListStyle?: SelectionListStyle;
 
     /** Custom height for each item in the list. Overrides the default row height and adjusts the popover size accordingly. */

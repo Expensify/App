@@ -15,9 +15,7 @@ type TransactionPreviewProps = {
     iouReportID: string | undefined;
 
     chatReport: OnyxEntry<Report>;
-
     reportID: string | undefined;
-
     onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */

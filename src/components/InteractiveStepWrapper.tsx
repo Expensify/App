@@ -17,28 +17,19 @@ import ScreenWrapper from './ScreenWrapper';
 
 type InteractiveStepWrapperProps = {
     children: React.ReactNode;
-
     wrapperID: string;
-
     handleBackButtonPress: () => void;
-
     headerTitle: string;
-
     headerSubtitle?: string;
 
     /** Index of the highlighted step */
     startStepIndex?: number;
 
     stepNames?: readonly string[];
-
     shouldEnableMaxHeight?: boolean;
-
     shouldShowOfflineIndicator?: boolean;
-
     shouldShowOfflineIndicatorInWideScreen?: boolean;
-
     shouldEnablePickerAvoiding?: boolean;
-
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
 
     /**
@@ -55,7 +46,6 @@ type InteractiveStepWrapperProps = {
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
     onEntryTransitionEnd?: () => void;
-
     ref?: ForwardedRef<View>;
 };
 

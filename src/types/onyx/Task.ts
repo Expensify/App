@@ -3,7 +3,6 @@ import type Report from './Report';
 /** Model of task data */
 type Task = {
     title?: string;
-
     description?: string;
 
     /**
@@ -17,7 +16,6 @@ type Task = {
     report?: Report;
 
     assignee?: string;
-
     assigneeAccountID?: number;
 
     /** Report id only when a task was created from a report */

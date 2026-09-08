@@ -51,9 +51,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     iouReport?: OnyxEntry<Report>;
 
     showHeader?: boolean;
-
     isHovered?: boolean;
-
     isActive?: boolean;
 };
 

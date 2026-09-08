@@ -6,9 +6,7 @@ import React from 'react';
 
 type TextWithMiddleEllipsisProps = {
     text: string;
-
     style?: StyleProp<TextStyle>;
-
     textStyle?: StyleProp<TextStyle>;
 };
 

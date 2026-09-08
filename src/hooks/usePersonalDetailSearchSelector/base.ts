@@ -40,9 +40,7 @@ type UseSearchSelectorConfig = {
     includeLoginsOnly?: Set<string>;
 
     includeRecentReports?: boolean;
-
     includeCurrentUser?: boolean;
-
     includeDomainEmail?: boolean;
 
     /** Enable phone contacts integration */
@@ -58,7 +56,6 @@ type UseSearchSelectorConfig = {
     initialSelected?: Set<string>;
 
     initialExtraOptions?: OptionData[];
-
     shouldInitialize?: boolean;
 
     /** Additional contact options to merge (used by platform-specific implementations) */

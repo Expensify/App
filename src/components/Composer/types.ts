@@ -60,7 +60,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
         selection?: TextSelection;
-
         shouldCalculateCaretPosition?: boolean;
 
         /** Function to check whether composer is covered up or not */

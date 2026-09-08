@@ -22,7 +22,6 @@ type SwitchProps = {
     onToggle: (isOn: boolean) => void;
 
     accessibilityLabel: string;
-
     disabled?: boolean;
 
     /** Whether the switch is mid-flight (an optimistic update is pending). Shows a spinner and blocks interaction. */

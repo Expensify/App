@@ -16,11 +16,8 @@ import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
     isVisible: boolean;
-
     years: CalendarPickerListItem[];
-
     currentYear?: number;
-
     onYearChange?: (year: number) => void;
 
     /** Function to call when the user closes the year picker */

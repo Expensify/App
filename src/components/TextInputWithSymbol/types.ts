@@ -18,15 +18,10 @@ type BaseTextInputWithSymbolProps = {
     placeholder: string;
 
     symbol: string;
-
     symbolPosition?: ValueOf<typeof CONST.TEXT_INPUT_SYMBOL_POSITION>;
-
     isSymbolPressable?: boolean;
-
     hideSymbol?: boolean;
-
     selection?: TextSelection;
-
     onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 
     /** Function to call to handle key presses in the text input */
@@ -46,14 +41,12 @@ type BaseTextInputWithSymbolProps = {
     disableKeyboard?: boolean;
 
     style?: StyleProp<TextStyle>;
-
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Character to be shown before the amount */
     prefixCharacter?: string;
 
     prefixStyle?: StyleProp<TextStyle>;
-
     prefixContainerStyle?: StyleProp<ViewStyle>;
 
     /** Customizes the touchable wrapper of the TextInput component */

@@ -40,7 +40,6 @@ type DebugDetailsProps = {
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
     policyHasEnabledTags?: boolean;
-
     policyID?: string;
 
     /** Metadata UI */

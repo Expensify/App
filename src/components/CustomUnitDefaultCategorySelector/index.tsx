@@ -18,7 +18,6 @@ type CustomUnitDefaultCategorySelectorProps = {
     defaultValue?: string;
 
     label: string;
-
     wrapperStyle: StyleProp<ViewStyle>;
 
     /** Whether item is focused or active */

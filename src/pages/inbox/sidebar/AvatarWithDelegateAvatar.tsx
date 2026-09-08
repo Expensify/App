@@ -22,9 +22,7 @@ type AvatarWithDelegateAvatarProps = {
     delegateEmail: string;
 
     isHovered?: boolean;
-
     isSelected?: boolean;
-
     containerStyle?: StyleProp<ViewStyle>;
 };
 

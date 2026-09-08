@@ -4,7 +4,6 @@ type Network = {
     shouldForceOffline?: boolean;
 
     shouldSimulatePoorConnection?: boolean;
-
     shouldFailAllRequests?: boolean;
 
     /** Skew between the client and server clocks  */

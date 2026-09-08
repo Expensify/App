@@ -24,7 +24,6 @@ type CurrencyPickerProps = {
     label: string;
 
     value?: string;
-
     headerContent?: ReactNode;
 
     /** Callback when the list item is selected */

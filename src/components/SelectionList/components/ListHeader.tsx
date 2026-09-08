@@ -22,7 +22,6 @@ type ListHeaderProps<TItem extends ListItem> = {
     customListHeader?: React.ReactNode;
 
     canSelectMultiple: boolean;
-
     headerStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the "Select all" text (merged after textStrong) */
@@ -32,7 +31,6 @@ type ListHeaderProps<TItem extends ListItem> = {
     onSelectAll: () => void;
 
     shouldShowSelectAllButton: boolean;
-
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Custom accessibility label for the select all checkbox, providing context about what is being selected */

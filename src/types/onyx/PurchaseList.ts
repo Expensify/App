@@ -25,26 +25,18 @@ type BillablePolicy = {
 /** Message type for a purchase */
 type Message = {
     accountManagerAccountID?: number;
-
     approvedAccountantAccountIDs?: number[];
 
     /** Approved spend amounts by currency */
     approvedSpend?: Record<string, number>;
 
     billableAmount?: number;
-
     billableAmountBeforeFreeTrialDiscount?: number;
-
     billablePolicies?: Record<string, BillablePolicy>;
-
     billingType?: string;
-
     cardSpendSurchargePercent?: number;
-
     cashBackAmount?: number;
-
     cashBackPercentage?: number;
-
     chatOnlyActorList?: string;
 
     /** Actor count for Corporate policy type */
@@ -59,29 +51,17 @@ type Message = {
     expensifyCardSpend?: Record<string, number>;
 
     freeTrialDays?: number;
-
     freeTrialDiscountAmount?: number;
-
     freeTrialDiscountPercentage?: number;
-
     freebieCreditsUsed?: number;
-
     guideAccountID?: number;
-
     isApprovedAccountant?: boolean;
-
     isApprovedAccountantClient?: boolean;
-
     paidActorCount?: number;
-
     partnerManagerAccountID?: number;
-
     perPolicyTotalMembersCount?: Record<string, number>;
-
     potentialCashBackAmount?: number;
-
     potentialCashBackPercentage?: number;
-
     subscription?: Subscription;
 
     /** Actor count for Team policy type */
@@ -91,23 +71,14 @@ type Message = {
     teamRevenue?: number;
 
     totalActorCount?: number;
-
     totalFreebieCredits?: number;
-
     totalPlatformSpend?: number;
-
     totalRevenue?: number;
-
     totalUniqueMembersCount?: number;
-
     wasDomainBillingUsed?: boolean;
-
     yearlyOverageSurcharge?: number;
-
     yearlySubscriptionOverageCost?: number;
-
     yearlySubscriptionSurcharge?: number;
-
     yearlySubscriptionUserCountCost?: number;
 };
 

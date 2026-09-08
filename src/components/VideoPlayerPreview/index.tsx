@@ -33,20 +33,15 @@ import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoPlayerPreviewProps = {
     videoUrl: string;
-
     reportID: string | undefined;
-
     videoDimensions: Dimensions;
-
     videoDuration: number;
 
     /** Url to a thumbnail image. */
     thumbnailUrl?: string;
 
     fileName: string;
-
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
-
     isDeleted?: boolean;
 };
 

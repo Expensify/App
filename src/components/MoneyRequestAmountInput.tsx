@@ -33,9 +33,7 @@ type MoneyRequestAmountInputProps = {
     onCurrencyButtonPress?: () => void;
 
     onAmountChange?: (amount: string) => void;
-
     inputStyle?: StyleProp<TextStyle>;
-
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Character to be shown before the amount */
@@ -47,13 +45,9 @@ type MoneyRequestAmountInputProps = {
     disableKeyboard?: boolean;
 
     prefixStyle?: StyleProp<TextStyle>;
-
     prefixContainerStyle?: StyleProp<ViewStyle>;
-
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
-
     formatAmountOnBlur?: boolean;
-
     maxLength?: number;
 
     /** Hide the focus styles on TextInput */
@@ -73,9 +67,7 @@ type MoneyRequestAmountInputProps = {
     shouldApplyPaddingToContainer?: boolean;
 
     isNegative?: boolean;
-
     toggleNegative?: () => void;
-
     clearNegative?: () => void;
 
     /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
@@ -90,7 +82,6 @@ type MoneyRequestAmountInputProps = {
     testID?: string;
 
     shouldShowBigNumberPad?: boolean;
-
     shouldUseDynamicFontSize?: boolean;
 
     /** Error to display at the bottom of the form */
@@ -118,9 +109,7 @@ type MoneyRequestAmountInputProps = {
     shouldRefocusOnScrollViewClick?: boolean;
 
     disabled?: boolean;
-
     ref?: ForwardedRef<BaseTextInputRef>;
-
     keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 

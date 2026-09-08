@@ -30,7 +30,6 @@ type ReceiptEmptyStateProps = {
     disabled?: boolean;
 
     isThumbnail?: boolean;
-
     isInMoneyRequestView?: boolean;
 
     /** Whether the receipt empty state should extend to the full height of the container. */

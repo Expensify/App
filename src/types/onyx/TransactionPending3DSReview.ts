@@ -7,7 +7,6 @@ type TransactionPending3DSReview = {
     amount?: number;
 
     currency?: string;
-
     merchant?: string;
 
     /** Created date (YYYY-MM-DD HH:MM:SS) */

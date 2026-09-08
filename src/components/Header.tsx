@@ -18,7 +18,6 @@ import TextLink from './TextLink';
 
 type HeaderProps = {
     title?: ReactNode;
-
     subtitle?: ReactNode;
 
     /** Should we show the environment badge (dev/stg)?  */

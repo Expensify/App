@@ -26,7 +26,6 @@ type TimeModalPickerProps = {
     errorText?: string;
 
     label: string;
-
     ref?: ForwardedRef<View>;
 };
 

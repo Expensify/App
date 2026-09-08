@@ -18,7 +18,6 @@ type CopyTextToClipboardProps = {
     text?: string;
 
     textStyles?: StyleProp<TextStyle>;
-
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;

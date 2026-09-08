@@ -50,9 +50,7 @@ type ConfirmContentProps = {
     subtitle?: string | ReactNode;
 
     buttonVariant?: ButtonVariant;
-
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
     shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
@@ -62,40 +60,25 @@ type ConfirmContentProps = {
     iconFill?: string | false;
 
     iconWidth?: number;
-
     iconHeight?: number;
-
     shouldCenterIcon?: boolean;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
     shouldShowDismissIcon?: boolean;
-
     shouldStackButtons?: boolean;
-
     shouldReverseStackedButtons?: boolean;
-
     titleStyles?: StyleProp<TextStyle>;
-
     titleContainerStyles?: StyleProp<ViewStyle>;
-
     promptStyles?: StyleProp<TextStyle>;
-
     subtitleStyles?: StyleProp<TextStyle>;
-
     contentStyles?: StyleProp<ViewStyle>;
-
     iconAdditionalStyles?: StyleProp<ViewStyle>;
-
     image?: IconAsset;
-
     imageStyles?: StyleProp<ViewStyle>;
-
     imageWidth?: number;
-
     imageHeight?: number;
-
     shouldFitImageToContainer?: boolean;
 
     /** Whether the modal is visible */

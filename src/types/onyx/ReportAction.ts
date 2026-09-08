@@ -31,7 +31,6 @@ type Message = {
     style?: string;
 
     reportID?: string;
-
     policyID?: string;
 
     /** The target of a link fragment e.g. '_blank' */
@@ -174,11 +173,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     shouldShow?: boolean;
 
     childReportID?: string;
-
     childReportName?: string;
-
     childType?: string;
-
     accountID?: number;
 
     /** Account IDs of the oldest four participants, useful to determine which avatars to display in threads */
@@ -200,7 +196,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     childManagerAccountID?: number;
 
     childOwnerAccountID?: number;
-
     childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
@@ -218,7 +213,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isFirstItem?: boolean;
 
     isAttachmentOnly?: boolean;
-
     isAttachmentWithText?: boolean;
 
     /** Receipt tied to report action */
@@ -240,9 +234,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     childRecentReceiptTransactionIDs?: Record<string, string>;
 
     reportID?: string;
-
     linkMetadata?: LinkMetadata[];
-
     childReportNotificationPreference?: NotificationPreference;
 
     /** We manually add this field while sorting to detect the end of the list */
@@ -286,7 +278,6 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     originalMessage?: OriginalMessage<T>;
 
     message?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
-
     previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 };
 

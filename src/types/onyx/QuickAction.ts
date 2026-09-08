@@ -8,7 +8,6 @@ type QuickActionName = ValueOf<typeof CONST.QUICK_ACTIONS>;
 /** Model of user quick action */
 type QuickAction = {
     action?: QuickActionName;
-
     chatReportID?: string;
 
     /** ID of the target account for task actions */

@@ -17,7 +17,6 @@ import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
-
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 

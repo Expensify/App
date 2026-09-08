@@ -23,7 +23,6 @@ type AttachmentCarouselProps = {
     onNavigate?: (attachment: Attachment) => void;
 
     setDownloadButtonVisibility?: (isButtonVisible: boolean) => void;
-
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
@@ -33,7 +32,6 @@ type AttachmentCarouselProps = {
     onSwipeDown?: () => void;
 
     attachmentLink?: string;
-
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 

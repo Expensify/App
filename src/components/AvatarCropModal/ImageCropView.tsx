@@ -24,7 +24,6 @@ type ImageCropViewProps = {
     containerSize?: number;
 
     originalImageHeight: SharedValue<number>;
-
     originalImageWidth: SharedValue<number>;
 
     /** The rotation value of the selected image */

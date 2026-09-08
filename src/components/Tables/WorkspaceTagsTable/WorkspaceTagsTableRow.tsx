@@ -22,9 +22,7 @@ import type {WorkspaceTagTableRowData} from '.';
 
 type WorkspaceTagsTableRowProps = {
     item: WorkspaceTagTableRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */

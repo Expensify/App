@@ -24,11 +24,8 @@ type ReportAvatarProps = {
     reportID?: string;
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
-
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
-
     subscriptAvatarBorderColor?: ColorValue;
 
     /** Whether to show the subscript avatar without margin */

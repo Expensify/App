@@ -4,7 +4,6 @@ type ChronosTimeTracking = {
     startTime?: string;
 
     timerWasTrackedManually?: string;
-
     lastStopTime?: string;
 
     /** Last time the 10am status was posted */

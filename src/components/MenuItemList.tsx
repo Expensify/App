@@ -27,11 +27,8 @@ type MenuItemWithLink = MenuItemProps & {
     key?: string;
 
     pendingAction?: OnyxCommon.PendingAction | null;
-
     onPendingActionDismiss?: () => void;
-
     error?: OnyxCommon.Errors | null;
-
     shouldForceOpacity?: boolean;
 };
 
@@ -48,7 +45,6 @@ type MenuItemListProps = {
     icon?: IconAsset;
 
     iconWidth?: number;
-
     iconHeight?: number;
 };
 

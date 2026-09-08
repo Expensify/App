@@ -22,7 +22,6 @@ type AmountFormProps = {
     shouldAllowNegative?: boolean;
 
     allowFlippingAmount?: boolean;
-
     toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 

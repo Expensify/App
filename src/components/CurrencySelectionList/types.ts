@@ -10,9 +10,7 @@ type CurrencySelectionListProps = Partial<SelectionListWithSectionsProps<Currenc
     searchInputLabel: string;
 
     initiallySelectedCurrencyCode?: string;
-
     recentlyUsedCurrencies?: string[];
-
     onSelect: (item: CurrencyListItem) => void;
 
     /** The array of selected currencies. This prop should be used when multiple currencies can be selected */

@@ -28,9 +28,7 @@ type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exp
 
 type WorkspaceCompanyCardsTableControlsProps = {
     policyID: string;
-
     domainOrWorkspaceAccountID: number;
-
     bankName: UseCompanyCardsResult['bankName'];
 
     /** Whether the current member can edit company cards */

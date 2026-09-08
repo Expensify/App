@@ -18,7 +18,6 @@ import type {RoomMemberRowData} from '.';
 
 type RoomMembersTableRowProps = {
     item: RoomMemberRowData;
-
     rowIndex: number;
 };
 

@@ -5,7 +5,6 @@ import {View} from 'react-native';
 
 type OnboardingModalNavigatorContentWrapperProps = {
     children: React.ReactNode;
-
     onboardingIsMediumOrLargerScreenWidth: boolean;
 };
 

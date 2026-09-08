@@ -38,9 +38,7 @@ type ParentNavigationSubtitleProps = {
     reportID?: string;
 
     parentReportID?: string;
-
     parentReportActionID?: string;
-
     pressableStyles?: StyleProp<TextStyle>;
 
     /** Whether to open the parent report link in the current tab if possible */
@@ -53,13 +51,9 @@ type ParentNavigationSubtitleProps = {
     statusTooltipText?: string;
 
     textStyles?: StyleProp<TextStyle>;
-
     statusTextBackgroundColor?: ColorValue;
-
     statusTextColor?: ColorValue;
-
     statusTextContainerStyles?: StyleProp<ViewStyle>;
-
     subtitleNumberOfLines?: number;
 
     /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */

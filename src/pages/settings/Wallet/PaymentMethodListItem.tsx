@@ -90,9 +90,7 @@ type PaymentMethodListItemProps = {
     shouldShowDefaultBadge: boolean;
 
     threeDotsMenuItems?: PopoverMenuItem[];
-
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
     listItemStyle?: StyleProp<ViewStyle>;
 };
 

@@ -24,7 +24,6 @@ import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
     member: TransactionMemberGroupListItemType;
-
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */

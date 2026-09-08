@@ -48,9 +48,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     isEditing?: boolean;
 
     skipConfirmation?: boolean;
-
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
     policyID?: string;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
@@ -66,7 +64,6 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     shouldKeepUserInput?: boolean;
 
     allowFlippingAmount?: boolean;
-
     chatReportID?: string;
 
     /** Whether this is a P2P (1:1) request */

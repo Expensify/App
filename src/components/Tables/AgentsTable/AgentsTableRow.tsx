@@ -25,7 +25,6 @@ type AgentsTableRowProps = {
     item: TableRow<AgentRowData>;
 
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

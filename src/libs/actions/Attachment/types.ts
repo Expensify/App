@@ -18,7 +18,6 @@ type GetCachedAttachmentProps = {
     attachmentID: string;
 
     attachment: OnyxEntry<Attachment>;
-
     currentSource: string;
 };
 

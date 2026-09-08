@@ -44,7 +44,6 @@ type TextInputProps = {
     onFocusChange: (focused: boolean) => void;
 
     shouldShowTextInput?: boolean;
-
     shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */

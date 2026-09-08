@@ -44,7 +44,6 @@ type AddressFormProps = ForwardedFSClassProps & {
     streetTranslationKey: TranslationPaths;
 
     defaultValues?: Address;
-
     values?: Address;
 
     /** Any errors that can arise from form validation */
@@ -56,19 +55,12 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldSaveDraft?: boolean;
 
     containerStyles?: StyleProp<ViewStyle>;
-
     shouldDisplayCountrySelector?: boolean;
-
     shouldDisplayStateSelector?: boolean;
-
     stateSelectorLabel?: string;
-
     stateSelectorModalHeaderTitle?: string;
-
     stateSelectorSearchInputTitle?: string;
-
     onCountryChange?: (country: unknown) => void;
-
     shouldAllowCountryChange?: boolean;
 };
 

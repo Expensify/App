@@ -21,20 +21,15 @@ type MergeTransactionParams = {
     comment: string;
 
     reimbursable: boolean;
-
     billable: boolean;
 
     /** The receiptID we want to keep */
     receiptID: number | undefined;
 
     amount: number;
-
     currency: string;
-
     reportID: string;
-
     taxCode: string;
-
     taxPolicyID: string;
 
     /** The created IOU report action ID of the transaction */

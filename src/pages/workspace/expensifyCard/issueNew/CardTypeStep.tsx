@@ -28,7 +28,6 @@ type CardTypeStepProps = {
     policy: OnyxEntry<Policy>;
 
     stepNames: readonly string[];
-
     startStepIndex: number;
 };
 

@@ -41,7 +41,6 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
     onFixTheErrorsLinkPressed?: () => void;
-
     onSubmit: () => void;
 
     /** Should the button be enabled when offline */

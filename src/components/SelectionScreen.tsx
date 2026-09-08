@@ -37,11 +37,8 @@ type SelectionScreenProps<T = string> = {
     displayName: string;
 
     title?: TranslationPaths;
-
     headerContent?: React.ReactNode;
-
     listEmptyContent?: React.JSX.Element | null;
-
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
@@ -56,9 +53,7 @@ type SelectionScreenProps<T = string> = {
     initiallyFocusedOptionKey?: string | undefined;
 
     onSelectRow: (item: SelectorType<T>) => void;
-
     onBackButtonPress?: () => void;
-
     policyID?: string;
 
     /** Defines which types of access should be verified */
@@ -76,7 +71,6 @@ type SelectionScreenProps<T = string> = {
     pendingAction?: OnyxCommon.PendingAction | null;
 
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
-
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** A function to run when the X button next to the error is clicked */

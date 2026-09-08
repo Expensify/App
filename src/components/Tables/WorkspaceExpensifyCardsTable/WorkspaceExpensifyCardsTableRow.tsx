@@ -27,9 +27,7 @@ import type {WorkspaceExpensifyCardTableRowData} from '.';
 
 type WorkspaceExpensifyCardsTableRowProps = {
     item: WorkspaceExpensifyCardTableRowData;
-
     rowIndex: number;
-
     shouldUseNarrowTableLayout: boolean;
 };
 

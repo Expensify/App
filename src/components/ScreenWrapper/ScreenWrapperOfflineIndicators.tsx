@@ -27,7 +27,6 @@ type ScreenWrapperOfflineIndicatorsProps = {
     shouldMobileOfflineIndicatorStickToBottom?: boolean;
 
     isOfflineIndicatorTranslucent?: boolean;
-
     extraContent?: ReactNode;
 
     /** Whether to add bottom safe area padding to the small screen offline indicator. */

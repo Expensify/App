@@ -25,7 +25,6 @@ const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
-
     isHovered?: boolean;
 };
 

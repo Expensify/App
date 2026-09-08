@@ -13,9 +13,7 @@ import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
     reportAction: ReportAction;
-
     parentReportAction: OnyxEntry<ReportAction>;
-
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
 
     /** Report for this action */
@@ -39,9 +37,7 @@ type ReportActionsListItemRendererProps = {
     linkedReportActionID?: string;
 
     shouldDisplayReplyDivider: boolean;
-
     isFirstVisibleReportAction: boolean;
-
     shouldUseThreadDividerLine?: boolean;
 
     /** Animate highlight action in few seconds */

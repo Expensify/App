@@ -56,9 +56,7 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
     report: TransactionReportGroupListItemType;
-
     onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
-
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -85,7 +83,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     report: TransactionReportGroupListItemType;
-
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */

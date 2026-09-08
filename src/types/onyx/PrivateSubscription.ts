@@ -17,7 +17,6 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     donateToExpensifyOrg?: true;
 
     endDate: string;
-
     startDate: string;
 
     /** Subscription variant. "yearly2018" - annual, "monthly2018" - pay-per-use */

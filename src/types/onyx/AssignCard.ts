@@ -64,7 +64,6 @@ type AssignCardData = {
     plaidAccessToken?: string;
 
     plaidConnectedFeedName?: string;
-
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 
     /** The email address of the inviting member */

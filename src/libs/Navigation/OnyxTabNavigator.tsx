@@ -41,9 +41,7 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     id: string;
 
     defaultSelectedTab?: TTabName;
-
     onTabSelected?: (newTabName: TTabName) => void;
-
     tabBar: (props: TabSelectorProps) => React.ReactNode;
 
     screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;

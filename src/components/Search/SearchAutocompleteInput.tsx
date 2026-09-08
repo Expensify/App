@@ -42,9 +42,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     isFullWidth: boolean;
-
     disabled?: boolean;
-
     shouldShowOfflineMessage?: boolean;
 
     /** Callback to call when the input gets focus */
@@ -72,7 +70,6 @@ type SearchAutocompleteInputProps = {
     substitutionMap: SubstitutionMap;
 
     shouldDelayFocus?: boolean;
-
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection' | 'onKeyPress'>;
 

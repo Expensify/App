@@ -47,7 +47,6 @@ type AmountFormProps = {
     displayAsTextInput?: boolean;
 
     decimals?: number;
-
     hideCurrencySymbol?: boolean;
 
     /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */

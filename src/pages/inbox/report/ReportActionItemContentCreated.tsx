@@ -32,11 +32,8 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemContentCreatedProps = {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
     transactionID: string | undefined;
-
     draftMessage: string | undefined;
-
     shouldHideThreadDividerLine: boolean;
 };
 

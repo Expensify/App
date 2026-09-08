@@ -8,7 +8,6 @@ import type {LayoutChangeEvent} from 'react-native';
 
 type Section<TItem extends ListItem> = {
     title?: string;
-
     customHeader?: ReactElement;
 
     /** Array of items in the section */
@@ -27,18 +26,14 @@ type Section<TItem extends ListItem> = {
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     ref?: React.Ref<SelectionListWithSectionsHandle>;
-
     sections: Array<Section<TItem>>;
 
     /** Index to scroll to initially (when different from the initially focused item) */
     initialScrollIndex?: number;
 
     customHeaderContent?: ReactNode;
-
     shouldHideKeyboardOnScroll?: boolean;
-
     onScroll?: () => void;
-
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */

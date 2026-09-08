@@ -28,9 +28,7 @@ import React, {useCallback} from 'react';
 
 type CardNameStepProps = {
     policyID: string | undefined;
-
     stepNames: readonly string[];
-
     startStepIndex: number;
 };
 

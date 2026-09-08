@@ -14,20 +14,15 @@ type BankAccountAdditionalData = {
     beneficialOwners?: string[];
 
     currency?: string;
-
     bankName?: BankName;
-
     plaidAccountID?: string;
 
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
     country?: string;
-
     isBillingCard?: boolean;
-
     policyID?: string;
-
     corpay?: {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];

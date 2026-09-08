@@ -9,9 +9,7 @@ import SkeletonViewLines from './SkeletonViewLines';
 
 type ReportActionsSkeletonViewProps = {
     shouldAnimate?: boolean;
-
     possibleVisibleContentItems?: number;
-
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 

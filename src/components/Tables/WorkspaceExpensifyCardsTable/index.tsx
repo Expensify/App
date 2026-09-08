@@ -79,7 +79,6 @@ type WorkspaceExpensifyCardsTableProps = {
     listFooterComponent?: ReactElement;
 
     listFooterComponentStyle?: StyleProp<ViewStyle>;
-
     listContentContainerStyle?: StyleProp<ViewStyle>;
 };
 

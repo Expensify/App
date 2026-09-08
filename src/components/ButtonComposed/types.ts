@@ -41,7 +41,6 @@ type ButtonBehaviorProps = {
     isDisabled?: boolean;
 
     enableHapticFeedback?: boolean;
-
     isLongPressDisabled?: boolean;
 
     /**
@@ -87,7 +86,6 @@ type ButtonStyleProps = {
     hoverStyles?: StyleProp<ViewStyle>;
 
     removeBorderRadius?: ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>;
-
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** The visual variant of the button, which controls its color scheme */

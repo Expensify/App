@@ -85,16 +85,13 @@ type ReceiptImageProps = (
     iconSize?: IconSize;
 
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
-
     thumbnailContainerStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
     fallbackIconSize?: number;
-
     fallbackIconColor?: string;
 
     /** The background color of fallback icon */
@@ -120,7 +117,6 @@ type ReceiptImageProps = (
     onLoadFailure?: () => void;
 
     resizeMode?: ImageResizeMode;
-
     style?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Low-resolution URI shown as a placeholder while the full image loads */

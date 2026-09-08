@@ -26,9 +26,7 @@ type CountrySelectorModalProps = {
     onClose: () => void;
 
     label: string;
-
     currentCountry: string;
-
     onCountrySelected: (value: Option) => void;
 
     /** Function to call when the user presses on the modal backdrop */

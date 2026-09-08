@@ -34,7 +34,6 @@ import type UserSelectionListItem from './UserSelectionListItem';
 
 type ListItem<K extends string | number = string> = {
     text?: string;
-
     alternateText?: string | null;
 
     /** Custom node rendered in place of the alternate text (e.g. a description containing an inline link). Takes precedence over `alternateText` when set. */
@@ -68,11 +67,8 @@ type ListItem<K extends string | number = string> = {
     isBold?: boolean;
 
     accountID?: number | null;
-
     login?: string | null;
-
     leftElement?: ReactNode;
-
     rightElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
@@ -92,13 +88,9 @@ type ListItem<K extends string | number = string> = {
     index?: number;
 
     reportID?: string;
-
     policyID?: string;
-
     groupID?: string;
-
     categoryID?: string;
-
     shouldShowSubscript?: boolean | null;
 
     /** Whether to wrap long text up to 2 lines */
@@ -146,24 +138,17 @@ type CommonListItemProps<TItem extends ListItem> = {
     isFocused?: boolean;
 
     isDisabled?: boolean | null;
-
     showTooltip: boolean;
 
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple?: boolean;
 
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-
     onDismissError?: (item: TItem) => void;
-
     pressableStyle?: StyleProp<ViewStyle>;
-
     pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
     wrapperStyle?: StyleProp<ViewStyle>;
-
     containerStyle?: StyleProp<ViewStyle>;
-
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** Whether to wrap long text up to 2 lines */
@@ -225,7 +210,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 
     style?: StyleProp<TextStyle>;
-
     isHovered?: boolean;
 
     /** Prevent the submission of the list item when enter key is pressed */
@@ -243,19 +227,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowRightCaret?: boolean;
 
     titleStyles?: StyleProp<TextStyle>;
-
     titleContainerStyles?: StyleProp<ViewStyle>;
-
     shouldHighlightSelectedItem?: boolean;
-
     index?: number;
-
     onInputFocus?: (item: TItem) => void;
-
     onInputBlur?: (e: BlurEvent) => void;
-
     onHoldMenuOpen?: HoldMenuCallback;
-
     shouldDisableHoverStyle?: boolean;
 
     /** Whether the network is offline */
@@ -299,7 +276,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         /** Whether to show the right caret icon */
         shouldShowRightCaret?: boolean;
         shouldHighlightSelectedItem?: boolean;
-
         shouldDisableHoverStyle?: boolean;
 
         /**

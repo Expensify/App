@@ -86,7 +86,6 @@ type MoneyRequestConfirmationListProps = {
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
     iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
@@ -99,9 +98,7 @@ type MoneyRequestConfirmationListProps = {
     isReadOnly?: boolean;
 
     expensesNumber?: number;
-
     policyID?: string;
-
     reportID?: string;
 
     /** File path of the receipt */
@@ -140,9 +137,7 @@ type MoneyRequestConfirmationListProps = {
     isPolicyExpenseChat?: boolean;
 
     hasSmartScanFailed?: boolean;
-
     reportActionID?: string;
-
     action?: IOUAction;
 
     /** Whether the expense is confirmed or not */
@@ -155,11 +150,8 @@ type MoneyRequestConfirmationListProps = {
     isReceiptEditable?: boolean;
 
     onPDFLoadError?: () => void;
-
     onPDFPassword?: () => void;
-
     onToggleReimbursable?: (isOn: boolean) => void;
-
     showRemoveExpenseConfirmModal?: () => void;
 
     /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */

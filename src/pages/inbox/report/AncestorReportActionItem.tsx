@@ -46,27 +46,21 @@ type AncestorReportActionItemProps = {
     allBetas: OnyxEntry<Beta[]>;
 
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
-
     conciergeReportID: string | undefined;
-
     currentUserAccountID: number;
 
     /** Model of onboarding */
     introSelected: OnyxEntry<IntroSelected>;
 
     isFirstVisibleReportAction: boolean;
-
     isReportArchived: boolean;
 
     /** Whether the user has viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
 
     linkedTransactionRouteError: Errors | undefined;
-
     parentReportAction: OnyxEntry<ReportAction>;
-
     shouldUseThreadDividerLine: boolean;
-
     transactionThreadReport: OnyxEntry<Report>;
 };
 

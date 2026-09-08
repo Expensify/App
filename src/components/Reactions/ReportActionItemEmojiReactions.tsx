@@ -59,7 +59,6 @@ type FormattedReaction = {
     oldestTimestamp: string;
 
     onPress: () => void;
-
     reactionEmojiName: string;
 
     /** The type of action that's pending */

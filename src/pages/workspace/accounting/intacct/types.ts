@@ -42,7 +42,6 @@ type MenuItem = MenuItemProps & {
 
 type ToggleItem = ToggleSettingOptionRowProps & {
     type: 'toggle';
-
     shouldHide?: boolean;
 };
 

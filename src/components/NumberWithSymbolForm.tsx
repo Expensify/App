@@ -70,7 +70,6 @@ type NumberWithSymbolFormProps = {
     label?: string;
 
     shouldWrapInputInContainer?: boolean;
-
     scrollViewStyle?: StyleProp<ViewStyle>;
 
     /** Whether to refocus the input when clicking on the ScrollView empty space */
@@ -100,11 +99,8 @@ type NumberWithSymbolFormProps = {
     disabled?: boolean;
 
     ref?: ForwardedRef<BaseTextInputRef>;
-
     onSubmitEditing?: () => void;
-
     keyboardType?: KeyboardTypeOptions;
-
     shouldShowFlipButton?: boolean;
 
     /** Whether to show the currency selection button */

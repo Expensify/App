@@ -102,7 +102,6 @@ type PaymentMethodListProps = {
     shouldShowAddBankAccount?: boolean;
 
     addBankAccountItemStyle?: StyleProp<ViewStyle>;
-
     shouldShowAssignedCards?: boolean;
 
     /** Whether connection statuses and sync details should be shown */
@@ -130,9 +129,7 @@ type PaymentMethodListProps = {
     itemIconRight?: IconAsset;
 
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
-
     filterCurrency?: string;
-
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -142,7 +139,6 @@ type PaymentMethodListProps = {
     shouldHideDefaultBadge?: boolean;
 
     threeDotsMenuItems?: PopoverMenuItem[];
-
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 

@@ -40,15 +40,12 @@ type MenuItem = MenuItemProps & {
 
 type DividerLineItem = {
     type: 'divider';
-
     key: string;
-
     shouldHide?: boolean;
 };
 
 type ToggleItem = ToggleSettingOptionRowProps & {
     type: 'toggle';
-
     shouldHide?: boolean;
 };
 
@@ -86,9 +83,7 @@ type CustomFieldSubPageWithPolicy = SubPageProps & {
     customSegmentType?: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>;
 
     setCustomSegmentType?: (segmentType: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>) => void;
-
     netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
-
     customSegments?: NetSuiteCustomSegment[];
 
     customLists?: NetSuiteCustomList[];

@@ -21,7 +21,6 @@ import {View} from 'react-native';
 
 type ProfileAvatarWithIndicatorProps = {
     isSelected?: boolean;
-
     containerStyles?: StyleProp<ViewStyle>;
 };
 

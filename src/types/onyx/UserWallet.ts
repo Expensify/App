@@ -16,7 +16,6 @@ type SetupType = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
 /** Model of user wallet */
 type UserWallet = {
     availableBalance: number;
-
     currentBalance: number;
 
     /** What step in the activation flow are we on? */
@@ -45,9 +44,7 @@ type UserWallet = {
     walletProgramID?: string;
 
     bankAccountID?: number;
-
     walletLimit?: number;
-
     walletLimitEnforcementPeriod?: number;
 
     /** Error code returned by the server */

@@ -168,19 +168,12 @@ type CardFeedErrors = {
     cardFeedErrors: CardFeedErrorsObject;
 
     cardsWithBrokenFeedConnection: Record<string, Card>;
-
     personalCardsWithBrokenConnection: Record<string, Card>;
-
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
-
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
-
     all: CardFeedErrorState;
-
     companyCards: CardFeedErrorState;
-
     expensifyCard: CardFeedErrorState;
-
     personalCard: CardFeedErrorState;
 };
 

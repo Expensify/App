@@ -16,7 +16,6 @@ const EASING_IN = Easing.in(Easing.quad);
 
 type PulsingViewProps = {
     shouldPulse: boolean;
-
     children: React.ReactNode;
 
     /**

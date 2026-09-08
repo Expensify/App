@@ -11,27 +11,21 @@ type TextInputMeasurementProps = {
     contentWidth?: number;
 
     autoGrowHeight?: boolean;
-
     maxAutoGrowHeight?: number;
 
     /** The width of the container */
     width: number | null;
 
     inputStyle?: StyleProp<TextStyle>;
-
     inputPaddingLeft?: StyleProp<ViewStyle>;
-
     autoGrow?: boolean;
-
     isAutoGrowHeightMarkdown?: boolean;
 
     /** Horizontal padding and border styles extracted from the container for accurate width measurement */
     autoGrowMeasurementStyles?: StyleProp<TextStyle>;
 
     onSetTextInputWidth: (width: number) => void;
-
     onSetTextInputHeight: (height: number) => void;
-
     isPrefixCharacterPaddingCalculated: boolean;
 };
 

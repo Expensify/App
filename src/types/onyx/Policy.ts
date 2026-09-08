@@ -142,7 +142,6 @@ type CompanyAddress = {
     addressStreet2?: string;
 
     city: string;
-
     state: string;
 
     /** Zip post code */
@@ -332,7 +331,6 @@ type ConnectionLastSync = {
 /** Last sync state specific to a Merge connections */
 type MergeConnectionLastSync = ConnectionLastSync & {
     syncType?: ValueOf<typeof CONST.MERGE.SYNC_TYPE>;
-
     syncStatus?: ValueOf<typeof CONST.MERGE.SYNC_STATUS>;
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
@@ -483,7 +481,6 @@ type QBOConnectionData = {
     expenseAccounts: Account[];
 
     bankAccounts: Account[];
-
     creditCards: Account[];
 
     /** Collection of export destination accounts */
@@ -552,9 +549,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     markChecksToBePrinted: boolean;
 
     reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
-
     nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
-
     nonReimbursableBillDefaultVendor: string;
 
     /** Default vendor used as a fallback when a non-reimbursable Credit/Debit card expense has no vendor set on the expense itself. */
@@ -570,7 +565,6 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     fxExpenseAccount?: string;
 
     reimbursableExpensesAccount?: Account;
-
     nonReimbursableExpensesAccount?: Account;
 
     /** Account that receives the exported invoices */
@@ -754,7 +748,6 @@ type XeroExportConfig = {
     /** TODO: Will be handled in another issue */
     billStatus: {
         purchase: BillStatusValues;
-
         sales: BillStatusValues;
     };
 
@@ -930,13 +923,9 @@ type NetSuiteConnectionData = {
     subsidiaryList: NetSuiteSubsidiary[];
 
     receivableList?: NetSuiteAccount[];
-
     vendors?: NetSuiteVendor[];
-
     items?: InvoiceItem[];
-
     payableList: NetSuiteAccount[];
-
     taxAccountsList?: NetSuiteTaxAccount[];
 };
 
@@ -970,9 +959,7 @@ type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD' | '';
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
-
     vendorBill?: string;
-
     journalEntry?: string;
 };
 
@@ -1237,7 +1224,6 @@ type NetSuiteConnection = {
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     id: string;
-
     name: string;
 };
 
@@ -1251,17 +1237,11 @@ type SageIntacctDataElementWithValue = SageIntacctDataElement & {
  */
 type SageIntacctConnectionData = {
     creditCards: SageIntacctDataElement[];
-
     entities: SageIntacctDataElementWithValue[];
-
     bankAccounts: SageIntacctDataElement[];
-
     vendors: SageIntacctDataElementWithValue[];
-
     journals: SageIntacctDataElementWithValue[];
-
     items: SageIntacctDataElement[];
-
     taxSolutionIDs: string[];
 };
 
@@ -1288,13 +1268,9 @@ type SageIntacctMappingType = {
     syncItems: boolean;
 
     departments: SageIntacctMappingValue;
-
     classes: SageIntacctMappingValue;
-
     locations: SageIntacctMappingValue;
-
     customers: SageIntacctMappingValue;
-
     projects: SageIntacctMappingValue;
 
     /** User defined dimension type for Sage Intacct */
@@ -1626,9 +1602,7 @@ type RilletAccount = {
  */
 type RilletFieldValue = {
     id: string;
-
     name: string;
-
     deactivated: boolean;
 };
 
@@ -1637,7 +1611,6 @@ type RilletFieldValue = {
  */
 type RilletField = {
     id: string;
-
     name: string;
 
     /** Available values that can be assigned to the field. */
@@ -1722,15 +1695,10 @@ type RilletBankAccount = {
  */
 type RilletConnectionData = {
     subsidiaries?: RilletSubsidiary[];
-
     accounts?: RilletAccount[];
-
     fields?: RilletField[];
-
     taxRates?: RilletTaxRate[];
-
     vendors?: RilletVendor[];
-
     bankAccounts?: RilletBankAccount[];
 };
 
@@ -2014,13 +1982,9 @@ type DualEntryVendor = {
  */
 type DualEntryConnectionData = {
     companies?: DualEntryCompany[];
-
     accounts?: DualEntryAccount[];
-
     classifications?: DualEntryClassification[];
-
     taxRates?: DualEntryTaxRate[];
-
     vendors?: DualEntryVendor[];
 
     /** Mapping of settlement identifiers to their corresponding bank transfer identifiers. */
@@ -2030,7 +1994,6 @@ type DualEntryConnectionData = {
     travelSettlementJournalEntryIDs?: Record<string, string>;
 
     settlementSyncStartEntryID?: number;
-
     travelSettlementSyncStartEntryID?: number;
 };
 
@@ -2328,15 +2291,10 @@ type ZenefitsConnectionConfig = HRConnectionConfigBase & {
  */
 type QBDConnectionData = {
     cashAccounts: Account[];
-
     creditCardAccounts: Account[];
-
     journalEntryAccounts: Account[];
-
     payableAccounts: Account[];
-
     bankAccounts: Account[];
-
     vendors: Vendor[];
 };
 
@@ -2387,11 +2345,8 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         };
 
         markChecksToBePrinted: boolean;
-
         shouldAutoCreateVendor: boolean;
-
         importItems: boolean;
-
         export: QBDExportConfig;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
@@ -2571,7 +2526,6 @@ type PolicyReportField = {
     deletable: boolean;
 
     value?: string | null;
-
     target?: 'expense' | 'invoice' | 'paycheck';
 
     /** Options to select from if field is of type dropdown */
@@ -2609,7 +2563,6 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     bankAccount?: {
         stripeConnectAccountBalance?: number;
-
         stripeConnectAccountID?: string;
 
         /** bankAccountID of selected BBA for payouts */
@@ -2789,7 +2742,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         name: string;
 
         role: ValueOf<typeof CONST.POLICY.ROLE>;
-
         type: ValueOf<typeof CONST.POLICY.TYPE>;
 
         /** The email of the policy owner */
@@ -2857,7 +2809,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoReportingOffset?: AutoReportingOffset;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
-
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
         /** The set reimburser for the policy */
@@ -2960,7 +2911,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isTaxTrackingEnabled?: boolean;
 
         invoice?: PolicyInvoicingDetails;
-
         tax?: {
             /** Whether or not the policy has tax tracking enabled */
             trackingEnabled: boolean;

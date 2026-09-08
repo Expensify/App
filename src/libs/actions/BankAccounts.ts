@@ -83,9 +83,7 @@ type OpenPersonalBankAccountSetupViewProps = {
     policyID?: string;
 
     source?: string;
-
     shouldSetUpUSBankAccount?: boolean;
-
     isUserValidated?: boolean;
 
     /** Route to navigate to after adding a bank account when the KYC flow should continue */

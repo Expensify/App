@@ -30,7 +30,6 @@ type BeneficialOwnersStepProps = {
     onSubmit?: () => void;
 
     currentSubPage?: string;
-
     policyID?: string;
 
     /** Back to URL for preserving navigation context */

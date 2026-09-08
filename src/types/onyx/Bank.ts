@@ -10,11 +10,8 @@ type BankIcon = {
     icon: IconAsset;
 
     iconSize?: number;
-
     iconHeight?: number;
-
     iconWidth?: number;
-
     iconStyles?: StyleProp<ViewStyle>;
 };
 

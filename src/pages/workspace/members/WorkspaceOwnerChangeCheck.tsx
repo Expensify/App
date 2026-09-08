@@ -24,7 +24,6 @@ import {View} from 'react-native';
 
 type WorkspaceOwnerChangeCheckProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-
     accountID: number;
 
     /** The error code */

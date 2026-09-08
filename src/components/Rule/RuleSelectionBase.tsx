@@ -43,7 +43,6 @@ type RuleSelectionBaseProps = {
 
 type RuleSelectionPickerProps = {
     selectedItem?: SelectionItem;
-
     items: SelectionItem[];
 
     /** Callback when a value is selected */

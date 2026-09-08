@@ -39,7 +39,6 @@ type AddPlaidBankAccountProps = {
     onExitPlaid?: () => void;
 
     onSelect?: (plaidAccountID: string) => void;
-
     text?: string;
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */

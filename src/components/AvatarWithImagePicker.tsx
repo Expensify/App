@@ -53,9 +53,7 @@ type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPr
     source?: AvatarSource;
 
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
-
     onImageRemoved?: () => void;
-
     isUsingDefaultAvatar?: boolean;
 
     /** Image crop vector mask */

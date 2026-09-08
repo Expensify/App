@@ -11,11 +11,8 @@ type ReportLoadingState = {
     hasOnceLoadedReportActions?: boolean;
 
     isLoadingNewerReportActions?: boolean;
-
     hasLoadingNewerReportActionsError?: boolean;
-
     isLoadingOlderReportActions?: boolean;
-
     hasLoadingOlderReportActionsError?: boolean;
 
     /** Flag to check if the initial report actions fetch is in flight */

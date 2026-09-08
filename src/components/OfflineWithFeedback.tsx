@@ -36,9 +36,7 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     shouldHideOnDelete?: boolean;
 
     errors?: OnyxCommon.Errors | OnyxCommon.TranslationKeyErrors | ReceiptErrors | null;
-
     shouldShowErrorMessages?: boolean;
-
     shouldDisableOpacity?: boolean;
 
     /** A function to run when the X button next to the error is clicked */
@@ -51,7 +49,6 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     contentContainerStyle?: StyleProp<ViewStyle>;
 
     errorRowStyles?: StyleProp<ViewStyle>;
-
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** Whether applying strikethrough to the children should be disabled */
@@ -64,7 +61,6 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     shouldDisplayErrorAbove?: boolean;
 
     shouldForceOpacity?: boolean;
-
     dismissError?: () => void;
 };
 

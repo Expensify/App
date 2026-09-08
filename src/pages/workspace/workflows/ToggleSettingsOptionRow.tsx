@@ -33,11 +33,8 @@ type ToggleSettingOptionRowProps = {
     rowIcon?: IconAsset;
 
     title?: string;
-
     customTitle?: React.ReactNode;
-
     subtitle?: string | ReactNode;
-
     switchAccessibilityLabel: string;
 
     /** subtitle should show below switch and title */
@@ -66,9 +63,7 @@ type ToggleSettingOptionRowProps = {
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
     subtitleStyle?: StyleProp<TextStyle>;
-
     accordionStyle?: StyleProp<ViewStyle>;
-
     isActive: boolean;
 
     /** Callback to be called when the switch is toggled */

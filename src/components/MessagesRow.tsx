@@ -30,9 +30,7 @@ type MessagesRowProps = {
     onDismiss?: () => void;
 
     containerStyles?: StyleProp<ViewStyle>;
-
     errorTextStyles?: StyleProp<TextStyle>;
-
     dismissError?: () => void;
 };
 

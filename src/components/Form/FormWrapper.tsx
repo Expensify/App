@@ -62,7 +62,6 @@ type FormWrapperProps = ChildrenProps &
         addBottomSafeAreaPadding?: boolean;
 
         addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
         shouldSubmitButtonStickToBottom?: boolean;
 
         /** Fires at most once per frame during scrolling. */
@@ -72,7 +71,6 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
-
         submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 
         /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */

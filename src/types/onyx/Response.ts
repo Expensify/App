@@ -84,9 +84,7 @@ type Response<TKey extends OnyxKey> = {
     shared_secret?: string;
 
     setupUrl?: string;
-
     accountID?: number;
-
     email?: string;
 
     /** If there is older data to load for pagination commands */

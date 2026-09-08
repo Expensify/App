@@ -13,9 +13,7 @@ type ReportFieldsInitialListValuePickerProps = {
     listValues: string[];
 
     disabledOptions: boolean[];
-
     value: string;
-
     onValueChange: (value: string) => void;
 };
 

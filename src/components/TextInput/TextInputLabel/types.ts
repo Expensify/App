@@ -7,7 +7,6 @@ type TextInputLabelProps = {
     labelTranslateY: SharedValue<number>;
 
     labelScale: SharedValue<number>;
-
     isMultiline?: boolean;
 
     /** Force the floating label to render on a single line and ellipsize even when the input is multiline */

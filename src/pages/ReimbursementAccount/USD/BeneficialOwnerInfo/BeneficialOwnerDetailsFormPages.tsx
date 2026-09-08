@@ -38,7 +38,6 @@ const pages = [
 
 type BeneficialOwnerDetailsFormPagesProps = {
     policyID?: string;
-
     beneficialOwnerBeingModifiedID: string;
 
     /** Setter for the beneficial owner being modified */

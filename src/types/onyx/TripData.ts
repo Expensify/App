@@ -26,7 +26,6 @@ type TripData = {
 /** Represents a Passenger Name Record (PNR). */
 type Pnr = {
     pnrId: string;
-
     data: PnrData;
 };
 
@@ -98,7 +97,6 @@ type PnrData = {
             identityDocs: unknown[];
 
             paymentInfos: unknown[];
-
             phoneNumbers: unknown[];
         };
 
@@ -107,7 +105,6 @@ type PnrData = {
             phoneNumbers: unknown[];
 
             designatedApproverInfos: unknown[];
-
             designatedApproverUserIds: unknown[];
         };
 
@@ -150,15 +147,10 @@ type PnrData = {
     }>;
 
     airPnr?: AirPnr;
-
     hotelPnr?: HotelPnr;
-
     carPnr?: CarPnr;
-
     railPnr?: RailPnr;
-
     limoPnr?: LimoPnr;
-
     miscPnr?: MiscPnr;
 
     /** Additional metadata for the PNR. */
@@ -181,9 +173,7 @@ type PnrData = {
     /** Custom fields for the PNR. */
     customFields: Array<{
         id: string;
-
         type: string;
-
         description: string;
     }>;
 
@@ -1492,7 +1482,6 @@ type CarPnr = {
         };
 
         carTypeCode: string;
-
         extraMileageCharge: {
             /** Additional coinage details for the extra mileage charge. */
             otherCoinage: Array<Record<string, unknown>>;

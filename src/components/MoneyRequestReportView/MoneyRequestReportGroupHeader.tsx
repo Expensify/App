@@ -23,7 +23,6 @@ import {View} from 'react-native';
 
 type MoneyRequestReportGroupHeaderProps = {
     group: GroupedTransactions;
-
     groupKey: string;
 
     /** Currency code for amount formatting */

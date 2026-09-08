@@ -25,7 +25,6 @@ type PushRowWithModalProps = {
     description: string;
 
     modalHeaderTitle: string;
-
     searchInputTitle: string;
 
     /** Whether the selected option is editable */

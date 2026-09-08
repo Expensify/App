@@ -32,11 +32,8 @@ type VideoPlayerControlsProps = {
     position: number;
 
     url: string;
-
     videoPlayerRef: RefObject<VideoPlayer | null>;
-
     videoViewRef: RefObject<VideoView | null>;
-
     isPlaying: boolean;
 
     /** Defines if component should have small icons and tighter spacing inline. */

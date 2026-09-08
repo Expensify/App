@@ -15,11 +15,8 @@ type ListSelectionButtonProps<TItem extends ListItem> = {
     item: TItem;
 
     onSelectRow: (item: TItem) => void;
-
     accessibilityLabel?: string;
-
     disabled?: boolean;
-
     style?: StyleProp<ViewStyle>;
 
     /** Additional styles for the checkbox/radio indicator */

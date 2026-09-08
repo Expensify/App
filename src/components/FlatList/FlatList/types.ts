@@ -3,7 +3,6 @@ import type {CellRendererProps, FlatList, FlatListProps} from 'react-native';
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & {
     ref?: ForwardedRef<FlatList>;
-
     shouldDisableVisibleContentPosition?: boolean;
 
     /**

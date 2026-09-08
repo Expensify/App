@@ -2855,14 +2855,12 @@ function getTaskSections(
 
 type CreateAndOpenSearchTransactionThreadParams = {
     item: TransactionListItemType;
-
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** The route to go back to after navigation */
     backTo: string;
 
     currentUserLogin: string;
-
     currentUserAccountID: number;
 
     /** Beta features list */
@@ -2874,7 +2872,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     isSelfTourViewed: boolean | undefined;
-
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
     /** Existing transaction thread report ID (childReportID), if any */

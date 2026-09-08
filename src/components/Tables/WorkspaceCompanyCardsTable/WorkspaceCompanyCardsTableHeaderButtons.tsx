@@ -37,7 +37,6 @@ const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     policyID: string;
-
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */

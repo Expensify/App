@@ -10,7 +10,6 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 
 type OpacityViewProps = {
     shouldDim: boolean;
-
     children: React.ReactNode;
 
     /**

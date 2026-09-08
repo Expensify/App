@@ -57,7 +57,6 @@ type ReportActionAvatarsProps = {
     accountIDs?: number[];
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether avatars are displayed within a reportAction */

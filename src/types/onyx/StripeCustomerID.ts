@@ -1,7 +1,6 @@
 /** Model of Stripe customer */
 type StripeCustomerID = {
     paymentMethodID: string;
-
     intentsID: string;
 
     /** Payment currency */

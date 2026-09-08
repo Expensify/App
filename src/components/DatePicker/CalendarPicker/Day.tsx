@@ -11,11 +11,8 @@ import {View} from 'react-native';
 
 type DayProps = {
     disabled?: boolean;
-
     selected?: boolean;
-
     pressed?: boolean;
-
     hovered?: boolean;
 
     /** date to show */

@@ -30,9 +30,7 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
     onPress: () => void;
-
     anchorRef?: RefObject<View | HTMLDivElement | null>;
-
     avatar: React.ReactNode;
 
     /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */

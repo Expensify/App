@@ -37,16 +37,13 @@ type OptionRowProps = {
     option: OptionDataWithOptionalReportID;
 
     optionIsFocused?: boolean;
-
     onSelectRow?: () => void;
-
     isSelected?: boolean;
 
     /** Display the text of the option in bold font style */
     boldStyle?: boolean;
 
     showTitleTooltip?: boolean;
-
     isDisabled?: boolean;
 
     /** Whether to show a line separating options in list */

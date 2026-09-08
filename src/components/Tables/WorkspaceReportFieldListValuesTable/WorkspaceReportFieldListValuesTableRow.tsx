@@ -19,7 +19,6 @@ import type {ReportFieldListValueRowData} from '.';
 
 type WorkspaceReportFieldListValuesTableRowProps = {
     item: ReportFieldListValueRowData;
-
     rowIndex: number;
 };
 

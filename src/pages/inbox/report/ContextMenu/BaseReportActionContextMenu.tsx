@@ -111,11 +111,8 @@ type BaseReportActionContextMenuProps = {
     isThreadReportParentAction?: boolean;
 
     contentRef?: RefObject<View | null>;
-
     checkIfContextMenuActive?: () => void;
-
     disabledActions?: ContextMenuAction[];
-
     setIsEmojiPickerActive?: (state: boolean) => void;
 
     /** Whether to add bottom safe area padding for edge-to-edge modal content */

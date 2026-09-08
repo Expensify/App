@@ -38,7 +38,6 @@ type AccountData = {
     bankAccountID?: number;
 
     plaidAccountID?: string;
-
     additionalData?: BankAccountAdditionalData;
 
     /** The bank account type */

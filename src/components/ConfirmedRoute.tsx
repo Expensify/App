@@ -36,7 +36,6 @@ type ConfirmedRouteProps = {
     requireRouteToDisplayMap?: boolean;
 
     interactive?: boolean;
-
     shouldDisplayCompass?: boolean;
 };
 

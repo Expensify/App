@@ -104,26 +104,18 @@ type Account = {
     primaryLogin?: string;
 
     adminsRoomReportID?: string;
-
     accountManagerAccountID?: number;
-
     accountManagerReportID?: string;
-
     accountManagerCalendarLink?: string;
-
     partnerManagerAccountID?: number;
-
     partnerManagerEmail?: string;
-
     partnerManagerCalendarLink?: string;
 
     /** The message to be displayed when code requested */
     message?: string;
 
     loadingForm?: ValueOf<typeof CONST.FORMS>;
-
     forgotPassword?: boolean;
-
     accountExists?: boolean;
 
     /** Is the account / domain under domain control? */
@@ -148,9 +140,7 @@ type Account = {
     codesAreCopied?: boolean;
 
     dismissedReferralBanners?: DismissedReferralBanners;
-
     isApprovedAccountant?: boolean;
-
     isApprovedAccountantClient?: boolean;
 
     /** Indicates whether the user can downgrade current subscription plan */
@@ -166,7 +156,6 @@ type Account = {
     delegatedAccess?: DelegatedAccess;
 
     smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
-
     guideDetails?: {
         /** The email of the guide details */
         email: string;
@@ -213,7 +202,6 @@ type Account = {
     canSupportLogin?: boolean;
 
     isUsingExpensifyCard?: boolean;
-
     hasLoungeAccess?: boolean;
 
     /** error associated with adding a secondary login */

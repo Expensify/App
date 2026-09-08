@@ -103,7 +103,6 @@ type MoneyRequestReportUnifiedListProps = {
     onScrollBeginDrag: () => void;
 
     onContentSizeChange: () => void;
-
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
     /** Called when the end of the list is reached (older actions). */

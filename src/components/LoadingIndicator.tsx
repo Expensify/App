@@ -13,7 +13,6 @@ type LoadingIndicatorIconSize = RNActivityIndicatorProps['size'];
 
 type LoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
-
     iconSize?: LoadingIndicatorIconSize;
 };
 

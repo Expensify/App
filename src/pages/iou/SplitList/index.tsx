@@ -18,7 +18,6 @@ type SplitListProps = {
     data: SplitListItemType[];
 
     initiallyFocusedOptionKey: string | undefined;
-
     onSelectRow: (item: SplitListItemType) => void;
 
     /** Footer content to render at the bottom of the list. */

@@ -35,9 +35,7 @@ type SubscriptionPlanCardActionButtonProps = {
     isFromComparisonModal: boolean;
 
     isSelected: boolean;
-
     closeComparisonModal?: () => void;
-
     style?: StyleProp<ViewStyle>;
 };
 

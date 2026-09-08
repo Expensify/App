@@ -19,7 +19,6 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
         validateActionCode?: string;
 
         isVerifiedValidateActionCode?: boolean;
-
         isLoading?: boolean;
     },
     'actionVerified'

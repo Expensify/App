@@ -24,7 +24,6 @@ import {View} from 'react-native';
 
 type HangTightProps = {
     policyID: string | undefined;
-
     bankAccountID: number;
 };
 

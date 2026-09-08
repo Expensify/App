@@ -11,7 +11,6 @@ type TextSelectorModalProps = {
     isVisible: boolean;
 
     value?: string;
-
     onValueSelected?: (value: string) => void;
 
     /** Function to call when the user closes the modal */
@@ -43,7 +42,6 @@ type TextSelectorModalProps = {
 
 type TextPickerProps = {
     value?: string;
-
     placeholder?: string;
 
     /** Form Error description */
