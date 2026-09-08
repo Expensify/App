@@ -1,5 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -26,11 +28,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -204,6 +206,9 @@ type ComputeReportName = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     reportTransactions: Record<string, Transaction[]>;
     isTrackIntentUser: boolean | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     pendingDeleteMemberAccountIDs?: string[];
 };
 
@@ -380,6 +385,7 @@ function getInvoiceReportName(
     report: OnyxEntry<Report>,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
@@ -391,6 +397,7 @@ function getInvoiceReportName(
         linkedTransactions,
         personalDetailsList,
         translate,
+        convertToDisplayString,
     });
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
@@ -427,6 +434,7 @@ function getMoneyRequestReportName({
     linkedTransactions,
     personalDetailsList,
     translate,
+    convertToDisplayString,
 }: {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
@@ -434,6 +442,7 @@ function getMoneyRequestReportName({
     linkedTransactions: Transaction[];
     personalDetailsList: OnyxEntry<PersonalDetailsList>;
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 }): string {
     // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
     if (isExpenseReport(report)) {
@@ -494,6 +503,8 @@ function computeReportNameBasedOnReportAction({
     reportAttributes,
     isTrackIntentUser,
     currentUserAccountID,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
@@ -506,6 +517,8 @@ function computeReportNameBasedOnReportAction({
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
     isTrackIntentUser: boolean | undefined;
     currentUserAccountID: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 }): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -575,7 +588,6 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
     }
     if (isRejectedAction(parentReportAction)) {
@@ -653,7 +665,6 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         return getPolicyChangeLogMaxExpenseAmountMessage(translate, parentReportAction, convertToDisplayString);
     }
 
@@ -662,12 +673,10 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, parentReportAction, convertToDisplayString);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         return getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, parentReportAction, convertToDisplayString);
     }
 
@@ -697,7 +706,6 @@ function computeReportNameBasedOnReportAction({
         return getAutoPayApprovedReportsEnabledMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
         return getAutoReimbursementMessage(translate, parentReportAction, convertToDisplayString);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
@@ -754,7 +762,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        return getActionableCard3DSTransactionApprovalMessage(translate, parentReportAction);
+        return getActionableCard3DSTransactionApprovalMessage(translate, parentReportAction, convertToDisplayString, convertToDisplayStringWithoutCurrency);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
@@ -813,7 +821,6 @@ function computeReportNameBasedOnReportAction({
                 return getElsewherePaymentReportActionMessage(translate, originalMessage);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
                 const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
                 if (crossBorderMessage) {
                     return crossBorderMessage;
@@ -895,7 +902,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID});
+        return getCardIssuedMessage({reportAction: parentReportAction, translate, currentUserAccountID, buildDynamicRoute: createDynamicRoute});
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
@@ -963,17 +970,31 @@ function computeReportNameBasedOnReportAction({
     return undefined;
 }
 
-function computeChatThreadReportName(
-    translate: LocalizedTranslate,
-    isArchived: boolean,
-    report: Report,
-    reports: OnyxCollection<Report>,
-    currentUserLogin: string,
-    transactions: OnyxCollection<Transaction>,
-    parentReportAction?: ReportAction,
-    policyTags?: OnyxEntry<PolicyTagLists>,
-    policy?: OnyxEntry<Policy>,
-): string | undefined {
+function computeChatThreadReportName({
+    translate,
+    convertToDisplayString,
+    getCurrencySymbol,
+    isArchived,
+    report,
+    reports,
+    currentUserLogin,
+    transactions,
+    parentReportAction,
+    policyTags,
+    policy,
+}: {
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isArchived: boolean;
+    report: Report;
+    reports: OnyxCollection<Report>;
+    currentUserLogin: string;
+    transactions: OnyxCollection<Transaction>;
+    parentReportAction?: ReportAction;
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    policy?: OnyxEntry<Policy>;
+}): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
     }
@@ -990,7 +1011,6 @@ function computeChatThreadReportName(
         const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
-            // Non-React call path: pass the standalone utils until this file's own currency-context threading PR.
             convertToDisplayString,
             getCurrencySymbol,
             reportAction: parentReportAction,
@@ -1032,7 +1052,6 @@ function computeChatThreadReportName(
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
         const modifiedMessageWithHTML = getForReportAction({
             translate,
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
             convertToDisplayString,
             reportAction: parentReportAction,
             movedFromReport,
@@ -1073,6 +1092,9 @@ function computeReportName({
     reportAttributes,
     reportTransactions,
     isTrackIntentUser,
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
+    getCurrencySymbol,
     pendingDeleteMemberAccountIDs,
 }: ComputeReportName): string {
     if (!report?.reportID) {
@@ -1095,6 +1117,8 @@ function computeReportName({
         reportAttributes,
         isTrackIntentUser,
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     });
 
     if (parentReportActionBasedName) {
@@ -1124,6 +1148,9 @@ function computeReportName({
             reportAttributes,
             reportTransactions,
             isTrackIntentUser,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
+            getCurrencySymbol,
             // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
         });
@@ -1139,17 +1166,19 @@ function computeReportName({
     const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
-    const chatThreadReportName = computeChatThreadReportName(
+    const chatThreadReportName = computeChatThreadReportName({
         translate,
-        privateIsArchivedValue,
+        convertToDisplayString,
+        getCurrencySymbol,
+        isArchived: privateIsArchivedValue,
         report,
-        reports ?? {},
-        currentUserLogin ?? '',
+        reports: reports ?? {},
+        currentUserLogin: currentUserLogin ?? '',
         transactions,
         parentReportAction,
         policyTags,
-        reportPolicy,
-    );
+        policy: reportPolicy,
+    });
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
@@ -1180,6 +1209,7 @@ function computeReportName({
             linkedTransactions: reportTransactions[report.reportID] ?? [],
             personalDetailsList,
             translate,
+            convertToDisplayString,
         });
     }
 
@@ -1191,7 +1221,7 @@ function computeReportName({
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, personalDetailsList, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, reportTransactions[report.reportID] ?? [], translate, convertToDisplayString, personalDetailsList, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {

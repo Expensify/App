@@ -94,6 +94,7 @@ jobs:
       mobile-expensify-ref: ${{ inputs.MOBILE_EXPENSIFY_REF }}
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
       force-native-build: ${{ inputs.FORCE_NATIVE_BUILD }}
+      download-dsyms: true
     secrets: inherit
 
   buildWeb:

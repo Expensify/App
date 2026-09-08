@@ -2448,6 +2448,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -2520,18 +2521,18 @@ describe('actions/IOU/TrackExpense', () => {
                 (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => reportAction.reportActionID === createIOUAction?.reportActionID,
             );
             expect(createIOUAction).toBeTruthy();
+            const passedThreadReportActions = {[REPORT_ACTION?.reportActionID ?? '1']: REPORT_ACTION} as ReportActions;
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                undefined,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: passedThreadReportActions,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2541,6 +2542,10 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
             expect(successData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
+            // And the failure rollback restores the report actions passed in as a param
+            expect(failureData).toEqual(
+                expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: passedThreadReportActions})]),
+            );
         });
 
         it('should NOT delete the transaction thread regardless of whether there are no visible comments in the thread, if isMovingTransactionFromTrackExpense equals true.', async () => {
@@ -2561,6 +2566,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -2591,16 +2597,16 @@ describe('actions/IOU/TrackExpense', () => {
             });
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                true,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: undefined,
+                isMovingTransactionFromTrackExpense: true,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2725,6 +2731,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             const result = deleteTrackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,
