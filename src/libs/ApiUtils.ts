@@ -11,11 +11,23 @@ import Onyx from 'react-native-onyx';
 import proxyConfig from '../../config/proxyConfig';
 import getEnvironment from './Environment/getEnvironment';
 
+type ActiveServerState = {
+    /** The server requests are addressed to. */
+    activeServer: ValueOf<typeof CONST.SERVER>;
+
+    /** Whether the environment fixed that answer, leaving a stored ACTIVE_SERVER inert. */
+    isPinnedByEnvironment: boolean;
+};
+
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
-let activeServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
+let activeServerState: ActiveServerState = {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false};
 
-function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, envName: ValueOf<typeof CONST.ENVIRONMENT>): ValueOf<typeof CONST.SERVER> {
+/**
+ * The server a stored value and an environment resolve to. Pure, so `useActiveServer` can call it during
+ * render with the values its own Onyx and environment subscriptions hand back.
+ */
+function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, envName: ValueOf<typeof CONST.ENVIRONMENT>): ActiveServerState {
     // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
     // that into a relative `api/Command?` the browser resolves against the app's own origin
     const isQAConfigured = !!CONFIG.EXPENSIFY.QA_API_ROOT;
@@ -23,23 +35,24 @@ function resolveActiveServer(value: ValueOf<typeof CONST.SERVER> | undefined, en
     // The environment is baked into the bundle, and there is no meaningful way
     // to point qa.new.exops.io at production
     if (envName === CONST.ENVIRONMENT.QA && isQAConfigured) {
-        return CONST.SERVER.QA;
+        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true};
     }
 
     if (envName === CONST.ENVIRONMENT.PRODUCTION) {
-        return CONST.SERVER.PRODUCTION;
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: true};
     }
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
     // turns the QA gate off, but leaves the old Onyx value behind
     const storedServer = value === CONST.SERVER.QA && !isQAConfigured ? undefined : value;
 
+    // A stored 'qa' still escapes this, so the answer is not pinned
     if (CONFIG.IS_USING_LOCAL_WEB && storedServer !== CONST.SERVER.QA) {
-        return CONST.SERVER.PRODUCTION;
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false};
     }
 
     const defaultServer = envName === CONST.ENVIRONMENT.STAGING || envName === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
-    return storedServer ?? defaultServer;
+    return {activeServer: storedServer ?? defaultServer, isPinnedByEnvironment: false};
 }
 
 getEnvironment().then((envName) => {
@@ -47,7 +60,7 @@ getEnvironment().then((envName) => {
     Onyx.connectWithoutView({
         key: ONYXKEYS.ACTIVE_SERVER,
         callback: (value) => {
-            activeServer = resolveActiveServer(value, envName);
+            activeServerState = resolveActiveServer(value, envName);
         },
     });
 });
@@ -58,7 +71,7 @@ getEnvironment().then((envName) => {
  */
 function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
-    const server = forceProduction ? CONST.SERVER.PRODUCTION : activeServer;
+    const server = forceProduction ? CONST.SERVER.PRODUCTION : activeServerState.activeServer;
 
     if (server === CONST.SERVER.QA) {
         // No web-proxy branch: Cloudflare Access answers the preflight and matches the bearer against the
@@ -95,11 +108,12 @@ function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
 }
 
 function isQAServerActive(): boolean {
-    return activeServer === CONST.SERVER.QA;
+    return activeServerState.activeServer === CONST.SERVER.QA;
 }
 
 function getActiveServer(): ValueOf<typeof CONST.SERVER> {
-    return activeServer;
+    return activeServerState.activeServer;
 }
 
-export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive};
+export type {ActiveServerState};
+export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive, resolveActiveServer};

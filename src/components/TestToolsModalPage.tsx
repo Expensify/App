@@ -2,6 +2,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import ROUTES from '@src/ROUTES';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -36,7 +38,7 @@ function TestToolsModalPage() {
                             >
                                 {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                             </Text>
-                            <TestToolMenu />
+                            <TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER} />
                         </PressableWithoutFeedback>
                     </ScrollView>
                 </View>

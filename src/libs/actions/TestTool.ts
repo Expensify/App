@@ -12,14 +12,13 @@ import throttle from 'lodash/throttle';
 import {close} from './Modal';
 
 /**
- * Get the backTo parameter from the current test tools modal route
+ * The backTo lives on the modal's root screen; the focused route carries none once a child screen
+ * such as the server selector is on top.
  */
 function getBackToParam(): Route | undefined {
-    const route = navigationRef.current?.getCurrentRoute();
-    if (route?.name === SCREENS.TEST_TOOLS_MODAL.ROOT && route.params) {
-        return (route.params as {backTo?: Route}).backTo;
-    }
-    return undefined;
+    const modalRoute = navigationRef.current?.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+    const rootScreen = modalRoute?.state?.routes?.find((route) => route.name === SCREENS.TEST_TOOLS_MODAL.ROOT);
+    return (rootScreen?.params as {backTo?: Route} | undefined)?.backTo;
 }
 
 /**
@@ -32,11 +31,9 @@ const throttledToggle = throttle(
         const backTo = getBackToParam();
 
         if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
-            if (backTo) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.goBack();
-            }
+            // Without a backTo, goBack() only pops the topmost screen, leaving a pushed child such as the
+            // server selector showing the modal it was meant to dismiss.
+            Navigation.goBack(backTo ?? ROUTES.ROOT);
             return;
         }
         const isAuthenticated = navigationRef.current?.getRootState()?.routes.some((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
