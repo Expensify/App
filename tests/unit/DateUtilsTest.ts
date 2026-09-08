@@ -1213,6 +1213,26 @@ describe('DateUtils', () => {
             constructorSpy.mockRestore();
         });
 
+        it('a device timezone change rebuilds formatters that were cached without one', () => {
+            clearIntlFormatterCaches();
+            const instant = new Date('2026-01-15T20:30:00Z');
+            // Jest does not propagate `process.env.TZ` to V8, so the device zone is moved through the offsets the cache key reads.
+            const offsetSpy = jest.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(300);
+            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
+
+            const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
+            expect(constructorSpy).not.toHaveBeenCalled();
+
+            offsetSpy.mockReturnValue(-540);
+            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
+            expect(constructorSpy).toHaveBeenCalledTimes(1);
+
+            offsetSpy.mockRestore();
+            constructorSpy.mockRestore();
+            clearIntlFormatterCaches();
+        });
+
         it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
             clearIntlFormatterCaches();
             jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {

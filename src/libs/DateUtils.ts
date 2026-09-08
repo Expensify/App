@@ -68,6 +68,15 @@ function isKnownTimezone(tz: string): tz is SelectedTimezone {
 /** A Wednesday in UTC, used where only the locale's own conventions matter and the instant must not vary by run. */
 const LOCALE_PROBE_DATE = new Date(Date.UTC(2023, 0, 4));
 
+/**
+ * A zone-less formatter binds to the device zone at construction, so a cached one outlives a zone change that `Date` getters see at once.
+ * No preset renders a zone name, so offsets alone decide the output — both solstices, since one offset cannot separate a fixed zone from a DST-observing neighbour.
+ */
+const DEVICE_ZONE_PROBE_DATES = [new Date(Date.UTC(2024, 0, 15)), new Date(Date.UTC(2024, 6, 15))] as const;
+function getDeviceZoneFingerprint(): string {
+    return `${DEVICE_ZONE_PROBE_DATES[0].getTimezoneOffset()},${DEVICE_ZONE_PROBE_DATES[1].getTimezoneOffset()}`;
+}
+
 const WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6] as const satisfies readonly WeekDay[];
 function isWeekDay(value: number): value is WeekDay {
     return (WEEK_DAYS as readonly number[]).includes(value);
@@ -85,7 +94,7 @@ function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeForma
 }
 
 function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null {
-    const cacheKey = `${locale}|${formatKey}|${timeZone ?? ''}`;
+    const cacheKey = `${locale}|${formatKey}|${timeZone ?? `@${getDeviceZoneFingerprint()}`}`;
     if (intlDateTimeFormatCache.has(cacheKey)) {
         const cached = intlDateTimeFormatCache.get(cacheKey) ?? null;
         intlDateTimeFormatCache.delete(cacheKey);
