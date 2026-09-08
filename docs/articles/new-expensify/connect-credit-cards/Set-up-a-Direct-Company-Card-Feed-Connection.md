@@ -1,8 +1,8 @@
 ---
 title: Set up a Direct Company Card Feed Connection
 description: Learn how to connect company credit cards using a direct bank connection or Plaid to import transactions and assign company card.
-keywords: [New Expensify, set up direct company card feed, connect company cards Expensify, direct feed Expensify, Plaid company cards]
-internalScope: Audience is Workspace Admins. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting feeds.
+keywords: [New Expensify, set up direct company card feed, connect company cards Expensify, direct feed Expensify, Plaid company cards, copilot add card feed, copilot company cards]
+internalScope: Audience is Workspace Admins and their Copilots. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting feeds.
 ---
 
 # Set up a Direct Company Card Feed Connection
@@ -16,6 +16,10 @@ You can connect company cards using a direct connection with your bank, or throu
 ## Who can set up a direct company card feed connection 
 
 Any Workspace Admin can set up a direct company card feed connection. 
+
+A Copilot with **Full Access** can also set up a direct company card feed connection on behalf of a Workspace Admin. A Copilot with **Limited Access** can't, and sees a no-access message when they select **Add cards**.
+
+[Learn how to act as a Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
 
  - On the **Collect** plan, you can add one company card feed. 
  - On the **Control** plan, you can add unlimited company card feeds. 
