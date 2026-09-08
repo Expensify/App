@@ -601,6 +601,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     )}
                                 </React.Fragment>
                             ))}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletStatusText
+                                card={cardToAdd}
+                                style={styles.mb2}
+                            />
+                        )}
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
@@ -615,12 +621,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
                                             }
                                         }}
-                                    />
-                                )}
-                                {cardToAdd !== undefined && (
-                                    <AddToWalletStatusText
-                                        card={cardToAdd}
-                                        style={styles.pv3}
                                     />
                                 )}
                                 {shouldShowActionRows && (

@@ -21,13 +21,13 @@ function AddToWalletStatusText({card, style}: {card: Card; style?: ViewStyle}) {
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
     const {isInWallet} = useIsCardInWallet(card);
 
-    // if (!isInWallet) {
-    //     return null;
-    // }
+    if (!isInWallet) {
+        return null;
+    }
 
     return (
         <View style={style}>
-            <Text style={[styles.textLabelSupporting, styles.ph5]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
+            <Text style={[styles.textLabelSupporting, styles.ph5, styles.pv5]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
         </View>
     );
 }

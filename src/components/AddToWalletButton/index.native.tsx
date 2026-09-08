@@ -1,13 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import {checkIfWalletIsAvailable, handleAddCardToWallet} from '@libs/Wallet/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
