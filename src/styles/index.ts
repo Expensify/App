@@ -4698,11 +4698,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.mh5,
         },
 
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
-        },
-
         taskRightIconContainer: {
             width: variables.componentSizeNormal,
             marginLeft: 'auto',
