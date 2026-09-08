@@ -17,7 +17,7 @@ import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem, SearchKey} from '@libs/SearchUIUtils';
 import {
     createBaseSavedSearchMenuItem,
@@ -114,7 +114,7 @@ function SavedSearchList() {
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
-    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const {setCurrentSearchKey} = useSearchQueryActions();
 
     const {showDeleteModal} = useDeleteSavedSearch();
@@ -163,7 +163,7 @@ function SavedSearchList() {
                       index,
                       currentSearchKey,
                       title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
-                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, buildSearchQueryJSON(itemQuery)?.hash !== currentSearchHash),
+                      onPress: (savedSearchKey) => setCurrentSearchKey(savedSearchKey, itemQuery),
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedID === key,

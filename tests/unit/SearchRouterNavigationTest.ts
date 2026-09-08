@@ -23,7 +23,6 @@ import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navig
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import type {MenuData, MenuSection} from '@pages/settings/useSettingsNavigationMenuData';
@@ -866,7 +865,7 @@ describe('Spend Search Router navigation source', () => {
         const clearSelectedTransactions = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, 0, clearSelectedTransactions, jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, clearSelectedTransactions, jest.fn());
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
@@ -875,24 +874,15 @@ describe('Spend Search Router navigation source', () => {
         expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
     });
 
-    it('marks the search key as pending when the resolved query hash differs from the current hash', () => {
+    it('passes the query it navigates to as the search key target, so the update can be deferred until the query changes', () => {
         const setCurrentSearchKey = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
-        const differentHash = (buildSearchQueryJSON(searchQuery)?.hash ?? 0) + 1;
+        // The last query stays valid for the default query, so it is the one we navigate to.
+        const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, differentHash, jest.fn(), setCurrentSearchKey);
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), setCurrentSearchKey);
 
-        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, true);
-    });
-
-    it('marks the search key as non-pending when the resolved query hash matches the current hash', () => {
-        const setCurrentSearchKey = jest.fn();
-        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
-        const sameHash = buildSearchQueryJSON(searchQuery)?.hash ?? 0;
-
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, sameHash, jest.fn(), setCurrentSearchKey);
-
-        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, false);
+        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, lastSearchQuery);
     });
 
     it('navigates with the last query when it is still valid for the default query', () => {
@@ -900,7 +890,7 @@ describe('Spend Search Router navigation source', () => {
         // The last query adds a filter but keeps the default query's type and (empty) filter keys, so it stays valid.
         const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, 0, jest.fn(), jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), jest.fn());
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery}));
     });
@@ -910,7 +900,7 @@ describe('Spend Search Router navigation source', () => {
         // The last query drops the default's merchant filter, so it is no longer valid and the default is used.
         const lastSearchQuery = 'type:expense category:Food';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, 0, jest.fn(), jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), jest.fn());
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
     });

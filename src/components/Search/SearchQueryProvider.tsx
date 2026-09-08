@@ -145,9 +145,10 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
-        setCurrentSearchKey: (key, pending) => {
+        setCurrentSearchKey: (key, pendingQuery) => {
             // We pending the update of the currentSearchKey to be updated later at the same time with the
             // currentSearchQueryJSON so the consumer won't see mismatch value between search key and query JSON.
+            const pending = pendingQuery !== undefined && buildSearchQueryJSON(pendingQuery)?.hash !== currentSearchHash;
             if (pending) {
                 setPendingCurrentSearchKey(key);
             } else {

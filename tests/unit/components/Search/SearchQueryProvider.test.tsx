@@ -309,9 +309,9 @@ describe('SearchQueryProvider', () => {
             const {result, rerender} = renderProvider();
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
-            // Pending update: the key must not change while the query hash is the same.
+            // The target query has a different hash than the current one, so the key must not change yet.
             act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, true);
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
@@ -321,13 +321,26 @@ describe('SearchQueryProvider', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
         });
 
-        it('applies a non-pending setCurrentSearchKey immediately', () => {
+        it('applies setCurrentSearchKey immediately when no target query is passed', () => {
             mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
             const {result} = renderProvider();
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
             act(() => {
                 result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            });
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('applies setCurrentSearchKey immediately when the target query has the current hash', () => {
+            const query = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`;
+            mockNavigationQuery(query);
+            const {result} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // The query isn't changing, so there is nothing to wait for and the key applies right away.
+            act(() => {
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, query);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
         });
@@ -340,7 +353,7 @@ describe('SearchQueryProvider', () => {
             // Set a pending key, then change the query so a default filter is dropped.
             // Without the pending logic the key would reset to EXPENSES, but the pending key must win.
             act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, true);
+                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, RECONCILIATION_QUERY_WITHOUT_WITHDRAWN);
             });
             mockNavigationQuery(RECONCILIATION_QUERY_WITHOUT_WITHDRAWN);
             rerender(undefined);
