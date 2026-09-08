@@ -85,11 +85,12 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             onClose={onClose}
             onModalHide={onClose}
             onBackdropPress={onBackdropPress}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID="StateSelectorModal"
             >
                 <HeaderWithBackButton
@@ -107,6 +108,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>
