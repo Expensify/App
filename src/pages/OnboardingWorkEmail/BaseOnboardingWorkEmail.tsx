@@ -38,7 +38,10 @@ import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
+import type {Account} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
@@ -54,6 +57,11 @@ type Item = {
     shouldRenderEmail?: boolean;
 };
 
+const accountSelector = (account: OnyxEntry<Account>) => ({
+    validated: account?.validated,
+    isFromPublicDomain: account?.isFromPublicDomain,
+});
+
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,15 +69,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const sessionEmail = session?.email;
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
         selector: expensifyLoginsSelector,
     });
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (acc) => ({
-            validated: acc?.validated,
-            isFromPublicDomain: acc?.isFromPublicDomain,
-        }),
-    });
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {
@@ -95,7 +99,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isFocused = useIsFocused();
     // AddWorkEmail can make an unvalidated work login primary while the account-level flag remains true. Fall back to
     // that flag only until the primary login itself has loaded into Onyx.
-    const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
+    const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, sessionEmail) || (!!account?.validated && !loginList?.[sessionEmail ?? '']);
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
 
     useEffect(() => {
@@ -203,9 +207,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
     const submitWorkEmail = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+            const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
+            const isCurrentUnvalidatedWorkEmail =
+                isConciergeTaskFlow &&
+                !isCurrentPrimaryValidated &&
+                !!sessionEmail &&
+                submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase() &&
+                !PUBLIC_DOMAINS_SET.has(submittedWorkEmail.split('@').at(1)?.toLowerCase() ?? '');
+
+            // The work email was already added in an earlier visit, so let the user resume its validation without
+            // sending AddWorkEmail for the current primary login again.
+            if (isCurrentUnvalidatedWorkEmail) {
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+                return;
+            }
+
             setHasSubmittedWorkEmail(true);
             AddWorkEmail(
-                values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim(),
+                submittedWorkEmail,
                 addWorkEmailTaskReport,
                 addWorkEmailTaskParentReport,
                 isAddWorkEmailTaskParentReportArchived,
@@ -213,7 +232,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 currentUserPersonalDetails.accountID,
             );
         },
-        [addWorkEmailTaskReport, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived, addWorkEmailTaskParentReportAction, currentUserPersonalDetails.accountID],
+        [
+            addWorkEmailTaskReport,
+            addWorkEmailTaskParentReport,
+            isAddWorkEmailTaskParentReportArchived,
+            addWorkEmailTaskParentReportAction,
+            currentUserPersonalDetails.accountID,
+            isConciergeTaskFlow,
+            isCurrentPrimaryValidated,
+            sessionEmail,
+        ],
     );
 
     useEffect(() => {
@@ -253,7 +281,10 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
+        const isCurrentUnvalidatedWorkEmail =
+            isConciergeTaskFlow && !isCurrentPrimaryValidated && !!session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
+
+        if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isCurrentUnvalidatedWorkEmail && !isOffline) {
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
         } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {

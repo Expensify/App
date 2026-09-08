@@ -617,6 +617,34 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should resume validation when the current unvalidated work email is resubmitted', async () => {
+        const pendingWorkEmail = 'pending@privateemail.com';
+
+        await TestHelper.signInWithTestUser(1, pendingWorkEmail);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), pendingWorkEmail);
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should skip Onboarding private domain for a validated public-domain user after guided setup is complete', async () => {
         await TestHelper.signInWithTestUser();
 
