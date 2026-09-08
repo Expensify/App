@@ -20,16 +20,12 @@ type WorkspaceAvatarProps = AvatarCommonProps & {
     /** Workspace name. Seeds the default workspace avatar (icon + test ID) used when `source` is missing. */
     name: string;
 
-    /**
-     * Workspace/policy ID. Picks the background color of the default workspace avatar.
-     * Optional because a `policy_` Onyx record is merged field-by-field, so callers can hand us
-     * an ID that is still missing at runtime even when its type says otherwise.
-     */
+    /** Workspace/policy ID. Picks the background color of the default workspace avatar. */
     avatarID?: number | string;
 };
 
 /** Renders a workspace avatar, falling back to a default icon derived from the workspace name. */
-function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, name, avatarID, testID}: WorkspaceAvatarProps) {
+function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerStyles, size = CONST.AVATAR_SIZE.DEFAULT, name, avatarID = CONST.DEFAULT_NUMBER_ID, testID}: WorkspaceAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
@@ -59,7 +55,7 @@ function WorkspaceAvatar({source, imageStyles, iconAdditionalStyles, containerSt
         );
     }
 
-    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor((avatarID ?? CONST.DEFAULT_NUMBER_ID).toString());
+    const iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID.toString());
 
     return (
         <AvatarContainer
