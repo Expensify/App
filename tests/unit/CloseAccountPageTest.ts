@@ -1,6 +1,7 @@
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 
 import CONST from '@src/CONST';
+import {shouldBlockCloseAccountAction} from '@src/pages/settings/Security/CloseAccount/CloseAccountValidateCodePage';
 
 import {Str} from 'expensify-common';
 
@@ -28,6 +29,30 @@ const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate
 
 describe('CloseAccountPage Validation', () => {
     const mockTranslate = () => 'Please enter your default contact method';
+
+    describe('RuleBot guard validation', () => {
+        it('Should block closing when the account is still enforcing a workspace RuleBot policy', () => {
+            const policies = {
+                1: {
+                    id: '1',
+                    ruleBotAccountID: 42,
+                    rules: {
+                        agentRules: {
+                            rule1: {title: 'RuleBot rule', prompt: 'RuleBot rule'},
+                        },
+                    },
+                },
+            } as any;
+
+            expect(shouldBlockCloseAccountAction(42, policies, 'Leaving')).toBe(true);
+            expect(shouldBlockCloseAccountAction(99, policies, 'Leaving')).toBe(false);
+        });
+
+        it('Should reject invalid deep links or direct route access that do not include a valid reason', () => {
+            expect(shouldBlockCloseAccountAction(42, {}, undefined)).toBe(true);
+            expect(shouldBlockCloseAccountAction(42, {}, '')).toBe(true);
+        });
+    });
 
     describe('Phone Number Validation', () => {
         it('Should validate matching phone numbers in different formats', () => {
