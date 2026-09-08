@@ -107,7 +107,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <View
-                    style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}
+                    style={shouldShrinkPromptInput ? [StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE), styles.overflowHidden] : [styles.flex1]}
                     onLayout={(event) => {
                         promptTopOffsetRef.current = event.nativeEvent.layout.y;
                     }}
