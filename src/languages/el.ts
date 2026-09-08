@@ -9734,6 +9734,7 @@ ${reportName}`,
         exportedTo: 'Εξήχθη σε',
         exportAll: {
             selectAllMatchingItems: 'Επιλέξτε όλα τα στοιχεία που ταιριάζουν',
+            allMatchingItemsSelected: 'Έχουν επιλεγεί όλα τα στοιχεία που ταιριάζουν',
             selectAllOnThisPage: 'Επιλέξτε όλα σε αυτή τη σελίδα',
         },
         errors: {
