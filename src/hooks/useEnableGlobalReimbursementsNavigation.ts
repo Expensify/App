@@ -24,8 +24,8 @@ import useRootNavigationState from './useRootNavigationState';
 function useEnableGlobalReimbursementsNavigation() {
     const route = useRoute();
     const isDynamic = isDynamicRouteScreen(route.name as Screen); // eslint-disable-line @typescript-eslint/no-unsafe-type-assertion -- route.name is string at runtime
-    const navigationPath = useRootNavigationState((state) => (state ? getPathFromState(state as State) : undefined));
-    const dynamicBasePath = getDynamicBasePathFromNavigationPath(navigationPath);
+    const navigationPath = useRootNavigationState((state) => (isDynamic && state ? getPathFromState(state as State) : undefined));
+    const dynamicBasePath = isDynamic ? getDynamicBasePathFromNavigationPath(navigationPath) : '';
 
     const getBusinessRoute = (bankAccountID: number | string, subPage: string, action?: 'edit', params?: EnableGlobalReimbursementsRouteParams): Route => {
         if (isDynamic) {

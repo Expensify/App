@@ -52,8 +52,8 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
 
     const persistedRouteParams = {
-        bankCountry: route.params?.bankCountry ?? (country || undefined),
-        bankCurrency: route.params?.bankCurrency ?? (currency || undefined),
+        bankCountry: country || undefined,
+        bankCurrency: currency || undefined,
     };
 
     const {getAgreementsRoute, getBusinessRoute, getRootBackPath, isDynamic} = useEnableGlobalReimbursementsNavigation();
