@@ -38,6 +38,8 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
             exportLayouts: policy.exportLayouts,
             outputCurrency: policy.outputCurrency,
             role: policy.role,
+            areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
+            areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         } as Policy;
     }
     return result;
