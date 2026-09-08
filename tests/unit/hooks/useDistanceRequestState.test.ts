@@ -48,7 +48,8 @@ const baseParams: Params = {
 
 describe('useDistanceRequestState', () => {
     // A home and office exclusion is decided server-side, so the confirmation screen waits for the verdict rather
-    // than showing an undeducted amount. The cases that can never receive one must not wait forever.
+    // than showing an amount the commute has not been taken off yet. The cases that can never receive a
+    // verdict must not wait forever.
     it.each([
         ['waits while the verdict for this workspace has not arrived yet', {}, true, true],
         [

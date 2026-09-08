@@ -642,7 +642,7 @@ describe('DistanceRequestUtils', () => {
                 'a preview left behind by a workspace the member switched away from',
                 {
                     ...distanceTransaction,
-                    commuterExclusionPreview: {policyID: 'ANOTHERWORKSPACE', hasExclusion: true, isWholeTripExcluded: true, commuteDistanceMeters: 0},
+                    commuterExclusionPreview: {policyID: 'A1B2C3D4E5F60789', hasExclusion: true, isWholeTripExcluded: true, commuteDistanceMeters: 0},
                 },
                 policyWithHomeAndOfficeExclusion,
             ],
