@@ -1,14 +1,15 @@
+import {render} from '@testing-library/react-native';
+
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import PopoverWithMeasuredContentBase from '@components/PopoverWithMeasuredContent/PopoverWithMeasuredContentBase';
 import Text from '@components/Text';
 
 import CONST from '@src/CONST';
 
-import type {View} from 'react-native';
 import type {ReactNode} from 'react';
+import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import {render} from '@testing-library/react-native';
 import React, {createRef} from 'react';
 
 const WINDOW_HEIGHT = 600;
