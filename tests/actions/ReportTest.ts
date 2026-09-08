@@ -5196,7 +5196,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
-            expect(orderedReportIDs).toEqual([]);
+            expect(orderedReportIDs).toBeUndefined();
         });
 
         it('keeps report search ordering when searching rooms to mention', async () => {

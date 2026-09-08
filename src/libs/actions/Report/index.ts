@@ -6090,7 +6090,7 @@ function performServerSearch(searchInput: string, policyID?: string, isUserSearc
     const isOffline = isOfflineNetwork();
 
     if (!policyID && !isUserSearch) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, []);
+        Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, null);
     }
 
     if (isOffline || !searchInput.trim().length) {
