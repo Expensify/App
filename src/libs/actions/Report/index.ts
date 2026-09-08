@@ -4323,11 +4323,13 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
@@ -4356,8 +4358,7 @@ function navigateToConciergeChat(
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
                 conciergeChat: undefined,
                 isSelfTourViewed,
-                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow,
                 betas,
                 shouldDismissModal,
                 linkToOptions,
@@ -4829,6 +4830,8 @@ function navigateToConciergeChatAndDeleteReport(
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        undefined,
         betas,
         false,
         undefined,
@@ -5132,7 +5135,8 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true, {forceReplace: true});
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, undefined, betas, false, () => true, {forceReplace: true});
     }
 }
 

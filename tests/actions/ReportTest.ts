@@ -5340,7 +5340,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -5351,7 +5351,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, true);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, true);
 
             await waitForBatchedUpdates();
 
@@ -5366,7 +5366,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined, the function uses onServerDataReady()
             // which is async. We're testing that it doesn't throw and handles the case properly.
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
         });
 
@@ -5375,7 +5375,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, true, undefined, undefined, reportActionID);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, true, undefined, undefined, reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -5390,7 +5390,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false, undefined, linkToOptions);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false, undefined, linkToOptions);
 
             await waitForBatchedUpdates();
 
@@ -5404,7 +5404,7 @@ describe('actions/Report', () => {
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false, checkIfCurrentPageActive);
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false, checkIfCurrentPageActive);
 
             await waitForBatchedUpdates();
 
@@ -5419,7 +5419,7 @@ describe('actions/Report', () => {
             // When conciergeReportID is undefined (or null passed as undefined),
             // it should handle it gracefully
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
         });
 
@@ -5429,7 +5429,7 @@ describe('actions/Report', () => {
 
             // Empty string is falsy in JavaScript, so it should trigger the undefined path
             expect(() => {
-                Report.navigateToConciergeChat('', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+                Report.navigateToConciergeChat('', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
         });
 
@@ -5441,7 +5441,18 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, true, checkIfCurrentPageActive, linkToOptions, reportActionID);
+            Report.navigateToConciergeChat(
+                CONCIERGE_REPORT_ID,
+                testIntroSelected,
+                TEST_USER_ACCOUNT_ID,
+                undefined,
+                undefined,
+                undefined,
+                true,
+                checkIfCurrentPageActive,
+                linkToOptions,
+                reportActionID,
+            );
 
             await waitForBatchedUpdates();
 
@@ -5458,7 +5469,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, onyxConciergeReportID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(providedConciergeReportID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+            Report.navigateToConciergeChat(providedConciergeReportID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -5482,7 +5493,7 @@ describe('actions/Report', () => {
 
             const testBetas = [CONST.BETAS.ALL];
 
-            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, testBetas, false);
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, testBetas, false);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5493,22 +5504,22 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, undefined, false);
             }).not.toThrow();
 
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, false, undefined, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, false, undefined, undefined, false);
             }).not.toThrow();
 
             expect(() => {
-                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+                Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
             }).not.toThrow();
         });
 
         it('should navigate via navigateToAndOpenReport with isSelfTourViewed when conciergeReportID is undefined and page is active', async () => {
             const checkIfCurrentPageActive = jest.fn(() => true);
 
-            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, false, checkIfCurrentPageActive);
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, undefined, false, checkIfCurrentPageActive);
 
             await waitForBatchedUpdates();
 
@@ -5521,7 +5532,7 @@ describe('actions/Report', () => {
         it('should navigate via navigateToAndOpenReport with isSelfTourViewed=undefined when conciergeReportID is undefined', async () => {
             const checkIfCurrentPageActive = jest.fn(() => true);
 
-            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false, checkIfCurrentPageActive);
+            Report.navigateToConciergeChat(undefined, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false, checkIfCurrentPageActive);
 
             await waitForBatchedUpdates();
 
@@ -5533,7 +5544,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, false);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -5545,7 +5556,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, false);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, false);
 
             await waitForBatchedUpdates();
 
@@ -5557,7 +5568,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // isSelfTourViewed=true should not change dismissModal behavior
-            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, true);
+            Report.navigateToConciergeChat(CONCIERGE_REPORT_ID, testIntroSelected, TEST_USER_ACCOUNT_ID, true, undefined, undefined, true);
 
             await waitForBatchedUpdates();
 
@@ -8204,7 +8215,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             // No error should be thrown, function should return early
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -8212,7 +8223,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -8223,7 +8234,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -8234,7 +8245,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -8255,7 +8266,16 @@ describe('actions/Report', () => {
             const isSelfTourViewed = true;
 
             expect(() => {
-                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                localHandleWalletStatementNavigation(
+                    '123',
+                    testIntroSelected,
+                    TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed,
+                    undefined,
+                    undefined,
+                    CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE,
+                    undefined,
+                );
             }).not.toThrow();
         });
 
@@ -8265,7 +8285,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = false;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
     });

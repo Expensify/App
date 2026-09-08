@@ -19,6 +19,7 @@ function handleWalletStatementNavigation(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number | undefined,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     type?: string,
     url?: string,
@@ -28,7 +29,7 @@ function handleWalletStatementNavigation(
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas);
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas);
         return;
     }
 
