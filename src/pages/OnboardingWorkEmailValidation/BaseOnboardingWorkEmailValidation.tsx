@@ -54,9 +54,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (isConciergeTaskFlow && isCurrentPrimaryValidated) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        if (!isConciergeTaskFlow || !isCurrentPrimaryValidated) {
+            return;
         }
+
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
     }, [isConciergeTaskFlow, isCurrentPrimaryValidated]);
 
     useEffect(() => {
