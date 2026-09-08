@@ -479,6 +479,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -1137,6 +1141,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+            // It is needed to unset the lineHeight inherited from badgeText. Otherwise the 9px glyph is
+            // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
+            // too high. Unsetting it lets the text center on its own font metrics.
+            lineHeight: undefined,
         },
 
         badgeDefaultText: {
@@ -4690,11 +4698,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.mh5,
         },
 
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
-        },
-
         taskRightIconContainer: {
             width: variables.componentSizeNormal,
             marginLeft: 'auto',
@@ -4827,7 +4830,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorBadge: {
             minWidth: 18,
-            height: 16,
+            minHeight: 16,
             marginLeft: 8,
             justifyContent: 'center',
         },
@@ -4926,6 +4929,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
+        },
+
+        reportPreviewActionRow: {
+            height: variables.h40,
         },
 
         reportPreviewBox: {
@@ -7285,15 +7292,12 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
-            ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
-            }) satisfies ViewStyle,
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({

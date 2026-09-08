@@ -694,7 +694,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -923,7 +923,7 @@ const CONST = {
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
-                LAST_4_SSN: 'last-4-ssn',
+                SSN: 'ssn',
                 DOCUMENTS: 'documents',
                 CONFIRMATION: 'confirmation',
             },
@@ -942,7 +942,7 @@ const CONST = {
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -2036,11 +2036,13 @@ const CONST = {
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
             MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
+            RECONCILIATION_ALL_EXPENSES: 'reconciliation_all_expenses',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
             MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
+            RECONCILIATION_ALL_EXPENSES: 'Reconciliation - All Expenses',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -3274,7 +3276,16 @@ const CONST = {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
+            ADVANCED: 'advanced',
             CUSTOM: 'custom',
+        },
+        ATS_APPROVER_FIELD: {
+            RECRUITER: 'recruiter',
+            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+        },
+        CATEGORY: {
+            HRIS: 'hris',
+            ATS: 'ats',
         },
         COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
@@ -3955,6 +3966,12 @@ const CONST = {
         OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
+    CLOUDFLARE_ACCESS: {
+        // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
+        // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
+        NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
+    },
+
     ONFIDO: {
         CONTAINER_ID: 'onfido-mount',
         TYPE: {
@@ -4364,6 +4381,7 @@ const CONST = {
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
+            IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -4555,6 +4573,10 @@ const CONST = {
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+            },
+            CATEGORY: {
+                HR: 'hr',
+                RECRUITING: 'recruiting',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
@@ -6317,7 +6339,6 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
-        /** Use for Tooltips */
         TOOLTIP: 'tooltip',
         /** Use for dialog/modal elements */
         DIALOG: 'dialog',
@@ -6761,7 +6782,6 @@ const CONST = {
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
-    /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
         REPORT_ACTION: 'REPORT_ACTION',
@@ -6859,6 +6879,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
+
+    // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
