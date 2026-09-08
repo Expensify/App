@@ -24,42 +24,41 @@ function EnableGlobalReimbursementsPayModal() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const isModalOpenRef = useRef(false);
 
-    const showCorpayPayModal = useEffectEvent((modalData: CorpayPayModal) => {
+    const showCorpayPayModal = useEffectEvent(async (modalData: CorpayPayModal) => {
         if (isModalOpenRef.current) {
             return;
         }
         isModalOpenRef.current = true;
         const navigationPathAtSignal = Navigation.getActiveRoute();
-        showConfirmModal({
+        const result = await showConfirmModal({
             id: 'corpayPayModal',
             title: translate('common.corpayPayModalTitle'),
             prompt: translate('common.corpayPayModalPrompt'),
             confirmText: translate('common.enableGlobalReimbursements'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-        }).then((result) => {
-            isModalOpenRef.current = false;
-            if (result.action === ModalActions.CONFIRM) {
-                if (isAccountLocked) {
-                    showLockedAccountModal();
-                } else {
-                    const {bankAccountID, bankCountry, bankCurrency} = modalData;
-                    Navigation.navigate(
-                        getEnableGlobalReimbursementsBusinessNavigationRoute(
-                            bankAccountID,
-                            CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                            {
-                                bankCountry,
-                                bankCurrency,
-                            },
-                            navigationPathAtSignal,
-                        ),
-                        {skipMatchingFullScreenRoute: true},
-                    );
-                }
-            }
-            clearCorpayPayModal();
         });
+        isModalOpenRef.current = false;
+        if (result.action === ModalActions.CONFIRM) {
+            if (isAccountLocked) {
+                showLockedAccountModal();
+            } else {
+                const {bankAccountID, bankCountry, bankCurrency} = modalData;
+                Navigation.navigate(
+                    getEnableGlobalReimbursementsBusinessNavigationRoute(
+                        bankAccountID,
+                        CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                        {
+                            bankCountry,
+                            bankCurrency,
+                        },
+                        navigationPathAtSignal,
+                    ),
+                    {skipMatchingFullScreenRoute: true},
+                );
+            }
+        }
+        clearCorpayPayModal();
     });
 
     useEffect(() => {
