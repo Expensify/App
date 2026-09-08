@@ -37,8 +37,10 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
         with:
+          allow-inside-container: true
+          dissociate: true
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
@@ -215,8 +217,10 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
         with:
+          allow-inside-container: true
+          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download Android build artifact
@@ -269,8 +273,10 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
         with:
+          allow-inside-container: true
+          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
@@ -705,8 +711,10 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
         with:
+          allow-inside-container: true
+          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download web build artifact
@@ -767,8 +775,10 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
         with:
+          allow-inside-container: true
+          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Node
@@ -811,7 +821,10 @@ jobs:
       ]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        with:
+          allow-inside-container: true
+          dissociate: true
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -948,7 +961,10 @@ jobs:
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        with:
+          allow-inside-container: true
+          dissociate: true
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -1123,7 +1139,10 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        with:
+          allow-inside-container: true
+          dissociate: true
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1152,7 +1171,10 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        with:
+          allow-inside-container: true
+          dissociate: true
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
