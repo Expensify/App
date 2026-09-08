@@ -135,17 +135,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
-    const accountingIntegrations = useMemo(
-        () =>
-            CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
-                    return canUseDualEntryIntegration;
-                }
-                return true;
-            }),
-        [canUseDualEntryIntegration],
-    );
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const accountingIntegrationOptions = useMemo(
         () =>
             accountingIntegrations.flatMap((name) => [
