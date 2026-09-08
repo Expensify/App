@@ -62,7 +62,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
     keysToPreserve.push(ONYXKEYS.NVP_SEARCH_SIDEBAR);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
-    keysToPreserve.push(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    keysToPreserve.push(ONYXKEYS.ACTIVE_SERVER);
     keysToPreserve.push(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     keysToPreserve.push(ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS);
     keysToPreserve.push(ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS);
