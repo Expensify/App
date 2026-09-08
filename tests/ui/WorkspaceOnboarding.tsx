@@ -255,6 +255,42 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should return to the Concierge report instead of a completed task thread', async () => {
+        const taskReportID = '456';
+        const conciergeReportID = '123';
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {
+                reportID: taskReportID,
+                parentReportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.TASK,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(dismissModal).toHaveBeenCalled();
+            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        });
+
+        getTopmostReportId.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should create a Submit workspace when skip is pressed with EMPLOYER purpose', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
