@@ -352,6 +352,9 @@ function MoneyRequestConfirmationList({
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+    // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
+    // being re-derived per hook, where the two could be updated independently.
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
     const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
         transaction,
@@ -374,6 +377,8 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         isNewManualExpenseFlowEnabled,
         isDistanceRequest,
+        isReadOnly,
+        shouldShowDate,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -499,7 +504,7 @@ function MoneyRequestConfirmationList({
         routeError,
         isNewManualExpenseFlowEnabled,
         isReadOnly,
-        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        shouldShowDate,
         isTaxAmountEmpty,
     });
 
