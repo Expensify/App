@@ -1,6 +1,8 @@
 type CreateJoinWorkspaceOnboardingContentParams = {
+    contentType: 'task' | 'message';
+    data: string;
+    task?: string;
     domain: string;
-    guidedSetupData: string;
 };
 
 export default CreateJoinWorkspaceOnboardingContentParams;
