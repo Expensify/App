@@ -136,7 +136,7 @@ function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
 }
 
 function getActionPayloadScreenName(action: NavigationAction): string | undefined {
-    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // NAVIGATE/PUSH payloads aren't full NavigationStates. getDeepestFocusedScreen accepts that shape.
     // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
     if (!isObjectPayload(action.payload)) {
         return undefined;
@@ -188,7 +188,7 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 
 /**
  * Check if the navigation action pushes the user out of the onboarding flow.
- * Only NAVIGATE/PUSH can do this; GO_BACK, POP, SET_PARAMS and DISMISS_MODAL stay inside it.
+ * Only NAVIGATE/PUSH can do this. GO_BACK, POP, SET_PARAMS and DISMISS_MODAL stay inside it.
  */
 function isNavigatingAwayFromOnboardingFlow(action: NavigationAction): boolean {
     const isNavigateOrPush = action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
