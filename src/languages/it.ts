@@ -6213,6 +6213,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             csvColumnType: 'Tipo',
             csvColumnLimitType: 'Tipo di limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Nessun feed carta disponibile',
+            noCardFeedsAvailableDescription: 'Non sono disponibili flussi di carte per questo spazio di lavoro.',
         },
         categories: {
             deleteCategories: 'Elimina categorie',

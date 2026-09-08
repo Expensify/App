@@ -6368,6 +6368,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             statusActive: 'Ενεργό',
             statusInactive: 'Ανενεργό',
             remaining: 'Υπόλοιπο',
+            noCardFeedsAvailable: 'Δεν υπάρχουν διαθέσιμες ροές καρτών',
+            noCardFeedsAvailableDescription: 'Δεν υπάρχουν διαθέσιμες ροές καρτών για αυτόν τον χώρο εργασίας.',
         },
         categories: {
             deleteCategories: 'Διαγραφή κατηγοριών',

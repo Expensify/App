@@ -6261,6 +6261,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             csvColumnType: 'Type',
             csvColumnLimitType: 'Type de limite',
             csvColumnLimit: 'Limite',
+            noCardFeedsAvailable: 'Aucun flux de carte disponible',
+            noCardFeedsAvailableDescription: 'Aucun flux de carte n’est disponible pour cet espace de travail.',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',

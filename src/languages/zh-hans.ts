@@ -5998,6 +5998,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             csvColumnType: '类型',
             csvColumnLimitType: '限额类型',
             csvColumnLimit: '限额',
+            noCardFeedsAvailable: '没有可用的卡片流水',
+            noCardFeedsAvailableDescription: '此工作区暂无可用的卡片流水。',
         },
         categories: {
             deleteCategories: '删除类别',
