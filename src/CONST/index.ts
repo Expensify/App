@@ -3274,7 +3274,16 @@ const CONST = {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
+            ADVANCED: 'advanced',
             CUSTOM: 'custom',
+        },
+        ATS_APPROVER_FIELD: {
+            RECRUITER: 'recruiter',
+            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+        },
+        CATEGORY: {
+            HRIS: 'hris',
+            ATS: 'ats',
         },
         COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
@@ -3955,6 +3964,12 @@ const CONST = {
         OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
+    CLOUDFLARE_ACCESS: {
+        // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
+        // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
+        NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
+    },
+
     ONFIDO: {
         CONTAINER_ID: 'onfido-mount',
         TYPE: {
@@ -4364,6 +4379,7 @@ const CONST = {
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
+            IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -4555,6 +4571,10 @@ const CONST = {
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+            },
+            CATEGORY: {
+                HR: 'hr',
+                RECRUITING: 'recruiting',
             },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
