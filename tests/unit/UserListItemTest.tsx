@@ -57,12 +57,12 @@ const renderItem = (item: ListItem, props: Partial<React.ComponentProps<typeof U
 describe('UserListItem', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}] as unknown as ReturnType<typeof useOnyx>);
+        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
     });
 
     describe('avatar resolution', () => {
         it('renders the report avatar when the report exists in Onyx', () => {
-            mockUseOnyx.mockReturnValue([true, {status: 'loaded'}] as unknown as ReturnType<typeof useOnyx>);
+            mockUseOnyx.mockReturnValue([true, {status: 'loaded'}]);
             renderItem(buildItem({reportID: '42'}));
 
             expect(mockReportAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({reportID: '42', fallbackDisplayName: 'Test User'}));
