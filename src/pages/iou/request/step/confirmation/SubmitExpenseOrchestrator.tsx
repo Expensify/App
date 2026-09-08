@@ -283,7 +283,7 @@ function SubmitExpenseOrchestrator({
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false, writeBarrier);
             // The barrier has already released by now, so the write goes out on the next microtask -
-            // the same point the write session used to drop this signal.
+            // the same point the old deferred-write flush used to drop this signal.
             //
             // This holds for the strategies that run us from TransitionTracker rather than from a
             // dismiss callback (dismissNarrowWithReport) only because TransitionTracker flushes its
@@ -423,7 +423,7 @@ function SubmitExpenseOrchestrator({
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
-            // Cleared after the write, matching where the flushed session used to drop it.
+            // Cleared after the write, matching where the old deferred-write flush used to drop it.
             clearPendingWrite();
             setIsConfirming(false);
         };

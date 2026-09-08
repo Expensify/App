@@ -423,7 +423,7 @@ function Search({
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
-        // Skip this call; the optimistic data from flushWriteSession will populate
+        // Skip this call; the optimistic data from the pending Search write will populate
         // the list, and the next user-driven search will refresh from the server.
         if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingSearchWrite()) {
             return;
