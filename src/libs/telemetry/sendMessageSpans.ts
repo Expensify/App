@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
+import {cancelSpan, cancelSpansByPrefix, endSpan, getSpan, startSpan} from './activeSpans';
 
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
@@ -70,4 +70,12 @@ function cancelSendMessagePhases(parentSpanID: string | undefined) {
     }
 }
 
-export {startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases};
+// Call on navigate-away, where the reportActionID is unknown. Phase span ids do not share the parent's prefix, so sweeping only the parent leaks them.
+function cancelAllSendMessageSpans() {
+    for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
+        cancelSpansByPrefix(phase);
+    }
+    cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
+}
+
+export {startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases, cancelAllSendMessageSpans};
