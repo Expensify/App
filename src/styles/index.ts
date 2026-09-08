@@ -377,7 +377,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
-        mentionSuggestionsAvatarContainer: {
+        compactAvatarContainer: {
             width: 24,
             height: 24,
             alignItems: 'center',
@@ -520,8 +520,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textExtraSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeExtraSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.finePrint,
         },
 
         textMicro: {
@@ -549,17 +549,19 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.text,
         },
 
+        // Not aliased to a token: `lineHeightXSmall` (11/17) is not `lineHeightScale.finePrint` (12), so swapping it shifts the layout. Needs a design call.
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
             lineHeight: variables.lineHeightXSmall,
         },
+        // Deliberate mismatch: `micro`'s size with `finePrint`'s 12 line height, which is what it always had.
         textDoubleDecker: {
-            fontSize: variables.fontSizeSmall,
+            fontSize: fontScale.micro,
             opacity: 0.8,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: 12,
+            lineHeight: lineHeightScale.finePrint,
         },
         noPaddingBottom: {
             paddingBottom: 0,
@@ -574,18 +576,19 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textLarge: {
-            fontSize: variables.fontSizeLarge,
+            fontSize: fontScale.pageHeader,
         },
 
         textXLarge: {
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
         textXLargeThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
+        // Not aliased to a token: `fontScale` has no entry for 28 or 32/37. Needs a design call on whether to grow the scale or restyle the call sites.
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -1134,6 +1137,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+            // It is needed to unset the lineHeight inherited from badgeText. Otherwise the 9px glyph is
+            // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
+            // too high. Unsetting it lets the text center on its own font metrics.
+            lineHeight: undefined,
         },
 
         badgeDefaultText: {
@@ -1583,9 +1590,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textInputLabel: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            ...fontFamilyScale.regular,
         },
 
         textInputLabelBackground: {
@@ -1667,15 +1674,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputPrefix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
         textInputSuffix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
@@ -1710,20 +1717,20 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textLabelSupporting: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
         textLabelSupportingEmptyValue: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
         },
 
         textLabelSupportingNormal: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
@@ -1968,9 +1975,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
-            ...headlineFont,
+            fontSize: fontScale.h2,
+            lineHeight: lineHeightScale.h2,
+            ...fontFamilyScale.heading,
         },
 
         onboardingNavigatorOuterView: {
@@ -2197,6 +2204,11 @@ const staticStyles = (theme: ThemeColors) =>
         emptyDomainListStaticIllustrationStyle: {
             width: 274,
             height: 178,
+        },
+
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
         },
 
         appContent: {
@@ -2749,6 +2761,11 @@ const staticStyles = (theme: ThemeColors) =>
         tableBottomRadius: {
             borderBottomLeftRadius: variables.componentBorderRadius,
             borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        tableBorder: {
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         tableRowHeightCompact: {
@@ -3451,8 +3468,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestConfirmationAmount: {
-            ...headlineFont,
-            fontSize: variables.fontSizeH1,
+            ...fontFamilyScale.heading,
+            fontSize: fontScale.h2,
         },
 
         moneyRequestMenuItem: {
@@ -3865,7 +3882,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
-            paddingRight: 48,
+            paddingRight: 44,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4023,6 +4040,14 @@ const staticStyles = (theme: ThemeColors) =>
             right: 16,
             flexDirection: 'row',
             gap: 8,
+        },
+
+        // Float above the receipt to avoid zooming with it.
+        receiptPageCountBadge: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            marginLeft: 0,
         },
 
         receiptActionButton: {
@@ -4806,7 +4831,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorBadge: {
             minWidth: 18,
-            height: 16,
+            minHeight: 16,
             marginLeft: 8,
             justifyContent: 'center',
         },
@@ -4905,6 +4930,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
+        },
+
+        reportPreviewActionRow: {
+            height: variables.h40,
         },
 
         reportPreviewBox: {
@@ -5324,7 +5353,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
@@ -5335,6 +5364,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.flexRow,
             ...pointerEventsAuto,
             ...spacing.gap3,
+        },
+
+        menuItemLeading: {
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
         },
 
         menuItemTrailing: {
@@ -5841,6 +5875,11 @@ const staticStyles = (theme: ThemeColors) =>
         sortingMachineRulesEmptyStateIllustration: {
             width: variables.sortingMachineRulesEmptyStateIllustrationWidth,
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
+        },
+
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
         },
 
         agentsRulesEmptyStateIllustration: {
@@ -7254,15 +7293,12 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
-            ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
-            }) satisfies ViewStyle,
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
