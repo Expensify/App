@@ -15,6 +15,12 @@ type ReceiptStorage = {
     /** Deletes a temporary file the app is done with. Resolves even when the file is already gone. */
     discard: (uriOrPath: string) => Promise<void>;
 
+    /**
+     * Resolves a stored source to a URI that can be read right now, or `undefined` when the file is gone.
+     * Also puts a receipt back when a swap was interrupted and left it under a temporary name.
+     */
+    locate: (source: ReceiptSource | null | undefined) => Promise<string | undefined>;
+
     /** Valid for this launch only, so never store the result. */
     toLocalUri: (durableName: string) => string;
 

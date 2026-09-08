@@ -1,4 +1,3 @@
-import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
@@ -33,10 +32,8 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExists(localUri).then((exists) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
                             logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
                             return;

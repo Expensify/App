@@ -14,6 +14,13 @@ jest.mock('react-native-fs', () => ({
 
 jest.mock('@libs/NumberUtils', () => ({rand64: () => '1234'}));
 
+const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
+
+jest.mock('@libs/fileDownload/checkFileExists', () => ({
+    __esModule: true,
+    default: (path: string | undefined) => mockCheckFileExists(path),
+}));
+
 const FOLDER = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
 jest.mock('@libs/getReceiptsUploadFolderPath', () => ({
     __esModule: true,
@@ -30,6 +37,7 @@ describe('ReceiptStorage', () => {
         mockMv.mockResolvedValue(undefined);
         mockMkdir.mockResolvedValue(undefined);
         mockUnlink.mockResolvedValue(undefined);
+        mockCheckFileExists.mockResolvedValue(true);
     });
 
     describe('adopt', () => {
@@ -148,10 +156,58 @@ describe('ReceiptStorage', () => {
             await expect(ReceiptStorage.replace(RECEIPT, STILL)).resolves.toBe(RECEIPT);
         });
 
+        it('restores a receipt stranded under the backup name by a swap the app died in the middle of', async () => {
+            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`]);
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockMv.mockImplementation((from: string, to: string) => {
+                existing.delete(from);
+                existing.add(to);
+                return Promise.resolve();
+            });
+
+            await expect(ReceiptStorage.replace(RECEIPT, STILL)).resolves.toBe(RECEIPT);
+
+            // The stranded copy is the only one left, so it goes back before any cleanup can delete it.
+            expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockMv.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(mockUnlink.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
+        });
+
         it('rejects without touching anything when the receipt is not in durable storage', async () => {
             mockExists.mockResolvedValue(false);
 
             await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow('not in durable storage');
+            expect(mockMv).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('locate', () => {
+        const RECEIPT_URI = `file://${FOLDER}/CAM-1.jpg`;
+        const RECEIPT_PATH = `${FOLDER}/CAM-1.jpg`;
+
+        it('hands back a receipt that is where it should be', async () => {
+            await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
+            expect(mockMv).not.toHaveBeenCalled();
+        });
+
+        it('puts back a receipt stranded under the backup name by an interrupted swap', async () => {
+            mockCheckFileExists.mockResolvedValue(false);
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup`));
+
+            await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
+            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+        });
+
+        it('reports a receipt that is gone and has no backup, so the caller can log it as dropped', async () => {
+            mockCheckFileExists.mockResolvedValue(false);
+            mockExists.mockResolvedValue(false);
+
+            await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBeUndefined();
+        });
+
+        it('reports a remote source that could not be read, rather than handing back a URL to upload', async () => {
+            mockCheckFileExists.mockResolvedValue(false);
+
+            await expect(ReceiptStorage.locate('https://www.expensify.com/receipts/w_9.jpg')).resolves.toBeUndefined();
             expect(mockMv).not.toHaveBeenCalled();
         });
     });

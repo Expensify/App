@@ -6,6 +6,7 @@ const receiptStorage: ReceiptStorage = {
     // Web captures through a canvas at full resolution, so there is nothing to swap or clean up.
     replace: (durableName) => Promise.resolve(durableName),
     discard: () => Promise.resolve(),
+    locate: (source) => Promise.resolve(typeof source === 'string' ? source : undefined),
     toLocalUri: (durableName) => durableName,
     resolve: (source) => (typeof source === 'string' ? source : undefined),
 };

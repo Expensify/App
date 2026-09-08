@@ -25,9 +25,10 @@ const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
-        resolve: (source?: string) => {
+        locate: (source?: string) => {
             const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+            const uri = name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+            return mockCheckFileExists(uri).then((exists: boolean) => (exists ? uri : undefined));
         },
     },
 }));
