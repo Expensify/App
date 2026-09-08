@@ -9544,6 +9544,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportedTo: 'Exporté vers',
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
+            allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
             selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
