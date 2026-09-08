@@ -8,6 +8,16 @@ import {cancelSpan, cancelSpansByPrefix, endSpan, getSpan, startSpan} from './ac
 
 type SendMessagePhase = ValueOf<typeof CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE>;
 
+const SEND_MESSAGE_VISIBLE_PREFIX = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
+
+function getSendMessageVisibleSpanID(reportActionID: string) {
+    return `${SEND_MESSAGE_VISIBLE_PREFIX}${reportActionID}`;
+}
+
+function getSendMessageVisibleSpan(reportActionID: string) {
+    return getSpan(getSendMessageVisibleSpanID(reportActionID));
+}
+
 function getPhaseSpanID(reportActionID: string, phase: SendMessagePhase) {
     return `${phase}_${reportActionID}`;
 }
@@ -21,7 +31,7 @@ function startSendMessagePhase(reportActionID: string | undefined, phase: SendMe
         return;
     }
     // `startInactiveSpan` with an undefined `parentSpan` falls back to the scope's active span, which would nest the phase under an unrelated transaction.
-    const parentSpan = getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
+    const parentSpan = getSendMessageVisibleSpan(reportActionID);
     if (!parentSpan) {
         return;
     }
@@ -46,7 +56,7 @@ function markSendMessageCommitted(reportActionID: string | undefined) {
 
 // Call before ending the parent. Sentry drops descendants that have not ended when the root span does.
 function endSendMessagePhases(reportActionID: string | undefined) {
-    if (!reportActionID || !getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`)) {
+    if (!reportActionID || !getSendMessageVisibleSpan(reportActionID)) {
         return;
     }
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
@@ -60,11 +70,10 @@ function endSendMessagePhases(reportActionID: string | undefined) {
 
 // Call before cancelling the parent. Sentry drops descendants that have not ended when the root span does.
 function cancelSendMessagePhases(parentSpanID: string | undefined) {
-    const parentPrefix = `${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_`;
-    if (!parentSpanID?.startsWith(parentPrefix)) {
+    if (!parentSpanID?.startsWith(SEND_MESSAGE_VISIBLE_PREFIX)) {
         return;
     }
-    const reportActionID = parentSpanID.slice(parentPrefix.length);
+    const reportActionID = parentSpanID.slice(SEND_MESSAGE_VISIBLE_PREFIX.length);
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
         cancelSpan(getPhaseSpanID(reportActionID, phase));
     }
@@ -75,7 +84,7 @@ function cancelAllSendMessageSpans() {
     for (const phase of Object.values(CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE)) {
         cancelSpansByPrefix(phase);
     }
-    cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
+    cancelSpansByPrefix(SEND_MESSAGE_VISIBLE_PREFIX);
 }
 
-export {startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases, cancelAllSendMessageSpans};
+export {getSendMessageVisibleSpanID, startSendMessagePhase, markSendMessageCommitted, endSendMessagePhases, cancelSendMessagePhases, cancelAllSendMessageSpans};
