@@ -12,6 +12,9 @@ import {useEffect, useRef, useState} from 'react';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
+/**
+ * Hook for managing paginated tag filter search.
+ */
 type UseSearchTagFiltersResult = {
     /** The paginated tag search results from Onyx, keyed by full Onyx key (searchPolicyTags_<policyID>) */
     searchResults: OnyxCollection<OnyxTypes.SearchPolicyTags>;
@@ -66,9 +69,17 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     // Track if we have cached data to avoid showing loading state on remount
     const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
+    const isFilteringLocallyRef = useRef(false);
+
+    const prevPolicyIDsRef = useRef(policyIDs);
+    if (prevPolicyIDsRef.current !== policyIDs) {
+        prevPolicyIDsRef.current = policyIDs;
+        isFilteringLocallyRef.current = false;
+    }
+
     // Only treat the cache as complete when the empty-query dataset is fully loaded.
     // A finished server search for a non-empty term can still be a partial result set.
-    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && searchQuery === '';
+    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocallyRef.current);
 
     // Keep ref updated with latest values for use in stable callbacks
     const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
@@ -112,15 +123,17 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             return;
         }
 
-        const {hasCompleteEmptyQueryCache: currentHasCompleteEmptyQueryCache, hasMore: currentHasMore, nextCursor: currentCursor} = stateRef.current;
+        const {hasCompleteEmptyQueryCache: currentHasCompleteEmptyQueryCache} = stateRef.current;
 
         // When the full empty-query dataset is already cached, filter locally instead of hitting the server on every keystroke.
         if (currentHasCompleteEmptyQueryCache) {
-            setSearchTagFiltersPagination(currentHasMore, currentCursor, query);
+            isFilteringLocallyRef.current = true;
+            setSearchTagFiltersPagination(false, '', query);
             setHasCompletedSearch(true);
             return;
         }
 
+        isFilteringLocallyRef.current = false;
         const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
@@ -147,6 +160,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     // Clear persisted pagination and cached pages when the filter closes so a fresh open re-fetches with valid hasMore.
     useEffect(() => {
         return () => {
+            isFilteringLocallyRef.current = false;
             clearSearchTagFiltersState();
         };
     }, []);
@@ -154,9 +168,11 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     // Fetch the first page on mount, when the workspace scope changes, and on reconnect.
     // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
     // Reconnect uses the active search query so results stay in sync with the search input.
-    // searchTags is not memoized, so it cannot be in the dependency array — it would fire on every render.
+    // searchTags is not memoized, so it cannot be in the dependency array. It would fire on every render.
     // searchTags reads latest state via refs, so the closure captured here is safe to call.
     useEffect(() => {
+        let isCancelled = false;
+
         if (isOffline) {
             prevWasOfflineRef.current = true;
             return;
@@ -166,6 +182,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
         prevWasOfflineRef.current = false;
 
         Promise.resolve().then(() => {
+            if (isCancelled) {
+                return;
+            }
+
             if (wasOffline) {
                 searchTags(stateRef.current.searchQuery);
                 return;
@@ -173,6 +193,10 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
             searchTags('');
         });
+
+        return () => {
+            isCancelled = true;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyIDs, isOffline]);
 

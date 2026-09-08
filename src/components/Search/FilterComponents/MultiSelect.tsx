@@ -5,7 +5,6 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
-import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
@@ -19,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -63,9 +62,6 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     /** Whether more items are being loaded (shows spinner at bottom of list) */
     isLoadingMore?: boolean;
 
-    /** Whether a search is in progress (suppresses "No results found" while true) */
-    isLoading?: boolean;
-
     /** Whether a server search is in progress (shows a centered spinner in the list area) */
     isSearching?: boolean;
 };
@@ -87,7 +83,6 @@ function MultiSelect<T extends string>({
     onEndReached,
     onSearchChange,
     isLoadingMore,
-    isLoading,
     isSearching,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
@@ -97,16 +92,19 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    // Server-side search is fired from the text change handler so typing and the API call stay in the same event path
-    const searchCallback = (term: string) => {
-        onSearchChange?.(term);
-    };
-    const debouncedOnSearchChange = useDebounce(searchCallback, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+    const onSearchChangeRef = useRef(onSearchChange);
+    useEffect(() => {
+        onSearchChangeRef.current = onSearchChange;
+    }, [onSearchChange]);
 
-    const updateSearchTerm = (text: string) => {
-        setSearchTerm(text);
-        debouncedOnSearchChange(text);
-    };
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        onSearchChangeRef.current?.(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
@@ -130,9 +128,8 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
-    const isSearchInProgress = isSearching ?? isLoading;
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
-    const headerMessage = isSearchable && listData.length === 0 && !isSearchInProgress ? translate('common.noResultsFound') : undefined;
+    const headerMessage = isSearchable && listData.length === 0 && !isSearching ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
         if (item.isSelected) {
@@ -154,13 +151,22 @@ function MultiSelect<T extends string>({
     const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
-        onChangeText: updateSearchTerm,
+        onChangeText: setSearchTerm,
         headerMessage,
         style: {
             containerStyle: selectionListTextInputStyle,
         },
         disableAutoFocus: !autoFocus,
     };
+
+    const renderCenteredSpinner = () => (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv4]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                color={theme.spinner}
+            />
+        </View>
+    );
 
     const footerContent = (
         <>
@@ -184,12 +190,7 @@ function MultiSelect<T extends string>({
             isNegatable={isNegatable}
         >
             {loading ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                        color={theme.spinner}
-                    />
-                </View>
+                renderCenteredSpinner()
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
@@ -202,16 +203,7 @@ function MultiSelect<T extends string>({
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footerContent}
                     onEndReached={onEndReached}
-                    listEmptyContent={
-                        shouldShowSearchSpinner ? (
-                            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv4]}>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                    color={theme.spinner}
-                                />
-                            </View>
-                        ) : undefined
-                    }
+                    listEmptyContent={shouldShowSearchSpinner ? renderCenteredSpinner() : undefined}
                     shouldShowListEmptyContent={shouldShowSearchSpinner}
                 />
             )}

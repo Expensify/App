@@ -184,6 +184,31 @@ describe('useSearchTagFilters', () => {
         expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'marketing');
     });
 
+    it('does not call the API on consecutive keystrokes when searching with a complete cached dataset', async () => {
+        setCompleteTagFilterState('');
+
+        const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        act(() => {
+            result.current.searchTags('m');
+        });
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'm');
+
+        act(() => {
+            result.current.searchTags('ma');
+        });
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'ma');
+    });
+
     it('re-fetches when clearing a server search that only cached partial results', async () => {
         setPartialTagFilterState('');
 

@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import {getAllPolicyValues} from '@libs/SearchQueryUtils';
+import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,7 @@ type TagSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 };
 
 function TagSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyTags = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -74,9 +74,9 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         }
     }
 
-    const isCompleteTagList = shouldUseOfflineFallback || !hasMore || seenTagNames.size <= CONST.SEARCH.TAG_FILTER_PAGE_SIZE;
+    tagItems.sort((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare));
 
-    const shouldShowEmptyTagOption = !isSearching && !isInitialLoading && isCompleteTagList && (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
+    const shouldShowEmptyTagOption = !isSearching && !isInitialLoading && (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
 
     if (shouldShowEmptyTagOption) {
         tagItems.unshift(emptyTagItem);
@@ -90,13 +90,15 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
     });
 
     // Selected tags that are not in the current result page stay visible once the search is cleared, so the selection doesn't disappear from the list.
-    // Gated on !isSearching so stale results during a fetch don't cause selected tags to be appended in the wrong order.
-    if (!searchQuery && !isSearching) {
+    // Prepend missing selected items to the top (after "No tag") so they don't land at the bottom of the paginated list.
+    // Do not gate on !isSearching so they stay mounted during refetches without flashing.
+    if (!searchQuery) {
         const itemValues = new Set(tagItems.map((item) => item.value));
-        for (const selectedItem of selectedTagsItems) {
-            if (!itemValues.has(selectedItem.value)) {
-                tagItems.push(selectedItem);
-            }
+        const missingSelectedItems = selectedTagsItems.filter((selectedItem) => !itemValues.has(selectedItem.value)).toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));
+
+        if (missingSelectedItems.length > 0) {
+            const insertIndex = shouldShowEmptyTagOption ? 1 : 0;
+            tagItems.splice(insertIndex, 0, ...missingSelectedItems);
         }
     }
 

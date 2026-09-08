@@ -10,6 +10,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
+import * as API from '@libs/API';
 import {makeRequestWithSideEffects, read, waitForWrites, write} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
@@ -1073,7 +1074,9 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, should
           ]
         : [];
 
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData}).then((response) => {
+    // The response body contains pagination metadata (hasMore, nextCursor) needed immediately to drive tag filter infinite scroll.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData}).then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         return {
