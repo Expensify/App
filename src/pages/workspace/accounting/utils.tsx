@@ -582,7 +582,7 @@ function getAccountingIntegrationData(
                     CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.campfire?.data?.fields?.map((field) => `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.CAMPFIRE_CONFIG.EXPORTER,
                     CONST.CAMPFIRE_CONFIG.EXPORT_DATE,
