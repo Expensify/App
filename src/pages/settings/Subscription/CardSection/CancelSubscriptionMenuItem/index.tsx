@@ -1,9 +1,9 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -15,7 +15,6 @@ import React from 'react';
 function CancelSubscriptionMenuItem() {
     const icons = useMemoizedLazyExpensifyIcons(['CircleSlash']);
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -27,15 +26,20 @@ function CancelSubscriptionMenuItem() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION);
     };
     return (
-        <MenuItem
-            title={translate('subscription.cancelSubscription.title')}
-            icon={icons.CircleSlash}
-            shouldShowRightIcon
-            wrapperStyle={styles.sectionMenuItemTopDescription}
-            titleStyle={styles.textStrong}
+        <MenuItemSectionRow
             onPress={handleCancelSubscriptionPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Icon src={icons.CircleSlash} />
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('subscription.cancelSubscription.title')}</MenuItem.Title>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItemSectionRow>
     );
 }
 

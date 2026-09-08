@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
@@ -284,25 +285,25 @@ function CardSection() {
             )}
 
             {!!account?.hasPurchases && (
-                <MenuItem
-                    shouldShowRightIcon
-                    icon={expensifyIcons.History}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    title={translate('subscription.cardSection.viewPaymentHistory')}
-                    titleStyle={styles.textStrong}
+                <MenuItemSectionRow
                     onPress={viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Icon src={expensifyIcons.History} />
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('subscription.cardSection.viewPaymentHistory')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
             )}
 
             {!!(subscriptionPlan && account?.isEligibleForRefund) && (
-                <MenuItem
-                    shouldShowRightIcon
-                    icon={expensifyIcons.Bill}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    title={translate('subscription.cardSection.requestRefund')}
-                    titleStyle={styles.textStrong}
-                    disabled={isOffline}
+                <MenuItemSectionRow
+                    isDisabled={isOffline}
                     onPress={async () => {
                         const result = await showRequestRefundModal();
                         if (result.action !== ModalActions.CONFIRM) {
@@ -311,7 +312,17 @@ function CardSection() {
                         requestRefund();
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_REFUND}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Icon src={expensifyIcons.Bill} />
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('subscription.cardSection.requestRefund')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
             )}
 
             {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (
