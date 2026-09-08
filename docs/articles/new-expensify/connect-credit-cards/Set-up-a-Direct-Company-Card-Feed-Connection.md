@@ -74,7 +74,7 @@ New cards will then be available for assignment.
 
 ## How do I fix a broken company card feed connection?
 
-If your company card feed is broken, you can fix it from the **Time Sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-broken-Company-Card-Feed-Connection). 
+If your company card feed is broken, you can fix it from the **Time sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-broken-Company-Card-Feed-Connection). 
 
 ## Can I connect the same company card account across different workspaces? 
 
