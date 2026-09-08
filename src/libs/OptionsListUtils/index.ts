@@ -2822,7 +2822,7 @@ function filterUserToInvite(
     config: FilterUserToInviteConfig,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, dateFnsLocale, currentUserAccountID} = config;
+    const {canInviteUser = true, excludeLogins = {}, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2850,7 +2850,6 @@ function filterUserToInvite(
         loginList,
         currentUserEmail,
         ...config,
-        dateFnsLocale,
         currentUserAccountID,
     });
 }
