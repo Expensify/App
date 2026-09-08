@@ -52,7 +52,7 @@ function SearchTransactionsChangeReport() {
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -60,10 +60,10 @@ function SearchTransactionsChangeReport() {
     const allMatchingQueryParams = getAllMatchingQueryParams(areAllMatchingItemsSelected, excludedTransactions, currentSearchQueryJSON);
 
     /**
-     * A queued all-matching move would replay a stale query on reconnect: the hash resolves the match set at
-     * backend execution time, not when the user submitted, so expenses that started matching while offline would be
-     * swept in. The upstream check in `useSearchBulkActions` only runs while opening this RHP, so re-check here in
-     * case the connection dropped after. Block the query-based move and ask the user to reconnect (same as export).
+     * A queued all-matching move would replay a stale query on reconnect. The backend resolves the match set when it
+     * runs the query, not when the user submitted it, so expenses that started matching while offline get swept in.
+     * `useSearchBulkActions` only checks this when the user opens this RHP, so check again in case the connection
+     * dropped since then, and ask the user to reconnect like export does.
      */
     const shouldBlockOfflineAllMatchingMove = () => isOffline && !!allMatchingQueryParams.jsonQuery;
 

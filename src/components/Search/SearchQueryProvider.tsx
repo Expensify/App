@@ -26,8 +26,8 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-/** Joins `q` and `rawQuery` so they can't drift apart: restoring only `q` would drop `rawFilterList` from the
- *  query JSON while keeping the same hash. */
+/** Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` from the query
+ * JSON while keeping the same hash. */
 function selectSearchQueryParams(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
     if (focused?.name !== SCREENS.SEARCH.ROOT) {

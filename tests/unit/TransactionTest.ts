@@ -2112,15 +2112,15 @@ describe('Transaction', () => {
                 expect(parameters).toEqual(
                     expect.objectContaining({
                         reportID: FAKE_NEW_REPORT_ID,
-                        // The explicit transaction list must be dropped so the backend moves ALL matching expenses via the query.
+                        // The list stays empty so the backend moves every matching expense from the query
                         transactionList: '',
                         jsonQuery: FAKE_JSON_QUERY,
                         hash: FAKE_HASH,
                     }),
                 );
 
-                // The loaded transaction is optimistically moved, so its optimistic action/thread IDs must be sent
-                // for the backend to reuse instead of creating a second moved message for it.
+                // The loaded transaction moves optimistically, so its action and thread IDs go out for the backend to
+                // reuse instead of creating a second moved message for it
                 const transactionData = parseJSONRecord(readProperty(parameters, 'transactionIDToReportActionAndThreadData'));
                 expect(hasDefinedProperty(transactionData, transaction.transactionID)).toBe(true);
 
@@ -2198,7 +2198,7 @@ describe('Transaction', () => {
                     });
                     await waitForBatchedUpdates();
 
-                    // While the request is in flight the destination report should be flagged as pending.
+                    // The destination stays pending while the request is in flight
                     const pendingReport = await getOnyxValue(destinationReportKey);
                     expect(pendingReport?.pendingFields?.reportID).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                 } finally {
@@ -2206,7 +2206,7 @@ describe('Transaction', () => {
                 }
                 await waitForBatchedUpdates();
 
-                // Once the request resolves the pending flag should be cleared.
+                // The pending flag clears once the request resolves
                 const resolvedReport = await getOnyxValue(destinationReportKey);
                 expect(resolvedReport?.pendingFields?.reportID).toBeFalsy();
             });
@@ -2218,8 +2218,8 @@ describe('Transaction', () => {
                 const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
                 const allTransactions = {[transactionKey]: transaction};
 
-                // Pause the request rather than mocking API.write, so the optimistic data is really applied to Onyx
-                // and can be observed while the move is still in flight.
+                // Pause the request instead of mocking API.write so the optimistic data really reaches Onyx and can be
+                // read while the move is still in flight
                 mockFetch.pause();
                 try {
                     changeTransactionsReport({
@@ -2239,8 +2239,8 @@ describe('Transaction', () => {
                     });
                     await waitForBatchedUpdates();
 
-                    // The all-matching move must apply the same optimistic update as a per-page move, so the loaded
-                    // transaction already points at the destination report instead of waiting for the response.
+                    // The all-matching move applies the same optimistic update as a per-page move, so the loaded
+                    // transaction already points at the destination instead of waiting for the response
                     const movedTransaction = await getOnyxValue(transactionKey);
                     expect(movedTransaction?.reportID).toBe(FAKE_NEW_REPORT_ID);
                 } finally {
@@ -2279,7 +2279,7 @@ describe('Transaction', () => {
 
                 const parameters = mockAPIWrite.mock.calls.at(0)?.[1];
 
-                // Without a jsonQuery the explicit transaction list must be sent and no all-matching params leak through.
+                // Without a jsonQuery the explicit list goes out and no all-matching params leak through
                 expect(parameters).toEqual(
                     expect.objectContaining({
                         transactionList: transaction.transactionID,

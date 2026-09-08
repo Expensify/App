@@ -1779,7 +1779,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
-    // Matches exist that the client hasn't loaded, and so can't validate
+    // Some matches haven't been loaded yet, so the client can't check whether they are movable
     const hasUnloadedMatchingExpenses = !!currentSearchResults?.search?.hasMoreResults;
     const isUnreportedOnlyQuery = useMemo(() => {
         const statusFilter = queryJSON ? getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) : undefined;
@@ -2163,7 +2163,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return isExportTheOnlyAction && subMenuItems.length > 0 ? subMenuItems : builtOptions;
         };
 
-        // Move-eligibility only sees the loaded page. The backend enforces it on the full set.
+        // These checks only see the loaded page. The backend enforces the same rules on the full set.
         const moveOwnerAccountIDs = new Set<number>();
         let moveHasUnknownOwner = false;
         for (const id of selectedTransactionsKeys) {
@@ -2184,7 +2184,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
         const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-        // `every` is vacuously true on an empty selection, and the destination page bails out when nothing is selected
+        // `every` returns true for an empty selection, so check the length too. The destination page has nothing to move.
         const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
         const canMoveExpenses = canAllTransactionsBeMoved && !moveHasMultipleOwners && !isExpenseReportType;
 
@@ -2194,7 +2194,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
             shouldCloseModalOnSelect: true,
             onSelected: () => {
-                // A queued all-matching move would send a stale query, so ask the user to reconnect (same as export)
+                // A queued all-matching move would send a stale query, so ask the user to reconnect like export does
                 if (areAllMatchingItemsSelected && isOffline) {
                     setIsOfflineModalVisible(true);
                     return;
@@ -2204,9 +2204,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            // The backend moves the whole query, so the query must guarantee every match is movable: a non-movable
-            // expense hiding in unloaded results makes it reject the entire move. Unreported-only queries are safe
-            // because those expenses live in their owner's self DM. Exclusions can't be expressed in a query.
+            // The backend moves everything the query matches, so one expense it can't move rejects the whole move.
+            // Only offer this when the query guarantees every match is movable. An unreported query is safe because
+            // those expenses live in their owner's self DM. A query also can't express excluded rows.
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
             return openExportOptionsDirectlyIfSoleAction(canMoveExpenses && isAllMatchingSelectionMovable ? [exportButtonOption, moveExpensesOption] : [exportButtonOption]);

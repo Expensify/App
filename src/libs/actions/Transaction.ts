@@ -2006,17 +2006,17 @@ function getChangeTransactionsReportOnyxData({
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    // Without the hash this falls back to the explicit list and moves only the loaded page, so surface it
+    // Without a hash the move falls back to the explicit list and only the loaded page moves, so surface that
     if (props.jsonQuery && props.hash === undefined) {
         Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
     }
 
     if (props.jsonQuery && props.hash !== undefined) {
         // The backend resolves the whole matching set from the query, but the client has only loaded part of it.
-        // Build the normal optimistic updates for the transactions that ARE loaded so their rows leave the list
-        // immediately, exactly as a per-page selection does; the unloaded remainder arrives with the response.
-        // This returns undefined when none of the loaded transactions actually move (they may already sit in the
-        // destination), and the request still has to go out for the expenses the client never loaded.
+        // Build the normal optimistic updates for the loaded transactions so their rows leave the list right away,
+        // just like a per-page selection does. The rest of the set arrives with the response.
+        // This is undefined when none of the loaded transactions move, but the request still has to go out for the
+        // expenses the client never loaded.
         const loadedTransactionsOnyxData = getChangeTransactionsReportOnyxData(props);
 
         const optimisticData = [...(loadedTransactionsOnyxData?.optimisticData ?? [])];
@@ -2024,8 +2024,8 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         const failureData = [...(loadedTransactionsOnyxData?.failureData ?? [])];
 
         if (props.newReport) {
-            // The loaded rows are already updated above, but expenses the client never loaded are still being
-            // moved server-side, so the destination stays flagged as pending for the whole request.
+            // The expenses the client never loaded are still being moved on the server, so the destination stays
+            // pending for the whole request
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
@@ -2046,12 +2046,12 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
 
         const queryParameters: ChangeTransactionsReportParams = {
-            // The explicit list must stay empty so the backend moves every matching expense via the query
-            // rather than just the page the client happens to have loaded.
+            // The list stays empty so the backend moves every matching expense from the query instead of only the
+            // page the client loaded
             transactionList: '',
             reportID,
-            // Hand over the report action and thread IDs we just created optimistically for the loaded
-            // transactions so the backend reuses them instead of adding a second moved message to each.
+            // Send the report action and thread IDs we just created optimistically so the backend reuses them
+            // instead of adding a second moved message to each loaded transaction
             transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
             ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
                 transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
@@ -2085,8 +2085,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
-    // The query-based all-matching path above already called API.write and returned, so this branch only runs for the
-    // explicit-transaction move. The two writes are mutually exclusive and never fire within the same invocation.
+    // The all-matching path above already returned after its own API.write, so only one of the two writes ever runs
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
         optimisticData,
