@@ -18,7 +18,7 @@ const EXPENSE_REPORT_ID = '54321';
 const TRANSACTION_ID = '11111';
 const SIBLING_TRANSACTION_ID = '22222';
 
-// Inlined rather than read off `ONYXKEYS`: a `jest.mock` factory may only close over literal-initialised locals.
+// Inlined rather than read off `ONYXKEYS`: a `jest.mock` factory may only close over locals initialized with a literal.
 // The test below asserts the two stay in sync.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 
