@@ -27,6 +27,16 @@ function createUnhandledExceptionMFAError(stepLabel: string, thrown: unknown): M
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- {} means "no additional data fields" as default generic parameter
 type MFAResult<TData = {}> = ({success: true} & TData) | {success: false; error: MFAError};
 
+/**
+ * Builds the failed result a step returns when the flow was canceled before it could run. The return
+ * type is spelled out because an inferred `success: false` widens to `boolean`, which no longer fits
+ * {@link MFAResult}'s failure branch. That branch carries no data, so this result is assignable to
+ * every `MFAResult<TData>` a caller declares.
+ */
+function createCanceledMFAResult(message: string): {success: false; error: MFAError} {
+    return {success: false, error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.CANCELED, message)};
+}
+
 /** Returns the error a failed result carries. It throws on a successful result, so callers must rule success out first. */
 function getMFAFailureError(result: MFAResult): MFAError {
     if (result.success) {
@@ -36,4 +46,4 @@ function getMFAFailureError(result: MFAResult): MFAError {
 }
 
 export type {MFAError, MFAResult};
-export {createLocalMFAError, createMFAErrorFromApiResponse, createUnhandledExceptionMFAError, getMFAFailureError};
+export {createCanceledMFAResult, createLocalMFAError, createMFAErrorFromApiResponse, createUnhandledExceptionMFAError, getMFAFailureError};

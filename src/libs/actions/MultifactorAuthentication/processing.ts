@@ -1,10 +1,16 @@
-import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioConfigFor} from '@components/MultifactorAuthentication/config';
+import type {
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioParameters,
+    MultifactorAuthenticationScenarioParams,
+    MultifactorAuthenticationScenarioResponse,
+} from '@components/MultifactorAuthentication/config/types';
 
+import type {SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
-import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
+import type {AuthTypeInfo, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 import {registerAuthenticationKey} from './index';
 
@@ -24,24 +30,16 @@ async function processRegistration(params: RegistrationParams): Promise<MFAResul
     return {success: false, error: createMFAErrorFromApiResponse(httpStatusCode, reason, message)};
 }
 
-/**
- * Executes the scenario-specific action with the signed challenge and additional parameters.
- *
- * @param action - The scenario's action function from the scenario config
- * @param params - Action parameters including signedChallenge and authenticationMethod
- */
-async function processScenarioAction(
-    action: MultifactorAuthenticationScenarioConfig['action'],
-    params: Parameters<MultifactorAuthenticationScenarioConfig['action']>[0],
-): Promise<MFAResult<MultifactorAuthenticationScenarioResponse>> {
-    if (!params.signedChallenge) {
-        return {
-            success: false,
-            error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.SIGNATURE_MISSING, 'Signed challenge is missing from scenario action params'),
-        };
-    }
+type ScenarioActionAuthenticationParams = {
+    signedChallenge: SignedChallenge;
+    authenticationMethod: AuthTypeInfo['marqetaValue'];
+};
 
-    const {httpStatusCode, reason, message, body} = await action(params);
+type RunScenarioAction = (authentication: ScenarioActionAuthenticationParams) => Promise<MFAResult<MultifactorAuthenticationScenarioResponse>>;
+
+/** Normalizes a scenario API response into the result shape consumed by the machine. */
+async function processScenarioAction(runAction: () => Promise<MultifactorAuthenticationScenarioResponse>): Promise<MFAResult<MultifactorAuthenticationScenarioResponse>> {
+    const {httpStatusCode, reason, message, body} = await runAction();
 
     if (isHttpSuccess(httpStatusCode)) {
         return {
@@ -56,4 +54,29 @@ async function processScenarioAction(
     return {success: false, error: createMFAErrorFromApiResponse(httpStatusCode, reason, message)};
 }
 
-export {processRegistration, processScenarioAction};
+/**
+ * Binds one scenario's action to its own payload while the scenario generic is still known. The
+ * authorization path receives only the resulting runner, so action and payload cannot later drift
+ * into an invalid cross-scenario pair.
+ */
+function createScenarioActionRunner<T extends MultifactorAuthenticationScenario>(
+    _scenarioName: T,
+    action: MultifactorAuthenticationScenarioConfigFor<NoInfer<T>>['action'],
+    payload: MultifactorAuthenticationScenarioParams<NoInfer<T>> | undefined,
+): RunScenarioAction {
+    return (authentication) => {
+        // The public payload may contain optional authentication fields, so actor-owned ceremony data
+        // is spread last. TypeScript cannot normalize this generic intersection after object spread.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const actionParams = {...payload, ...authentication} as MultifactorAuthenticationScenarioParameters[T];
+        // The scenario name fixes T before action and payload are accepted. This assertion only works
+        // around TypeScript's inability to call an indexed generic function; the returned runner keeps
+        // the already-validated pair closed over and exposes no action/payload inputs to the machine.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const boundAction = action as (params: MultifactorAuthenticationScenarioParameters[T]) => Promise<MultifactorAuthenticationScenarioResponse>;
+        return processScenarioAction(() => boundAction(actionParams));
+    };
+}
+
+export {createScenarioActionRunner, processRegistration, processScenarioAction};
+export type {RunScenarioAction};

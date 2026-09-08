@@ -18,6 +18,7 @@ import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navig
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -29,10 +30,31 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible, isProcessingPrompt} = state;
+    const {isCancelConfirmVisible, isProcessingPrompt, isAuthorizing, softPromptApproved, registrationChallenge} = state;
 
-    const {illustration, title, subtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
+    const {illustration, title: defaultTitle, subtitle: defaultSubtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
+
+    // Authorizing swaps the confirm-prompt copy for a status line, in two cases:
+    // - a returning device that skipped the soft prompt entirely (never approved this session) shows
+    //   the plain "let's authenticate you",
+    // - a device that just finished registering (approved the soft prompt and created a credential)
+    //   shows the "now" variant, since it's moving straight from registration into authorization.
+    // A device that approved the soft prompt without registering (no challenge) keeps the default
+    // copy, since it never left the confirm-prompt content and has no registration step behind it.
+    let title: TranslationPaths = defaultTitle;
+    let subtitle: TranslationPaths | undefined = defaultSubtitle;
+    if (isAuthorizing) {
+        if (!softPromptApproved) {
+            title = 'multifactorAuthentication.letsAuthenticateYou';
+            subtitle = undefined;
+        } else if (registrationChallenge) {
+            // In the current slice the challenge survives through post-registration authorization.
+            // Recovery must clear it before re-registration, so it is not a durable flow-history flag.
+            title = 'multifactorAuthentication.nowLetsAuthenticateYou';
+            subtitle = undefined;
+        }
+    }
 
     return (
         <ScreenWrapper

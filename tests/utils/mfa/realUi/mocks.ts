@@ -1,6 +1,8 @@
 import type {UseBiometricsReturn} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
+    AuthorizeInput,
+    AuthorizeOutput,
     CreateCredentialInput,
     CreateCredentialOutput,
     LoadRegistrationStateInput,
@@ -119,6 +121,7 @@ const validateDeviceControl = createControlledActor<MFAResult, ValidateDeviceInp
 const loadRegistrationStateControl = createControlledActor<LoadRegistrationStateOutput, LoadRegistrationStateInput>('loadRegistrationState');
 const requestRegistrationChallengeControl = createControlledActor<RequestRegistrationChallengeOutput, RequestRegistrationChallengeInput>('requestRegistrationChallenge');
 const createCredentialControl = createControlledActor<CreateCredentialOutput, CreateCredentialInput>('createCredential');
+const authorizeControl = createControlledActor<AuthorizeOutput, AuthorizeInput>('authorize');
 
 function resetMfaUiMocks() {
     pendingModalClose.clear();
@@ -127,6 +130,7 @@ function resetMfaUiMocks() {
     loadRegistrationStateControl.reset();
     requestRegistrationChallengeControl.reset();
     createCredentialControl.reset();
+    authorizeControl.reset();
 }
 
 /** Replaces the machine's side-effect actors with controlled test implementations. */
@@ -136,6 +140,7 @@ function mfaActorsMock() {
         loadRegistrationState: loadRegistrationStateControl.actor,
         requestRegistrationChallenge: requestRegistrationChallengeControl.actor,
         createCredential: createCredentialControl.actor,
+        authorize: authorizeControl.actor,
     } satisfies ReturnType<typeof createActors>;
 
     return {
@@ -231,6 +236,7 @@ export {
     loadRegistrationStateControl,
     requestRegistrationChallengeControl,
     createCredentialControl,
+    authorizeControl,
     resetMfaUiMocks,
     mfaActorsMock,
     userActionsMock,

@@ -2,13 +2,22 @@ import {CIRCULAR_MARKER, maskInspectionEvent, MAX_DEPTH_MARKER, SENSITIVE_VALUE_
 
 import CONST from '@src/CONST';
 
+import {createActor, createMachine} from 'xstate';
+
 describe('maskInspectionEvent', () => {
-    it('recurses through plain containers like payload and body, masking only the sensitive leaves while keeping the shape', () => {
+    it('masks every value in a scenario payload because it can contain arbitrary PII', () => {
         const masked = maskInspectionEvent({
             snapshot: {
                 context: {
-                    payload: {pin: '1234', meta: {attempt: 2}},
-                    request: {body: {validateCode: '987654', otp: '111111', attempt: 3}},
+                    payload: {
+                        cardID: 'card-1',
+                        legalFirstName: 'John',
+                        legalLastName: 'Smith',
+                        phoneNumber: '+44123456789',
+                        addressStreet: '10 Downing Street',
+                        dob: '1990-01-01',
+                        isFromMissingDetailsFlow: true,
+                    },
                 },
             },
         });
@@ -16,8 +25,15 @@ describe('maskInspectionEvent', () => {
         expect(masked).toEqual({
             snapshot: {
                 context: {
-                    payload: {pin: SENSITIVE_VALUE_MASK, meta: {attempt: 2}},
-                    request: {body: {validateCode: SENSITIVE_VALUE_MASK, otp: SENSITIVE_VALUE_MASK, attempt: 3}},
+                    payload: {
+                        cardID: SENSITIVE_VALUE_MASK,
+                        legalFirstName: SENSITIVE_VALUE_MASK,
+                        legalLastName: SENSITIVE_VALUE_MASK,
+                        phoneNumber: SENSITIVE_VALUE_MASK,
+                        addressStreet: SENSITIVE_VALUE_MASK,
+                        dob: SENSITIVE_VALUE_MASK,
+                        isFromMissingDetailsFlow: SENSITIVE_VALUE_MASK,
+                    },
                 },
             },
         });
@@ -137,18 +153,70 @@ describe('maskInspectionEvent', () => {
         });
     });
 
-    it('masks snapshot.value like any other field, with no exemption for a state node named like a sensitive key', () => {
+    it('keeps machine state values readable when a state node is named like a sensitive key', () => {
         const masked = maskInspectionEvent({
             snapshot: {
-                value: {open: {validateCode: 'enteringCode', outcome: 'success'}},
+                machine: {id: 'mfa'},
+                value: {open: {validateCode: {awaitingValidateCode: 'awaitingInput'}, outcome: 'success'}},
                 context: {validateCode: '987654'},
             },
         });
 
         expect(masked).toEqual({
             snapshot: {
-                value: {open: {validateCode: SENSITIVE_VALUE_MASK, outcome: 'success'}},
+                machine: {id: 'mfa'},
+                value: {open: {validateCode: {awaitingValidateCode: 'awaitingInput'}, outcome: 'success'}},
                 context: {validateCode: SENSITIVE_VALUE_MASK},
+            },
+        });
+    });
+
+    // Hand-built fixtures cannot prove that a real snapshot satisfies `isMachineSnapshot`, and a guard
+    // that never fires would silently re-break the inspector for a state named like a sensitive key.
+    it('exempts the state value of a real machine snapshot, whose toJSON output no longer carries the machine itself', () => {
+        // `validateCode` has to be a compound state: masking rewrites keys, so only a state value that
+        // carries the name as a key (not as a leaf string) can regress.
+        const machine = createMachine({initial: 'validateCode', states: {validateCode: {initial: 'awaitingInput', states: {awaitingInput: {}}}}});
+        const actor = createActor(machine).start();
+
+        const masked = maskInspectionEvent({snapshot: actor.getSnapshot()});
+        const maskedAgain = maskInspectionEvent(masked);
+        const maskedAfterReconnect = maskInspectionEvent(maskedAgain);
+        actor.stop();
+
+        expect(maskedAgain).toBe(masked);
+        expect(maskedAfterReconnect).toBe(masked);
+        expect(masked).toEqual(expect.objectContaining({snapshot: expect.objectContaining({value: {validateCode: 'awaitingInput'}})}));
+    });
+
+    // The exemption exists only because machine state values hold static state-node names. Any other
+    // actor logic may put real data in its own `value`, so the exemption must not reach it.
+    it('masks the value of a snapshot that is not a machine snapshot, so foreign actor logic cannot leak through the exemption', () => {
+        const masked = maskInspectionEvent({
+            snapshot: {status: 'active', value: {validateCode: '987654', form: {pin: '1234', attempt: 2}}},
+        });
+
+        expect(masked).toEqual({
+            snapshot: {status: 'active', value: {validateCode: SENSITIVE_VALUE_MASK, form: {pin: SENSITIVE_VALUE_MASK, attempt: 2}}},
+        });
+    });
+
+    it('scopes the state-value exemption to snapshot.value', () => {
+        const masked = maskInspectionEvent({
+            event: {type: 'SUBMIT', keyInfo: {value: 'secret'}},
+            snapshot: {
+                machine: {id: 'mfa'},
+                value: 'idle',
+                context: {request: {keyInfo: {value: 'secret'}}},
+            },
+        });
+
+        expect(masked).toEqual({
+            event: {type: 'SUBMIT', keyInfo: {value: SENSITIVE_VALUE_MASK}},
+            snapshot: {
+                machine: {id: 'mfa'},
+                value: 'idle',
+                context: {request: {keyInfo: {value: SENSITIVE_VALUE_MASK}}},
             },
         });
     });

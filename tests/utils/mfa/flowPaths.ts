@@ -12,10 +12,13 @@ import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
 import createInitEvent, {
+    MFA_TEST_AUTH_METHOD,
+    MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
     MFA_TEST_INVALID_CODE_ERROR,
     MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_SCENARIO_RESPONSE,
     MFA_TEST_VALIDATE_CODE,
 } from './flowFixtures';
 
@@ -146,13 +149,41 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`,
     },
-    // A returning user who already accepted the soft prompt skips straight to the outcome instead of re-confirming.
+    // A returning user who already accepted the soft prompt skips the soft prompt entirely and lands
+    // directly on authorization instead of re-confirming.
     {
         description: 'the returning-user journey skips the soft prompt when the account already accepted it on this device',
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
             createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`,
+    },
+    // A fresh registration continues straight into authorization once the credential is created,
+    // rather than stopping at the outcome.
+    {
+        description: 'the registration journey reaches the success outcome after authorization',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            {type: 'SOFT_PROMPT_APPROVED'},
+            createActorDoneEvent('createCredential', {success: true}),
+            createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
+    },
+    // A returning user who skipped the soft prompt still authorizes before reaching the outcome.
+    {
+        description: 'the returning-user journey reaches the success outcome after authorization',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
@@ -214,6 +245,14 @@ const MFA_ACTOR_EVENT_FIXTURES = {
         {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
     ),
     createCredential: createActorEvents('createCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
+    // Deliberately two variants: every authorization failure reason routes through the same branch and
+    // renders the same generic screen, so a third fixture would only multiply walked paths without
+    // adding coverage. `authorizationTransition.test.ts` pins the individual reasons by hand instead.
+    authorize: createActorEvents(
+        'authorize',
+        {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD},
+        {success: false, error: MFA_TEST_AUTHORIZATION_ORDINARY_ERROR},
+    ),
 } satisfies MfaActorEventFixtures;
 
 /** Every concrete event the traversal can offer, in the order its fixtures declare them. */

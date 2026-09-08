@@ -15,6 +15,7 @@ import getPlatform from '@libs/getPlatform';
 import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
 import {getDeviceBiometricsOnyxKey} from '@userActions/MultifactorAuthentication';
+import {createScenarioActionRunner} from '@userActions/MultifactorAuthentication/processing';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,6 +106,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         trackMFAFlowStart({scenario: scenarioName, isOffline, registrationState: startRegistrationState});
 
         const scenario = getScenarioConfig(scenarioName);
+        const runScenarioAction = createScenarioActionRunner(scenarioName, scenario.action, params);
 
         send({
             type: 'INIT',
@@ -112,6 +114,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             scenarioName,
             scenario,
             payload: params && Object.keys(params).length > 0 ? params : undefined,
+            runScenarioAction,
         });
     };
 

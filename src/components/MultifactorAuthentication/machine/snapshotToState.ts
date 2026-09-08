@@ -22,11 +22,15 @@ type MfaState = MfaContext & {
     /** Whether the validate-code screen currently shows the inline invalid-code error. */
     showsInvalidCodeError: boolean;
 
-    /**
-     * Whether the prompt screen is processing a non-interactive biometric step. Credential creation
-     * is the only such step in this slice; authorization will be included once it is migrated.
-     */
+    /** Whether the prompt screen is processing a non-interactive biometric step: credential creation or authorization. */
     isProcessingPrompt: boolean;
+
+    /**
+     * Whether the flow is running (or just ran) the authorization ceremony. Distinct from
+     * `isProcessingPrompt` (which also covers credential creation) because the prompt screen swaps its
+     * copy only for this sub-state - see `PromptPage`'s title override.
+     */
+    isAuthorizing: boolean;
 };
 
 function getModalState(snapshot: MfaSnapshot): MfaModalState {
@@ -50,16 +54,9 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
         ...snapshot.context,
         modalState: getModalState(snapshot),
         canResendValidateCode: snapshot.can({type: 'RESEND_VALIDATE_CODE'}),
-        isValidateCodeFormSubmitting: snapshot.matches({
-            [MFA_STATE.OPEN]: {
-                [MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
-            },
-        }),
-        isProcessingPrompt: snapshot.matches({
-            [MFA_STATE.OPEN]: {
-                [MFA_STATE.PROMPT]: MFA_STATE.CREATING_CREDENTIAL,
-            },
-        }),
+        isValidateCodeFormSubmitting: snapshot.context.validateCodePresentationPhase === MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
+        isProcessingPrompt: snapshot.context.promptPresentationPhase === MFA_STATE.CREATING_CREDENTIAL || snapshot.context.promptPresentationPhase === MFA_STATE.AUTHORIZING,
+        isAuthorizing: snapshot.context.promptPresentationPhase === MFA_STATE.AUTHORIZING,
         showsInvalidCodeError: snapshot.matches({
             [MFA_STATE.OPEN]: {
                 [MFA_STATE.VALIDATE_CODE]: {

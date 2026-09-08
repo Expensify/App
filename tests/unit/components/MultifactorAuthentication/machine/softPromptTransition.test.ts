@@ -35,14 +35,14 @@ describe('MFA soft prompt', () => {
         actor.stop();
     });
 
-    it('skips the soft prompt and reaches the outcome directly for a returning user who already accepted it on this device', () => {
+    it('skips the soft prompt and moves directly to authorizing for a returning user who already accepted it on this device', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
         expect(result.context.softPromptApproved).toBe(false);
 
         actor.stop();
@@ -60,14 +60,14 @@ describe('MFA soft prompt', () => {
         actor.stop();
     });
 
-    it('reaches the success outcome when the user approves the soft prompt', () => {
+    it('moves to authorizing when the user approves the soft prompt', () => {
         const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
         expect(result.context.softPromptApproved).toBe(true);
 
         actor.stop();

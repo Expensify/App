@@ -96,7 +96,7 @@ function isRegistrationChallenge(challenge: unknown): challenge is RegistrationC
 }
 
 function isAuthenticationChallenge(challenge: unknown): challenge is AuthenticationChallenge {
-    return typeof challenge === 'object' && challenge !== null && 'allowCredentials' in challenge && 'rpId' in challenge;
+    return typeof challenge === 'object' && challenge !== null && 'allowCredentials' in challenge && Array.isArray(challenge.allowCredentials) && 'rpId' in challenge;
 }
 
 export {parseHttpResponse, isHttpSuccess, isRegistrationChallenge, isAuthenticationChallenge};

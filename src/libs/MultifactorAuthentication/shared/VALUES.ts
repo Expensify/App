@@ -189,6 +189,20 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
 /** Non-error flow outcomes that are not MFA successes but represent valid, expected terminal states (e.g. user-initiated deny). Logged at 'info' level. */
 const ALTERNATIVE_OUTCOMES = new Set<ReasonValue>([REASON.FLOW_OUTCOMES.TRANSACTION_DENIED]);
 
+/**
+ * Local credential failures that confirm the device credential is unusable, so it should be deleted
+ * before recovery. Read failures such as `KEY_ACCESS_FAILED` are deliberately absent: an unreadable
+ * keystore may recover, and deleting on one would force a re-registration the device did not need.
+ */
+const CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = new Set<ReasonValue>([
+    REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
+    REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
+]);
+
+/** Failures the recovery slice will route to re-registration rather than retrying authorization. */
+const RECOVERABLE_CREDENTIAL_FAILURES = new Set<ReasonValue>([...CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION, REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED]);
+
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. missing reason). */
 const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
@@ -225,7 +239,7 @@ const MFA_STATE = {
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
     DECIDING_REGISTRATION: 'decidingRegistration',
-    VALIDATE_CODE: 'validateCode',
+    VALIDATE_CODE: 'validateCodeState',
     AWAITING_VALIDATE_CODE: 'awaitingValidateCode',
     AWAITING_INPUT: 'awaitingInput',
     INVALID_CODE: 'invalidCode',
@@ -233,6 +247,7 @@ const MFA_STATE = {
     PROMPT: 'prompt',
     AWAITING_SOFT_PROMPT: 'awaitingSoftPrompt',
     CREATING_CREDENTIAL: 'creatingCredential',
+    AUTHORIZING: 'authorizing',
     OUTCOME: 'outcome',
     RESOLVING_OUTCOME: 'resolvingOutcome',
     SUCCESS: 'success',
@@ -285,6 +300,8 @@ const SHARED_VALUES = {
     ROUTINE_FAILURES,
     ALTERNATIVE_OUTCOMES,
     ANOMALOUS_FAILURES,
+    CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION,
+    RECOVERABLE_CREDENTIAL_FAILURES,
 
     /**
      * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.

@@ -8,8 +8,8 @@
 import type * as WebBiometricsOperations from '@components/MultifactorAuthentication/biometrics/operations/index';
 
 import type * as WebAuthnModule from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import {arrayBufferToBase64URL, extractAAGUID} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import {arrayBufferToBase64URL, extractAAGUID, PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 
 import type * as PasskeyActionsModule from '@userActions/Passkey';
 import {getPasskeyOnyxKey} from '@userActions/Passkey';
@@ -22,30 +22,37 @@ import getOnyxValue from 'tests/utils/getOnyxValue';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 
 const mockCreatePasskeyCredential = jest.fn<Promise<PublicKeyCredential>, [PublicKeyCredentialCreationOptions, AbortSignal | undefined]>();
+const mockAuthenticateWithPasskey = jest.fn<Promise<PublicKeyCredential>, [PublicKeyCredentialRequestOptions, AbortSignal | undefined]>();
 
 // The navigator boundary is the only thing mocked here; the real option-building, extraction, and
 // error-decoding helpers stay under test, matching checkDeviceEligibility.test.ts's partial-mock shape.
 jest.mock('@libs/MultifactorAuthentication/Passkeys/WebAuthn', () => ({
     ...jest.requireActual<typeof WebAuthnModule>('@libs/MultifactorAuthentication/Passkeys/WebAuthn'),
     createPasskeyCredential: (options: PublicKeyCredentialCreationOptions, signal?: AbortSignal) => mockCreatePasskeyCredential(options, signal),
+    authenticateWithPasskey: (options: PublicKeyCredentialRequestOptions, signal?: AbortSignal) => mockAuthenticateWithPasskey(options, signal),
 }));
 
 const mockAddLocalPasskeyCredential = jest.fn<ReturnType<typeof PasskeyActionsModule.addLocalPasskeyCredential>, Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>>();
+const mockDeleteLocalPasskeyCredentials = jest.fn<
+    ReturnType<typeof PasskeyActionsModule.deleteLocalPasskeyCredentials>,
+    Parameters<typeof PasskeyActionsModule.deleteLocalPasskeyCredentials>
+>();
 
 // Only the local credential update is mocked here, and only to simulate its validation throwing —
 // every other test delegates straight through to the real Onyx-backed implementation.
 jest.mock('@userActions/Passkey', () => ({
     ...jest.requireActual<typeof PasskeyActionsModule>('@userActions/Passkey'),
     addLocalPasskeyCredential: (params: Parameters<typeof PasskeyActionsModule.addLocalPasskeyCredential>[0]) => mockAddLocalPasskeyCredential(params),
+    deleteLocalPasskeyCredentials: (userId: Parameters<typeof PasskeyActionsModule.deleteLocalPasskeyCredentials>[0]) => mockDeleteLocalPasskeyCredentials(userId),
 }));
 
 // jest-expo resolves the native variant by default, so load the web entry point explicitly.
-const {areLocalCredentialsKnownToServer, createCredential, deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} = jest.requireActual<
-    typeof WebBiometricsOperations
->('@components/MultifactorAuthentication/biometrics/operations/index.ts');
+const {areLocalCredentialsKnownToServer, authorize, createCredential, deleteLocalCredentials, deviceCheckFailureReason, deviceVerificationType, doesDeviceSupportAuthenticationMethod} =
+    jest.requireActual<typeof WebBiometricsOperations>('@components/MultifactorAuthentication/biometrics/operations/index.ts');
 
 const ACCOUNT_ID = 12345;
 const LOCAL_PASSKEY_ID = 'local-passkey-credential-id';
+const TEST_SIGNAL = new AbortController().signal;
 
 /**
  * jsdom has no `AuthenticatorAttestationResponse` global. `window === globalThis` in jsdom, so
@@ -77,6 +84,24 @@ class FakeAuthenticatorAttestationResponse {
     }
 }
 
+/**
+ * jsdom has no `AuthenticatorAssertionResponse` global either, so `authorize`'s bare `instanceof`
+ * check resolves against this fake class the same way as the attestation response above.
+ */
+class FakeAuthenticatorAssertionResponse {
+    authenticatorData: ArrayBuffer;
+
+    clientDataJSON: ArrayBuffer;
+
+    signature: ArrayBuffer;
+
+    constructor(authenticatorData: ArrayBuffer, clientDataJSON: ArrayBuffer, signature: ArrayBuffer) {
+        this.authenticatorData = authenticatorData;
+        this.clientDataJSON = clientDataJSON;
+        this.signature = signature;
+    }
+}
+
 function bytesToArrayBuffer(bytes: number[]): ArrayBuffer {
     return new Uint8Array(bytes).buffer;
 }
@@ -104,7 +129,26 @@ const REGISTRATION_CHALLENGE: RegistrationChallenge = {
     timeout: 60000,
 };
 
+const AUTHENTICATION_CHALLENGE: AuthenticationChallenge = {
+    challenge: 'web-authentication-challenge',
+    rpId: 'expensify.com',
+    allowCredentials: [{type: CONST.PASSKEY_CREDENTIAL_TYPE, id: LOCAL_PASSKEY_ID}],
+    userVerification: 'required',
+    timeout: 60000,
+};
+
+function buildFakeAssertionCredential(rawId: ArrayBuffer, response: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- same minimal-fake rationale as buildFakeAttestationCredential above.
+    return {rawId, response} as unknown as PublicKeyCredential;
+}
+
+function buildFakeAssertionResponse() {
+    return new FakeAuthenticatorAssertionResponse(bytesToArrayBuffer([1, 2, 3]), bytesToArrayBuffer([4, 5, 6]), bytesToArrayBuffer([7, 8, 9]));
+}
+
 const originalAuthenticatorAttestationResponseDescriptor = Object.getOwnPropertyDescriptor(window, 'AuthenticatorAttestationResponse');
+
+const originalAuthenticatorAssertionResponseDescriptor = Object.getOwnPropertyDescriptor(window, 'AuthenticatorAssertionResponse');
 
 const originalPublicKeyCredentialDescriptor = Object.getOwnPropertyDescriptor(window, 'PublicKeyCredential');
 
@@ -117,6 +161,12 @@ function setWebAuthnSupport(isSupported: boolean) {
 }
 
 describe('biometrics operations (web)', () => {
+    beforeEach(() => {
+        mockDeleteLocalPasskeyCredentials
+            .mockReset()
+            .mockImplementation((userId) => jest.requireActual<typeof PasskeyActionsModule>('@userActions/Passkey').deleteLocalPasskeyCredentials(userId));
+    });
+
     afterEach(() => {
         if (originalPublicKeyCredentialDescriptor) {
             Object.defineProperty(window, 'PublicKeyCredential', originalPublicKeyCredentialDescriptor);
@@ -200,7 +250,7 @@ describe('biometrics operations (web)', () => {
             const expectedCredentialId = arrayBufferToBase64URL(rawId);
             mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(rawId, buildFakeAttestationResponse()));
 
-            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: TEST_SIGNAL});
 
             expect(result).toEqual({
                 success: true,
@@ -235,7 +285,7 @@ describe('biometrics operations (web)', () => {
         it('maps a WebAuthn DOMException to the corresponding local error reason', async () => {
             mockCreatePasskeyCredential.mockRejectedValue(new DOMException('The operation was not allowed', 'NotAllowedError'));
 
-            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: TEST_SIGNAL});
 
             expect(result.success).toBe(false);
             if (result.success) {
@@ -248,7 +298,7 @@ describe('biometrics operations (web)', () => {
             const rawId = bytesToArrayBuffer([50, 60, 70]);
             mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(rawId, {}));
 
-            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: TEST_SIGNAL});
 
             expect(result.success).toBe(false);
             if (result.success) {
@@ -270,7 +320,7 @@ describe('biometrics operations (web)', () => {
             await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: duplicateCredentialId, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
             mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(rawId, buildFakeAttestationResponse()));
 
-            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: TEST_SIGNAL});
 
             expect(result.success).toBe(true);
 
@@ -285,7 +335,7 @@ describe('biometrics operations (web)', () => {
             });
             mockCreatePasskeyCredential.mockResolvedValue(buildFakeAttestationCredential(bytesToArrayBuffer([11, 22, 33]), buildFakeAttestationResponse()));
 
-            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE});
+            const result = await createCredential({accountID: ACCOUNT_ID, registrationChallenge: REGISTRATION_CHALLENGE, signal: TEST_SIGNAL});
 
             expect(result.success).toBe(false);
             if (result.success) {
@@ -328,6 +378,176 @@ describe('biometrics operations (web)', () => {
             await waitForBatchedUpdates();
             const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
             expect(storedCredentials ?? []).toEqual([]);
+        });
+    });
+
+    describe('authorize', () => {
+        beforeEach(() => {
+            mockAuthenticateWithPasskey.mockReset();
+            Object.defineProperty(window, 'AuthenticatorAssertionResponse', {configurable: true, value: FakeAuthenticatorAssertionResponse});
+        });
+
+        afterEach(async () => {
+            if (originalAuthenticatorAssertionResponseDescriptor) {
+                Object.defineProperty(window, 'AuthenticatorAssertionResponse', originalAuthenticatorAssertionResponseDescriptor);
+            } else {
+                Reflect.deleteProperty(window, 'AuthenticatorAssertionResponse');
+            }
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('reports NO_MATCHING_LOCAL_CREDENTIAL and never calls the ceremony when no local passkey matches the challenge', async () => {
+            // No local passkeys stored at all, so reconciliation against the challenge's allowCredentials leaves nothing.
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected authorization to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL);
+            expect(mockAuthenticateWithPasskey).not.toHaveBeenCalled();
+        });
+
+        it('returns CANCELED instead of rejecting when the local credential read is aborted', async () => {
+            const controller = new AbortController();
+            controller.abort();
+
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: controller.signal});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected authorization to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED);
+            expect(mockAuthenticateWithPasskey).not.toHaveBeenCalled();
+        });
+
+        it('leaves cleanup to the actor when no local credential matches', async () => {
+            const credentials = [{id: 'unrelated-local-id', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), credentials);
+
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
+
+            expect(result.success).toBe(false);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)))).toEqual(credentials);
+        });
+
+        it('builds the request options from the challenge and passes the abort signal through to the ceremony', async () => {
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+            const rawId = bytesToArrayBuffer([10, 20, 30]);
+            mockAuthenticateWithPasskey.mockResolvedValue(buildFakeAssertionCredential(rawId, buildFakeAssertionResponse()));
+            const controller = new AbortController();
+
+            await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: controller.signal});
+
+            const [optionsPassedToCeremony, signalPassedToCeremony] = mockAuthenticateWithPasskey.mock.calls.at(0) ?? [];
+            expect(optionsPassedToCeremony?.rpId).toBe(AUTHENTICATION_CHALLENGE.rpId);
+            expect(optionsPassedToCeremony?.userVerification).toBe(AUTHENTICATION_CHALLENGE.userVerification);
+            expect(optionsPassedToCeremony?.timeout).toBe(AUTHENTICATION_CHALLENGE.timeout);
+            expect(optionsPassedToCeremony?.allowCredentials).toHaveLength(1);
+            expect(signalPassedToCeremony).toBe(controller.signal);
+        });
+
+        it('rejects an unexpected response type', async () => {
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+            mockAuthenticateWithPasskey.mockResolvedValue(buildFakeAssertionCredential(bytesToArrayBuffer([1, 2, 3]), {}));
+
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected authorization to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE);
+        });
+
+        it('decodes a rejection from the ceremony into the mapped WebAuthn error', async () => {
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+            mockAuthenticateWithPasskey.mockRejectedValue(new DOMException('The operation was not allowed', 'NotAllowedError'));
+
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
+
+            expect(result.success).toBe(false);
+            if (result.success) {
+                throw new Error('Expected authorization to fail');
+            }
+            expect(result.error.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.NOT_ALLOWED);
+        });
+
+        it('returns the exact signed-challenge shape and the Passkey authentication method on success', async () => {
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+            const rawId = bytesToArrayBuffer([40, 50, 60]);
+            mockAuthenticateWithPasskey.mockResolvedValue(buildFakeAssertionCredential(rawId, buildFakeAssertionResponse()));
+
+            const result = await authorize({accountID: ACCOUNT_ID, challenge: AUTHENTICATION_CHALLENGE, signal: TEST_SIGNAL});
+
+            expect(result).toEqual({
+                success: true,
+                signedChallenge: {
+                    rawId: arrayBufferToBase64URL(rawId),
+                    type: CONST.PASSKEY_CREDENTIAL_TYPE,
+                    response: {
+                        authenticatorData: arrayBufferToBase64URL(bytesToArrayBuffer([1, 2, 3])),
+                        clientDataJSON: arrayBufferToBase64URL(bytesToArrayBuffer([4, 5, 6])),
+                        signature: arrayBufferToBase64URL(bytesToArrayBuffer([7, 8, 9])),
+                    },
+                },
+                authenticationMethod: {name: PASSKEY_AUTH_TYPE.NAME, marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE},
+            });
+        });
+    });
+
+    describe('deleteLocalCredentials', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('clears the local passkey list for the account', async () => {
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}]);
+
+            await deleteLocalCredentials(ACCOUNT_ID);
+
+            await waitForBatchedUpdates();
+            const storedCredentials = await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)));
+            expect(storedCredentials ?? []).toEqual([]);
+        });
+
+        it('keeps the local passkey list when the flow was already cancelled', async () => {
+            const credentials = [{id: LOCAL_PASSKEY_ID, type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+            await Onyx.set(getPasskeyOnyxKey(String(ACCOUNT_ID)), credentials);
+            const controller = new AbortController();
+            controller.abort();
+
+            await deleteLocalCredentials(ACCOUNT_ID, controller.signal);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(getPasskeyOnyxKey(String(ACCOUNT_ID)))).toEqual(credentials);
+        });
+
+        it('resolves only after the Onyx deletion finishes', async () => {
+            let resolveDeletion = () => {};
+            mockDeleteLocalPasskeyCredentials.mockImplementationOnce(
+                () =>
+                    new Promise<void>((resolve) => {
+                        resolveDeletion = resolve;
+                    }),
+            );
+            let didResolve = false;
+
+            const deletionPromise = deleteLocalCredentials(ACCOUNT_ID).then(() => {
+                didResolve = true;
+            });
+            await waitForBatchedUpdates();
+
+            expect(didResolve).toBe(false);
+
+            resolveDeletion();
+            await deletionPromise;
+
+            expect(didResolve).toBe(true);
         });
     });
 });

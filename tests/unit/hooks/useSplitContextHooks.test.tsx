@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import {
     AttachmentCarouselPagerActionsContext,
@@ -15,9 +15,6 @@ import {
 import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndBackgroundStateContextType} from '@components/CustomStatusBarAndBackground/types';
 import {DragAndDropActionsContext, DragAndDropStateContext, useDragAndDropActions, useDragAndDropState} from '@components/DragAndDrop/Provider/DragAndDropContext';
 import type {DragAndDropActionsContextType, DragAndDropStateContextType} from '@components/DragAndDrop/Provider/types';
-import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
-import {DEFAULT_STATE, MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 
 import type {PropsWithChildren} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
@@ -203,112 +200,6 @@ describe('Split context hooks', () => {
             expect(stateResult.current.isDraggingOver).toBe(true);
             // actions should still return defaults since no actions provider is present
             expect(typeof actionsResult.current.setOnDropHandler).toBe('function');
-        });
-    });
-
-    describe('MultifactorAuthentication context hooks', () => {
-        it('throws when used outside provider', () => {
-            jest.spyOn(console, 'error').mockImplementation(() => {});
-
-            expect(() => {
-                renderHook(() => useMultifactorAuthenticationState());
-            }).toThrow('useMultifactorAuthenticationState must be used within a MultifactorAuthenticationStateProvider');
-
-            expect(() => {
-                renderHook(() => useMultifactorAuthenticationActions());
-            }).toThrow('useMultifactorAuthenticationActions must be used within a MultifactorAuthenticationStateProvider');
-
-            (console.error as jest.Mock).mockRestore();
-        });
-
-        it('returns default state when wrapped in provider', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(() => useMultifactorAuthenticationState(), {wrapper});
-
-            expect(result.current).toEqual(DEFAULT_STATE);
-            expect(result.current.isFlowComplete).toBe(false);
-        });
-
-        it('returns dispatch function when wrapped in provider', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(() => useMultifactorAuthenticationActions(), {wrapper});
-
-            expect(result.current).toBeDefined();
-            expect(typeof result.current.dispatch).toBe('function');
-        });
-
-        it('dispatch updates state correctly', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(
-                () => ({
-                    state: useMultifactorAuthenticationState(),
-                    actions: useMultifactorAuthenticationActions(),
-                }),
-                {wrapper},
-            );
-
-            act(() => {
-                result.current.actions.dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
-            });
-
-            expect(result.current.state.isRegistrationComplete).toBe(true);
-        });
-
-        it('dispatch handles SET_FLOW_COMPLETE', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(
-                () => ({
-                    state: useMultifactorAuthenticationState(),
-                    actions: useMultifactorAuthenticationActions(),
-                }),
-                {wrapper},
-            );
-
-            act(() => {
-                result.current.actions.dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
-            });
-
-            expect(result.current.state.isFlowComplete).toBe(true);
-        });
-
-        it('RESET action restores default state', () => {
-            function wrapper({children}: PropsWithChildren) {
-                return <MultifactorAuthenticationStateProvider>{children}</MultifactorAuthenticationStateProvider>;
-            }
-
-            const {result} = renderHook(
-                () => ({
-                    state: useMultifactorAuthenticationState(),
-                    actions: useMultifactorAuthenticationActions(),
-                }),
-                {wrapper},
-            );
-
-            act(() => {
-                result.current.actions.dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: true});
-                result.current.actions.dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
-            });
-
-            expect(result.current.state.isAuthorizationComplete).toBe(true);
-            expect(result.current.state.isRegistrationComplete).toBe(true);
-
-            act(() => {
-                result.current.actions.dispatch({type: 'RESET'});
-            });
-
-            expect(result.current.state).toEqual(DEFAULT_STATE);
         });
     });
 });

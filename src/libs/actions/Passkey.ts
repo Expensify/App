@@ -45,12 +45,12 @@ function addLocalPasskeyCredential({userId, credential, existingCredentials}: Ad
     return setLocalPasskeyCredentials({userId, entry: [...credentials, credential]});
 }
 
-/** Deletes all passkey credentials for a user from Onyx storage */
-function deleteLocalPasskeyCredentials(userId: string): void {
+/** Deletes all passkey credentials for a user from Onyx storage and resolves once the write finishes. */
+function deleteLocalPasskeyCredentials(userId: string): Promise<void> {
     if (!userId) {
         throw new Error('userId is required to delete passkey credentials');
     }
-    Onyx.set(getPasskeyOnyxKey(userId), []);
+    return Onyx.set(getPasskeyOnyxKey(userId), []);
 }
 
 /** Backend returns simplified format without transports */

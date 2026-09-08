@@ -1,7 +1,16 @@
-import {parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
+import {isAuthenticationChallenge, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 describe('MultifactorAuthentication shared helpers', () => {
+    describe('isAuthenticationChallenge', () => {
+        it('should require allowCredentials to be an array', () => {
+            expect(isAuthenticationChallenge({rpId: 'expensify.com', allowCredentials: []})).toBe(true);
+            expect(isAuthenticationChallenge({rpId: 'expensify.com', allowCredentials: null})).toBe(false);
+            expect(isAuthenticationChallenge({rpId: 'expensify.com', allowCredentials: undefined})).toBe(false);
+            expect(isAuthenticationChallenge({rpId: 'expensify.com', allowCredentials: 'invalid'})).toBe(false);
+        });
+    });
+
     describe('parseHttpResponse', () => {
         it('should return undefined reason for a 200 response when the map has no SUCCESS entry', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;

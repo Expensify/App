@@ -1,38 +1,16 @@
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 
-import {buildSigningData, decodeLibraryError, getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
-import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
+import {decodeLibraryError, getKeyAlias} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 
-import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 
-import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
+import {getAllKeys} from '@sbaiahmed1/react-native-biometrics';
 
-import {deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
-
-import type {AuthorizeParams, AuthorizeResult, UseBiometricsReturn} from './shared/types';
+import type {UseBiometricsReturn} from './shared/types';
 
 import useServerCredentials from './shared/useServerCredentials';
-
-/**
- * UTILS START
- * These utils were added to comply with react compiler requirements:
- * "Error: Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement"
- */
-function isCredentialAllowed(credentialID: string | undefined, allowedIDs: string[]): credentialID is string {
-    return !!credentialID && allowedIDs.includes(credentialID);
-}
-
-function hasValidSignature(signResult: SignatureResult): signResult is SignatureResult & {signature: string} {
-    return signResult.success && !!signResult.signature;
-}
-/**
- * UTILS END
- */
 
 /**
  * Native biometrics hook using HSM-backed EC P-256 keys via react-native-biometrics.
@@ -41,7 +19,6 @@ function hasValidSignature(signResult: SignatureResult): signResult is Signature
  */
 function useNativeBiometricsHSM(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
-    const {translate} = useLocalize();
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
     const getLocalCredentialID = async () => {
@@ -69,93 +46,11 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         return !!key && serverKnownCredentialIDs.includes(key);
     };
 
-    const deleteLocalKeysForAccount = async () => {
-        try {
-            const keyAlias = getKeyAlias(accountID);
-            await deleteKeys(keyAlias);
-        } catch (error) {
-            addMFABreadcrumb('Failed to delete local keys', decodeLibraryError(error), 'error');
-        }
-    };
-
-    const authorize = async (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
-        const {challenge} = params;
-
-        try {
-            const keyAlias = getKeyAlias(accountID);
-            const credentialID = await getLocalCredentialID();
-            const allowedIDs = challenge.allowCredentials.map((credential: {id: string; type: string}) => credential.id);
-
-            if (!isCredentialAllowed(credentialID, allowedIDs)) {
-                await deleteLocalKeysForAccount();
-                onResult({
-                    success: false,
-                    error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'Local HSM credential not in challenge allowCredentials, keys deleted'),
-                });
-                return;
-            }
-
-            const {authenticatorData, clientDataJSON, dataToSignB64} = await buildSigningData(challenge.rpId, challenge.challenge);
-
-            // Sign with biometric prompt — signWithOptions
-            const signResult = await signWithOptions({
-                keyAlias,
-                data: dataToSignB64,
-                inputEncoding: InputEncoding.Base64,
-                promptTitle: translate('multifactorAuthentication.letsVerifyItsYou'),
-                promptSubtitle: '',
-                returnAuthType: true,
-            });
-
-            if (!hasValidSignature(signResult)) {
-                const failReason = mapSignErrorCodeToReason(signResult.errorCode) ?? VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED;
-                onResult({
-                    success: false,
-                    error: createLocalMFAError(failReason, `Error Code: ${signResult.errorCode}`),
-                });
-                return;
-            }
-
-            const authType = mapAuthTypeNumber(signResult.authType);
-            if (!authType) {
-                onResult({
-                    success: false,
-                    error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED_AUTH_TYPE, `Unrecognized auth type from HSM sign result: ${signResult.authType}`),
-                });
-                return;
-            }
-
-            await onResult({
-                success: true,
-                signedChallenge: {
-                    rawId: credentialID,
-                    type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
-                    response: {
-                        authenticatorData: Base64URL.base64ToBase64url(authenticatorData.toString('base64')),
-                        clientDataJSON: Base64URL.encode(clientDataJSON),
-                        signature: Base64URL.base64ToBase64url(signResult.signature),
-                    },
-                },
-                authenticationMethod: authType,
-            });
-        } catch (error) {
-            onResult({
-                success: false,
-                error: decodeLibraryError(error),
-            });
-        }
-    };
-
-    const hasLocalCredentials = async () => !!(await getLocalCredentialID());
-
     return {
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
-        hasLocalCredentials,
         areLocalCredentialsKnownToServer,
-        authorize,
-        deleteLocalKeysForAccount,
     };
 }
 

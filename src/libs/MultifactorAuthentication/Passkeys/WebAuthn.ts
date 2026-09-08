@@ -93,9 +93,12 @@ async function createPasskeyCredential(options: PublicKeyCredentialCreationOptio
     return result;
 }
 
-/** Prompts the user to authenticate with an existing passkey via the platform authenticator. */
-async function authenticateWithPasskey(options: PublicKeyCredentialRequestOptions): Promise<PublicKeyCredential> {
-    const result = await navigator.credentials.get({publicKey: options});
+/**
+ * Prompts the user to authenticate with an existing passkey via the platform authenticator. `signal`
+ * lets a caller close the dialog early (e.g. flow cancelled) — the promise rejects with an `AbortError`.
+ */
+async function authenticateWithPasskey(options: PublicKeyCredentialRequestOptions, signal?: AbortSignal): Promise<PublicKeyCredential> {
+    const result = await navigator.credentials.get({publicKey: options, signal});
     if (!result || !isPublicKeyCredential(result)) {
         throw new Error('navigator.credentials.get did not return a PublicKeyCredential');
     }

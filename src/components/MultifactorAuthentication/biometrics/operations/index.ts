@@ -1,20 +1,24 @@
-import type {CreateCredentialParams, CreateCredentialResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
+import type {AuthorizeOperationParams, AuthorizeOperationResult, CreateCredentialParams, CreateCredentialResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import {getErrorMessage} from '@libs/ErrorUtils';
 import {
     arrayBufferToBase64URL,
+    authenticateWithPasskey,
+    buildAllowedCredentialDescriptors,
     buildPublicKeyCredentialCreationOptions,
+    buildPublicKeyCredentialRequestOptions,
     createPasskeyCredential,
     decodeWebAuthnError,
     extractAAGUID,
     isSupportedTransport,
     isWebAuthnSupported,
+    PASSKEY_AUTH_TYPE,
 } from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
-import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createCanceledMFAResult, createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import readOnyxValueOnce from '@libs/MultifactorAuthentication/shared/readOnyxValueOnce';
 
-import {addLocalPasskeyCredential, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
+import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,8 +97,8 @@ async function createCredential(params: CreateCredentialParams): Promise<CreateC
     // Not every browser honors `signal` on create(), so the ceremony can still succeed after the flow
     // was cancelled. Don't persist or register a credential nobody asked for anymore — the passkey
     // itself is already on the device either way, that part can't be undone.
-    if (signal?.aborted) {
-        return {success: false, error: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'MFA flow canceled before the credential could be persisted')};
+    if (signal.aborted) {
+        return createCanceledMFAResult('MFA flow canceled before the credential could be persisted');
     }
 
     try {
@@ -129,4 +133,83 @@ async function createCredential(params: CreateCredentialParams): Promise<CreateC
     };
 }
 
-export {areLocalCredentialsKnownToServer, createCredential, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};
+/**
+ * Runs the platform passkey authorization ceremony. No local-credential clearing happens in here on a
+ * reconciliation miss — that is the authorization actor's decision, not the ceremony's; this only
+ * reports `NO_MATCHING_LOCAL_CREDENTIAL`.
+ */
+async function authorize(params: AuthorizeOperationParams): Promise<AuthorizeOperationResult> {
+    const {accountID, challenge, signal} = params;
+    const userId = String(accountID);
+    let localPasskeyCredentials;
+    try {
+        localPasskeyCredentials = await readOnyxValueOnce(getPasskeyOnyxKey(userId), signal);
+    } catch (error) {
+        if (signal.aborted) {
+            return createCanceledMFAResult('MFA flow canceled while reading local passkey credentials');
+        }
+        throw error;
+    }
+
+    // Keep authorization reconciliation pure. On a full miss the actor owns the cancellation-aware
+    // credential cleanup after this operation reports NO_MATCHING_LOCAL_CREDENTIAL.
+    const allowedCredentialIDs = new Set(challenge.allowCredentials.map((credential) => credential.id));
+    const reconciledExisting = (localPasskeyCredentials ?? []).filter((credential) => allowedCredentialIDs.has(credential.id));
+
+    if (reconciledExisting.length === 0) {
+        return {
+            success: false,
+            error: createLocalMFAError(
+                CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
+                'No local passkey credentials match challenge allowCredentials',
+            ),
+        };
+    }
+
+    const allowCredentials = buildAllowedCredentialDescriptors(reconciledExisting);
+    const publicKeyOptions = buildPublicKeyCredentialRequestOptions(challenge, allowCredentials);
+
+    let assertion: PublicKeyCredential;
+    try {
+        // Cancelling the flow (CLOSE_MODAL) aborts `signal`, which closes the passkey dialog — the
+        // rejection below then gets handled like any other refusal.
+        assertion = await authenticateWithPasskey(publicKeyOptions, signal);
+    } catch (error) {
+        return {success: false, error: decodeWebAuthnError(error)};
+    }
+
+    if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
+        return {
+            success: false,
+            error: createLocalMFAError(
+                CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE,
+                'Authentication assertion response is not AuthenticatorAssertionResponse',
+            ),
+        };
+    }
+    const assertionResponse = assertion.response;
+
+    return {
+        success: true,
+        signedChallenge: {
+            rawId: arrayBufferToBase64URL(assertion.rawId),
+            type: CONST.PASSKEY_CREDENTIAL_TYPE,
+            response: {
+                authenticatorData: arrayBufferToBase64URL(assertionResponse.authenticatorData),
+                clientDataJSON: arrayBufferToBase64URL(assertionResponse.clientDataJSON),
+                signature: arrayBufferToBase64URL(assertionResponse.signature),
+            },
+        },
+        authenticationMethod: {name: PASSKEY_AUTH_TYPE.NAME, marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE},
+    };
+}
+
+/** Clears the account's local passkey list and resolves once the Onyx write finishes. */
+async function deleteLocalCredentials(accountID: number, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) {
+        return;
+    }
+    await deleteLocalPasskeyCredentials(String(accountID));
+}
+
+export {areLocalCredentialsKnownToServer, authorize, createCredential, deleteLocalCredentials, deviceVerificationType, deviceCheckFailureReason, doesDeviceSupportAuthenticationMethod};

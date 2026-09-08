@@ -17,6 +17,7 @@ import getWalkedPaths, {actorDoneEventType, actorErrorEventType, isAutoDrivenEve
 import {getSettleableLeafStates} from 'tests/utils/mfa/leafStates';
 import renderMfaUi from 'tests/utils/mfa/realUi/harness';
 import {
+    authorizeControl,
     createCredentialControl,
     loadRegistrationStateControl,
     registrationStateCaptureControl,
@@ -168,6 +169,8 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         [actorErrorEventType('requestRegistrationChallenge')]: () => settleActor(requestRegistrationChallengeControl.reject),
         [actorDoneEventType('createCredential')]: (step) => settleActor(() => createCredentialControl.resolve(getActorDoneOutput(step))),
         [actorErrorEventType('createCredential')]: () => settleActor(createCredentialControl.reject),
+        [actorDoneEventType('authorize')]: (step) => settleActor(() => authorizeControl.resolve(getActorDoneOutput(step))),
+        [actorErrorEventType('authorize')]: () => settleActor(authorizeControl.reject),
     } satisfies MfaEventExecutors;
 }
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -241,12 +244,37 @@ const testConfig = {
             // The prompt stays mounted during credential creation, but the already-approved action is removed.
             expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
         },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+            expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
+            expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
+            expect(state.context.error).toBeUndefined();
+            expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
+            // The prompt stays mounted while authorizing, same as credential creation, and shows the loader instead of the confirm action.
+            expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
+            // The prompt copy bridges into authorization along the three arrival routes - see the
+            // override logic in `PromptPage`.
+            if (!state.context.softPromptApproved) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.letsAuthenticateYou'))).toBeOnTheScreen();
+            } else if (state.context.registrationChallenge) {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.nowLetsAuthenticateYou'))).toBeOnTheScreen();
+            } else {
+                expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
+            }
+        },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.authenticationSuccessful'))).toBeOnTheScreen();
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
             expect(state.context.error).toBeUndefined();
+            // Every path reaching the success outcome now settles through the authorize actor, so the
+            // success screen's subtitle reflects the authentication method the mock fixture resolved
+            // with (`MFA_TEST_AUTH_METHOD`, a passkey).
+            expect(
+                screen.getByText(
+                    translateLocal('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', translateLocal('multifactorAuthentication.biometricsTest.authType.passkey')),
+                ),
+            ).toBeOnTheScreen();
         },
         [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

@@ -1,4 +1,4 @@
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
+import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +27,9 @@ const AUTH_TYPE_TRANSLATION_KEY = {
 function AuthenticationMethodDescription() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {authenticationMethod} = useMultifactorAuthenticationState();
+    const {
+        state: {authenticationMethod},
+    } = useMultifactorAuthenticationInternal();
 
     const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
 

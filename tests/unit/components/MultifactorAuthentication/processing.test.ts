@@ -1,5 +1,7 @@
+import {getScenarioConfig} from '@components/MultifactorAuthentication/config';
+
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
-import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
+import {createScenarioActionRunner, processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 
 import CONST from '@src/CONST';
 
@@ -111,41 +113,47 @@ describe('MultifactorAuthentication processing', () => {
             response: {authenticatorData: 'ad', clientDataJSON: 'cdj', signature: 'sig'},
         } as const;
 
-        // Given a scenario action call without a signedChallenge
-        // When processScenarioAction is called with an empty signedChallenge
-        // Then it should return failure because the signature is required to prove authenticity
-        it('should return failure when signedChallenge is missing', async () => {
-            const result = await processScenarioAction(mockAction, {
-                signedChallenge: '' as unknown as Parameters<typeof processScenarioAction>[1]['signedChallenge'],
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
-
-            expect(result.success).toBe(false);
-            expect(mockAction).not.toHaveBeenCalled();
-        });
-
         // Given valid parameters with a signedChallenge
         // When processScenarioAction is called
         // Then it should forward all params to the action function
-        it('should call the action function with provided params', async () => {
-            const params = {
+        it('should call the pre-bound action with its payload and the provided authentication params', async () => {
+            const scenarioName = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
+            const scenario = getScenarioConfig(scenarioName);
+            const action = jest.fn<ReturnType<typeof scenario.action>, Parameters<typeof scenario.action>>().mockResolvedValue({httpStatusCode: 200, reason: undefined, message: undefined});
+            const runner = createScenarioActionRunner(scenarioName, action, {transactionID: 'transaction-123'});
+            const authentication = {
                 signedChallenge: validSignedChallenge,
                 authenticationMethod: 'BIOMETRIC_FACE' as const,
             };
 
-            await processScenarioAction(mockAction, params);
+            await runner(authentication);
 
-            expect(mockAction).toHaveBeenCalledWith(params);
+            expect(action).toHaveBeenCalledWith({transactionID: 'transaction-123', ...authentication});
+        });
+
+        it('should let ceremony authentication data override caller-supplied authentication fields', async () => {
+            const scenarioName = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
+            const scenario = getScenarioConfig(scenarioName);
+            const action = jest.fn<ReturnType<typeof scenario.action>, Parameters<typeof scenario.action>>().mockResolvedValue({httpStatusCode: 200, reason: undefined, message: undefined});
+            const runner = createScenarioActionRunner(scenarioName, action, {
+                transactionID: 'transaction-123',
+                signedChallenge: {rawId: 'caller-value', type: 'public-key', response: {authenticatorData: '', clientDataJSON: '', signature: ''}},
+            });
+            const authentication = {
+                signedChallenge: validSignedChallenge,
+                authenticationMethod: 'BIOMETRIC_FACE' as const,
+            };
+
+            await runner(authentication);
+
+            expect(action).toHaveBeenCalledWith({transactionID: 'transaction-123', ...authentication});
         });
 
         // Given the action returns a 2xx HTTP status
         // When processScenarioAction receives the response
         // Then it should return success
         it('should return success when action returns 2xx', async () => {
-            const result = await processScenarioAction(mockAction, {
-                signedChallenge: validSignedChallenge,
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
+            const result = await processScenarioAction(mockAction);
 
             expect(result.success).toBe(true);
         });
@@ -159,10 +167,7 @@ describe('MultifactorAuthentication processing', () => {
                 reason: 'Forbidden',
             });
 
-            const result = await processScenarioAction(mockAction, {
-                signedChallenge: validSignedChallenge,
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
+            const result = await processScenarioAction(mockAction);
 
             expect(result.success).toBe(false);
         });
@@ -177,10 +182,7 @@ describe('MultifactorAuthentication processing', () => {
                 body: {pin: 1234},
             });
 
-            const result = await processScenarioAction(mockAction, {
-                signedChallenge: validSignedChallenge,
-                authenticationMethod: 'BIOMETRIC_FACE',
-            });
+            const result = await processScenarioAction(mockAction);
 
             expect(result.success).toBe(true);
             if (result.success) {

@@ -1,25 +1,11 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import useNativeBiometricsHSM from '@components/MultifactorAuthentication/biometrics/useNativeBiometricsHSM';
-
-import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
-import VALUES from '@libs/MultifactorAuthentication/VALUES';
-
-import CONST from '@src/CONST';
-
-import {AuthType} from '@sbaiahmed1/react-native-biometrics';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({
         accountID: 12345,
-    }),
-}));
-
-jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: () => ({
-        translate: (key: string) => `translated_${key}`,
     }),
 }));
 
@@ -30,38 +16,12 @@ jest.mock('@hooks/useOnyx', () => ({
     default: () => [mockMultifactorAuthenticationPublicKeyIDs],
 }));
 
-jest.mock('@userActions/MultifactorAuthentication');
-
-const mockDeleteKeys = jest.fn();
 const mockGetAllKeys = jest.fn();
-const mockSignWithOptions = jest.fn();
-const mockSha256 = jest.fn();
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    deleteKeys: (...args: unknown[]) => mockDeleteKeys(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getAllKeys: (...args: unknown[]) => mockGetAllKeys(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    signWithOptions: (...args: unknown[]) => mockSignWithOptions(...args),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    sha256: (...args: unknown[]) => mockSha256(...args),
-    isSensorAvailable: jest.fn(),
-    InputEncoding: {Base64: 'base64'},
-    AuthType: {Unknown: -1, None: 0, DeviceCredentials: 1, Biometrics: 2, FaceID: 3, TouchID: 4, OpticID: 5},
 }));
-
-jest.mock('@components/MultifactorAuthentication/config', () => ({
-    MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG: new Proxy(
-        {},
-        {
-            get: () => ({
-                nativePromptTitle: 'multifactorAuthentication.biometricsTest.promptTitle',
-            }),
-        },
-    ),
-}));
-jest.mock('@userActions/MultifactorAuthentication/processing');
 
 describe('useNativeBiometricsHSM hook', () => {
     beforeEach(() => {
@@ -75,14 +35,12 @@ describe('useNativeBiometricsHSM hook', () => {
         it('should return hook with required properties', () => {
             // Given a device with biometrics available and an authenticated user
             // When the hook is initialized
-            // Then it should expose all required interface methods so consumers can authorize and manage biometric credentials
+            // Then it should expose all required interface methods so consumers can read biometric registration state
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
             expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
-            expect(result.current).toHaveProperty('authorize');
-            expect(result.current).toHaveProperty('deleteLocalKeysForAccount');
         });
     });
 
@@ -190,191 +148,6 @@ describe('useNativeBiometricsHSM hook', () => {
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
             expect(result.current.haveCredentialsEverBeenConfigured).toBe(true);
-        });
-    });
-
-    describe('authorize', () => {
-        const mockChallenge: AuthenticationChallenge = {
-            allowCredentials: [{id: 'abc-def_ghi', type: 'public-key'}],
-            rpId: 'expensify.com',
-            challenge: 'test-challenge',
-            userVerification: 'required',
-            timeout: 60000,
-        };
-
-        beforeEach(() => {
-            const keyAlias = '12345_HSM_KEY';
-            mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
-            mockSha256.mockResolvedValue({hash: Buffer.alloc(32).toString('base64')});
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: AuthType.FaceID});
-        });
-
-        it('should sign challenge and return success', async () => {
-            // Given a valid authentication challenge from the server and a local HSM key that can sign it
-            // When the user successfully authenticates via biometrics
-            // Then onResult should receive a success with the signed challenge and HSM type so the server can verify the signature
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: true,
-                    signedChallenge: expect.objectContaining({
-                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
-                    }),
-                }),
-            );
-        });
-
-        it('should call signWithOptions with biometric prompt', async () => {
-            // Given a valid authentication challenge and a local HSM key
-            // When initiating the authorize flow
-            // Then signWithOptions should be called with the correct key alias and a localized prompt title
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(mockSignWithOptions).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    keyAlias: '12345_HSM_KEY',
-                    promptTitle: 'translated_multifactorAuthentication.letsVerifyItsYou',
-                    returnAuthType: true,
-                }),
-            );
-        });
-
-        it('should handle sign failure', async () => {
-            // Given the biometric sign operation returns a failure result (e.g., user canceled the biometric prompt)
-            // When the authorize flow completes
-            // Then onResult should receive a failure so the app can prompt the user to retry or use an alternative method
-            mockSignWithOptions.mockResolvedValue({success: false, errorCode: 'canceled'});
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                }),
-            );
-        });
-
-        it('should handle thrown errors with known error code', async () => {
-            // Given the biometric library throws an error with a USER_CANCEL code property
-            // When the authorize flow catches the thrown error
-            // Then onResult should receive a failure with CANCELED reason based on the exact error code
-            mockSignWithOptions.mockRejectedValue(Object.assign(new Error('User canceled authentication'), {code: 'USER_CANCEL'}));
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED}),
-                }),
-            );
-        });
-
-        it('should delete local keys and return NO_MATCHING_LOCAL_CREDENTIAL when local credential is not in allowCredentials', async () => {
-            // Given a local HSM key exists but its credential ID does not match any ID in the challenge's allowCredentials list
-            // When the authorize flow checks for a matching credential
-            // Then it should delete the orphaned local key and return NO_MATCHING_LOCAL_CREDENTIAL so the app can prompt re-registration
-            const keyAlias = '12345_HSM_KEY';
-            mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
-
-            const challengeWithDifferentCredential: AuthenticationChallenge = {
-                ...mockChallenge,
-                allowCredentials: [{id: 'different-credential-id', type: 'public-key'}],
-            };
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: challengeWithDifferentCredential}, onResult);
-            });
-
-            expect(mockDeleteKeys).toHaveBeenCalledWith(keyAlias);
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL}),
-                }),
-            );
-            expect(mockSignWithOptions).not.toHaveBeenCalled();
-        });
-
-        it('should return UNRECOGNIZED_AUTH_TYPE when mapAuthTypeNumber returns undefined', async () => {
-            // Given the biometric sign operation succeeds but returns an unrecognized authType number
-            // When mapAuthTypeNumber cannot map the authType to a known value and returns undefined
-            // Then onResult should receive a failure with UNRECOGNIZED_AUTH_TYPE because the response cannot be trusted without a valid auth type
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: 999});
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED_AUTH_TYPE}),
-                }),
-            );
-        });
-
-        it('should handle thrown errors with unknown error code', async () => {
-            // Given the biometric library throws an error without a recognized code property
-            // When the authorize flow catches the thrown error
-            // Then onResult should receive a failure with GENERIC as the fallback reason
-            mockSignWithOptions.mockRejectedValue(new Error('Unexpected error'));
-
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({challenge: mockChallenge}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    success: false,
-                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED}),
-                }),
-            );
-        });
-    });
-
-    describe('deleteLocalKeysForAccount', () => {
-        it('should delete keys with correct alias', async () => {
-            // Given an authenticated user with a locally stored HSM key
-            // When deleting local biometric keys for the account
-            // Then deleteKeys should be called with the account-specific alias to remove only this user's key without affecting other accounts on the device
-            const {result} = renderHook(() => useNativeBiometricsHSM());
-
-            await act(async () => {
-                await result.current.deleteLocalKeysForAccount();
-            });
-
-            expect(mockDeleteKeys).toHaveBeenCalledWith('12345_HSM_KEY');
         });
     });
 });

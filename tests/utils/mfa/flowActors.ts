@@ -21,10 +21,15 @@ function createFlowContext(overrides: Partial<MfaContext> = {}): MfaContext {
         scenarioName: initEvent.scenarioName,
         scenario: initEvent.scenario,
         payload: initEvent.payload,
+        runScenarioAction: initEvent.runScenarioAction,
         validateCode: undefined,
         registrationChallenge: undefined,
         softPromptApproved: false,
         isCancelConfirmVisible: false,
+        authenticationMethod: undefined,
+        scenarioResponse: undefined,
+        promptPresentationPhase: undefined,
+        validateCodePresentationPhase: undefined,
         ...overrides,
     };
 }
@@ -39,17 +44,17 @@ function createActorAtState(value: StateValue, contextOverrides?: Partial<MfaCon
 }
 
 /**
- * Completes the invoked device-check actor by sending its done event carrying the given output.
- */
-function sendValidateDeviceDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'validateDevice'>) {
-    actor.send(createActorDoneEvent('validateDevice', output));
-}
-
-/**
  * Completes the invoked credentials-check actor by sending its done event carrying the given output.
  */
 function sendLoadRegistrationStateDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'loadRegistrationState'>) {
     actor.send(createActorDoneEvent('loadRegistrationState', output));
+}
+
+/**
+ * Completes the invoked registration-challenge actor by sending its done event carrying the given output.
+ */
+function sendRequestRegistrationChallengeDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'requestRegistrationChallenge'>) {
+    actor.send(createActorDoneEvent('requestRegistrationChallenge', output));
 }
 
 /**
@@ -59,4 +64,11 @@ function sendCreateCredentialDone(actor: ReturnType<typeof createActorAtState>, 
     actor.send(createActorDoneEvent('createCredential', output));
 }
 
-export {createActorAtState, createFlowContext, sendCreateCredentialDone, sendLoadRegistrationStateDone, sendValidateDeviceDone};
+/**
+ * Completes the invoked authorization actor by sending its done event carrying the given output.
+ */
+function sendAuthorizeDone(actor: ReturnType<typeof createActorAtState>, output: MfaActorOutput<'authorize'>) {
+    actor.send(createActorDoneEvent('authorize', output));
+}
+
+export {createActorAtState, createFlowContext, sendAuthorizeDone, sendCreateCredentialDone, sendLoadRegistrationStateDone, sendRequestRegistrationChallengeDone};
