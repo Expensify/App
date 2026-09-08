@@ -9149,14 +9149,11 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
         commuterExclusions: {
-            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `άλλαξε την εξαίρεση μετακινήσεων σε σταθερή απόσταση ανά αίτημα (προηγουμένως ${previousMethod})`,
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
+                `άλλαξε τον αποκλεισμό μετακινήσεων προς/από την εργασία σε σταθερή απόσταση ανά αξίωση (προηγουμένως ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
-                `άλλαξε τον υπολογισμό εξαίρεσης μετακινήσεων βάσει κατοικίας και γραφείου (προηγουμένως ${previousMethod})`,
-            previousMethod: {
-                disabled: 'να μην εξαιρούνται οι μετακινήσεις',
-                fixedDistance: 'σταθερή απόσταση ανά αίτημα',
-                homeAndOffice: 'κατοικία και γραφείο',
-            },
+                `άλλαξε τον υπολογισμό της εξαίρεσης μετακινήσεων ώστε να γίνεται με βάση το σπίτι και το γραφείο (προηγουμένως ${previousMethod})`,
+            previousMethod: {disabled: 'να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία', fixedDistance: 'σταθερή απόσταση ανά αξίωση', homeAndOffice: 'σπίτι και γραφείο'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ορίστε σταθερό αποκλεισμό απόστασης σε ${formattedDistance} ανά αίτημα`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `άλλαξε τον αποκλεισμό σταθερής απόστασης σε ${formattedNewDistance} ανά αίτημα (προηγουμένως ${formattedOldDistance})`,

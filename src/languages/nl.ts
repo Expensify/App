@@ -8950,14 +8950,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         commuterExclusions: {
-            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `wijzigde woon-werkverkeer uitsluiten naar een vaste afstand per declaratie (voorheen ${previousMethod})`,
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `heeft woon-werkverkeer gewijzigd naar een vaste afstand per declaratie (voorheen ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
-                `wijzigde woon-werkverkeer uitsluiten naar berekenen op basis van woon- en werkadres (voorheen ${previousMethod})`,
-            previousMethod: {
-                disabled: 'woon-werkverkeer niet uitsluiten',
-                fixedDistance: 'vaste afstand per declaratie',
-                homeAndOffice: 'woon- en werkadres',
-            },
+                `heeft woon-werkverkeer uitsluiten gewijzigd naar berekenen op basis van thuis en kantoor (voorheen ${previousMethod})`,
+            previousMethod: {disabled: 'woon-werkverkeer niet uitsluiten', fixedDistance: 'vaste afstand per declaratie', homeAndOffice: 'thuis en kantoor'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `vaste afstandsuitsluiting gewijzigd naar ${formattedNewDistance} per declaratie (voorheen ${formattedOldDistance})`,
