@@ -38,8 +38,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           # Only use the elevated OSBotify token on the post-merge `workflow_call` run
           # (so the auto-commit step below can push to the protected `main` branch).
           # PR runs use the default GITHUB_TOKEN so PR code can't borrow push-to-main

@@ -59,8 +59,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ needs.resolveRefs.outputs.APP_REF }}
           submodules: ${{ matrix.is_hybrid_build || false }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}

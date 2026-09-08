@@ -54,8 +54,6 @@ jobs:
         # v1.6.0
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815
         with:
-          allow-inside-container: true
-          dissociate: true
           submodules: true
           ref: ${{ github.event.before || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}

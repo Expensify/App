@@ -19,9 +19,6 @@ jobs:
     steps:
       - name: Checkout baseline branch
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Checkout baseline branch
         shell: bash
@@ -84,9 +81,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -144,9 +138,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode

@@ -23,9 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Check contributor authorization
         id: gate
@@ -50,8 +47,6 @@ jobs:
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           fetch-depth: 1
 
       - name: Setup Node

@@ -45,11 +45,6 @@ jobs:
 
       - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
 
-        with:
-          allow-inside-container: true
-
-          dissociate: true
-
       # Classifies new comments that don't follow the proposal template, detects duplicate proposals,
       # and grades edits to existing proposals. Action type logic can be found in the script files.
       - name: Run ProposalPolice™ Comment Check Script

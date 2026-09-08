@@ -10,9 +10,6 @@ jobs:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
       - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Filter paths
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1

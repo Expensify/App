@@ -39,8 +39,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
@@ -219,8 +217,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download Android build artifact
@@ -275,8 +271,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
@@ -713,8 +707,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download web build artifact
@@ -777,8 +769,6 @@ jobs:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
-          allow-inside-container: true
-          dissociate: true
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Node
@@ -822,9 +812,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -962,9 +949,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -1140,9 +1124,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1172,9 +1153,6 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
-        with:
-          allow-inside-container: true
-          dissociate: true
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
