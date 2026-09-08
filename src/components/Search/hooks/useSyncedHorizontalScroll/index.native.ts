@@ -25,6 +25,12 @@ const NO_SYNC_PROPS: SyncedHorizontalScroll['syncProps'] = {};
  * See ./types for what this hook is for, and ./index.ts for the DOM-level web version.
  */
 const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) => {
+    // The memoization here is manual on purpose. Once it is removed this file has no hook calls left at all, so React
+    // Compiler stops treating this as a hook (it reports `no-components`) and memoizes nothing, which would hand
+    // `scrollViewRef` a new identity on every render. React would then detach and re-attach the ref each time and
+    // re-run the offset restore below. The web variant keeps a `useRef`, so the compiler does memoize it and it needs
+    // none of this.
+
     // Restoring in the ref callback rather than an effect keeps this tied to the scroller's own mount: a group renders
     // collapsed, so its scroller appears on expand, long after this hook's first render.
     const scrollViewRef = useCallback(
@@ -42,7 +48,7 @@ const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) =>
         [key, isEnabled],
     );
 
-    const onScroll = useCallback(
+    const publishOffset = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             if (!key) {
                 return;
@@ -52,7 +58,10 @@ const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) =>
         [key],
     );
 
-    const syncProps = useMemo(() => (key && isEnabled ? {onScroll, scrollEventThrottle: CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE} : NO_SYNC_PROPS), [key, isEnabled, onScroll]);
+    const syncProps = useMemo(
+        () => (key && isEnabled ? {onScroll: publishOffset, scrollEventThrottle: CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE} : NO_SYNC_PROPS),
+        [key, isEnabled, publishOffset],
+    );
 
     return {scrollViewRef, syncProps};
 };

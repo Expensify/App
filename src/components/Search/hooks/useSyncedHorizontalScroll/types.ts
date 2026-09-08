@@ -21,7 +21,7 @@ type SyncedHorizontalScroll = {
  * Publishes a group's horizontal table offset, for the one scroller the user actually drags.
  *
  * A group's sticky column sub-header and its transaction rows are separate FlashList rows, so they cannot share one
- * scroll container. The rows are the scroller; the sub-header follows it through `useHorizontalScrollFollower`, which
+ * scroll container. The rows are the scroller. The sub-header follows it through `useHorizontalScrollFollower`, which
  * is what keeps the column labels lined up with the values below them once the table is wider than the viewport.
  *
  * The sync is deliberately one-way. Making the sub-header a scroller too meant it published as well, and a sub-header

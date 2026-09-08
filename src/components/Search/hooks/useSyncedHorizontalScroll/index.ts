@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, View as RNView} from 'react-native';
 
-import {useCallback, useRef} from 'react';
+import {useRef} from 'react';
 
 import type {SyncedHorizontalScroll, UseHorizontalScrollFollower, UseSyncedHorizontalScroll} from './types';
 
@@ -38,36 +38,34 @@ const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) =>
     // Binding in the ref callback rather than an effect is what makes this track the scroller itself. A group renders
     // collapsed, so its rows scroller mounts on expand, well after this hook's first render, and the group header
     // stays mounted across expand and collapse, so an effect keyed on render values never re-runs to catch it.
-    // React invokes this on mount, on unmount (with null), and whenever `key`/`isEnabled` change its identity.
-    const scrollViewRef = useCallback(
-        (scrollView: RNScrollView | null) => {
-            releaseRef.current?.();
-            releaseRef.current = undefined;
+    // React invokes this on mount, on unmount (with null), and whenever `key`/`isEnabled` change its identity, which
+    // React Compiler is what keeps stable across renders here.
+    const scrollViewRef = (scrollView: RNScrollView | null) => {
+        releaseRef.current?.();
+        releaseRef.current = undefined;
 
-            if (!key || !isEnabled) {
-                return;
-            }
-            const node = getScrollableElement(scrollView);
-            if (!node) {
-                return;
-            }
+        if (!key || !isEnabled) {
+            return;
+        }
+        const node = getScrollableElement(scrollView);
+        if (!node) {
+            return;
+        }
 
-            const publishOffset = () => publishSyncedHorizontalOffset(key, node.scrollLeft);
+        const publishOffset = () => publishSyncedHorizontalOffset(key, node.scrollLeft);
 
-            node.addEventListener('scroll', publishOffset, {passive: true});
+        node.addEventListener('scroll', publishOffset, {passive: true});
 
-            // Runs during commit, so a scroller that just mounted (or that FlashList recycled) is already at the
-            // group's offset before the browser paints it. The write fires `publishOffset`, which republishes the
-            // offset the followers are already on. That is harmless, and it re-aligns a follower that mounted first.
-            const offsetX = getSyncedHorizontalOffset(key);
-            if (offsetX > 0) {
-                node.scrollLeft = offsetX;
-            }
+        // Runs during commit, so a scroller that just mounted (or that FlashList recycled) is already at the group's
+        // offset before the browser paints it. The write fires `publishOffset`, which republishes the offset the
+        // followers are already on. That is harmless, and it re-aligns a follower that mounted first.
+        const offsetX = getSyncedHorizontalOffset(key);
+        if (offsetX > 0) {
+            node.scrollLeft = offsetX;
+        }
 
-            releaseRef.current = () => node.removeEventListener('scroll', publishOffset);
-        },
-        [key, isEnabled],
-    );
+        releaseRef.current = () => node.removeEventListener('scroll', publishOffset);
+    };
 
     return {scrollViewRef, syncProps: NO_SYNC_PROPS};
 };
@@ -93,48 +91,45 @@ const useHorizontalScrollFollower: UseHorizontalScrollFollower = (key, isEnabled
 
     // A ref callback for the same reason the publisher uses one, plus one of its own. When a group header sticks,
     // FlashList mounts a second copy of it, and that copy has to pick the group's offset up as it arrives.
-    return useCallback(
-        (view: RNView | null) => {
-            releaseRef.current?.();
-            releaseRef.current = undefined;
+    return (view: RNView | null) => {
+        releaseRef.current?.();
+        releaseRef.current = undefined;
 
-            if (!key || !isEnabled) {
+        if (!key || !isEnabled) {
+            return;
+        }
+        const node = asElement(view);
+        if (!node) {
+            return;
+        }
+
+        // A clip that is only ever scrolled programmatically does not get the composited scrolling the browser hands
+        // a scroller the user can drag, which leaves every offset repainting the whole sub-header. `scroll-position`
+        // is the hint for an element whose scroll offset is about to change, and unlike `will-change: transform` or
+        // `contain: paint` it creates no containing block and no stacking context, so nothing positioned inside the
+        // column header starts resolving against this element instead.
+        node.style.willChange = 'scroll-position';
+
+        const applyOffset = (offsetX: number) => {
+            if (node.scrollLeft === offsetX) {
                 return;
             }
-            const node = asElement(view);
-            if (!node) {
-                return;
-            }
+            node.scrollLeft = offsetX;
+        };
 
-            // A clip that is only ever scrolled programmatically does not get the composited scrolling the browser
-            // hands a scroller the user can drag, which leaves every offset repainting the whole sub-header.
-            // `scroll-position` is the hint for an element whose scroll offset is about to change, and unlike
-            // `will-change: transform` or `contain: paint` it creates no containing block and no stacking context, so
-            // nothing positioned inside the column header starts resolving against this element instead.
-            node.style.willChange = 'scroll-position';
+        // Runs during commit, so the copy FlashList mounts when a header sticks is already at the group's offset
+        // before the browser paints it, instead of flashing at the start of the table for a frame.
+        applyOffset(getSyncedHorizontalOffset(key));
 
-            const applyOffset = (offsetX: number) => {
-                if (node.scrollLeft === offsetX) {
-                    return;
-                }
-                node.scrollLeft = offsetX;
-            };
+        const unsubscribe = subscribeToSyncedHorizontalOffset(key, applyOffset);
 
-            // Runs during commit, so the copy FlashList mounts when a header sticks is already at the group's offset
-            // before the browser paints it, instead of flashing at the start of the table for a frame.
-            applyOffset(getSyncedHorizontalOffset(key));
-
-            const unsubscribe = subscribeToSyncedHorizontalOffset(key, applyOffset);
-
-            releaseRef.current = () => {
-                // FlashList recycles this node, so drop the hint rather than leaving it on a header that has stopped
-                // following anything. `will-change` costs the browser resources for as long as it is set.
-                node.style.willChange = '';
-                unsubscribe();
-            };
-        },
-        [key, isEnabled],
-    );
+        releaseRef.current = () => {
+            // FlashList recycles this node, so drop the hint rather than leaving it on a header that has stopped
+            // following anything. `will-change` costs the browser resources for as long as it is set.
+            node.style.willChange = '';
+            unsubscribe();
+        };
+    };
 };
 
 export {useHorizontalScrollFollower, useSyncedHorizontalScroll};
