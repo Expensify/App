@@ -5900,6 +5900,7 @@ type CompleteOnboardingProps = {
     conciergeChat: OnyxEntry<Report>;
     /** The admins chat report, looked up by ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID. */
     adminsChatReport?: OnyxEntry<Report>;
+    /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. */
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;

@@ -1004,11 +1004,10 @@ type OriginalMessageConciergeAutoMatchVendor = {
     reasoning?: string;
 };
 
-/** Policy rules modified fields */
+/** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PolicyRulesModifiedFields = {
     merchant?: string;
 
-    /** The value that the amount was changed to */
     category?: string;
 
     tag?: string;
@@ -1021,7 +1020,6 @@ type PolicyRulesModifiedFields = {
 
     billable?: boolean;
 
-    /** The value that the reimbursable status was changed to */
     reimbursable?: boolean;
 
     tax?: {
@@ -1031,11 +1029,10 @@ type PolicyRulesModifiedFields = {
     };
 };
 
-/** Personal rules modified fields */
+/** Personal rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PersonalRulesModifiedFields = {
     merchant?: string;
 
-    /** The value that the amount was changed to */
     category?: string;
 
     tag?: string;
@@ -1048,7 +1045,6 @@ type PersonalRulesModifiedFields = {
 
     billable?: boolean;
 
-    /** The value that the reimbursable status was changed to */
     reimbursable?: boolean;
 
     tax?: {
