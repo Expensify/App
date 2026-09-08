@@ -245,17 +245,6 @@ function getWorkspaceMenuItems({
             });
         }
 
-        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED] && canReadMoreFeatures) {
-            items.push({
-                translationKey: 'workspace.common.mcp',
-                icon: icons.Bot,
-                getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
-                screenName: SCREENS.WORKSPACE.MCP,
-                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
-                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
-            });
-        }
-
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] && canReadMoreFeatures) {
             items.push({
                 translationKey: 'workspace.common.receiptPartners',
@@ -265,6 +254,17 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED] && canReadMoreFeatures) {
+            items.push({
+                translationKey: 'workspace.common.mcp',
+                icon: icons.Bot,
+                getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.MCP,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
             });
         }
 

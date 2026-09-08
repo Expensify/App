@@ -4741,7 +4741,8 @@ ${amount} per ${merchant} - ${date}`,
         mcp: {
             connectors: 'Connettori',
             connectorsSubtitle: 'Collega un assistente IA al tuo account Expensify.',
-            helpPrompt: 'Hai bisogno di aiuto con la connessione? ',
+            connect: 'Connetti',
+            helpPrompt: 'Hai bisogno di aiuto con la connessione?',
             helpLink: 'Leggi la nostra guida.',
             claude: {
                 title: 'Claude',

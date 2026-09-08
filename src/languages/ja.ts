@@ -4697,7 +4697,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         mcp: {
             connectors: 'コネクタ',
             connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
-            helpPrompt: '接続にお困りですか？ ',
+            connect: '接続',
+            helpPrompt: '接続にお困りですか？',
             helpLink: 'ガイドをご覧ください。',
             claude: {
                 title: 'Claude',

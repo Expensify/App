@@ -37,7 +37,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'CursorSquare', 'QuestionMark']);
     const policy = usePolicy(policyID);
 
@@ -90,7 +90,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                                     title={connector.title}
                                     description={connector.description}
                                     interactive={false}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    wrapperStyle={styles.ph0}
                                     shouldShowRightComponent
                                     rightComponent={
                                         <Button
@@ -98,7 +98,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                                             style={styles.justifyContentCenter}
                                             size={CONST.BUTTON_SIZE.SMALL}
                                         >
-                                            <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
+                                            <Button.Text>{translate('workspace.mcp.connect')}</Button.Text>
                                         </Button>
                                     }
                                 />
@@ -111,10 +111,9 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                                     fill={theme.icon}
                                     additionalStyles={styles.mr3}
                                 />
-                                <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
-                                    <Text style={styles.textSupporting}>{translate('workspace.mcp.helpPrompt')}</Text>
-                                    <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
-                                </View>
+                                <Text style={[styles.textSupporting, styles.flex1]}>
+                                    {translate('workspace.mcp.helpPrompt')} <TextLink onPress={() => openExternalLink(CONST.MCP_HELP_URL)}>{translate('workspace.mcp.helpLink')}</TextLink>
+                                </Text>
                             </View>
                         </Section>
                     </View>
