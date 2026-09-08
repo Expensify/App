@@ -1,6 +1,6 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
-import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -10,7 +10,6 @@ import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx'
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import usePolicyFeatureWriteAccess from './usePolicyFeatureWriteAccess';
 import useReportTransactions from './useReportTransactions';
 
@@ -38,8 +37,6 @@ type MerchantRuleSuggestionResult = {
  * @param reportID - the report showing the expense: its transaction thread, or a report holding only that expense
  */
 function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined): MerchantRuleSuggestionResult {
-    const {isBetaEnabled} = usePermissions();
-
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -53,9 +50,10 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
     const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportID || isOneExpenseReportForSuggestion);
     const isForThisExpenseView = isMerchantRuleSuggestionLive(storedSuggestion) && isHostingReport;
-    // Offer it to exactly who the rule page lets in: write access to Rules. Admins today, and editors, who can
-    // already create the same rule from workspace settings.
-    const canCreateMerchantRule = canWriteRules && arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
+    // Offer it to exactly who the rule page lets in: write access to Rules on a Control workspace. Admins today, and
+    // editors, who can already create the same rule from workspace settings. The rule page is Control-only, so
+    // without that check a Collect workspace would be offered a callout that lands on Not Found.
+    const canCreateMerchantRule = canWriteRules && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
     // Filtered from the canonical list, not the record's own keys, so the order is fixed and only known fields reach
