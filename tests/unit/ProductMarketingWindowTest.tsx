@@ -399,6 +399,33 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 
+    it.each([{authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}, {isSupportAuthTokenUsed: true}])(
+        'preserves marketing eligibility and first-session suppression in Supportal (%j)',
+        async (supportSession) => {
+            await act(async () => {
+                await setupOnyxBaseline({isAdmin: true});
+                await Onyx.merge(ONYXKEYS.SESSION, supportSession);
+                await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderManager();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(adminHeading)).toBeTruthy();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+        },
+    );
+
     it('does not latch onboarding from the destination during the pre-delegate transition gap', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});

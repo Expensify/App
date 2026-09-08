@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
-import {accountIDSelector} from '@src/selectors/Session';
+import {accountIDSelector, isSupportalSessionSelector} from '@src/selectors/Session';
 import type {Policy, Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -72,6 +72,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         selector: isAnonymousSessionSelector,
     });
     const [currentAccountID, currentAccountIDMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
     const [stashedAccountID, stashedAccountIDMetadata] = useOnyx(ONYXKEYS.STASHED_SESSION, {selector: accountIDSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
@@ -81,7 +82,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     // The session changes before loading/delegate data during Copilot entry. A failed connection keeps the original account ID.
-    const isSwitchingToDelegator = stashedAccountID !== undefined && stashedAccountID !== currentAccountID;
+    // Supportal also stashes sessions, but its existing marketing eligibility should remain unchanged.
+    const isSwitchingToDelegator = !isSupportalSession && stashedAccountID !== undefined && stashedAccountID !== currentAccountID;
     const isLoadingOnboardingContext = isLoadingOnyxValue(currentAccountIDMetadata, stashedAccountIDMetadata, accountMetadata, onboardingMetadata, isLoadingAppMetadata);
     const shouldRecordActiveOnboarding =
         !isLoadingOnboardingContext && !isLoadingApp && !isActingAsDelegate && !isSwitchingToDelegator && currentAccountID !== undefined && hasCompletedGuidedSetupFlow === false;
