@@ -159,14 +159,14 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     };
 
     // Elapses once the cursor comes to rest on a row.
-    const {invoke: waitForCursorToRest, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
+    const {invoke: debouncedMarkShownFilterReady, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
         showFilter(filterKey);
-        waitForCursorToRest();
+        debouncedMarkShownFilterReady();
     };
 
-    const {trackMovement: trackPointerMovement, stopTracking} = usePointerMovement(CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX, waitForCursorToRest);
+    const {trackMovement: trackPointerMovement, stopTracking} = usePointerMovement(CONST.SEARCH.HOVER_INTENT_REST_RADIUS_PX, debouncedMarkShownFilterReady);
 
     // The direction comes from the last tracked position rather than the exit point, because `SafeTriangle` covers the
     // path to the content with an overlay and the cursor leaves the list above it as often as through its edge.
