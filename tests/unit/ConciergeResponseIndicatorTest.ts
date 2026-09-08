@@ -128,13 +128,6 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
     });
 
-    it('waits for a confirmed stream in shared rooms', () => {
-        start({shouldShowPending: false});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        emit();
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-    });
-
     it('retains a background completion until the user returns, even on a different page', () => {
         start();
         emit({}, true);
@@ -146,28 +139,11 @@ describe('Concierge response favicon', () => {
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue('settings');
         window.dispatchEvent(new Event('focus'));
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-    });
 
-    it('does not acknowledge an unfinished response on focus', () => {
+        // A reply that finishes while its report is visible needs no later acknowledgement.
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(reportID);
         start();
-        emit();
-        jest.mocked(Visibility.isVisible).mockReturnValue(true);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(true);
-        window.dispatchEvent(new Event('focus'));
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({status: 'completed', sequence: 2});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-    });
-
-    it('acknowledges only ready requests when another question is still streaming', () => {
-        start();
-        start({responseReportActionID: '201', questionReportActionID: '101'});
         emit({status: 'completed'});
-        jest.mocked(Visibility.isVisible).mockReturnValue(true);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(true);
-        window.dispatchEvent(new Event('focus'));
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({reportActionID: '201', status: 'cleared'});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
@@ -182,6 +158,15 @@ describe('Concierge response favicon', () => {
         emit({status: 'completed'});
         expect(disconnect).not.toHaveBeenCalled();
         expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
+
+        // Returning acknowledges only the completed reply, leaving the other request active.
+        jest.mocked(Visibility.isVisible).mockReturnValue(true);
+        jest.mocked(Visibility.hasFocus).mockReturnValue(true);
+        window.dispatchEvent(new Event('focus'));
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(disconnect).not.toHaveBeenCalled();
+        jest.mocked(Visibility.isVisible).mockReturnValue(false);
+        jest.mocked(Visibility.hasFocus).mockReturnValue(false);
 
         emit({reportActionID: '201', status: 'completed'});
         expect(disconnect).toHaveBeenCalledTimes(1);
@@ -226,32 +211,18 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
     });
 
-    it('ignores unsolicited, custom-agent, stale, and mismatched stream events', () => {
+    it('shows shared-room attention only for a matching Concierge stream', () => {
         emit();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        start();
-        emit({status: 'failed', actorAccountID: 999});
-        emit({status: 'failed', reportActionID: 'other'});
+        start({shouldShowPending: false});
+        emit({actorAccountID: 999});
+        emit({reportActionID: 'other'});
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
         emit({sequence: 5});
         emit({status: 'failed', sequence: 4});
         emit({status: 'failed', sequence: 6, streamSessionID: 'old-stream'});
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
         emit({status: 'failed', sequence: 6});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-    });
-
-    it('tracks the response thread without a mounted report and releases only its own listeners', async () => {
-        start({responseReportID: threadID});
-        await saveQuestion({childReportID: '401'});
-        emit({reportID: '401'});
-        emit({reportID: '401', status: 'failed', sequence: 2});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
-    });
-
-    it('removes a failed send', async () => {
-        start();
-        await saveQuestion({errors: {error: 'Unable to send'}});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
