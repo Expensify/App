@@ -381,7 +381,7 @@ function GroupHeader({
                         : [
                               isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
                               isLastItemCollapsed && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItemCollapsed && !isExpanded && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                              !isLastItemCollapsed && !isExpanded && StyleUtils.getSelectedBorderBottomStyle(isItemSelected, true),
                           ],
                 ]}
             >

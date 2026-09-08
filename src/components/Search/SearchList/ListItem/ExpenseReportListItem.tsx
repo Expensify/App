@@ -496,7 +496,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected, true),
             ]}
             shouldShowRightCaret={false}
             isDisabled={isPendingDelete}

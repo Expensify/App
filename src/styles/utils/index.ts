@@ -1918,8 +1918,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }),
     }),
 
-    getSelectedBorderBottomStyle: (isSelected?: boolean): ViewStyle => ({
-        ...styles.borderBottom,
+    getSelectedBorderBottomStyle: (isSelected?: boolean, shouldUseHairlineWidth = false): ViewStyle => ({
+        ...(shouldUseHairlineWidth ? styles.borderBottomHairline : styles.borderBottom),
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 

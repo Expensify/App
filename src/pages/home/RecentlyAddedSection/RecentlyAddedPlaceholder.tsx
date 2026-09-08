@@ -21,7 +21,7 @@ type RecentlyAddedPlaceholderProps = {
 
 // Derived from the tokens RecentlyAddedRow uses rather than copied as literals, so the block keeps matching the rows
 // when a token changes. A row is `pv3` around a receipt (pinned to its narrow size on both layouts) beside a merchant
-// line and a muted label line separated by `gap1`, and every row but the last adds a 1px `borderBottom`.
+// line and a muted label line separated by `gap1`, and every row but the last adds a bottom border.
 // `pv3` on the row, top and bottom.
 const ROW_VERTICAL_PADDING = 12 * 2;
 const RECEIPT_WIDTH = variables.h36;
@@ -30,15 +30,15 @@ const MERCHANT_LINE_HEIGHT = variables.fontSizeNormalHeight;
 const LABEL_LINE_HEIGHT = variables.lineHeightNormal;
 const TEXT_LINE_GAP = 4;
 
-// Every row but the last carries a 1px `borderBottom`, which the uniform loader height cannot express.
-const SEPARATORS_HEIGHT = CONST.HOME.SECTION_VISIBLE_LIMIT - 1;
+// Every row but the last carries a bottom border, which the uniform loader height cannot express. It is a hairline
+// on mobile and a full pixel otherwise, matching RecentlyAddedRow.
+const SEPARATOR_COUNT = CONST.HOME.SECTION_VISIBLE_LIMIT - 1;
 const ITEM_HEIGHT = ROW_VERTICAL_PADDING + Math.max(RECEIPT_HEIGHT, MERCHANT_LINE_HEIGHT + TEXT_LINE_GAP + LABEL_LINE_HEIGHT);
 const COLUMN_GAP = 12;
 const BAR_HEIGHT = 12;
 const AMOUNT_WIDTH = 56;
 const TYPE_WIDTH = 40;
 const DATE_WIDTH = 64;
-const separatorsSpacerStyle = {height: SEPARATORS_HEIGHT};
 
 // ItemListSkeletonView adds `mr5` to every row, so without this offset the right-aligned bars land past the svg and clip.
 const ROW_RIGHT_MARGIN = 20;
@@ -63,6 +63,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
     const {onLayout, containerWidth} = useContainerWidth(ROW_RIGHT_MARGIN);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const separatorWidth = (shouldUseNarrowLayout ? styles.borderBottomHairline : styles.borderBottom).borderBottomWidth;
 
     const renderSkeletonItem = (args: {itemIndex: number}) => {
         const textX = RECEIPT_WIDTH + COLUMN_GAP;
@@ -130,7 +131,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
                     fixedNumItems={CONST.HOME.SECTION_VISIBLE_LIMIT}
                     renderSkeletonItem={renderSkeletonItem}
                 />
-                <View style={separatorsSpacerStyle} />
+                <View style={{height: SEPARATOR_COUNT * separatorWidth}} />
             </View>
         </View>
     );

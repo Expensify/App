@@ -2848,6 +2848,17 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
+        borderBottomHairline: {
+            borderBottomWidth: 0.5,
+            borderColor: theme.border,
+        },
+
+        borderTopHairline: {
+            borderTopWidth: 0.5,
+            borderColor: theme.border,
+        },
+
         borderBottomHovered: {
             borderBottomWidth: 1,
             borderColor: theme.buttonHoveredBG,

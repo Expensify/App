@@ -147,7 +147,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
+                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected, true),
                 ]}
             >
                 {() => (

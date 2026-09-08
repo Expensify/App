@@ -6,6 +6,7 @@ import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -38,6 +39,7 @@ type RecentlyAddedRowProps = {
 
 function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {convertToDisplayString} = useCurrencyListActions();
     const {dateFnsLocale} = useLocalize();
 
@@ -107,7 +109,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                     styles.pv3,
                     styles.w100,
                     rowStyle,
-                    shouldShowSeparator && styles.borderBottom,
+                    shouldShowSeparator && (shouldUseNarrowLayout ? styles.borderBottomHairline : styles.borderBottom),
                     isPendingDelete && styles.cursorDefault,
                 ]}
             >

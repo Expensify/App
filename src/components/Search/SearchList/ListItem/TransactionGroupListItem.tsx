@@ -537,7 +537,7 @@ function TransactionGroupListItemImpl({
                         : [
                               isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
                               isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
+                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected, true),
                           ],
                 ]}
             >
