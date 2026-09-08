@@ -120,16 +120,21 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             return;
         }
 
+        // Records the intent only. Whether the acknowledgement is shown is decided by the reaction landing.
         setHasThanked(true);
     };
 
-    // Checked before the reaction gate below: a thumbs up flips that gate in the same commit the reaction lands,
-    // so reading it first would unmount the acknowledgement before it ever painted.
-    if (hasThanked) {
+    const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
+
+    // The acknowledgement belongs to a reaction that actually landed, not to the press. Requiring both means
+    // a reaction retracted from the pill row brings the prompt straight back instead of leaving the thanks up
+    // until the timer fires, and a press that `toggleEmojiReaction` silently declined never thanks the user
+    // for something it did not write.
+    if (hasThanked && hasRated) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
-    if (hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID)) {
+    if (hasRated) {
         return null;
     }
 

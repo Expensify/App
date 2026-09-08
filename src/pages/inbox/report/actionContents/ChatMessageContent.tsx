@@ -116,18 +116,18 @@ function ChatMessageContent({
                                 </Text>
                             </Button>
                         )}
-                        {isLatestConciergeFeedbackAction && !isOnSearch && (
-                            <ConciergeFeedbackPrompt
-                                action={action}
-                                reportID={reportID}
-                            />
-                        )}
                         {mayHaveActionableButtons && (
                             <ChatActionableButtons
                                 action={action}
                                 originalReportID={originalReportID}
                                 reportID={reportID}
                                 hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
+                            />
+                        )}
+                        {isLatestConciergeFeedbackAction && !isOnSearch && (
+                            <ConciergeFeedbackPrompt
+                                action={action}
+                                reportID={reportID}
                             />
                         )}
                     </View>

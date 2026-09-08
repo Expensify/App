@@ -1751,7 +1751,14 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
 function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: ReadonlySet<string>): string | undefined {
     const latestConciergeComment = sortedVisibleReportActions.find(
         (action) =>
-            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && !isDeletedAction(action) && !isWhisperAction(action),
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
+            action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
+            !isDeletedAction(action) &&
+            !isWhisperAction(action) &&
+            // An optimistic Concierge comment whose write failed keeps its place in the report carrying
+            // errors. The reaction row and the context menu both refuse to act on those, and so must this:
+            // the server has no such action to attach a reaction to.
+            isEmptyObject(action.errors),
     );
 
     if (!latestConciergeComment) {
