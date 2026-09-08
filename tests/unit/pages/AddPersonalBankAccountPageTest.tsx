@@ -38,6 +38,7 @@ jest.mock('react-native-plaid-link-sdk', () => ({
 jest.mock('@userActions/BankAccounts', () => ({
     addPersonalBankAccount: jest.fn(),
     clearPersonalBankAccount: jest.fn(),
+    updatePersonalBankAccountCurrentPage: jest.fn(),
 }));
 
 jest.mock('@userActions/PaymentMethods', () => ({

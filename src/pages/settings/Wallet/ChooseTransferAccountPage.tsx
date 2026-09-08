@@ -12,11 +12,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWalletPersonalBankAccountSetup from '@hooks/useWalletPersonalBankAccountSetup';
 
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {openWalletPersonalBankAccountSetup} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -36,6 +37,7 @@ type BankAccountListItem = ListItem & {
 
 function ChooseTransferAccountPage() {
     const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const walletPersonalBankAccountSetup = useWalletPersonalBankAccountSetup();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -58,7 +60,14 @@ function ChooseTransferAccountPage() {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
-        openPersonalBankAccountSetupView({});
+        if (walletPersonalBankAccountSetup.isLoading) {
+            return;
+        }
+        openWalletPersonalBankAccountSetup({
+            personalBankAccount: walletPersonalBankAccountSetup.personalBankAccount,
+            personalDraft: walletPersonalBankAccountSetup.personalDraft,
+            internationalDraft: walletPersonalBankAccountSetup.internationalDraft,
+        });
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -100,7 +109,7 @@ function ChooseTransferAccountPage() {
         return selectedOption?.keyForList;
     }, [bankAccountOptions, selectedAccountID]);
 
-    if (isLoadingOnyxValue(walletTransferResult)) {
+    if (isLoadingOnyxValue(walletTransferResult) || walletPersonalBankAccountSetup.isLoading) {
         return <FullscreenLoadingIndicator />;
     }
 

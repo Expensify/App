@@ -111,6 +111,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const bankAccountIDParam = route.params?.bankAccountID;
     const subStepParam = route.params?.subStep;
     const backTo = route.params?.backTo;
+    const isWalletSetup = backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE;
     const isChangingBankAccount = !!route.params?.isChangingBankAccount;
     const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
@@ -121,6 +122,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
     const hasShownConnectedBankAccountRef = useRef(false);
+    const shouldPreserveWalletSetupRef = useRef(isWalletSetup);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
@@ -182,9 +184,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
 
     useEffect(() => {
+        shouldPreserveWalletSetupRef.current = isWalletSetup && !isConnectedVerifiedBankAccountData;
+    }, [isConnectedVerifiedBankAccountData, isWalletSetup]);
+
+    useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
-            if (!isChangingBankAccountInstance) {
+            if (!isChangingBankAccountInstance && !shouldPreserveWalletSetupRef.current) {
                 clearReimbursementAccountDraft();
                 clearReimbursementAccount();
             }
@@ -252,7 +258,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         }
         if (bankAccountIDParam) {
             // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam), shouldPreserveDraft: isWalletSetup});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -269,7 +275,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         // When preserving the current step (e.g., coming back online), also preserve the draft
         // to prevent losing user selections made while offline
-        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
+        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep || isWalletSetup});
     }
 
     // When the workspace's bank account is switched, the switch request and the refetch that reloads
@@ -335,7 +341,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (policyIDParam) {
+        if (policyIDParam && !isWalletSetup) {
             setReimbursementAccountLoading(true);
             clearReimbursementAccountDraft();
         }
