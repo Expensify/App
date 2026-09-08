@@ -1,10 +1,13 @@
-type TrackConciergeResponse = (parameters: {
+type TrackConciergeResponseParams = {
     accountID: number;
     reportID: string;
     questionReportActionID: string;
     responseReportActionID: string;
     responseReportID?: string;
     shouldShowPending?: boolean;
-}) => void;
+};
+
+type TrackConciergeResponse = (parameters: TrackConciergeResponseParams) => void;
 
 export default TrackConciergeResponse;
+export type {TrackConciergeResponseParams};

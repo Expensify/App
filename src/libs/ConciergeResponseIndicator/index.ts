@@ -8,31 +8,35 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type TrackConciergeResponse from './types';
+import type {TrackConciergeResponseParams} from './types';
+
+type ConciergeResponseRequest = {
+    accountID: number;
+    questionReportActionID: string;
+    responseReportID: string;
+    streamSessionID?: string;
+    sequence: number;
+    status: 'pending' | 'streaming' | 'ready';
+    hasFinalResponse: boolean;
+    shouldShowPending: boolean;
+    isQuestionPending: boolean;
+    subscribedReportIDs: Set<string>;
+    cleanups: Array<() => void>;
+    timer?: ReturnType<typeof setTimeout>;
+};
 
 // This state belongs to the requesting browser session, not to a mounted chat. Reopening the app
 // falls back to ordinary unread indicators; ephemeral draft events cannot be recovered from history.
-const requests = new Map<
-    string,
-    {
-        accountID: number;
-        responseReportID: string;
-        streamSessionID?: string;
-        sequence: number;
-        status: 'pending' | 'streaming' | 'ready';
-        hasFinalResponse: boolean;
-        shouldShowPending: boolean;
-        isQuestionPending: boolean;
-        cleanups: Array<() => void>;
-        timer?: ReturnType<typeof setTimeout>;
-    }
->();
+const requests = new Map<string, ConciergeResponseRequest>();
 
 // Match the thinking indicator's safety window, renewed by each server streaming event.
-const RESPONSE_TIMEOUT = 120000;
+const RESPONSE_TIMEOUT_MS = 120000;
 
 function updateIndicator() {
     setConciergeAttention([...requests.values()].some((request) => request.status !== 'pending' || (request.shouldShowPending && !request.hasFinalResponse)));
@@ -65,7 +69,7 @@ function armTimeout(responseReportActionID: string) {
             return;
         }
         removeRequest(responseReportActionID);
-    }, RESPONSE_TIMEOUT);
+    }, RESPONSE_TIMEOUT_MS);
 }
 
 function isViewingResponse(reportID: string) {
@@ -157,91 +161,102 @@ Onyx.connectWithoutView({
     },
 });
 
-const trackConciergeResponse: TrackConciergeResponse = ({accountID, reportID, questionReportActionID, responseReportActionID, responseReportID = reportID, shouldShowPending = true}) => {
+/** Reconcile the requested reply with durable actions, including failed sends and server-selected threads. */
+function handleReportActions(responseReportActionID: string, reportID: string, actions: OnyxEntry<ReportActions>) {
+    const request = requests.get(responseReportActionID);
+    if (!request) {
+        return;
+    }
+    const question = actions?.[request.questionReportActionID];
+    if (question?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || (question?.errors && Object.keys(question.errors).length > 0)) {
+        removeRequest(responseReportActionID);
+        return;
+    }
+    if (question && !question.pendingAction && request.isQuestionPending) {
+        request.isQuestionPending = false;
+        if (request.status !== 'ready') {
+            armTimeout(responseReportActionID);
+        }
+    }
+
+    // Auth may reuse an existing thread or fall back to the DM. Follow the actual
+    // child report while retaining the source subscription for the fallback reply.
+    if (question?.childReportID && !question.pendingAction) {
+        subscribeToReport(responseReportActionID, question.childReportID);
+    }
+    const response = actions?.[responseReportActionID];
+    if (response?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE || response.pendingAction) {
+        return;
+    }
+    request.hasFinalResponse = true;
+    request.responseReportID = reportID;
+    if (request.status === 'streaming') {
+        completeRequest(responseReportActionID);
+        return;
+    }
+
+    // An ordinary non-streamed reply ends the optimistic favicon, but retain
+    // correlation until timeout in case its draft events arrive after Onyx.
+    updateIndicator();
+}
+
+/** Keep request-specific listeners alive independently of the mounted report screen. */
+function subscribeToReport(responseReportActionID: string, reportID: string) {
+    const request = requests.get(responseReportActionID);
+    if (!request || request.subscribedReportIDs.has(reportID)) {
+        return;
+    }
+    request.subscribedReportIDs.add(reportID);
+    const channelName = `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
+    const subscriptions = [
+        Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, ({events}) => {
+            for (const event of events) {
+                handleDraftEvent(event);
+            }
+        }),
+        ...[
+            Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+            Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
+            Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
+            Pusher.TYPE.CONCIERGE_DRAFT_FAILED,
+            Pusher.TYPE.CONCIERGE_DRAFT_CLEARED,
+        ].map((eventType) => Pusher.subscribe(channelName, eventType, handleDraftEvent)),
+    ];
+    for (const subscription of subscriptions) {
+        subscription.catch((error: unknown) => Log.hmmm('Failed to subscribe to Concierge favicon events', {reportID, error}));
+        request.cleanups.push(() => subscription.unsubscribe());
+    }
+
+    // Watch only the question/response reports while a request is tracked. This non-render
+    // subscription detects failed sends and reconciles durable replies after missed events.
+    const connection = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        callback: (actions) => handleReportActions(responseReportActionID, reportID, actions),
+    });
+    request.cleanups.push(() => Onyx.disconnect(connection));
+}
+
+/** Track the reserved reply ID for a question sent from this browser session. */
+function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID, responseReportID = reportID, shouldShowPending = true}: TrackConciergeResponseParams) {
     if (requests.has(responseReportActionID)) {
         return;
     }
-    const request: NonNullable<ReturnType<typeof requests.get>> = {
+    const request: ConciergeResponseRequest = {
         accountID,
+        questionReportActionID,
         responseReportID,
         sequence: 0,
         status: 'pending',
         hasFinalResponse: false,
         shouldShowPending,
         isQuestionPending: true,
+        subscribedReportIDs: new Set(),
         cleanups: [],
     };
     requests.set(responseReportActionID, request);
-    const subscribedReports = new Set<string>();
-    const subscribeToReport = (id: string) => {
-        if (subscribedReports.has(id)) {
-            return;
-        }
-        subscribedReports.add(id);
-        const channelName = `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${id}${CONFIG.PUSHER.SUFFIX}`;
-        const subscriptions = [
-            Pusher.subscribe(channelName, Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, ({events}) => {
-                for (const event of events) {
-                    handleDraftEvent(event);
-                }
-            }),
-            ...[
-                Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
-                Pusher.TYPE.CONCIERGE_DRAFT_UPDATED,
-                Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
-                Pusher.TYPE.CONCIERGE_DRAFT_FAILED,
-                Pusher.TYPE.CONCIERGE_DRAFT_CLEARED,
-            ].map((eventType) => Pusher.subscribe(channelName, eventType, handleDraftEvent)),
-        ];
-        for (const subscription of subscriptions) {
-            subscription.catch((error: unknown) => Log.hmmm('Failed to subscribe to Concierge favicon events', {reportID: id, error}));
-            request.cleanups.push(() => subscription.unsubscribe());
-        }
-
-        // Watch only the question/response reports while a request is tracked. This non-render
-        // subscription detects failed sends and reconciles durable replies after missed events.
-        const connection = Onyx.connectWithoutView({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`,
-            callback: (actions) => {
-                if (!requests.has(responseReportActionID)) {
-                    return;
-                }
-                const question = actions?.[questionReportActionID];
-                if (question?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || (question?.errors && Object.keys(question.errors).length > 0)) {
-                    removeRequest(responseReportActionID);
-                    return;
-                }
-                if (question && !question.pendingAction && request.isQuestionPending) {
-                    request.isQuestionPending = false;
-                    if (request.status !== 'ready') {
-                        armTimeout(responseReportActionID);
-                    }
-                }
-                // Auth may reuse an existing thread or fall back to the DM. Follow the actual
-                // child report while retaining the source subscription for the fallback reply.
-                if (question?.childReportID && !question.pendingAction) {
-                    subscribeToReport(question.childReportID);
-                }
-                const response = actions?.[responseReportActionID];
-                if (response?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE || response.pendingAction) {
-                    return;
-                }
-                request.hasFinalResponse = true;
-                request.responseReportID = id;
-                if (request.status === 'streaming') {
-                    completeRequest(responseReportActionID);
-                } else {
-                    // An ordinary non-streamed reply ends the optimistic favicon, but retain
-                    // correlation until timeout in case its draft events arrive after Onyx.
-                    updateIndicator();
-                }
-            },
-        });
-        request.cleanups.push(() => Onyx.disconnect(connection));
-    };
-    subscribeToReport(reportID);
+    subscribeToReport(responseReportActionID, reportID);
     armTimeout(responseReportActionID);
     updateIndicator();
-};
+}
 
 export default trackConciergeResponse;

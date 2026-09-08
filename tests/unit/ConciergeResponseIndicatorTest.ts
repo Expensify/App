@@ -93,8 +93,7 @@ describe('Concierge response favicon', () => {
             const callbacks = listeners.get(key) ?? new Set<DraftListener>();
             listeners.set(key, callbacks);
             // Pusher wraps callbacks independently, even when two requests share a handler.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const listener: DraftListener = (data) => (callback as DraftListener)(data);
+            const listener: DraftListener = (data) => callback?.(data);
             callbacks.add(listener);
             return Object.assign(Promise.resolve(), {unsubscribe: () => callbacks.delete(listener)});
         });
