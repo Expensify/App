@@ -169,9 +169,9 @@ function ReportActionItemSingle({
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
                     <ReportActionAvatars
-                        singleAvatarContainerStyle={[styles.actionAvatar]}
+                        singleAvatarContainerStyle={styles.actionAvatar}
+                        subscriptAvatarContainerStyle={styles.mr0}
                         subscriptAvatarBorderColor={getBackgroundColor()}
-                        noRightMarginOnSubscriptContainer
                         isInReportAction
                         secondaryAvatarContainerStyle={[
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
