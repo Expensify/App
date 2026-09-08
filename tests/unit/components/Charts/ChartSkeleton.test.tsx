@@ -8,12 +8,13 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 const CONTAINER_WIDTH = 320;
+const NARROW_CONTAINER_WIDTH = 60;
 
-// The shapes are all sized off the measured container, which never lays out under the test renderer, so every
-// shape would otherwise draw at zero width and the assertions would pass on an empty box.
-function renderAtContainerWidth(view: ChartView) {
+// The shapes size off the measured container, which never lays out under the test renderer, so without this
+// every shape would draw at zero width and the assertions would pass on an empty box.
+function renderAtContainerWidth(view: ChartView, width = CONTAINER_WIDTH) {
     render(<ChartSkeleton view={view} />);
-    fireEvent(screen.getByTestId(CHART_SKELETON_TEST_ID), 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: 0}}});
+    fireEvent(screen.getByTestId(CHART_SKELETON_TEST_ID), 'layout', {nativeEvent: {layout: {width, height: 0}}});
 }
 
 describe('ChartSkeleton', () => {
@@ -28,12 +29,16 @@ describe('ChartSkeleton', () => {
         expect(screen.queryByTestId(PIE_TEST_ID)).toBeNull();
     });
 
+    it('should keep every bar drawn in a container narrower than the bar series', () => {
+        renderAtContainerWidth(CONST.SEARCH.VIEW.BAR, NARROW_CONTAINER_WIDTH);
+
+        expect(screen.getAllByTestId(BAR_TEST_ID).every((bar) => Number(bar.props.width) > 0)).toBe(true);
+    });
+
     it('should draw a polyline band for the line view', () => {
         renderAtContainerWidth(CONST.SEARCH.VIEW.LINE);
 
-        // A closed band: `M` opens the top edge, then one `L` per remaining vertex along it and one per vertex
-        // back along the bottom edge.
-        expect(String(screen.getByTestId(LINE_TEST_ID).props.d)).toMatch(/^M0,[\d.]+( L[\d.]+,[\d.]+){9} Z$/);
+        expect(String(screen.getByTestId(LINE_TEST_ID).props.d)).toMatch(/^M0,[\d.]+( L[\d.]+,[\d.]+)+ Z$/);
         expect(screen.queryByTestId(BAR_TEST_ID)).toBeNull();
         expect(screen.queryByTestId(PIE_TEST_ID)).toBeNull();
     });

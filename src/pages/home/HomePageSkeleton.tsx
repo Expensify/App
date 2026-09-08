@@ -29,7 +29,7 @@ const TRAILING_SUB_BAR_WIDTH = 40;
 const CARD_TITLE_WIDTH = 120;
 const LOWER_BAR_WIDTH = 80;
 
-// The chart this stands in for holds its own loading spinner at exactly this height.
+// The chart this stands in for draws its own loading skeleton at exactly this height.
 const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
 const ROWS_PER_LIST_CARD = 3;
 const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;

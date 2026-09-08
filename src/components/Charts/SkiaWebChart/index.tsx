@@ -26,8 +26,7 @@ type SkiaWebChartProps<TProps> = {
     /** Props forwarded to the lazily-loaded chart component. */
     componentProps: TProps;
 
-    /** Shown while the chart engine downloads. Callers that know their chart type pass its skeleton; the
-     * type-blind Victory renderer omits it and gets a spinner. */
+    /** Shown while the chart engine downloads. */
     loadingFallback?: ReactNode;
 };
 

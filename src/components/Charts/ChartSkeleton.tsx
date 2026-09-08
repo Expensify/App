@@ -20,27 +20,26 @@ const BAR_TEST_ID = 'chartSkeletonBar';
 const LINE_TEST_ID = 'chartSkeletonLine';
 const PIE_TEST_ID = 'chartSkeletonPie';
 
-// Provisional shapes, distinguishable from each other by outline rather than by size. Design mocks replace them.
+// Provisional shapes. Design mocks replace them.
 const BAR_HEIGHT_RATIOS = [0.45, 0.72, 0.34, 0.9, 0.56, 0.78];
-const BAR_GAP = 16;
+const BAR_GAP_RATIO = 0.25;
 const LINE_POINT_RATIOS = [0.72, 0.44, 0.6, 0.24, 0.38];
 const LINE_THICKNESS = 8;
 const PIE_DIAMETER_RATIO = 0.72;
 
 function renderBarShape(width: number) {
-    const barWidth = Math.max((width - BAR_GAP * (BAR_HEIGHT_RATIOS.length - 1)) / BAR_HEIGHT_RATIOS.length, 0);
+    const slotWidth = width / BAR_HEIGHT_RATIOS.length;
 
     return BAR_HEIGHT_RATIOS.map((ratio, index) => {
         const barHeight = CHART_CONTENT_MIN_HEIGHT * ratio;
 
         return (
             <SkeletonRect
-                // The bars are a fixed decorative series, so their index is the only identity they have.
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 testID={BAR_TEST_ID}
-                transform={[{translateX: index * (barWidth + BAR_GAP)}, {translateY: CHART_CONTENT_MIN_HEIGHT - barHeight}]}
-                width={barWidth}
+                transform={[{translateX: index * slotWidth}, {translateY: CHART_CONTENT_MIN_HEIGHT - barHeight}]}
+                width={slotWidth * (1 - BAR_GAP_RATIO)}
                 height={barHeight}
             />
         );
@@ -51,8 +50,8 @@ function renderLineShape(width: number) {
     const step = width / (LINE_POINT_RATIOS.length - 1);
     const points = LINE_POINT_RATIOS.map((ratio, index) => ({x: index * step, y: CHART_CONTENT_MIN_HEIGHT * ratio}));
 
-    // A stroked polyline would be dropped by the shimmer clip path, which only reads fill geometry, so the
-    // line is a filled band: the polyline out, then the same polyline back one thickness lower.
+    // A stroked polyline would be dropped by the shimmer clip path, which reads fill geometry only, so the
+    // line is drawn as a filled band.
     const topEdge = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`).join(' ');
     const bottomEdge = points
         .slice()
@@ -93,9 +92,9 @@ type ChartSkeletonProps = {
 };
 
 /**
- * The single place that maps a chart view type to the shape shown while that chart loads. Every shape draws into
- * a box of the shared chart content height, so the three agree with the chart's own content box and with the card
- * Home draws before the chart mounts. A per-type height would resize that card according to which type won.
+ * Every shape draws into a box of the shared chart content height, so the three agree with the chart's own
+ * content box and with the card Home draws before the chart mounts. A per-type height would resize that card
+ * according to which type won.
  */
 function ChartSkeleton({view}: ChartSkeletonProps) {
     const theme = useTheme();
