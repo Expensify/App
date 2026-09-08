@@ -6,6 +6,7 @@
  */
 import type * as ApiUtilsModule from '@libs/ApiUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -44,7 +45,7 @@ Onyx.init({keys: ONYXKEYS});
 const ApiUtils = require<typeof ApiUtilsModule>('@libs/ApiUtils');
 
 async function setStagingToggle(value: boolean | null) {
-    await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, value);
+    await Onyx.set(ONYXKEYS.ACTIVE_SERVER, value === null ? null : value ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION);
     await waitForBatchedUpdates();
 }
 
@@ -65,7 +66,7 @@ describe('ApiUtils in a staging environment', () => {
         await setStagingToggle(null);
 
         expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
-        expect(ApiUtils.isUsingStagingApi()).toBe(true);
+        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
     });
 
     it('honours a deliberate opt-out', async () => {
@@ -73,7 +74,7 @@ describe('ApiUtils in a staging environment', () => {
         await setStagingToggle(false);
 
         expect(ApiUtils.getApiRoot()).toBe(PRODUCTION_API_ROOT);
-        expect(ApiUtils.isUsingStagingApi()).toBe(false);
+        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.PRODUCTION);
     });
 
     it('keeps the toggle on when it is explicitly set', async () => {

@@ -107,7 +107,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
     const transactions = Object.values(selectedTransactions)
@@ -169,6 +169,7 @@ function DynamicIOURequestStepUpgrade({
                 personalPolicyOutputCurrency: undefined,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
 
             clearSelectedTransactions();
@@ -279,6 +280,7 @@ function DynamicIOURequestStepUpgrade({
         isTrackIntentUser,
         delegateAccountID,
         getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const participant = transaction?.participants?.[0];
@@ -305,8 +307,8 @@ function DynamicIOURequestStepUpgrade({
         const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyOwner: undefined,
+            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,
@@ -338,7 +340,7 @@ function DynamicIOURequestStepUpgrade({
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: params.owner,
+            policyOwner: params.owner,
             makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,

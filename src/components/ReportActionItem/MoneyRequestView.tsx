@@ -16,6 +16,7 @@ import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useActiveRoute from '@hooks/useActiveRoute';
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAttendees from '@hooks/useAttendees';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -102,6 +103,7 @@ import {
     getCurrency,
     getDescription,
     getDetailedExpenseTypeTranslationKey,
+    getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getFormattedCreated,
     getOriginalAmountForDisplay,
@@ -158,7 +160,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
@@ -283,6 +285,7 @@ function MoneyRequestView({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -301,6 +304,9 @@ function MoneyRequestView({
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
+    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
+    // Collect/Control (group) policies are always tied to an expense chat, so a group policy type means this is a policy expense chat.
+    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
 
     let iouType: ValueOf<typeof CONST.IOU.TYPE>;
     if (isTrackExpense) {
@@ -312,6 +318,13 @@ function MoneyRequestView({
     }
 
     const allowNegativeAmount = shouldEnableNegative(parentReport, policy, iouType);
+    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
+        transaction,
+        isPolicyExpenseChat,
+        policy: distanceOriginalPolicy ?? policy,
+        translate,
+        getCurrencySymbol,
+    });
 
     const {
         created: transactionDate,
@@ -327,7 +340,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-    } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false) ?? {};
+    } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -397,7 +410,6 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
@@ -485,9 +497,6 @@ function MoneyRequestView({
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
-    // A flag for verifying that the current report is a sub-report of a expense chat
-    // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
-    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
     const policyTagLists = getTagLists(policyTagList);
 
     const category = transactionCategory ?? '';
@@ -567,7 +576,7 @@ function MoneyRequestView({
         }
         return match;
     };
-    const [tripRoomReport] = originalUseOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
+    const [tripRoomReport] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
     const tripRoomReportID = tripRoomReport?.reportID;
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
@@ -729,6 +738,7 @@ function MoneyRequestView({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -742,11 +752,6 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountHintText = `${translate('iou.purchase')} ${formattedOriginalAmount}`;
         }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        }
-    } else if (isCancelled) {
-        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
     } else if (isApproved) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
     } else if (shouldShowPaid) {
@@ -874,6 +879,7 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });
@@ -911,6 +917,7 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });
@@ -951,6 +958,7 @@ function MoneyRequestView({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
             });

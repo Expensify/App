@@ -8,6 +8,7 @@ import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@libs/actions/Delegate';
 import {KEYS_TO_PRESERVE_SUPPORTAL} from '@libs/actions/Session';
 import {KEYS_TO_PRESERVE_ON_SIGN_OUT} from '@libs/actions/SignInRedirect';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -25,14 +26,14 @@ describe('the lists that survive a sign-out', () => {
         ['KEYS_TO_PRESERVE_ON_SIGN_OUT', KEYS_TO_PRESERVE_ON_SIGN_OUT],
     ])('%s', (_name, list) => {
         it('lists the staging preference', () => {
-            expect(list).toContain(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+            expect(list).toContain(ONYXKEYS.ACTIVE_SERVER);
         });
 
         // Membership is what a dropped line breaks, but only a real clear proves the list is passed somewhere
         // that honors it
         it('keeps the staging preference across a clear', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: true,
+                [ONYXKEYS.ACTIVE_SERVER]: CONST.SERVER.STAGING,
                 // A control: an account-scoped key that must not survive
                 [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
             });
@@ -41,7 +42,7 @@ describe('the lists that survive a sign-out', () => {
             await Onyx.clear(list);
             await waitForBatchedUpdates();
 
-            await expect(getOnyxValue(ONYXKEYS.SHOULD_USE_STAGING_SERVER)).resolves.toBe(true);
+            await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBe(CONST.SERVER.STAGING);
             await expect(getOnyxValue(ONYXKEYS.IS_LOADING_REPORT_DATA)).resolves.toBeUndefined();
         });
     });

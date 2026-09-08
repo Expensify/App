@@ -29,7 +29,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isDocusignStepRequired = requiresDocusignStep(currency);
     const isSubmittingRef = useRef(false);
-    const isBankStatementNeeded = currency === CONST.CURRENCY.AUD;
+    const isBankStatementNeeded = currency === CONST.CURRENCY.AUD || currency === CONST.CURRENCY.CAD;
     const bankStatementDefaultValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT] ?? [];
 
     const submit = () => {

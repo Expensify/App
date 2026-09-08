@@ -114,7 +114,7 @@ function Composer({
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
             const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+            const fileExtension = originalFileExtension || (mimeDb[mimeType]?.extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
             let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
             getFileSize(file.uri ?? '')

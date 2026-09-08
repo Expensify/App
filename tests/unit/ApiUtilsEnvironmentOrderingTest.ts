@@ -7,6 +7,7 @@
  */
 import type * as ApiUtilsModule from '@libs/ApiUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -49,7 +50,7 @@ const ApiUtils = require<typeof ApiUtilsModule>('@libs/ApiUtils');
 describe('ApiUtils when the stored preference arrives before the environment', () => {
     it('keeps a preference stored before the environment resolves', async () => {
         // Stored first, while ENV_NAME is still the PRODUCTION default
-        await Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, true);
+        await Onyx.set(ONYXKEYS.ACTIVE_SERVER, CONST.SERVER.STAGING);
         await waitForBatchedUpdates();
 
         // A deliberate choice needs no environment to interpret it, so it applies straight away
@@ -61,6 +62,6 @@ describe('ApiUtils when the stored preference arrives before the environment', (
 
         // The preference was stored before anyone could interpret it, and must not have been discarded
         expect(ApiUtils.getApiRoot()).toBe(STAGING_API_ROOT);
-        expect(ApiUtils.isUsingStagingApi()).toBe(true);
+        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.STAGING);
     });
 });

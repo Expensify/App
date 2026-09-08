@@ -13,44 +13,57 @@ import getEnvironment from './Environment/getEnvironment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
-let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
-let storedShouldUseStagingServer: boolean | undefined;
-let hasReadStoredShouldUseStagingServer = false;
+let envName: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
+let storedServer: ValueOf<typeof CONST.SERVER> | undefined;
+let hasReadStoredServer = false;
 
 // Stored verbatim, so the preference and the environment can arrive in either order. Onyx calls back even for
 // an empty key, so the flag means the preference has been read, not that one was set. Since it isn't connected
 // to a UI anywhere, it's OK to use connectWithoutView()
 Onyx.connectWithoutView({
-    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    key: ONYXKEYS.ACTIVE_SERVER,
     callback: (value) => {
-        storedShouldUseStagingServer = value;
-        hasReadStoredShouldUseStagingServer = true;
+        storedServer = value;
+        hasReadStoredServer = true;
     },
 });
 
-getEnvironment().then((envName) => {
-    ENV_NAME = envName;
+getEnvironment().then((value) => {
+    envName = value;
 });
 
 /**
- * Whether requests should be sent to the staging API.
+ * Which server requests are sent to.
  *
  * Derived on demand rather than cached, so that a preference stored before the environment resolved is still
  * applied once it does.
  */
-function shouldUseStagingServer(): boolean {
-    // Toggling between APIs is not allowed on the internal dev environment, which talks to a local web server
-    if (CONFIG.IS_USING_LOCAL_WEB) {
-        return false;
+function resolveActiveServer(): ValueOf<typeof CONST.SERVER> {
+    // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
+    // that into a relative `api/Command?` the browser resolves against the app's own origin
+    const isQAConfigured = !!CONFIG.EXPENSIFY.QA_API_ROOT;
+
+    // The environment is baked into the bundle, and there is no meaningful way
+    // to point qa.new.exops.io at production
+    if (envName === CONST.ENVIRONMENT.QA && isQAConfigured) {
+        return CONST.SERVER.QA;
+    }
+
+    // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
+    // turns the QA gate off, but leaves the old Onyx value behind
+    const server = storedServer === CONST.SERVER.QA && !isQAConfigured ? undefined : storedServer;
+
+    if (CONFIG.IS_USING_LOCAL_WEB && server !== CONST.SERVER.QA) {
+        return CONST.SERVER.PRODUCTION;
     }
 
     // An unread preference looks the same as an unset one, and defaulting to staging would ignore an opt-out
-    if (!hasReadStoredShouldUseStagingServer) {
-        return false;
+    if (!hasReadStoredServer) {
+        return CONST.SERVER.PRODUCTION;
     }
 
-    const defaultToggleState = ENV_NAME === CONST.ENVIRONMENT.STAGING || ENV_NAME === CONST.ENVIRONMENT.ADHOC;
-    return storedShouldUseStagingServer ?? defaultToggleState;
+    const defaultServer = envName === CONST.ENVIRONMENT.STAGING || envName === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
+    return server ?? defaultServer;
 }
 
 /**
@@ -59,8 +72,22 @@ function shouldUseStagingServer(): boolean {
  */
 function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
+    const server = forceProduction ? CONST.SERVER.PRODUCTION : resolveActiveServer();
 
-    if (shouldUseStagingServer() && forceProduction !== true) {
+    if (server === CONST.SERVER.QA) {
+        // No web-proxy branch: Cloudflare Access answers the preflight and matches the bearer against the
+        // real origin, so routing QA through a same-origin proxy path would defeat both
+        if (!shouldUseSecure) {
+            return CONFIG.EXPENSIFY.QA_API_ROOT;
+        }
+
+        if (!CONFIG.EXPENSIFY.QA_SECURE_API_ROOT) {
+            throw new Error(`The QA server has no secure host, so it cannot serve ${request?.command ?? 'a secure command'}. Set QA_SECURE_EXPENSIFY_URL to reach one.`);
+        }
+
+        return CONFIG.EXPENSIFY.QA_SECURE_API_ROOT;
+    }
+    if (server === CONST.SERVER.STAGING) {
         if (CONFIG.IS_USING_WEB_PROXY && !request?.shouldSkipWebProxy) {
             return shouldUseSecure ? proxyConfig.STAGING_SECURE : proxyConfig.STAGING;
         }
@@ -81,11 +108,12 @@ function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
     return `${getApiRoot(request)}api/${request.command}${request.command.includes('?') ? '' : '?'}`;
 }
 
-/**
- * Check if we're currently using the staging API root
- */
-function isUsingStagingApi(): boolean {
-    return shouldUseStagingServer();
+function isQAServerActive(): boolean {
+    return resolveActiveServer() === CONST.SERVER.QA;
 }
 
-export {getApiRoot, getCommandURL, isUsingStagingApi};
+function getActiveServer(): ValueOf<typeof CONST.SERVER> {
+    return resolveActiveServer();
+}
+
+export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive};
