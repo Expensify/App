@@ -12,14 +12,13 @@ import type * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
+import applyOnyxUpdatesReliably from '@src/libs/actions/applyOnyxUpdatesReliably';
 import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
-
-import applyOnyxUpdatesReliably from '@src/libs/actions/applyOnyxUpdatesReliably';
 
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

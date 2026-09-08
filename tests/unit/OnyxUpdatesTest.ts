@@ -1,5 +1,4 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -428,13 +427,12 @@ describe('OnyxUpdatesTest', () => {
             jest.restoreAllMocks();
         });
 
-        const pusherUpdate = (lastUpdateID: number, data: unknown = []): OnyxUpdatesFromServer<never> =>
-            ({
-                type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-                previousUpdateID: lastUpdateID - 10,
-                lastUpdateID,
-                updates: [{eventType: 'onyxApiUpdate', data}],
-            }) as OnyxUpdatesFromServer<never>;
+        const pusherUpdate = (lastUpdateID: number, eventType = 'onyxApiUpdate'): OnyxUpdatesFromServer<never> => ({
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            previousUpdateID: lastUpdateID - 10,
+            lastUpdateID,
+            updates: [{eventType, data: []}],
+        });
 
         it('applies a Pusher update that arrives after an earlier one failed to apply', async () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
@@ -502,9 +500,9 @@ describe('OnyxUpdatesTest', () => {
             await waitForBatchedUpdates();
 
             const applied: string[] = [];
-            jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockImplementation((_eventType, data) =>
+            jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockImplementation((eventType) =>
                 Promise.resolve().then(() => {
-                    applied.push(data as unknown as string);
+                    applied.push(eventType);
                 }),
             );
 
