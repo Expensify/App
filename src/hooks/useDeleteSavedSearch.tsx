@@ -1,9 +1,9 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -16,7 +16,8 @@ import useLocalize from './useLocalize';
 
 export default function useDeleteSavedSearch() {
     const {translate} = useLocalize();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchHash} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const {showConfirmModal} = useConfirmModal();
 
     const handleDeleteSavedSearch = useCallback(
@@ -34,15 +35,13 @@ export default function useDeleteSavedSearch() {
                 deleteSavedSearch(savedSearchID);
 
                 if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery(),
-                        }),
-                    );
+                    const query = buildCannedSearchQuery();
+                    setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, buildSearchQueryJSON(query)?.hash !== currentSearchHash);
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 }
             });
         },
-        [showConfirmModal, translate, currentSearchKey],
+        [showConfirmModal, translate, currentSearchKey, currentSearchHash, setCurrentSearchKey],
     );
 
     return {showDeleteModal: handleDeleteSavedSearch};
