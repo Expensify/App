@@ -5900,6 +5900,9 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string, currentTax
 function getCorporateUpgradeReceiptThresholds(policy: OnyxEntry<Policy>) {
     const receiptAmount = policy?.maxExpenseAmountNoReceipt;
     const itemizedAmount = policy?.maxExpenseAmountNoItemizedReceipt;
+    // Deliberately local, and deliberately NOT PolicyUtils.isMaxExpenseAmountSet, which treats a saved 0 as configured.
+    // This only decides what to display optimistically while the upgrade is in flight; the upgrade itself is the API's
+    // call. Carrying a Collect-era 0 through would change upgrade behavior, which is out of scope here.
     const isReceiptThresholdEnabled = (amount: number | undefined): amount is number => amount !== undefined && amount !== CONST.DISABLED_MAX_EXPENSE_VALUE && amount !== 0;
 
     return {

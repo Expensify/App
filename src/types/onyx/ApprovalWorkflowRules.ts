@@ -82,6 +82,9 @@ type ApprovalWorkflowRule = {
 
     /** What happens when the rule matches. */
     actions: ApprovalWorkflowActions;
+
+    /** Whether this rule belongs to the policy's default workflow. */
+    isDefaultApprovalWorkflow?: boolean;
 };
 
 export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule, ApprovalWorkflowTriggers};

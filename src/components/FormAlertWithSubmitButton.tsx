@@ -91,6 +91,9 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Prevents the button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /** Styles for the container wrapping the submit button and footer content */
+    buttonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormAlertWithSubmitButton({
@@ -115,11 +118,12 @@ function FormAlertWithSubmitButton({
     blendButtonOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    buttonAndFooterContainerStyles,
     shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
 
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
@@ -147,7 +151,7 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View>
+                <View style={buttonAndFooterContainerStyles}>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button

@@ -297,12 +297,15 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
             });
 
-            it('should return false for empty/undefined merchant when transaction is reported or missing', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(false);
+            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
+                expect(isValidMerchant('', reportedTransaction)).toBe(true);
+                expect(isValidMerchant('')).toBe(true);
+            });
+
+            it('should return false for empty/undefined merchant on an expense report', () => {
                 expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
                 expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('')).toBe(false);
             });
         });
 
@@ -330,6 +333,30 @@ describe('ReportActionsUtils', () => {
 
 describe('getAmountHasUnsavedChanges', () => {
     const sameCurrency = {selectedCurrency: 'USD', originalCurrency: 'USD'};
+
+    it('flags a changed sign when the amount is empty', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: true,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not flag an empty amount when the sign matches its initial value', () => {
+        expect(
+            getAmountHasUnsavedChanges({
+                ...sameCurrency,
+                typedAmount: '',
+                committedAmount: 0,
+                isCreateEntry: true,
+                isSignChanged: false,
+            }),
+        ).toBe(false);
+    });
 
     describe('create entry (any input counts)', () => {
         it('flags a typed value', () => {

@@ -1,7 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getConnectedHRProvider} from '@libs/HRUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
