@@ -60,4 +60,3 @@ function retryReceiptUpload(context: ReceiptRetryContext, onBeforeDispatch?: () 
 
 export default retryReceiptUpload;
 export {canBuildRetryPayload};
-export type {ReceiptRetryContext, RetryOutcome};
