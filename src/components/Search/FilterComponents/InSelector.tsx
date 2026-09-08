@@ -152,8 +152,6 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
-                  transactionThreadIDs,
-                  lastActions,
                   currentUserLogin: currentUserEmail,
                   conciergeReportID,
                   isTrackIntentUser,

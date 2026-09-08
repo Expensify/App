@@ -40,7 +40,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
@@ -53,8 +53,6 @@ function ShareTab() {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
-    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
-    const lastActions = sortedReportActionsData?.lastActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -96,12 +94,8 @@ function ShareTab() {
               policyCollection: allPolicies,
               personalDetails,
               sortedActions,
-              transactionThreadIDs,
-              lastActions,
               cardList,
               workspaceCardList,
-              localeCompare,
-              formatPhoneNumber,
               conciergeReportID,
               isTrackIntentUser,
               translate,
