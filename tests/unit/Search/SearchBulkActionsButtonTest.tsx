@@ -21,6 +21,7 @@ let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
 let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
+let mockAreAllMatchingItemsSelected = true;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
@@ -77,7 +78,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
-        areAllMatchingItemsSelected: true,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
@@ -134,22 +135,23 @@ describe('SearchBulkActionsButton all-matching count', () => {
         mockSearchIsLoading = false;
         mockIsOffline = false;
         mockSelectedTransactions = {tx1: makeTransaction()};
+        mockAreAllMatchingItemsSelected = true;
     });
 
-    it('shows the loaded selected count and keeps loading while the server count is missing', () => {
+    it('shows the all-matching label and keeps loading while the server count is missing', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
     });
 
-    it('shows the server count when it arrives', () => {
+    it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -159,6 +161,14 @@ describe('SearchBulkActionsButton all-matching count', () => {
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:171', isLoading: false});
+    });
+
+    it('keeps the numeric label for page-only selection', () => {
+        mockAreAllMatchingItemsSelected = false;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 
     it('keeps loading when an exclusion exists before the count arrives', () => {
