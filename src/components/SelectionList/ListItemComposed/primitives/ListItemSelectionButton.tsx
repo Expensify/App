@@ -2,9 +2,11 @@ import ListSelectionButton from '@components/SelectionList/components/ListSelect
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -18,13 +20,14 @@ type ListItemSelectionButtonProps<TItem extends ListItem> = {
     /** Whether the button renders as a checkbox (multi-select) or a radio button (single-select) */
     canSelectMultiple?: boolean;
 
-    /** Additional styles merged onto the button */
-    style?: StyleProp<ViewStyle>;
+    /** Which side of the row content the button sits on */
+    position?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 };
 
-/** A checkbox (multi-select) or radio (single-select) selection button; the disabled state follows the row's context. */
-function ListItemSelectionButton<TItem extends ListItem>({item, onPress, canSelectMultiple = false, style}: ListItemSelectionButtonProps<TItem>) {
+/** A checkbox (multi-select) or radio (single-select) selection button */
+function ListItemSelectionButton<TItem extends ListItem>({item, onPress, canSelectMultiple = false, position = CONST.SELECTION_BUTTON_POSITION.RIGHT}: ListItemSelectionButtonProps<TItem>) {
     const {isDisabled} = useListItemContext();
+    const styles = useThemeStyles();
 
     return (
         <ListSelectionButton
@@ -34,7 +37,7 @@ function ListItemSelectionButton<TItem extends ListItem>({item, onPress, canSele
             disabled={isDisabled || !!item.isDisabledCheckbox}
             // Radio buttons are removed from the tab order - the row itself is the single-select tab stop.
             tabIndex={canSelectMultiple ? undefined : -1}
-            style={style}
+            style={position === CONST.SELECTION_BUTTON_POSITION.LEFT ? styles.mr3 : styles.ml3}
         />
     );
 }

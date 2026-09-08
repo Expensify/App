@@ -1,6 +1,5 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-
-import useThemeStyles from '@hooks/useThemeStyles';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import CONST from '@src/CONST';
 
@@ -45,15 +44,13 @@ function SelectableListItem<TItem extends ListItem>({
     accessibilityLabel,
     accessibilityRole,
     shouldUseOptionRole,
-}: Omit<SelectableListItemProps<TItem>, 'shouldShowRightCaret'>) {
-    const styles = useThemeStyles();
-
+}: SelectableListItemProps<TItem>) {
     const selectionButton = !item.shouldHideSelectionButton && (
         <ListItemComposed.SelectionButton
             item={item}
             onPress={onSelectionButtonPress ?? onSelectRow}
             canSelectMultiple={canSelectMultiple}
-            style={selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? styles.ml3 : styles.mr3}
+            position={selectionButtonPosition}
         />
     );
 
@@ -90,10 +87,7 @@ function SelectableListItem<TItem extends ListItem>({
             >
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
                 {children}
-                <ListItemComposed.RBRIndicator
-                    item={item}
-                    isSelected={isSelected}
-                />
+                {shouldShowRBRIndicator(item, isSelected) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
                 {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
             </View>

@@ -1,9 +1,7 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-
-import useThemeStyles from '@hooks/useThemeStyles';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {ListItem, UserListItemProps} from './types';
 
@@ -34,8 +32,6 @@ function BareUserListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
 }: UserListItemProps<TItem>) {
-    const styles = useThemeStyles();
-
     const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!renderedRightComponent;
@@ -57,14 +53,14 @@ function BareUserListItem<TItem extends ListItem>({
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}>
+            <ListItemComposed.Row style={wrapperStyle}>
                 <UserListItemContent
                     item={item}
                     forwardedFSClass={forwardedFSClass}
                 />
-                <ListItemComposed.RBRIndicator item={item} />
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {renderedRightComponent}
-            </View>
+            </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>
     );

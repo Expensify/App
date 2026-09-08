@@ -84,7 +84,6 @@ function BaseSelectionListImpl({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
-    shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
     selectAllAccessibilityLabel,
@@ -322,7 +321,6 @@ function BaseSelectionListImpl({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldShowRightCaret={shouldShowRightCaret}
                 isFirstItem={index === 0}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}

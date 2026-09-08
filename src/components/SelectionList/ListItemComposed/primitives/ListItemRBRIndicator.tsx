@@ -1,6 +1,5 @@
 import Icon from '@components/Icon';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -12,22 +11,15 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ListItemRBRIndicatorProps<TItem extends ListItem> = {
-    /** The item whose brick road status decides visibility and dot color (info is green, everything else red) */
+    /** The item whose brick road status decides the dot color (info is green, everything else red) */
     item: TItem;
-
-    /** Overrides the item-derived selection state, matching isListItemSelected */
-    isSelected?: boolean;
 };
 
-/** Self-gating: renders only when the item carries a brick road status and isn't already showing its selection state. */
-function ListItemRBRIndicator<TItem extends ListItem>({item, isSelected}: ListItemRBRIndicatorProps<TItem>) {
+/** The brick road dot shown at the end of a row. */
+function ListItemRBRIndicator<TItem extends ListItem>({item}: ListItemRBRIndicatorProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const styles = useThemeStyles();
     const theme = useTheme();
-
-    if ((isListItemSelected(item, isSelected) && !item.canShowSeveralIndicators) || !item.brickRoadIndicator) {
-        return null;
-    }
 
     return (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>

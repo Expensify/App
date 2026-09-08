@@ -1,11 +1,9 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
-
-import useThemeStyles from '@hooks/useThemeStyles';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {ListItem, UserListItemProps} from './types';
 
@@ -36,8 +34,6 @@ function UserListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: UserListItemProps<TItem>) {
-    const styles = useThemeStyles();
-
     const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
@@ -47,7 +43,7 @@ function UserListItem<TItem extends ListItem>({
             item={item}
             onPress={onSelectionButtonPress ?? onSelectRow}
             canSelectMultiple={canSelectMultiple}
-            style={selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT ? styles.ml3 : styles.mr3}
+            position={selectionButtonPosition}
         />
     );
 
@@ -69,16 +65,16 @@ function UserListItem<TItem extends ListItem>({
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}>
+            <ListItemComposed.Row style={wrapperStyle}>
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
                 <UserListItemContent
                     item={item}
                     forwardedFSClass={forwardedFSClass}
                 />
-                <ListItemComposed.RBRIndicator item={item} />
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
                 {renderedRightComponent}
-            </View>
+            </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>
     );

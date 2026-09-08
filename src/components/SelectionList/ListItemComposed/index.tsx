@@ -24,6 +24,7 @@ import ListItemInvitedSecondaryLoginFooter from './primitives/ListItemInvitedSec
 import ListItemRBRIndicator from './primitives/ListItemRBRIndicator';
 import ListItemReportAvatar from './primitives/ListItemReportAvatar';
 import ListItemRightCaret from './primitives/ListItemRightCaret';
+import ListItemRow from './primitives/ListItemRow';
 import ListItemSelectionButton from './primitives/ListItemSelectionButton';
 import ListItemSubtitle from './primitives/ListItemSubtitle';
 import ListItemTextColumn from './primitives/ListItemTextColumn';
@@ -37,6 +38,7 @@ const ListItem = Object.assign(ListItemPressable, {
     RBRIndicator: ListItemRBRIndicator,
     TextColumn: ListItemTextColumn,
     RightCaret: ListItemRightCaret,
+    Row: ListItemRow,
     ReportAvatar: ListItemReportAvatar,
     UserAvatar: ListItemUserAvatar,
     WorkspaceAvatar: ListItemWorkspaceAvatar,

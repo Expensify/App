@@ -1,4 +1,5 @@
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -55,9 +56,9 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >
-            <View
+            <ListItemComposed.Row
                 testID={item.text}
-                style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
+                style={wrapperStyle}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) &&
@@ -93,17 +94,16 @@ function InviteMemberListItem<TItem extends ListItem>({
                     </View>
                     {item.rightElement}
                 </View>
-                {!(canSelectMultiple && !item.isDisabled) && <ListItemComposed.RBRIndicator item={item} />}
+                {!(canSelectMultiple && !item.isDisabled) && shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {shouldShowSelectionButton && (
                     <ListItemComposed.SelectionButton
                         item={item}
                         onPress={onSelectionButtonPress ?? onSelectRow}
                         canSelectMultiple={canSelectMultiple}
-                        style={styles.ml3}
                     />
                 )}
                 {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
-            </View>
+            </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>
     );

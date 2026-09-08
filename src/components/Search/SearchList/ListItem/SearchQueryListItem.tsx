@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,7 +83,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                     {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
                 </View>
                 {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
-                <ListItemComposed.RBRIndicator item={item} />
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
             </View>
         </ListItemComposed>
     );

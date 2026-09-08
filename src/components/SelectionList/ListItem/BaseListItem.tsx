@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
 import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -51,7 +52,6 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
-    shouldShowRightCaret = false,
     accessible,
     accessibilityLabel,
     accessibilityRole = getButtonRole(true),
@@ -66,7 +66,7 @@ function BaseListItem<TItem extends ListItem>({
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -112,7 +112,7 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const isRowSelected = isListItemSelected(item, isSelected);
-    const shouldShowRBRIndicator = (!isRowSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+    const shouldShowRBR = shouldDisplayRBR && shouldShowRBRIndicator(item, isSelected);
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
         role: accessibilityRole,
@@ -198,7 +198,7 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {shouldShowRBRIndicator && (
+                    {shouldShowRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
@@ -209,17 +209,6 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
-                    {shouldShowRightCaret && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </View>
-                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

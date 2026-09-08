@@ -226,9 +226,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
     isSelected?: boolean;
-
-    /** Whether to show the right caret icon */
-    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -273,9 +270,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightCaret?: boolean;
 
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
@@ -341,8 +335,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldDisplayRBR?: boolean;
         /** Test ID of the component. Used to locate this view in end-to-end tests. */
         testID?: string;
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
         /** Whether to highlight the selected item */
         shouldHighlightSelectedItem?: boolean;
 

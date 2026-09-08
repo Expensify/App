@@ -186,9 +186,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Whether to use the user skeleton view */
         shouldUseUserSkeletonView?: boolean;
 
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
-
         /** Whether to place customListHeader in the list so it scrolls with data */
         shouldHeaderBeInsideList?: boolean;
 
