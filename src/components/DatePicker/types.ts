@@ -125,6 +125,14 @@ type DatePickerProps = {
      * Used by inline editing flows that require background dimming.
      */
     shouldEnableMonthYearBackdropInNarrowPane?: boolean;
+
+    /**
+     * Measure the calendar's real rendered height for positioning instead of assuming the static
+     * `POPOVER_DATE_MIN_HEIGHT`. The calendar's height varies by month (5 vs 6 week rows) and exceeds that constant, so
+     * when the popover is anchored by its bottom edge (opening above the anchor) an assumed-too-short height lets the
+     * real top edge overflow above the window and get clipped. Enable this where the popover can open above its anchor.
+     */
+    shouldMeasureContentHeight?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};
