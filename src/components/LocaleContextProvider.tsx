@@ -62,6 +62,9 @@ type LocaleContextProps = {
 
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale;
+
+    /** Whether the active locale's translations have landed. A cold `en` start reads `en` either way, so without this the memoized value never changes and consumers stay stale. */
+    isCurrentLocaleLoaded: boolean;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -79,6 +82,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
+    isCurrentLocaleLoaded: false,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -87,7 +91,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const {locale: currentLocale} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    const {locale: currentLocale, isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -164,6 +168,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
+        isCurrentLocaleLoaded,
     };
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;

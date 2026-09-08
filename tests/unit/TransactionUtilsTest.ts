@@ -1885,6 +1885,13 @@ describe('TransactionUtils', () => {
         it('should rebuild a per diem merchant in the readers locale', () => {
             expect(TransactionUtils.getMerchantName(buildPerDiemTransaction(), translate, CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
         });
+
+        it('should leave an already localized formattedMerchant alone rather than localizing it twice', () => {
+            // Search localizes before this runs, and a second pass would take "California, USA" for date parts and drop them.
+            const formattedMerchant = 'San Francisco, California, USA, 19 ago 2025 - 20 ago 2025';
+            const transaction = {...buildPerDiemTransaction(), formattedMerchant};
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES)).toBe(formattedMerchant);
+        });
     });
 
     describe('getDisplayMerchant', () => {

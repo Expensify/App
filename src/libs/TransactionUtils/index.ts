@@ -1492,7 +1492,8 @@ function getDisplayMerchant(transaction: OnyxEntry<Transaction>, merchant: strin
 function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: Locale): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    let merchant = getDisplayMerchant(transaction, transaction?.formattedMerchant ?? getMerchant(transaction), locale);
+    // Only the raw merchant: a second pass cannot match the enUS suffix it already replaced, so the positional fallback would eat the commas out of the location.
+    let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');

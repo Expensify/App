@@ -28,6 +28,7 @@ type EmojiSuggestionsProps = {
 const mockEmojiSuggestionsSpy = jest.fn<void, [EmojiSuggestionsProps]>();
 const mockSetHighlightedEmojiIndex = jest.fn<void, [number]>();
 const mockLocalize: ReturnType<typeof useLocalize> = {
+    isCurrentLocaleLoaded: true,
     translate: () => '',
     numberFormat: () => '',
     getLocalDateFromDatetime: () => new Date(),

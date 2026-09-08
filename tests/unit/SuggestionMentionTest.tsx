@@ -44,6 +44,7 @@ const mockTranslate: ReturnType<typeof useLocalize>['translate'] = (key, ...para
     return String(key);
 };
 const mockLocalize: ReturnType<typeof useLocalize> = {
+    isCurrentLocaleLoaded: true,
     translate: mockTranslate,
     numberFormat: () => '',
     getLocalDateFromDatetime: () => new Date(),
