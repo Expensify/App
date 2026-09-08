@@ -107,6 +107,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
+                // While editing, the capture is uploaded through `replaceReceipt` right away, so the
+                // upload can read the receipt file while a higher-resolution one is being swapped in.
+                canUpgradeReceiptQuality={!isEditing}
             />
         </StepScreenDragAndDropWrapper>
     );

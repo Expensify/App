@@ -33,15 +33,13 @@ function buildStill(path = STILL_PATH): PhotoFile {
     return {path, width: 1920, height: 1440, isRawPhoto: false, orientation: 'portrait', isMirrored: false};
 }
 
-/** A camera whose capture the test resolves or rejects on demand. */
+/** A camera whose captures the test resolves or rejects on demand, in the order they were started. */
 function buildCamera() {
-    let settle: (photo: PhotoFile) => void = () => {};
-    let fail: (error: Error) => void = () => {};
+    const started: Array<{resolve: (photo: PhotoFile) => void; reject: (error: Error) => void}> = [];
     const takePhoto = jest.fn(
         () =>
             new Promise<PhotoFile>((resolve, reject) => {
-                settle = resolve;
-                fail = reject;
+                started.push({resolve, reject});
             }),
     );
 
@@ -50,14 +48,14 @@ function buildCamera() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         camera: {takePhoto} as unknown as Camera,
         takePhoto,
-        landStill: async (photo = buildStill()) => {
+        landStill: async (photo = buildStill(), index = 0) => {
             await act(async () => {
-                settle(photo);
+                started.at(index)?.resolve(photo);
             });
         },
-        failCapture: async () => {
+        failCapture: async (index = 0) => {
             await act(async () => {
-                fail(new Error('Camera is closed.'));
+                started.at(index)?.reject(new Error('Camera is closed.'));
             });
         },
     };
@@ -182,7 +180,7 @@ describe('useStillPhotoUpgrade', () => {
         expect(mockDiscard).toHaveBeenCalledWith(STILL_PATH);
     });
 
-    it('ignores a second shutter press while a still is still in flight', async () => {
+    it('keeps the session open for a retake when the first still settles after it started', async () => {
         const {camera, takePhoto, landStill} = buildCamera();
         const {result} = renderHook(() => useStillPhotoUpgrade());
 
@@ -190,15 +188,19 @@ describe('useStillPhotoUpgrade', () => {
             result.current.captureStill(camera);
         });
         act(() => {
-            result.current.captureStill(camera);
+            result.current.upgradeReceiptWithStill(DURABLE_NAME);
         });
 
-        expect(takePhoto).toHaveBeenCalledTimes(1);
-
-        await landStill();
+        // The user came back to the camera and shot again before the first still landed.
         act(() => {
             result.current.captureStill(camera);
         });
         expect(takePhoto).toHaveBeenCalledTimes(2);
+
+        await landStill(buildStill(), 0);
+        expect(result.current.hasPendingStillCapture).toBe(true);
+
+        await landStill(buildStill('/tmp/still2.jpg'), 1);
+        expect(result.current.hasPendingStillCapture).toBe(false);
     });
 });

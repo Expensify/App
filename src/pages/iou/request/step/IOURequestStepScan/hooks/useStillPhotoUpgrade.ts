@@ -51,9 +51,6 @@ type PendingStill = {
 
     /** Set once the still has no consumer, so anything that lands afterwards is deleted. */
     isDiscarded: boolean;
-
-    /** Set once the still landed or the deadline passed, so the next shutter press may start another one. */
-    isSettled: boolean;
 };
 
 /**
@@ -69,12 +66,20 @@ function useStillPhotoUpgrade() {
     const [hasPendingStillCapture, setHasPendingStillCapture] = useState(false);
     const pendingStillRef = useRef<PendingStill | undefined>(undefined);
 
-    const captureStill = (camera: Camera) => {
-        if (pendingStillRef.current && !pendingStillRef.current.isSettled) {
+    // Retaking a receipt can leave two captures in flight, so count them. With a single flag, the first
+    // capture to settle would close the session under the second one.
+    const captureCountRef = useRef(0);
+
+    const releaseSession = () => {
+        captureCountRef.current -= 1;
+        if (captureCountRef.current > 0) {
             return;
         }
+        setHasPendingStillCapture(false);
+    };
 
-        const pending: PendingStill = {isDiscarded: false, isSettled: false, promise: Promise.resolve(undefined)};
+    const captureStill = (camera: Camera) => {
+        const pending: PendingStill = {isDiscarded: false, promise: Promise.resolve(undefined)};
 
         // The still goes to the temp directory, not the receipts folder, so ReceiptStorage stays the only
         // writer there and an abandoned still never sits among the receipts looking like one.
@@ -107,8 +112,7 @@ function useStillPhotoUpgrade() {
         // disk the camera is free, and the rotate and replace steps run without it.
         pending.promise = Promise.race([capture, deadline]).then((photo) => {
             clearTimeout(deadlineTimeout);
-            pending.isSettled = true;
-            setHasPendingStillCapture(false);
+            releaseSession();
 
             if (!photo) {
                 Log.info('[StillPhotoUpgrade] no still to upgrade with, keeping the snapshot');
@@ -119,6 +123,7 @@ function useStillPhotoUpgrade() {
         });
 
         pendingStillRef.current = pending;
+        captureCountRef.current += 1;
         setHasPendingStillCapture(true);
     };
 
