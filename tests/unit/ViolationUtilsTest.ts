@@ -3549,9 +3549,9 @@ describe('getViolationTranslation', () => {
     it('should return the temporary retry-later message for a 531 broken card connection', async () => {
         IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdates();
-        expect(ViolationsUtils.getViolationTranslation({dateFnsLocale: undefined, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString})).toBe(
-            "Can't auto-match receipt due to a temporary bank issue. Please try again later.",
-        );
+        expect(
+            ViolationsUtils.getViolationTranslation({preferredLocale: CONST.LOCALES.EN, violation: brokenCardConnection531Violation, translate: translateLocal, convertToDisplayString}),
+        ).toBe("Can't auto-match receipt due to a temporary bank issue. Please try again later.");
     });
 
     describe('increasedDistance violation', () => {

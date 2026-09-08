@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -164,6 +165,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, preferredLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -319,6 +321,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
             preferredLocale,
             personalDetails,
             true,
@@ -395,7 +398,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, preferredLocale},
+                              {translate, preferredLocale, convertToDisplayString},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )

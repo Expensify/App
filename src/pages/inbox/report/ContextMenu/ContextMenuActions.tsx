@@ -348,6 +348,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     harvestReport?: OnyxEntry<ReportType>;
     harvestReportOriginalID?: string;
@@ -1012,6 +1013,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 translate,
                 preferredLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 formatPhoneNumber,
                 harvestReport,
                 harvestReportOriginalID,
@@ -1331,6 +1333,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                             shouldRenderHTML: true,
                             shouldNavigateToCardDetails,
                             policyID: report?.policyID,
+                            buildDynamicRoute: createDynamicRoute,
                             expensifyCard: card,
                             translate,
                             currentUserAccountID,
@@ -1430,7 +1433,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, preferredLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
+                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction, convertToDisplayString, convertToDisplayStringWithoutCurrency));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);

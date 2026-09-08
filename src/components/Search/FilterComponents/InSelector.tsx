@@ -4,6 +4,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -48,6 +49,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, preferredLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
@@ -84,6 +86,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ...getSelectedOptionData(
                 createOptionFromReport({
                     preferredLocale,
+                    convertToDisplayString,
                     report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
@@ -102,7 +105,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {preferredLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {preferredLocale, convertToDisplayString, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
         );
         return {...report, alternateText};
     };
@@ -119,6 +122,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ? defaultListOptions
             : getSearchOptions({
                   preferredLocale,
+                  convertToDisplayString,
                   options,
                   draftComments,
                   betas: undefined,
@@ -137,6 +141,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         preferredLocale,
+        convertToDisplayString,
         selectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });

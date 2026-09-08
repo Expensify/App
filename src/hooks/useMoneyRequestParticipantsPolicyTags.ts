@@ -14,6 +14,7 @@ import type {Participant} from '@src/types/onyx/IOU';
  */
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
@@ -46,18 +47,20 @@ function useMoneyRequestParticipantsPolicyTags({
     translate,
     preferredLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
-    const participants = getMoneyRequestParticipantOptions(
+    const {convertToDisplayString} = useCurrencyListActions();
+    const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
         report,
         policy,
         personalDetails,
         conciergeReportID,
-        isArchived,
+        privateIsArchived: isArchived,
         reportAttributesDerived,
         reportDraft,
         translate,
+        convertToDisplayString,
         preferredLocale,
-    );
+    });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     return {participants, participantsPolicyTags};

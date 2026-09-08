@@ -1,8 +1,12 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
+import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
@@ -226,7 +230,9 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.CONCIERGE_REPORT_ID,
         ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.NETWORK,
+        // Only the trigger matters: the flag's value is read through `IntlStore.hasLocale` below.
         ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ],
     compute: (
@@ -244,6 +250,7 @@ export default createOnyxDerivedValueConfig({
             conciergeReportID,
             introSelected,
             reportMetadata,
+            currencyList,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -251,6 +258,40 @@ export default createOnyxDerivedValueConfig({
         const isOffline = getIsOffline();
         const activeLocale = preferredLocale ?? IntlStore.getCurrentLocale();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(activeLocale, path, ...parameters);
+        // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
+        // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
+        const getCurrencyDecimals = (currencyCode: string): number => currencyList?.[currencyCode]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+        const getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = (currencyCode) => currencyList?.[currencyCode]?.symbol;
+        const convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'] = (amountInCents, currencyCode) => {
+            const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+            const decimals = getCurrencyDecimals(sanitizedCurrency);
+            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+            return format(preferredLocale, convertedAmount, {
+                style: 'currency',
+                currency: sanitizedCurrency,
+
+                // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+                // See: https://github.com/Expensify/PHP-Libs/pull/834
+                minimumFractionDigits: decimals,
+                // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+                maximumFractionDigits: 2,
+            });
+        };
+        const convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'] = (amountInCents, currencyCode = CONST.CURRENCY.USD) => {
+            const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+            const decimals = getCurrencyDecimals(sanitizedCurrency);
+            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+            return formatToParts(preferredLocale, convertedAmount, {
+                style: 'currency',
+                currency: sanitizedCurrency,
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: 2,
+            })
+                .filter((x) => x.type !== 'currency')
+                .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+                .map((x) => x.value)
+                .join('');
+        };
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
@@ -285,7 +326,10 @@ export default createOnyxDerivedValueConfig({
                 IntlStore.hasLocale(activeLocale)) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
-            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
+            hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys) ||
+            // Amount-bearing report names format with the currency list's decimals/symbols, so names computed before
+            // the list arrived (or with a stale list) must all be redone. This loads roughly once per session.
+            hasKeyTriggeredCompute(ONYXKEYS.CURRENCY_LIST, triggeredKeys);
 
         const policyChangedReportKeys: string[] = [];
         // Reports whose policy change touched only fields that don't feed the report name (type, approvalMode,
@@ -647,6 +691,9 @@ export default createOnyxDerivedValueConfig({
                               reportAttributes: currentValue?.reports,
                               reportTransactions: reportsTransactions ?? {},
                               isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                              convertToDisplayString,
+                              convertToDisplayStringWithoutCurrency,
+                              getCurrencySymbol,
                               pendingDeleteMemberAccountIDs,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
@@ -738,8 +785,6 @@ export default createOnyxDerivedValueConfig({
 
         return {
             reports: reportAttributes,
-            // The locale the names were actually rendered in. Storing the requested one would claim a translation that never
-            // happened, and storing null for the no-NVP case leaves `undefined !== null` true and forces endless recomputes.
             locale: IntlStore.hasLocale(activeLocale) ? activeLocale : null,
         };
     },

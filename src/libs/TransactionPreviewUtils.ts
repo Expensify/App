@@ -210,7 +210,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails,
     isBillSplit,
     shouldShowRBR,
-    shouldShowCanceledStatus,
     violationMessage,
     reportActions,
     originalTransaction,
@@ -225,8 +224,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
-    /** Whether a cancelled payment has to be reported on this line, because the enclosing surface doesn't show it anywhere else */
-    shouldShowCanceledStatus: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -328,18 +325,14 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the
-    // RBR row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
-    // stateNum/statusNum, so surfaces without their own report status badge have to report it here.
+    // Paid, Approved, Review required and the hold message are omitted here: the status badge and the RBR row already show them.
     const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
         previewStatusText.push({translationPath: 'iou.pending'});
     }
 
-    if (shouldShowCanceledStatus && iouReport?.isCancelledIOU) {
-        previewStatusText.push({translationPath: 'iou.canceled'});
-    } else if (hasPendingRTERViolation(violations)) {
+    if (hasPendingRTERViolation(violations)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
     }
 
@@ -393,7 +386,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID: number;
     reportActions?: OnyxTypes.ReportActions;
 }) {
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
+    const {amount: requestAmount, comment: requestComment, merchant, category} = transactionDetails;
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -415,7 +408,6 @@ function createTransactionPreviewConditionals({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
 
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
@@ -449,7 +441,6 @@ function createTransactionPreviewConditionals({
 
     return {
         shouldShowSkeleton,
-        shouldShowTag,
         shouldShowRBR,
         shouldShowCategory,
         shouldShowKeepButton,

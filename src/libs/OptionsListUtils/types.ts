@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -9,7 +10,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
-    Locale,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -22,6 +22,7 @@ import type {
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -113,11 +114,14 @@ type LazyHydrationContext = {
     conciergeReportID: string | undefined;
     currentUserAccountID: number;
 
-    /** Locale the option list was built in. */
+    /** Date-fns locale used when the option list was built. */
     preferredLocale: Locale;
 
-    /** Translator bound to the active locale. */
+    /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
+
+    /** Currency formatter used when the option list was built. */
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -264,6 +268,7 @@ type IsValidReportsConfig = Pick<
 
 type GetOptionsConfig = {
     preferredLocale: Locale;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -303,6 +308,7 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -345,6 +351,7 @@ type PreviewConfig = {
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     preferredLocale: Locale;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

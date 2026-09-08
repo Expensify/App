@@ -17,6 +17,11 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantOptions: jest.fn(),
 }));
 
+const mockConvertToDisplayString = jest.fn(() => '$0.00');
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString}),
+}));
+
 const translate = jest.fn().mockReturnValue('translated');
 
 describe('useMoneyRequestParticipantsPolicyTags', () => {
@@ -57,18 +62,19 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(
-            999,
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith({
+            currentUserAccountID: 999,
             report,
             policy,
             personalDetails,
-            'concierge1',
-            false,
+            conciergeReportID: 'concierge1',
+            privateIsArchived: false,
             reportAttributesDerived,
             reportDraft,
             translate,
-            CONST.LOCALES.EN,
-        );
+            convertToDisplayString: mockConvertToDisplayString,
+            preferredLocale: CONST.LOCALES.EN,
+        });
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {

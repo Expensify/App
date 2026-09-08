@@ -22,7 +22,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -105,6 +105,7 @@ const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
 const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     preferredLocale: CONST.LOCALES.EN,
+    convertToDisplayString,
     conciergeReportID: undefined,
     isSearching: true,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -112,6 +113,7 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
 
 const ValidOptionsConfig = {
     preferredLocale: CONST.LOCALES.EN,
+    convertToDisplayString,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -148,6 +150,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getSearchOptions({
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
                 translate: translateLocal,
                 options,
                 betas: mockedBetas,
@@ -180,6 +183,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
             });
         });
     });
@@ -197,7 +201,10 @@ describe('OptionsListUtils', () => {
             translateLocal,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {preferredLocale: CONST.LOCALES.EN});
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
+                preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
+            });
         });
     });
 
@@ -215,6 +222,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     preferredLocale: CONST.LOCALES.EN,
+                    convertToDisplayString,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -280,6 +288,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                convertToDisplayString,
                 CONST.LOCALES.EN,
                 mockedPersonalDetails,
                 true,
@@ -303,6 +312,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                convertToDisplayString,
                 CONST.LOCALES.EN,
                 mockedPersonalDetails,
                 true,
@@ -318,6 +328,7 @@ describe('OptionsListUtils', () => {
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
@@ -331,6 +342,7 @@ describe('OptionsListUtils', () => {
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
@@ -347,6 +359,7 @@ describe('OptionsListUtils', () => {
         const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
             preferredLocale: CONST.LOCALES.EN,
+            convertToDisplayString,
             conciergeReportID: undefined,
         });
 
@@ -365,6 +378,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails, {
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
             });
         });
     });
@@ -374,6 +388,7 @@ describe('OptionsListUtils', () => {
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             preferredLocale: CONST.LOCALES.EN,
+            convertToDisplayString,
             conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
@@ -382,6 +397,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getSearchOptions({
                 preferredLocale: CONST.LOCALES.EN,
+                convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,
