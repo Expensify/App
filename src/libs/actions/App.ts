@@ -996,6 +996,7 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 export {
     setLocale,
     setSidebarLoaded,
+    saveCurrentPathBeforeBackground,
     setUpPoliciesAndNavigate,
     openApp,
     setAppLoading,
