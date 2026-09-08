@@ -3,13 +3,14 @@ title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
 keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
+order: 2
 ---
 
 # Manage Personal Cards
 
 Expensify lets you manage your personal credit cards in one place using **Wallet**. From there, you can review card details, track spending, and use transactions for expense reporting.
 
-If you don’t have a card connected yet, [learn how to connect a personal card](/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
+If you don’t have a card connected yet, [learn how to connect a personal card](/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Connect-Personal-Cards).
 
 ---
 
@@ -76,7 +77,7 @@ When a connection breaks, Expensify can no longer import new transactions from t
 
 ---
 
-## How to know when a personal card connection is broken 
+## How to know when a personal card connection is broken
 
 When a personal card connection breaks, you'll see:
 
@@ -92,7 +93,7 @@ Design request: https://github.com/Expensify/Expensify/issues/620248
 -->
 
 
-## How to fix a broken personal card connection 
+## How to fix a broken personal card connection
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Account > Wallet**. 
 2. Under **Cards**, select the card with the broken connection. 
@@ -132,7 +133,7 @@ Personal cards appear in the Wallet only if they were previously connected to yo
 
 When a personal card connection breaks, Expensify adds a broken connection violation to receipt-scanned cash expenses. This holds them back in case they need to merge with card transactions once the connection is restored. Fix the card connection to remove the violation automatically.
 
-## When is the broken connection error removed? 
+## When is the broken connection error removed?
 
 The broken connection error is automatically removed when any of the following occurs: 
 
