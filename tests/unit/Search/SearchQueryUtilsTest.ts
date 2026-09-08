@@ -2595,6 +2595,85 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('buildFilterQueryWithSortDefaults', () => {
+        describe('Merchant predicates', () => {
+            function updateQuery(input: string, updates: Partial<SearchAdvancedFiltersForm>) {
+                const originalQuery = buildSearchQueryJSON(input);
+                if (!originalQuery) {
+                    throw new Error('Invalid test query');
+                }
+
+                const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {}, {});
+                const result = buildFilterQueryWithSortDefaults({...form, ...updates}, originalQuery, originalQuery);
+                const updatedQuery = buildSearchQueryJSON(result ?? '');
+                if (!updatedQuery) {
+                    throw new Error('Invalid updated query');
+                }
+
+                return {originalQuery, updatedQuery};
+            }
+
+            test.each([
+                'merchant="Coffee Shop" merchant*:Coffee',
+                'merchant*:Coffee merchant="Coffee Shop"',
+                'merchant*:Tea merchant="Coffee Shop"',
+                'merchant="Coffee Shop" merchant:Coffee',
+                'merchant="Coffee Shop",Uber merchant*:Coffee,Tea',
+                'merchant="Coffee, Shop" merchant*:"Coffee, Shop"',
+                'merchant=I merchant*:I merchant*:g',
+                'merchant=I merchant*:I -merchant:Ig',
+                'merchant*:Coffee merchant*:Shop',
+                'merchant=I',
+                'merchant*:I',
+                '-merchant:I',
+            ])('preserves Merchant predicates when changing Currency: %s', (input) => {
+                const {originalQuery, updatedQuery} = updateQuery(input, {currency: ['USD']});
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(originalQuery.flatFilters.filter((filter) => filter.key === 'merchant'));
+                expect(updatedQuery.flatFilters).toContainEqual({key: 'currency', filters: [{operator: 'eq', value: 'USD'}]});
+            });
+
+            test.each<Partial<SearchAdvancedFiltersForm>>([{description: 'Lunch'}, {dateAfter: '2026-01-01'}, {groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR}])(
+                'preserves Merchant predicates when changing other filters: %j',
+                (updates) => {
+                    const {originalQuery, updatedQuery} = updateQuery('merchant=I merchant*:I', updates);
+
+                    expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(originalQuery.flatFilters);
+                },
+            );
+
+            test('preserves Merchant predicates through consecutive form updates', () => {
+                const firstUpdate = updateQuery('merchant=I merchant*:I', {description: 'Lunch'});
+                const secondUpdate = updateQuery(buildSearchQueryString(firstUpdate.updatedQuery), {currency: ['USD']});
+
+                expect(secondUpdate.updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(firstUpdate.originalQuery.flatFilters);
+                expect(secondUpdate.updatedQuery.flatFilters).toContainEqual({key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]});
+            });
+
+            test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
+                {updates: {merchant: 'Tea'}, expected: 'merchant*:Tea'},
+                {updates: {merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}, expected: 'merchant=I'},
+                {updates: {merchant: undefined}, expected: ''},
+                {updates: {merchant: undefined, merchantNot: 'I'}, expected: '-merchant:I'},
+                {updates: {type: CONST.SEARCH.DATA_TYPES.CHAT}, expected: ''},
+            ])('replaces or removes Merchant predicates on an explicit change: %j', ({updates, expected}) => {
+                const {updatedQuery} = updateQuery('merchant=I merchant*:I', updates);
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual(buildSearchQueryJSON(expected)?.flatFilters);
+            });
+
+            test('clears all Merchant predicates when resetting advanced filters', () => {
+                const queryJSON = buildSearchQueryJSON('merchant=I merchant*:I');
+                if (!queryJSON) {
+                    throw new Error('Invalid test query');
+                }
+
+                const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+                const {updatedQuery} = updateQuery('merchant=I merchant*:I', getAdvancedFiltersToReset(form));
+
+                expect(updatedQuery.flatFilters).toEqual([]);
+            });
+        });
+
         test('groupBy change replaces stale sortBy with new default', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR},
