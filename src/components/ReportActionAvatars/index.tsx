@@ -11,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sortIconsByName} from '@libs/ReportUtils';
 
@@ -65,11 +64,11 @@ type ReportActionAvatarsProps = {
     /** Style for Second Avatar */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
+    /** Subscript avatar container styles */
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
-
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
 
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
@@ -114,7 +113,7 @@ function ReportActionAvatars({
     sort: sortAvatars,
     singleAvatarContainerStyle,
     subscriptAvatarBorderColor,
-    noRightMarginOnSubscriptContainer = false,
+    subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
     secondaryAvatarContainerStyle,
@@ -127,7 +126,6 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const reportID =
@@ -217,7 +215,7 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
@@ -230,7 +228,7 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
                 fallbackDisplayName={fallbackDisplayName}
             />

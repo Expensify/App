@@ -32,11 +32,11 @@ type ReportAvatarProps = {
     /** Style for the second avatar */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
+    /** Subscript avatar container styles */
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
+
     /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
-
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
 
     /** Whether (and how) to stack the avatars horizontally */
     horizontalStacking?: HorizontalStackingOptions | boolean;
