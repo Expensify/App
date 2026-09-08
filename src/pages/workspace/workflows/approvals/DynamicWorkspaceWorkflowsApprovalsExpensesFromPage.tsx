@@ -35,7 +35,13 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getApproverChainKey, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {
+    getApproverChainKey,
+    getApprovalWorkflowRulesForPolicy,
+    getRemovedApprovalWorkflowMembers,
+    getRulesSubmitterToFirstApprover,
+    getRulesSubmitterToWorkflowKey,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -487,8 +493,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 // The rules path never touches APPROVAL_WORKFLOW, so it is safe to run either way.
                 updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
             } else {
-                const membersToRemove = originalMembers.filter((originalMember) => !allMembers.some((member) => member.email === originalMember.email));
-                updateApprovalWorkflow(workflowToSave, membersToRemove, [], policy, !isSupersededByNewerSession);
+                updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, allMembers), [], policy, !isSupersededByNewerSession);
             }
 
             if (isSupersededByNewerSession) {

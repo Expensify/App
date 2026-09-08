@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +22,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {clearApprovalWorkflow, getApprovalWorkflowSessionID, updateApprovalWorkflow, updateApprovalWorkflowRules, validateFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -37,6 +39,7 @@ import {
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
+import {getRemovedApprovalWorkflowMembers} from '@libs/WorkflowUtils';
 
 import variables from '@styles/variables';
 
@@ -85,6 +88,8 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name;
 
+    const {isBetaEnabled} = usePermissions();
+
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
     const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/expenses-from');
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
@@ -94,6 +99,11 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Only read when this page is finishing an approval-workflow fast edit, but useOnyx can't be conditional.
+    // The draft carries `isFastEdit` and the removed-members baseline; the rules collection is what the
+    // MULTIPLE_APPROVERS save path needs. See saveFastEditApprovalWorkflow below.
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -179,6 +189,66 @@ function WorkspaceInviteMessageComponent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
+    /**
+     * Finishes an approval-workflow fast edit that detoured through this page to invite a new member.
+     *
+     * A "+N more" fast edit opens `expenses-from` with no nested `backTo`, so no edit page is waiting to save the
+     * workflow — and the expenses-from Save handler returned early at its `usersToInvite` branch to run this invite.
+     * Without this, the invite succeeds and the member the admin picked never gets a `submitsTo`, so the workflow
+     * comes back unchanged. The draft still holds the pending selection: the expenses-from cleanup skips its
+     * teardown while handing off to this page.
+     *
+     * @returns whether the save was performed. `false` leaves the caller's existing navigation in charge.
+     */
+    const saveFastEditApprovalWorkflow = () => {
+        if (!approvalWorkflow?.isFastEdit) {
+            return false;
+        }
+
+        // Same scope as the expenses-from page's own Save: the approver rules belong to the edit page, and this
+        // form has no field to point one of their errors at either. Only a structurally broken draft fails here,
+        // in which case falling through to the approver step lets the admin finish the workflow by hand.
+        if (!validateFastEditApprovalWorkflow(approvalWorkflow)) {
+            return false;
+        }
+
+        const workflowToSave = approvalWorkflow;
+        const originalMembers = workflowToSave.originalMembers ?? [];
+        // The write is deferred past the pop transition, so a "+N more" opened in that window could seed a newer
+        // draft first. Snapshot the session and let a superseded save land without touching APPROVAL_WORKFLOW,
+        // exactly as the expenses-from page does.
+        const sessionID = getApprovalWorkflowSessionID();
+
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
+            afterTransition: () => {
+                const shouldClearDraft = getApprovalWorkflowSessionID() === sessionID;
+
+                if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+                    // The rules path never touches APPROVAL_WORKFLOW, so it is safe to run either way.
+                    updateApprovalWorkflowRules({
+                        approvalWorkflow: workflowToSave,
+                        initialApprovalWorkflow: {...workflowToSave, members: originalMembers},
+                        policy,
+                        rules: rulesCollection,
+                    });
+                } else {
+                    updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, workflowToSave.members), [], policy, shouldClearDraft);
+                }
+
+                if (!shouldClearDraft) {
+                    return;
+                }
+
+                // This session owns the draft and no edit page will consume it, so tear it down here. Neither save
+                // path clears it reliably: the rules one never does, and updateApprovalWorkflow only clears once it
+                // reaches its optimistic data, which it skips when the employee diff comes out empty.
+                clearApprovalWorkflow();
+            },
+        });
+
+        return true;
+    };
+
     const sendInvitation = () => {
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
@@ -213,12 +283,19 @@ function WorkspaceInviteMessageComponent({
         if (isWorkflowApprovalExpensesFromRoute) {
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
+                // An edit-page session: that page is still in the stack and owns the save.
                 Navigation.goBack(nestedBackTo as Routes);
-            } else {
-                // forceReplace so the invite page is removed from the stack. Otherwise it stays
-                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
+                return;
             }
+
+            // A fast edit has no edit page behind it, so this is the last chance to save the workflow.
+            if (saveFastEditApprovalWorkflow()) {
+                return;
+            }
+
+            // forceReplace so the invite page is removed from the stack. Otherwise it stays
+            // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
             return;
         }
 

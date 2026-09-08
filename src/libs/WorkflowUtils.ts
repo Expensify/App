@@ -793,6 +793,15 @@ function getWorkflowMemberEmails(members: Member[]): string[] {
     return members.map((member) => member.email).filter((email): email is string => !!email);
 }
 
+/**
+ * The members a workflow had that it no longer does, i.e. the `membersToRemove` side of `updateApprovalWorkflow`.
+ * Compared by email because that is the identity the policy's `employeeList` is keyed by; `displayName` and `avatar`
+ * are cosmetic and can differ between the saved workflow and the picker's version of the same member.
+ */
+function getRemovedApprovalWorkflowMembers(originalMembers: Member[], members: Member[]): Member[] {
+    return originalMembers.filter((originalMember) => !members.some((member) => member.email === originalMember.email));
+}
+
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const approvers = approvalWorkflow.approvers;
@@ -1729,6 +1738,7 @@ export {
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     filterRulesForPolicy,
+    getRemovedApprovalWorkflowMembers,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
