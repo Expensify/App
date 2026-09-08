@@ -145,10 +145,19 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 return;
             }
 
+            if (onboardingValues?.shouldValidate === undefined) {
+                return;
+            }
+
             // A code is needed to confirm the work email just submitted (an account already exists under that domain).
             if (onboardingValues?.shouldValidate) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
+                return;
             }
+
+            // A newly added work email becomes the unvalidated primary login. Continue to the standard validation
+            // screen instead of waiting for the asynchronous task-completion update.
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
             return;
         }
 
