@@ -17,10 +17,10 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
@@ -72,7 +72,10 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path);
-    const buildDynamicRoute = useScreenBoundDynamicRoute();
+    // The active route is only correct until the first press navigates away, so build this page's own route from its params.
+    const tagSettingsPath = isQuickSettingsFlow
+        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tagName), ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID))
+        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tagName), ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approverText = usePersonalDetailByLogin(tagApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? tagApprover));
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
@@ -109,8 +112,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const navigateToEditTag = () => {
         Navigation.navigate(
             isQuickSettingsFlow
-                ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name))
-                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path),
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.getRoute(orderWeight, currentPolicyTag.name), tagSettingsPath)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path, tagSettingsPath),
         );
     };
 
@@ -121,21 +124,23 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
-                        ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
-                        : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
+                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName), tagSettingsPath)
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path, tagSettingsPath),
                 ),
             );
             return;
         }
         Navigation.navigate(
             isQuickSettingsFlow
-                ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
-                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name), tagSettingsPath)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path, tagSettingsPath),
         );
     };
 
     const navigateToEditTagApprover = () => {
-        const approverRoute = isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path);
+        const approverRoute = isQuickSettingsFlow
+            ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path, tagSettingsPath)
+            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_APPROVER.path, tagSettingsPath);
         // Collect sees this section but the approver page is Control-only, so upgrade instead of hitting Not Found.
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, approverRoute)) {
             return;

@@ -23,7 +23,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
@@ -37,6 +36,7 @@ import {
     getDecodedCategoryName,
 } from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -104,7 +104,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
     const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path);
-    const buildDynamicRoute = useScreenBoundDynamicRoute();
+    // The active route is only correct until the first press navigates away, so build this page's own route from its params.
+    const categorySettingsPath = isQuickSettingsFlow
+        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
@@ -251,7 +254,11 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     );
 
     const navigateToEditCategory = () => {
-        Navigation.navigate(isQuickSettingsFlow ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path, categorySettingsPath)
+                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path, categorySettingsPath),
+        );
     };
 
     const deleteCategory = () => {
@@ -274,7 +281,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
 
     /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
     const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
-        const ruleRoute = buildDynamicRoute(dynamicRouteSuffix);
+        const ruleRoute = createDynamicRoute(dynamicRouteSuffix, categorySettingsPath);
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {
             return;
         }
@@ -352,7 +359,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
                                             isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path, categorySettingsPath),
                                         ),
                                     );
                                     return;
@@ -360,7 +367,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path, categorySettingsPath),
                                 );
                             }}
                             interactive={canWriteCategories}
@@ -377,7 +384,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(
                                             policyID,
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path, categorySettingsPath),
                                         ),
                                     );
                                     return;
@@ -385,7 +392,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path, categorySettingsPath),
                                 );
                             }}
                             interactive={canWriteCategories}
@@ -467,7 +474,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path, categorySettingsPath));
                                 }}
                                 interactive={canWriteCategories}
                                 shouldShowRightIcon={canWriteCategories}
@@ -484,7 +491,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -500,7 +507,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={flagAmountsOverText}
                                     description={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -511,7 +518,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -522,7 +529,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={requireItemizedReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -533,7 +540,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={requiredFieldsTitle}
                                     description={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -544,7 +551,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={policyCategory?.commentHint}
                                     description={translate('workspace.rules.categoryRules.descriptionHint')}
                                     onPress={() => {
-                                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path, categorySettingsPath));
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
