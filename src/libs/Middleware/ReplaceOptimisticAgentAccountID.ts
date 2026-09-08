@@ -19,7 +19,7 @@ import clone from 'lodash/clone';
  * accountID would create a second agent.
  */
 
-// deepReplaceKeysAndValues only rewrites strings; this extra pass covers the accountID sent as a number
+// deepReplaceKeysAndValues only rewrites strings. This extra pass covers the accountID sent as a number
 // (e.g. the agentAccountID parameter).
 function replaceNumberValues(target: unknown, oldVal: number, newVal: number): unknown {
     if (target === oldVal) {
@@ -91,7 +91,7 @@ function rewriteRequest(request: AnyRequest, optimisticAccountIDKey: string, rea
     return requestClone;
 }
 
-// A short key could match unrelated numbers as substrings; 10 digits exceeds real accountIDs and the small
+// A short key could match unrelated numbers as substrings. 10 digits exceeds real accountIDs and the small
 // integers request data usually holds. A genuine optimistic ID this short (~1 in 9 million) is left to the server.
 const MIN_OPTIMISTIC_ACCOUNT_ID_DIGITS = 10;
 

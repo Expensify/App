@@ -135,7 +135,7 @@ Onyx.connectWithoutView({
         }
 
         for (const [optimisticAccountID, mappedAccountID] of Object.entries(mapping)) {
-            // Already-consumed (nullish) entries are skipped; clearing them again would just fire this callback once more.
+            // Already-consumed (nullish) entries are skipped. Clearing them again would just fire this callback once more.
             const realAccountID: unknown = mappedAccountID;
             if (realAccountID === null || realAccountID === undefined) {
                 continue;
