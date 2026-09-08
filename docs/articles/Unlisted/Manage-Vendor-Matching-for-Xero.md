@@ -13,7 +13,7 @@ Xero vendor matching lets workspace admins review and update the vendor assigned
 
 This feature is available to workspace admins whose workspace is connected to Xero.
 
-If your workspace isn't connected to Xero yet, [learn how connect to Xero](/articles/new-expensify/connections/xero/Connect-to-Xero).
+If your workspace isn't connected to Xero yet, [learn how to connect to Xero](/articles/new-expensify/connections/xero/Connect-to-Xero).
 
 ---
 
@@ -43,13 +43,13 @@ Workspace admins can manually select a vendor from the searchable **Vendor** fie
 
 ## How to set a fallback (default) vendor for non-reimbursable expenses
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name].
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Accounting**.
 3. Under **Xero**, select **Export**.
 4. Select **Default vendor**.
 5. Choose a vendor from the list. 
 
-The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to the vendor Credit Card Misc.
+The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to the vendor **Credit Card Misc**.
 
 ---
 
