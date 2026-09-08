@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -34,7 +33,6 @@ type DynamicReportFieldsInitialListValuePageProps = WithPolicyAndFullscreenLoadi
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_REPORT_FIELDS_INITIAL_LIST_VALUE>;
 
 function DynamicReportFieldsInitialListValuePage({
-    policy,
     route: {
         params: {policyID},
     },
@@ -71,7 +69,6 @@ function DynamicReportFieldsInitialListValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 style={styles.pb0}

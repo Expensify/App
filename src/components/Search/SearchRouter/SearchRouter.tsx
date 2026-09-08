@@ -10,6 +10,7 @@ import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQu
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -81,6 +82,7 @@ type SearchRouterProps = {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -220,6 +222,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
                 const option = createOptionFromReport({
                     dateFnsLocale,
+                    convertToDisplayString,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
@@ -301,6 +304,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            convertToDisplayString,
         ],
     );
 

@@ -950,10 +950,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Comece aqui!',
     },
     homePage: {
-        forYou: 'Para você',
+        toDos: 'Pendências',
         timeSensitiveSection: {
             title: 'Urgente',
-            addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
+            addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar'},
             addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
@@ -979,7 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
             validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
-            addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar endereço'},
+            addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
                 workspaceTitle: 'Sua conta bancária comercial foi bloqueada',
@@ -987,11 +987,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Carteira',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Adicione seus dados para visualizar e começar a usar seu Cartão Expensify.',
-                subtitle: 'Cartão Expensify',
-                cta: 'Adicionar detalhes',
-            },
+            addVirtualCardPersonalDetails: {title: 'Adicione seus dados para visualizar e começar a usar seu Cartão Expensify.', subtitle: 'Cartão Expensify', cta: 'Adicionar'},
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1094,6 +1090,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: 'Convide seu contador',
             customizeSpendCategories: 'Personalizar categorias de gastos',
             customizeSpendCategoriesSubText: 'Organize e classifique despesas',
+            customizeExpenseCategories: 'Personalize suas categorias de despesas',
+            customizeExpenseCategoriesSubText: 'Adicione as categorias da sua empresa para codificar suas despesas',
             createExpense: 'Criar uma despesa',
             createExpenseSubText: 'Escaneie, arraste e solte ou insira manualmente uma despesa usando o botão +',
             linkPersonalCard: 'Vincular cartão pessoal',
@@ -1119,7 +1117,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Seus gastos',
             awaitingApproval: 'Aguardando aprovação',
             repaidLast30Days: 'Reembolsado últimos 30 dias',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Ver mais ${count}`,
         recentlyAddedSection: {
@@ -1274,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -3746,11 +3744,6 @@ ${amount} para ${merchant} - ${date}`,
         thisBankAccount: 'Esta conta bancária será usada para pagamentos empresariais no seu workspace',
         accountNumber: 'Número da conta',
         routingNumber: 'Número de roteamento',
-        internationalBankAccountDetails: 'Dados da conta bancária internacional',
-        internationalBankAccountDetailsTitle: 'Quais são os dados da sua conta internacional?',
-        internationalBankAccountDetailsSubtitle: 'Um dos seus espaços de trabalho precisa de dados de conta internacional para processar reembolsos',
-        iban: 'IBAN',
-        swiftBicCode: 'Código SWIFT/BIC',
         chooseAnAccountBelow: 'Escolha uma conta abaixo',
         addBankAccount: 'Adicionar conta bancária',
         chooseAnAccount: 'Escolha uma conta',
@@ -3800,8 +3793,6 @@ ${amount} para ${merchant} - ${date}`,
             restrictedBusiness: 'Confirme que a empresa não está na lista de empresas restritas',
             routingNumber: 'Insira um número de roteamento válido',
             accountNumber: 'Insira um número de conta válido',
-            iban: 'Insira um IBAN válido',
-            swiftCode: 'Insira um código SWIFT/BIC válido',
             routingAndAccountNumberCannotBeSame: 'Os números de roteamento e da conta não podem ser iguais',
             companyType: 'Selecione um tipo de empresa válido',
             tooManyAttempts: 'Devido ao alto número de tentativas de login, esta opção foi desativada por 24 horas. Tente novamente mais tarde ou insira os dados manualmente.',
@@ -4159,8 +4150,7 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         enterTheDateOfBirthOfTheOwner: 'Qual é a data de nascimento do proprietário?',
-        enterTheLast4: 'Quais são os últimos 4 dígitos do CPF do proprietário?',
-        last4SSN: 'Últimos 4 do SSN',
+        enterTheSSN: 'Qual é o número do Social Security do proprietário?',
         dontWorry: 'Não se preocupe, não fazemos nenhuma análise de crédito pessoal!',
         enterTheOwnersAddress: 'Qual é o endereço do proprietário?',
         letsDoubleCheck: 'Vamos conferir se está tudo certo.',
@@ -4187,13 +4177,12 @@ ${amount} para ${merchant} - ${date}`,
         whatsYourDOB: 'Qual é a sua data de nascimento?',
         whatsTheOwnersAddress: 'Qual é o endereço do proprietário?',
         whatsYourAddress: 'Qual é o seu endereço?',
-        whatAreTheLast: 'Quais são os últimos 4 dígitos do Número de Seguridade Social do proprietário?',
-        whatsYourLast: 'Quais são os últimos 4 dígitos do seu Número de Seguridade Social?',
+        whatsTheOwnersSSN: 'Qual é o número do Social Security do proprietário?',
+        whatsYourSSN: 'Qual é o seu número do seguro social?',
         whatsYourNationality: 'Qual é o seu país de cidadania?',
         whatsTheOwnersNationality: 'Qual é o país de cidadania do proprietário?',
         countryOfCitizenship: 'País de cidadania',
         dontWorry: 'Não se preocupe, não fazemos nenhuma análise de crédito pessoal!',
-        last4: 'Últimos 4 do SSN',
         whyDoWeAsk: 'Por que pedimos isso?',
         letsDoubleCheck: 'Vamos conferir se está tudo certo.',
         legalName: 'Nome legal',
@@ -4216,6 +4205,8 @@ ${amount} para ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Comprovante de beneficiário final',
         proofOfBeneficialOwnerDescription:
             'Forneça uma declaração assinada e um organograma emitidos por um contador público, tabelião ou advogado comprovando a titularidade de 25% ou mais do negócio. Eles devem estar datados dos últimos três meses e incluir o número da licença do signatário.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Forneça o seu Anexo 50 (Informações dos Acionistas) da declaração de imposto de renda corporativo T2 mais recente, mostrando todas as pessoas físicas que possuem 25% ou mais do negócio.',
         copyOfID: 'Cópia do documento de identificação do beneficiário final',
         copyOfIDDescription: 'Exemplos: Passaporte, carteira de motorista, etc.',
         proofOfAddress: 'Comprovante de endereço do beneficiário final',
@@ -4729,6 +4720,7 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicingVendor: 'Fornecedor de viagem',
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
             hr: 'RH',
+            recruiting: 'Recrutamento',
             rooms: 'Salas',
             findDomain: 'Encontrar domínio',
             cardAdminAlternateText: 'Gerenciar cartões do workspace.',
@@ -4960,7 +4952,6 @@ ${amount} para ${merchant} - ${date}`,
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use esta conta ao exportar faturas para o ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Defina como as compras com cartão corporativo serão exportadas para o ${integrationName}.`,
             vendor: 'Fornecedor',
-            defaultVendorDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Defina como as despesas reembolsáveis serão exportadas para o ${integrationName}.`,
             exportCheckDescription: 'Vamos criar um cheque detalhado para cada relatório do Expensify e enviá-lo a partir da conta bancária abaixo.',
             exportJournalEntryDescription: 'Vamos criar um lançamento contábil detalhado para cada relatório do Expensify e lançá-lo na conta abaixo.',
@@ -5126,8 +5117,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no Xero e sincronize a conexão novamente',
-            defaultSupplier: 'Fornecedor padrão',
-            defaultSupplierDescription: 'Defina um fornecedor padrão que será aplicado a todas as transações de cartão de crédito na exportação.',
             noSuppliersFound: 'Nenhum fornecedor encontrado',
             noSuppliersFoundDescription: 'Adicione o fornecedor no Xero e sincronize a conexão novamente.',
             accountingMethods: {
@@ -6160,6 +6149,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             finishSetup: 'Concluir configuração',
             chooseBankAccount: 'Escolher conta bancária',
             chooseExistingBank: 'Escolha uma conta bancária empresarial existente para pagar o saldo do seu Cartão Expensify ou adicione uma nova conta bancária',
+            chooseExistingBankForTravelBilling: 'Escolha uma conta bancária empresarial existente para pagar o saldo da sua Fatura Consolidada de Viagem ou adicione uma nova conta bancária',
             accountEndingIn: 'Conta com final',
             addNewBankAccount: 'Adicionar uma nova conta bancária',
             settlementAccount: 'Conta de liquidação',
@@ -6231,7 +6221,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             deleteFailureMessage: 'Ocorreu um erro ao excluir a categoria, tente novamente',
             categoryName: 'Nome da categoria',
             requiresCategory: 'Os membros devem categorizar todas as despesas',
-            autoCategorizeNewExpenses: 'Categorizar automaticamente novas despesas',
             showCategoryGLCodes: 'Mostrar códigos GL ao categorizar despesas',
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
@@ -6571,6 +6560,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subtitle: 'Os campos de relatório se aplicam a todos os gastos e podem ser úteis quando você quiser solicitar informações extras.',
             disableReportFields: 'Desativar campos de relatório',
             disableReportFieldsConfirmation: 'Tem certeza? Campos de texto e data serão excluídos e listas serão desativadas.',
+            cannotDisableImportedReportFields: 'Campos de relatório importados da sua conexão contábil não podem ser desativados.',
             importedFromAccountingSoftware: 'Os campos de relatório abaixo são importados do seu',
             textType: 'Texto',
             dateType: 'Data',
@@ -7236,11 +7226,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             exportCompanyCard: 'Exportar despesas de cartão corporativo como',
             exportDate: 'Data de exportação',
             defaultVendor: 'Fornecedor padrão',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
-                    ? `Despesas que não forem correspondidas automaticamente terão este fornecedor como padrão.`
-                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Escolha um fornecedor padrão do ${connectionName} para despesas que não sejam correspondidas automaticamente.`,
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
+                    ? `Despesas que não tiverem correspondência automática serão associadas a este fornecedor por padrão.`
+                    : `Despesas que não forem conciliadas automaticamente serão atribuídas a este fornecedor por padrão. Caso contrário, serão exportadas como ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Escolha um fornecedor padrão para as despesas que não forem correspondidas automaticamente.`,
             defaultAccount: 'Conta padrão',
             autoSync: 'Sincronização automática',
             autoSyncDescription: 'Sincronize NetSuite e Expensify automaticamente, todos os dias. Exporte relatórios finalizados em tempo real',
@@ -7261,6 +7251,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     `Tenha certeza de que esta conta corresponde à sua conta de liquidação de Faturamento Consolidado de Viagem (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -7315,14 +7307,14 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 title: 'Excluir deslocamentos para o trabalho',
                 summaryDisabled: 'Sem exclusão de deslocamento',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Excluir ${distance} ${unit} por solicitação`,
-                optionDisabledTitle: 'Não excluir deslocamentos de casa para o trabalho',
+                optionDisabledTitle: 'Não excluir deslocamento para o trabalho',
                 optionDisabledHelp: 'Nenhum deslocamento é removido das solicitações.',
-                optionFixedDistanceTitle: 'Excluir uma distância fixa por solicitação',
-                optionFixedDistanceHelp: 'Remova a mesma distância de deslocamento de cada reembolso. Ideal para membros que enviam um reembolso por dia de trabalho.',
+                optionFixedDistanceTitle: 'Remover distância fixa',
+                optionFixedDistanceHelp: 'Subtrai a mesma distância de cada solicitação.',
                 distanceLabel: 'Distância',
                 summaryHomeAndOffice: 'Usar endereços de casa e escritório',
-                optionHomeAndOfficeTitle: 'Calcular por casa e escritório',
-                optionHomeAndOfficeHelp: 'Use o endereço residencial, o regime de trabalho e a designação de escritório da pessoa colaboradora para calcular as exclusões de deslocamento.',
+                optionHomeAndOfficeTitle: 'Excluir trajeto habitual',
+                optionHomeAndOfficeHelp: 'Subtrai o trajeto diário habitual de cada membro com base em sua casa, tipo de trabalho e escritório.',
                 workspaceAddressRequired: {
                     title: 'Calma lá...',
                     promptStart: 'Você não pode ativar a configuração de cálculo por casa e escritório até primeiro adicionar um endereço de escritório em',
@@ -7957,6 +7949,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
                 vendorUnavailable: 'Fornecedor indisponível',
                 supplierUnavailable: 'Fornecedor indisponível',
+                confirmErrorCategory: 'Selecione uma categoria',
+                confirmErrorCategoryTax: 'Selecione uma alíquota de imposto',
+                confirmErrorCondition: 'Insira um estabelecimento',
+                confirmErrorConditionAndDefault: 'Insira um comerciante e aplique pelo menos um padrão',
+                turnOnTaxesFirstTitle: 'Ative os impostos primeiro',
+                turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
+                categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
+                categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
             },
             categoryRules: {
                 title: 'Regras de categoria',
@@ -8255,10 +8255,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 applyExpenseDefaultsDescription: 'Atualizar campos sem o responsável pelo envio fazer nada',
                 flagForReview: 'Marcar para revisão',
                 flagForReviewDescription: 'Notificar aprovadores quando as despesas excederem os limites da categoria',
-                requireFields: 'Requisitos do campo',
+                requireFields: 'Definir requisitos de campo',
                 requireFieldsDescription: 'Exigir campos específicos de despesa ou dispensar a exigência deles.',
-                createAgentRule: 'Regra do agente',
-                createAgentRuleDescription: 'Descreva regras flexíveis que são executadas quando você precisar.',
+                createAgentRule: 'Descrever regra do agente',
+                createAgentRuleDescription: 'Crie regras flexíveis que sejam executadas quando você precisar.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -8269,6 +8269,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 update: 'Atualizar',
                 merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `O tipo de estabelecimento é "${merchantType}"`,
+                categoryIs: (category: string) => `A categoria é "${category}"`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
             requireFieldsTable: {
@@ -8285,6 +8286,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireReceipt: 'Exigir recibo',
                 doNotRequireReceipt: 'Não exigir recibo',
                 doNotRequireItemizedReceipt: 'Não exigir recibo detalhado',
+                typeLabel: 'Exigir',
             },
             requireFieldsEmptyState: {
                 title: 'Identifique detalhes faltando desde o início',
@@ -8333,6 +8335,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
+            expenseDefaultType: {
+                title: 'Aplicar padrões de despesa',
+                subtitle: 'Com o que esta regra deve corresponder?',
+                merchant: 'Comerciante',
+                merchantDescription: 'Atualizar campos em despesas de um comerciante específico',
+                category: 'Categoria',
+                categoryDescription: 'Definir uma taxa de imposto padrão para uma categoria específica',
+            },
+            taxesDisabledEmptyState: {title: 'Impostos não estão ativados', subtitle: 'Ative impostos para documentar e recuperar impostos elegíveis.', cta: 'Ativar impostos'},
         },
         planTypePage: {
             planTypes: {
@@ -8359,37 +8370,26 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         hr: {
             title: 'RH',
-            connections: 'Conexões',
             connectionsSubtitle:
                 'Conecte-se ao seu sistema de RH para sincronizar os dados de funcionários, associar automaticamente os reembolsos às pessoas corretas e manter as despesas da sua equipe precisas, sem trabalho manual.',
             subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
-            connect: 'Conectar',
-            syncNow: 'Sincronizar agora',
-            disconnect: 'Desconectar',
-            disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Tem certeza de que deseja desconectar ${providerName}?`,
             alreadyConnectedTitle: 'Não é possível conectar a várias plataformas de RH',
             alreadyConnectedPrompt: 'Você precisa desconectar sua plataforma de RH atual antes de conectar outra.',
-            lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
-            syncError: (providerName: string) => `Não é possível conectar ao ${providerName}`,
             connectionDescription: (providerName: string) => `Conecte ${providerName} para manter as aprovações de funcionários sincronizadas com seu workspace.`,
-            approvalMode: 'Modo de aprovação',
             providerApprovalMode: (providerName: string) => `Modo de aprovação do ${providerName}`,
-            finalApprover: 'Aprovador final',
             providerFinalApprover: (providerName: string) => `Aprovador final de ${providerName}`,
-            notSet: 'Não definido',
+            syncing: 'Sincronizando funcionários',
+            syncingModalTitle: 'Sua conexão está sincronizando',
+            syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
             approvalModeDescription: (providerName: string) => `Membros e gerentes estão configurados para sincronizar com ${providerName}.`,
             approvalModeWarningTitle: 'Alterar modo de aprovação?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Tem certeza de que deseja alterar o modo de aprovação deste workspace? Saiba mais sobre os diferentes modos de fluxo de trabalho com ${providerName} em nosso <a href="${helpSiteURL}">site de ajuda</a>.`,
             approvalModeWarningConfirm: 'Alterar modo de aprovação',
-            approvalModes: {
-                basic: {label: 'Aprovação básica', description: 'Todos os usuários enviam para uma única pessoa para processamento e aprovação.'},
-                manager: {
-                    label: 'Aprovação do gerente',
-                    description: (providerName: string) => `Os funcionários enviam relatórios ao gestor direto configurado no ${providerName}.`,
-                },
-                custom: {label: 'Aprovação personalizada', description: 'Vou configurar manualmente os fluxos de aprovação no Expensify.'},
+            approvalModeDescriptions: {
+                basic: 'Todos os usuários enviam para uma única pessoa para processamento e aprovação.',
+                manager: (providerName: string) => `Os funcionários enviam relatórios ao gestor direto configurado no ${providerName}.`,
+                custom: 'Vou configurar manualmente os fluxos de aprovação no Expensify.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8429,22 +8429,50 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Sua conexão está sincronizando',
-            syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
-            syncing: 'Sincronizando funcionários',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Concluir configuração',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar funcionários.</muted-text-label>`,
                 groups: {title: 'Grupos', description: 'Escolha os grupos de funcionários que você gostaria de sincronizar com este workspace'},
             },
+        },
+        recruiting: {
+            title: 'Recrutamento',
+            connectionsSubtitle:
+                'Conecte-se ao seu sistema de recrutamento para sincronizar os dados de candidatos, associar automaticamente os reembolsos às pessoas certas e manter as despesas da sua equipe precisas sem trabalho manual.',
+            alreadyConnectedTitle: 'Não é possível conectar a várias plataformas de ATS',
+            alreadyConnectedPrompt: 'Você precisa desconectar o seu ATS atual antes de conectar outro.',
+            syncing: 'Sincronizando candidatos',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Concluir configuração</a>` : 'Concluir configuração'} para importar candidatos.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Não está vendo seu ATS aqui? <a href="#">Pergunte ao Concierge</a> e podemos adicioná-lo.</muted-text-label>`,
+            importSettings: 'Importar configurações',
+            defaultApprover: 'Aprovador padrão',
+            approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+        },
+        merge: {
+            connections: 'Conexões',
+            connect: 'Conectar',
+            findIntegration: 'Encontrar integração',
+            syncNow: 'Sincronizar agora',
+            disconnect: 'Desconectar',
+            disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Tem certeza de que deseja desconectar ${providerName}?`,
+            lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
             notSync: 'Não sincronizado',
+            syncError: (providerName: string) => `Não é possível conectar ao ${providerName}`,
             authenticationError: (providerName: string) => `Não é possível conectar a ${providerName} devido a uma conexão expirada.`,
             reconnect: 'Reconectar',
             reconnectLink: 'Reconectar.',
-            findIntegration: 'Encontrar integração',
-        },
-        merge: {
+            notSet: 'Não definido',
+            completeSetup: 'Concluir configuração',
+            approvalMode: 'Modo de aprovação',
+            finalApprover: 'Aprovador final',
+            approvalModes: {
+                basic: 'Aprovação básica',
+                manager: 'Aprovação do gerente',
+                custom: 'Aprovação personalizada',
+                advanced: 'Aprovação avançada',
+            },
             syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
         },
         emptyDomain: {
@@ -9447,6 +9475,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             topMerchants: 'Principais estabelecimentos',
             violationsBySubmitter: 'Violações por quem enviou',
         },
+        mergeReports: {
+            title: 'Mesclar relatórios',
+            description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
+        },
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',
@@ -10064,47 +10096,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isAdmin: boolean,
             isTransactionOlderThan7Days: boolean,
             member?: string,
-            rterType?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
             companyCardPageURL?: string,
             connectionLink?: string,
             isPersonalCard?: boolean,
             isMarkAsCash?: boolean,
         ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.';
             }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
-                        return 'Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada.';
+                        return 'Não foi possível associar o recibo automaticamente porque sua conexão bancária precisa ser reautenticada.';
                     }
                     return isMarkAsCash
-                        ? `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
-                        : `Não é possível conciliar automaticamente o recibo porque sua conexão bancária precisa ser reautenticada. <a href="${connectionLink}">Reconecte</a> para corresponder o recibo.`;
+                        ? `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. Marque como dinheiro para ignorar ou <a href="${connectionLink}">reconecte</a> para corresponder o recibo.`
+                        : `Não é possível fazer a correspondência automática do recibo porque a conexão com seu banco precisa ser reautenticada. <a href="${connectionLink}">Reconectar</a> para corresponder o recibo.`;
                 }
                 return isAdmin
-                    ? `A conexão bancária precisa ser reautenticada. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'A conexão bancária precisa ser reautenticada. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `A conexão bancária precisa ser autenticada novamente. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
+                    : 'A conexão com o banco precisa de nova autenticação. Peça para um administrador reconectar para corresponder ao recibo.';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
-                    return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
+                    return 'Não foi possível associar o recibo automaticamente devido a uma conexão bancária com problema.';
                 }
                 return isMarkAsCash
-                    ? `Não é possível corresponder automaticamente o recibo devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
-                    : `Não é possível corresponder automaticamente o recibo devido a uma conexão quebrada com o cartão. <a href="${connectionLink}">Corrigir o cartão</a> para corresponder o recibo.`;
+                    ? `Não é possível corresponder o recibo automaticamente devido a uma conexão de cartão com problema. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para corresponder o recibo.`
+                    : `Não foi possível conciliar automaticamente o recibo devido a uma conexão quebrada do cartão. <a href="${connectionLink}">Corrija o cartão</a> para conciliar o recibo.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para corresponder ao recibo</a>`
-                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para corresponder ao recibo.';
+                    ? `Conexão bancária interrompida. <a href="${companyCardPageURL}">Reconectar para combinar com o recibo</a>`
+                    : 'Conexão bancária interrompida. Peça para um administrador reconectar para coincidir com o recibo.';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando associação com a transação do cartão.';
+                return isAdmin ? `Peça para ${member} marcar como dinheiro ou aguarde 7 dias e tente novamente` : 'Aguardando combinação com a transação do cartão.';
             }
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido à conexão bancária interrompida',
+        brokenConnection531Error: 'Não foi possível associar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',
