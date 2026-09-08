@@ -12373,6 +12373,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
         // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
         if (filteredPoliciesCount === 1 && firstPolicyID) {
+            // The destination picker we skip here is where the billing restriction is normally enforced, so gate it here too.
+            const firstPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`];
+            if (firstPolicy && shouldRestrictUserBillableActions(firstPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(firstPolicyID));
+                return;
+            }
+
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID);
             if (policyExpenseReport) {
                 // The draft inherits the source expense's unreported ID from the self DM. The picker we skip here is what
@@ -12406,6 +12413,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
+            // This branch skips the participant picker as well, so it needs the same billing-restriction gate.
+            const preferredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`];
+            if (preferredPolicy && shouldRestrictUserBillableActions(preferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(preferredPolicyID));
+                return;
+            }
+
             const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
