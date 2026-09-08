@@ -566,6 +566,10 @@ const WRITE_COMMANDS = {
     UPDATE_CAMPFIRE_FIELD_MAPPING: 'UpdateCampfireFieldMapping',
     UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES: 'UpdateCampfireEnableNewCategories',
     UPDATE_CAMPFIRE_SYNC_TAX_RATES: 'UpdateCampfireSyncTaxRates',
+    UPDATE_CAMPFIRE_EXPORTER: 'UpdateCampfireExporter',
+    UPDATE_CAMPFIRE_EXPORT_DATE: 'UpdateCampfireExportDate',
+    UPDATE_CAMPFIRE_DEFAULT_VENDOR: 'UpdateCampfireDefaultVendor',
+    UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT: 'UpdateCampfireCreditCardAccount',
 
     SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
@@ -1239,6 +1243,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_FIELD_MAPPING]: Parameters.UpdateCampfireFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateCampfireEnableNewCategoriesParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TAX_RATES]: Parameters.UpdateCampfireSyncTaxRatesParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORTER]: Parameters.UpdateCampfireExporterParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORT_DATE]: Parameters.UpdateCampfireExportDateParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_DEFAULT_VENDOR]: Parameters.UpdateCampfireDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_CREDIT_CARD_ACCOUNT]: Parameters.UpdateCampfireCreditCardAccountParams;
 
     [WRITE_COMMANDS.UPGRADE_TO_CORPORATE]: Parameters.UpgradeToCorporateParams;
     [WRITE_COMMANDS.DOWNGRADE_TO_TEAM]: Parameters.DowngradeToTeamParams;

@@ -83,6 +83,10 @@ export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSu
 export type {default as UpdateCampfireFieldMappingParams} from './UpdateCampfireFieldMappingParams';
 export type {default as UpdateCampfireEnableNewCategoriesParams} from './UpdateCampfireEnableNewCategoriesParams';
 export type {default as UpdateCampfireSyncTaxRatesParams} from './UpdateCampfireSyncTaxRatesParams';
+export type {default as UpdateCampfireExporterParams} from './UpdateCampfireExporterParams';
+export type {default as UpdateCampfireExportDateParams} from './UpdateCampfireExportDateParams';
+export type {default as UpdateCampfireDefaultVendorParams} from './UpdateCampfireDefaultVendorParams';
+export type {default as UpdateCampfireCreditCardAccountParams} from './UpdateCampfireCreditCardAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
