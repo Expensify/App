@@ -1,6 +1,7 @@
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -2316,6 +2317,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: undefined,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2329,6 +2331,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe(
@@ -2368,6 +2371,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 456,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
@@ -2380,6 +2384,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).not.toContain('<a href=');
