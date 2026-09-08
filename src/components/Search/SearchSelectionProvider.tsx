@@ -141,9 +141,12 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
                         excludedTransactions[key] = transaction;
                     }
                 }
-                for (const key of Object.keys(selectedTransactions)) {
+                for (const [key, transaction] of Object.entries(selectedTransactions)) {
                     if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
                         delete excludedTransactions[key];
+                    }
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && transaction.isSelectedViaGroup && transaction.groupKey) {
+                        delete excludedTransactions[transaction.groupKey];
                     }
                 }
             } else if (!areAllMatchingItemsSelected) {
