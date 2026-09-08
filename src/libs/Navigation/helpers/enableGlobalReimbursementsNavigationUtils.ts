@@ -64,7 +64,7 @@ function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boole
             return true;
         }
     } catch (error) {
-        Log.warn('shouldUseDynamicEnableGlobalReimbursementsBase: failed to resolve route state from path', {basePath, error: (error as Error)?.message});
+        Log.warn('shouldUseDynamicEnableGlobalReimbursementsBase: failed to resolve route state from path', {basePath, error: error instanceof Error ? error.message : String(error)});
         return false;
     }
 
