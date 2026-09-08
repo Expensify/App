@@ -38,6 +38,7 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             return [typedKey, enableGlobalReimbursementsDraft?.[typedKey] ?? false];
         }),
     ) as Record<keyof typeof inputIDs, boolean>;
+    const bankStatementDefaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT] ?? [];
 
     const persistedRouteParams = {
         bankCountry: route.params?.bankCountry,
@@ -68,6 +69,8 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             currency={currency}
             startStepIndex={1}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_INDEX_LIST}
+            bankStatementInputID={INPUT_IDS.BANK_STATEMENT}
+            bankStatementDefaultValue={bankStatementDefaultValue}
         />
     );
 }
