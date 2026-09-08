@@ -106,6 +106,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const issueCardFundID = getIssueCardFundID();
     const hasIssueCardFundID = issueCardFundID !== undefined;
 
+    // `issueCardFundID` is derived from the saved feed, so issuing a card while a different feed is staged would
+    // issue it against the saved feed and write that one back to Onyx. Block issuance until the draft is saved.
+    const hasUnsavedFeedSelection = draftFundID !== undefined && draftFundID !== lastSelectedExpensifyCardFeedID;
+
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
             return;
@@ -231,6 +235,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                     icon={expensifyIcons.Plus}
                     onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
+                    isDisabled={hasIssueCardFundID && hasUnsavedFeedSelection}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
