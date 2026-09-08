@@ -1405,7 +1405,9 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
-            filtersForm[filterKey] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue => VALID_TRANSACTION_STATUSES.has(transactionStatus));
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue =>
+                VALID_TRANSACTION_STATUSES.has(transactionStatus),
+            );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;

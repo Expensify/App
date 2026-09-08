@@ -434,6 +434,17 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense transactionStatus:pending');
         });
 
+        test('negated transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatusNot: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense -transactionStatus:pending');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1777,6 +1788,21 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
 
             expect(result.transactionStatus).toEqual('posted');
+        });
+
+        test('negated transaction status filter populates transactionStatusNot', () => {
+            // Negation in the query syntax uses the "-" prefix, which round-trips to the transactionStatusNot form value.
+            const queryString = 'sortBy:date sortOrder:desc type:expense -transaction-status:pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatusNot).toEqual('pending');
+            expect(result.transactionStatus).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {
