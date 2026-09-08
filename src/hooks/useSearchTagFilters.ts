@@ -144,7 +144,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             });
     };
 
-    // Clear persisted pagination and cached pages when the filter closes so a fresh open refetches with valid hasMore.
+    // Clear persisted pagination and cached pages when the filter closes so a fresh open re-fetches with valid hasMore.
     useEffect(() => {
         return () => {
             clearSearchTagFiltersState();
