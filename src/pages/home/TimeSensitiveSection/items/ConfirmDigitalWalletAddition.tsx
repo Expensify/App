@@ -3,7 +3,6 @@ import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 
 import {getWalletProviderNameKey} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +19,6 @@ type ConfirmDigitalWalletAdditionProps = {
 };
 
 function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps) {
-    const theme = useTheme();
     const {translate} = useLocalize();
 
     const walletName = translate(`homePage.timeSensitiveSection.confirmDigitalWalletAddition.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider)}`);
@@ -28,8 +26,6 @@ function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps)
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={theme.widgetIconBG}
-            iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.title', {walletName})}
             subtitle={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.cta')}
