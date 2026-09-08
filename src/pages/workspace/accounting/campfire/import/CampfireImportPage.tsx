@@ -24,6 +24,7 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
     const campfireConfig = policy?.connections?.campfire?.config;
     const campfireData = policy?.connections?.campfire?.data;
     const enableNewCategories = campfireConfig?.enableNewCategories ?? false;
+    const hasFields = !!campfireData?.fields?.length;
     const hasTaxRates = !!campfireData?.taxRates?.length;
     const syncTaxRates = campfireConfig?.coding?.syncTaxRates ?? false;
 
@@ -64,30 +65,34 @@ function CampfireImportPage({policy}: WithPolicyConnectionsProps) {
                 errors={getLatestErrorField(campfireConfig ?? {}, CONST.CAMPFIRE_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => policyID && clearCampfireErrorField(policyID, CONST.CAMPFIRE_CONFIG.ENABLE_NEW_CATEGORIES)}
             />
-            <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.campfire.dimensionsImport')}</Text>
-            </View>
-            {campfireData?.fields?.map((field) => {
-                const mapping = campfireConfig?.coding?.fieldMappings?.[field.id];
-                const isImported = mapping === CONST.CAMPFIRE_MAPPING_VALUE.TAG;
-                return (
-                    <ToggleSettingOptionRow
-                        key={field.id}
-                        title={field.name}
-                        switchAccessibilityLabel={field.name}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={[styles.mv3, styles.mh5]}
-                        isActive={isImported}
-                        onToggle={() =>
-                            policyID && updateCampfireFieldMapping(policyID, field.id, isImported ? CONST.CAMPFIRE_MAPPING_VALUE.NONE : CONST.CAMPFIRE_MAPPING_VALUE.TAG, mapping)
-                        }
-                        pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], campfireConfig?.pendingFields)}
-                        errors={getLatestErrorField(campfireConfig ?? {}, `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                        onCloseError={() => policyID && clearCampfireErrorField(policyID, `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
-                    />
-                );
-            })}
+            {hasFields && (
+                <>
+                    <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
+                    <View style={[styles.mv3, styles.mh5]}>
+                        <Text>{translate('workspace.campfire.dimensionsImport')}</Text>
+                    </View>
+                    {campfireData?.fields?.map((field) => {
+                        const mapping = campfireConfig?.coding?.fieldMappings?.[field.id];
+                        const isImported = mapping === CONST.CAMPFIRE_MAPPING_VALUE.TAG;
+                        return (
+                            <ToggleSettingOptionRow
+                                key={field.id}
+                                title={field.name}
+                                switchAccessibilityLabel={field.name}
+                                shouldPlaceSubtitleBelowSwitch
+                                wrapperStyle={[styles.mv3, styles.mh5]}
+                                isActive={isImported}
+                                onToggle={() =>
+                                    policyID && updateCampfireFieldMapping(policyID, field.id, isImported ? CONST.CAMPFIRE_MAPPING_VALUE.NONE : CONST.CAMPFIRE_MAPPING_VALUE.TAG, mapping)
+                                }
+                                pendingAction={settingsPendingAction([`${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`], campfireConfig?.pendingFields)}
+                                errors={getLatestErrorField(campfireConfig ?? {}, `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
+                                onCloseError={() => policyID && clearCampfireErrorField(policyID, `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`)}
+                            />
+                        );
+                    })}
+                </>
+            )}
             {hasTaxRates && (
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
