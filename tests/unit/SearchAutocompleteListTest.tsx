@@ -616,6 +616,31 @@ describe('SearchAutocompleteList', () => {
             expect(screen.queryByText('Search results')).toBeNull();
         });
 
+        it('should cap Recent chats after a completed search is cleared', async () => {
+            const recentReports = Array.from({length: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS + 1}, (_, index) => {
+                const reportID = String(index + 1);
+                return {reportID, keyForList: reportID, text: `Recent ${reportID}`, alternateText: '', lastMessageText: ''};
+            });
+            getSearchOptionsSpy.mockReturnValue({
+                options: {
+                    recentReports,
+                    personalDetails: [],
+                    currentUserOption: null,
+                    userToInvite: null,
+                },
+            });
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1']);
+            });
+
+            // When the search router opens with an empty query after a completed search
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            // Then Recent chats remains capped at the suggestion limit
+            expect(screen.queryAllByText(/^Recent \d+$/)).toHaveLength(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        });
+
         it('should keep "Recent chats" header when an active search query is entered', async () => {
             // Given recent searches and chats are available
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
@@ -761,7 +786,7 @@ describe('SearchAutocompleteList', () => {
             expect(names.slice(fakeRecentReports.length)).toEqual(serverReports.map(({text}) => text).reverse());
         });
 
-        it('widens the candidate pool to the full pre-filtered set once the server returns an order', async () => {
+        it('keeps the local candidate pool capped once the server returns an order', async () => {
             // Given locally available reports
             await waitForBatchedUpdates();
             await Onyx.multiSet({
@@ -789,8 +814,8 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
-            // Then the candidate pool expands to include all locally available reports
-            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: mockedOptions.reports.length}));
+            // Then the local result candidate pool still uses the suggestion limit
+            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
         });
 
         // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was

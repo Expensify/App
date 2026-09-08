@@ -265,7 +265,7 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
             includeCurrentUser: true,
@@ -298,7 +298,6 @@ function SearchAutocompleteList({
         sortedActions,
         conciergeReportID,
         isTrackIntentUser,
-        searchResultReportIDs,
         translate,
         dateFnsLocale,
         convertToDisplayString,
@@ -417,7 +416,7 @@ function SearchAutocompleteList({
 
     const recentReportsOptions = useMemo(() => {
         if (!hasActiveSearchResults) {
-            return searchOptions.recentReports;
+            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         }
 
         // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
@@ -435,7 +434,8 @@ function SearchAutocompleteList({
         }
 
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
-            const searchTerms = autocompleteQueryValue.split(' ').filter(Boolean);
+            const searchTerms = autocompleteQueryValue.split(' ').filter(Boolean).map(StringUtils.normalizeForMatch);
+            const shouldMatchLogin = searchTerms.some((term) => term.includes('@'));
             const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
             for (const reportID of searchResultReportIDs) {
                 if (matchedReportIDs.has(reportID)) {
@@ -458,7 +458,7 @@ function SearchAutocompleteList({
                     visibleReportActionsData,
                     isTrackIntentUser,
                 });
-                if (!doesReportMatchSearchTerms(reportOption, searchTerms)) {
+                if (!doesReportMatchSearchTerms(reportOption, searchTerms, shouldMatchLogin)) {
                     continue;
                 }
                 reportOptions.push(reportOption);
@@ -475,7 +475,7 @@ function SearchAutocompleteList({
             reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
         }
 
-        return searchResultReportIDs && searchResultReportIDs.length > 0 ? reportOptions : reportOptions.slice(0, 20);
+        return searchResultReportIDs && searchResultReportIDs.length > 0 && hasActiveSearchResults ? reportOptions : reportOptions.slice(0, 20);
     }, [
         autocompleteQueryValue,
         hasActiveSearchResults,
@@ -544,7 +544,12 @@ function SearchAutocompleteList({
     }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     useEffect(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+        if (!handleSearch) {
+            return;
+        }
+
+        if (!autocompleteQueryWithoutFilters) {
+            handleSearch('');
             return;
         }
 
@@ -623,12 +628,12 @@ function SearchAutocompleteList({
             // Active search: keep locally available rows fixed while server-only rows arrive separately.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
-            const serverResultReportIDs = new Set(searchResultReportIDs);
+            const serverResultReportIDs = new Set(searchResultReportIDs ?? []);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
                 if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
-                } else if (searchResultReportIDs === undefined || !item.reportID || serverResultReportIDs.has(item.reportID)) {
+                } else if (searchResultReportIDs == null || !item.reportID || serverResultReportIDs.has(item.reportID)) {
                     serverRows.push(item);
                 }
             }

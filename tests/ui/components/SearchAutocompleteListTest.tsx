@@ -317,7 +317,7 @@ describe('SearchAutocompleteList', () => {
         // Then the report is not added to "Search results"
         expect(JSON.stringify(toJSON())).not.toContain('123123');
         expect(mockCreateOptionFromReport).toHaveBeenCalled();
-        expect(mockDoesReportMatchSearchTerms).toHaveBeenCalledWith(expect.objectContaining({reportID: '456'}), ['a']);
+        expect(mockDoesReportMatchSearchTerms).toHaveBeenCalledWith(expect.objectContaining({reportID: '456'}), ['a'], false);
     });
 
     it('does not display Notifications when Auth returns it as a server-only result', async () => {
