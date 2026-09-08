@@ -1,75 +1,63 @@
 import Log from '@libs/Log';
 
-import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
-import type {ReceiptError} from '@src/types/onyx/Transaction';
 
-import canRetryReceipt from './canRetryReceipt';
+import type {ReceiptRetryContext, RetryOutcome} from './types';
+
+import buildRetryPayload, {canBuildRetryPayload} from './buildRetryPayload';
 import resolveReceiptFile from './resolveReceiptFile';
 
-type RetryOutcome = 'dispatched' | 'fileMissing' | 'unusableParams' | 'unsupportedAction';
+/**
+ * Re-sends a receipt whose upload the queue gave up on.
+ *
+ * `onBeforeDispatch` is awaited, not just called: the builder reads back the `errorFields.createChat` it clears,
+ * and `Onyx.merge` has not reached the cache by the time a synchronous `requestMoney` would look.
+ */
+function retryReceiptUpload(context: ReceiptRetryContext, onBeforeDispatch?: () => Promise<unknown>): Promise<RetryOutcome> {
+    const {receiptError} = context;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/** `transactionParams` and `participantParams` together are unique to a money-request payload among the four retry shapes. */
-function isRequestMoneyInformation(value: unknown): value is RequestMoneyInformation {
-    return isRecord(value) && isRecord(value.transactionParams) && isRecord(value.participantParams);
-}
-
-/** The params are stringified into the error by `getReceiptError`, so in practice this always parses a string. */
-function parseRetryParams(retryParams: ReceiptError['retryParams']): RequestMoneyInformation | undefined {
-    if (typeof retryParams !== 'string') {
-        return isRequestMoneyInformation(retryParams) ? retryParams : undefined;
-    }
-
-    try {
-        const parsed: unknown = JSON.parse(retryParams);
-        return isRequestMoneyInformation(parsed) ? parsed : undefined;
-    } catch {
-        return undefined;
-    }
-}
-
-function retryReceiptUpload(receiptError: ReceiptError, onBeforeDispatch?: () => void): Promise<RetryOutcome> {
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
         Log.hmmm('[ReceiptRetry] No retry path for this action', {action: receiptError.action});
         return Promise.resolve('unsupportedAction');
     }
 
-    const retryParams = parseRetryParams(receiptError.retryParams);
-    if (!retryParams) {
-        Log.hmmm('[ReceiptRetry] Receipt error carries no usable retry params', {action: receiptError.action});
-        return Promise.resolve('unusableParams');
+    if (!canBuildRetryPayload(context)) {
+        Log.hmmm('[ReceiptRetry] The failed expense does not hold enough to rebuild the request', {transactionID: context.transaction?.transactionID});
+        return Promise.resolve('payloadIncomplete');
     }
 
-    return resolveReceiptFile(receiptError.source, receiptError.filename).then((file) => {
-        if (!file) {
+    return resolveReceiptFile(receiptError.source, receiptError.filename).then((receiptFile) => {
+        if (!receiptFile) {
             Log.hmmm('[ReceiptRetry] Receipt file is no longer on the device, cannot retry', {source: receiptError.source});
             return 'fileMissing';
         }
 
-        Log.info('[ReceiptRetry] Retrying receipt upload', false, {
-            action: receiptError.action,
-            transactionID: retryParams.optimisticTransactionID,
+        return Promise.resolve(onBeforeDispatch?.()).then(() => {
+            const payload = buildRetryPayload(context, receiptFile);
+            if (!payload) {
+                Log.hmmm('[ReceiptRetry] The failed expense does not hold enough to rebuild the request', {transactionID: context.transaction?.transactionID});
+                return 'payloadIncomplete';
+            }
+
+            Log.info('[ReceiptRetry] Retrying receipt upload', false, {
+                action: receiptError.action,
+                transactionID: payload.optimisticTransactionID,
+            });
+
+            try {
+                requestMoney({...payload, isRetry: true, shouldPlaySound: false});
+            } catch (error) {
+                Log.alert('[ReceiptRetry] Dispatching the retry threw', {transactionID: payload.optimisticTransactionID, error});
+                return 'dispatchFailed';
+            }
+
+            return 'dispatched';
         });
-
-        onBeforeDispatch?.();
-
-        requestMoney({
-            ...retryParams,
-            isRetry: true,
-            shouldPlaySound: false,
-            transactionParams: {...retryParams.transactionParams, receipt: file},
-        });
-
-        return 'dispatched';
     });
 }
 
 export default retryReceiptUpload;
-export {canRetryReceipt};
-export type {RetryOutcome};
+export {canBuildRetryPayload};
+export type {ReceiptRetryContext, RetryOutcome};

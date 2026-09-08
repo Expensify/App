@@ -1722,11 +1722,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const existingTransaction =
         explicitExistingTransaction ?? (action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
-    const optimisticTransactionIDForRetry = existingTransactionID ?? requestMoneyInformation.optimisticTransactionID ?? NumberUtils.rand64();
-
     const retryParams = {
         ...requestMoneyInformation,
-        optimisticTransactionID: optimisticTransactionIDForRetry,
         participantParams: {
             ...requestMoneyInformation.participantParams,
             participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
@@ -1769,7 +1766,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-        optimisticTransactionID: optimisticTransactionIDForRetry,
+        optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,
