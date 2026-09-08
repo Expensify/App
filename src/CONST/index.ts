@@ -8185,6 +8185,15 @@ const CONST = {
                 icon: 'Members',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            recruiting: {
+                id: 'recruiting' as const,
+                alias: 'recruiting',
+                name: 'Recruiting',
+                title: 'workspace.upgrade.recruiting.title' as const,
+                description: 'workspace.upgrade.recruiting.description' as const,
+                icon: 'NewUser',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             travel: {
                 id: 'travel' as const,
                 alias: 'travel',

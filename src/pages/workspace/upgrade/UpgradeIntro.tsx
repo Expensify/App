@@ -81,6 +81,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'InvoiceBlue',
         'Members',
         'Approval',
+        'NewUser',
     ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons([
         'IntacctSquare',
