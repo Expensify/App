@@ -7903,6 +7903,7 @@ describe('actions/Report', () => {
                 hasCompletedGuidedSetupFlow: false,
                 conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSupportalSession: false,
             });
             await waitForBatchedUpdates();
 
@@ -7932,6 +7933,7 @@ describe('actions/Report', () => {
                 hasCompletedGuidedSetupFlow: true,
                 conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSupportalSession: false,
             });
             await waitForBatchedUpdates();
 
@@ -9078,7 +9080,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
-                betas: undefined,
+                conciergeChat: undefined,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
