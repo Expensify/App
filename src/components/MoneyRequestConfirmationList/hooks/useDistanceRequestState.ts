@@ -87,15 +87,18 @@ function useDistanceRequestState({
     const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
     const customUnit = transaction?.comment?.customUnit;
     const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
-    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (customUnit?.quantity ?? 1) : distanceRate;
+    const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const distance = getDistanceInMeters(transaction, unit);
+    // When moving a track expense before quantity is written (offline / fast submit), quantity can be
+    // missing while routeDistanceMeters (or routes) already has the distance — use that for the divisor.
+    const quantity = customUnit?.quantity || (distance > 0 ? DistanceRequestUtils.convertDistanceUnit(distance, amountUnit) : undefined);
+    const rate = calculateFromTransactionData ? (quantity ? Math.abs(iouAmount) / quantity : distanceRate) : distanceRate;
     const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
     const prevRate = usePrevious(rate);
     const prevUnit = usePrevious(unit);
     const prevCurrency = usePrevious(currency);
 
-    const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-    const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, amountUnit);
     const reimbursableDistance = commuterExclusionData?.reimbursableDistance;
     const prevReimbursableDistance = usePrevious(reimbursableDistance);

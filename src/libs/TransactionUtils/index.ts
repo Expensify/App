@@ -519,14 +519,19 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         // If customUnit is provided (e.g., for split expenses), use it directly
         // Otherwise, build customUnit from distance parameter
         if (customUnit) {
-            lodashSet(commentJSON, 'customUnit', customUnit);
+            lodashSet(commentJSON, 'customUnit', {...customUnit});
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
+            // Clone so lodash.set cannot mutate the live draft held in Onyx.
+            lodashSet(commentJSON, 'customUnit', {...(existingTransaction?.comment?.customUnit ?? {})});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
-            lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            if (typeof distance === 'number') {
+                lodashSet(commentJSON, 'customUnit.quantity', distance);
+            }
+            if (customUnitRateID) {
+                lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            }
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (typeof routeDistanceMeters === 'number') {
                 lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);

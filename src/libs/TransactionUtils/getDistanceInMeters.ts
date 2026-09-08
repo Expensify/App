@@ -25,6 +25,12 @@ function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: U
         return selectedRouteDistance;
     }
 
+    // After save, routes are cleared and the selected route distance is kept on customUnit as optimistic/BE data.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    if (routeDistanceMeters) {
+        return routeDistanceMeters;
+    }
+
     return 0;
 }
 
