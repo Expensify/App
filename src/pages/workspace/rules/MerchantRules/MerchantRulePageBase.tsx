@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -156,7 +157,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck', 'Trashcan']);
     const getItemIcon = (icon: IconAsset) => (isRulesRevampEnabled ? icon : undefined);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
@@ -644,16 +645,6 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
                         </Button>
                     )}
-                    {(isEditing || canDeleteCategoryTaxRule) && (
-                        <Button
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={handleDelete}
-                            style={[styles.mb4]}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                        >
-                            <Button.Text>{translate('workspace.rules.merchantRules.deleteRule')}</Button.Text>
-                        </Button>
-                    )}
                 </>
             }
         />
@@ -702,6 +693,16 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             </View>
         ));
 
+    const deleteMenuItem: PopoverMenuItem[] = [
+        {
+            icon: icons.Trashcan,
+            text: translate('common.delete'),
+            onSelected: () => {
+                handleDelete();
+            },
+        },
+    ];
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -714,9 +715,14 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}>
+                <HeaderWithBackButton
+                    title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}
+                    threeDotsMenuItems={deleteMenuItem}
+                    shouldShowThreeDotsButton={isEditing || canDeleteCategoryTaxRule}
+                    shouldMinimizeMenuButton
+                >
                     {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
-                        switch condition type, which the two storage shapes can't express as one edit. */}
+-                        switch condition type, which the two storage shapes can't express as one edit. */}
                     {canWriteRules && isRulesRevampEnabled && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && (
                         <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                     )}
