@@ -26,6 +26,7 @@ import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompan
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isZenefitsConnected} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
+import {getConnectedATSProvider, isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -59,6 +60,7 @@ import {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
@@ -93,6 +95,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {showConfirmModal} = useConfirmModal();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isRecruitingEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -112,6 +115,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
         'Members',
+        'NewUser',
     ]);
 
     const policyID = policy?.id;
@@ -241,6 +245,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         await showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
             prompt: translate('workspace.moreFeatures.hrWarningModal.disconnectText', {integration}),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const warnDisconnectRecruitingFirst = async () => {
+        if (!isAnyRecruitingConnected(policy)) {
+            return;
+        }
+        await showConfirmModal({
+            title: translate('workspace.distanceRates.oopsNotSoFast'),
+            prompt: translate('workspace.moreFeatures.recruitingWarningModal.disconnectText', {integration: getConnectedATSProvider(policy)?.displayName ?? ''}),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
@@ -417,6 +433,33 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
+                        {isRecruitingEnabled && (
+                            <MoreFeatureToggle
+                                icon={illustrations.NewUser}
+                                title={translate('workspace.recruiting.title')}
+                                subtitle={translate('workspace.recruiting.subtitle')}
+                                isActive={
+                                    ((policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy)) &&
+                                        canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)) ??
+                                    false
+                                }
+                                pendingAction={policy?.pendingFields?.isRecruitingEnabled}
+                                disabled={!canWriteMoreFeatures || isAnyRecruitingConnected(policy)}
+                                disabledAction={withReadOnlyFallback(warnDisconnectRecruitingFirst)}
+                                onToggle={(isEnabled) => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    enablePolicyRecruiting(policyID, isEnabled);
+                                }}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_RECRUITING.getRoute(policyID));
+                                }}
+                            />
+                        )}
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>

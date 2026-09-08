@@ -33,6 +33,7 @@ const icons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function buildPolicy(role: Policy['role']): Policy {

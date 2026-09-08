@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
+import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
 import {
     arePolicyRulesEnabled,
@@ -65,7 +66,8 @@ type WorkspaceMenuIconMap = Record<
     | 'Clock'
     | 'InvoiceGeneric'
     | 'Gear'
-    | 'Bolt',
+    | 'Bolt'
+    | 'UserPlus',
     IconAsset
 >;
 
@@ -170,6 +172,8 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
         [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: (policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
+        [CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED]:
+            (policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: arePolicyRulesEnabled(policy, policyCategories, isRulesRevampBetaEnabled),
@@ -239,6 +243,17 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.HR,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED] && canReadMoreFeatures) {
+            items.push({
+                translationKey: 'workspace.common.recruiting',
+                icon: icons.UserPlus,
+                getRoute: () => ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.RECRUITING,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECRUITING,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
             });
         }
 
