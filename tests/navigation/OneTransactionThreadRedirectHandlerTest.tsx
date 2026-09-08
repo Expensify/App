@@ -2,6 +2,7 @@
 import {render, waitFor} from '@testing-library/react-native';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OneTransactionThreadRedirectHandler from '@src/pages/inbox/OneTransactionThreadRedirectHandler';
 import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
@@ -14,6 +15,12 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const THREAD_REPORT_ID = '12345';
 const EXPENSE_REPORT_ID = '54321';
+const TRANSACTION_ID = '11111';
+const SIBLING_TRANSACTION_ID = '22222';
+
+// Inlined rather than read off `ONYXKEYS`: a `jest.mock` factory may only close over literal-initialised locals.
+// The test below asserts the two stay in sync.
+const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,10 +49,14 @@ jest.mock('@react-navigation/native', () => {
 
 let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
 let mockParentTransactionCount: number | undefined = 1;
+let mockSiblingTransactionIDs: string[] | undefined;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        if (key === TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY) {
+            return [mockSiblingTransactionIDs, {status: 'loaded'}];
+        }
         const value = key.endsWith(EXPENSE_REPORT_ID)
             ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
             : {reportID: THREAD_REPORT_ID, parentReportID: mockParentReportID, parentReportActionID: '1'};
@@ -72,7 +83,7 @@ function createIOUAction(type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, IOU
         reportActionID: '1',
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         created: '2024-01-01 00:00:00',
-        originalMessage: {type, IOUDetails},
+        originalMessage: {type, IOUDetails, IOUTransactionID: TRANSACTION_ID},
     } as unknown as ReportAction;
 }
 
@@ -87,6 +98,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockParentTransactionCount = 1;
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+        mockSiblingTransactionIDs = undefined;
     });
 
     it('replaces the route with the parent report when the thread is the only expense of the report', async () => {
@@ -94,6 +106,61 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
         expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('mocks the sibling set under the key the handler subscribes to', () => {
+        expect(TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY).toBe(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    });
+
+    it('keeps the thread route while the prev/next carousel is stepping through a sibling set', async () => {
+        // Home "Recently added", "Review N flagged expenses" and the duplicate review list all seed a cross-report
+        // sibling set and open the thread precisely because the arrows only exist in the thread's header. Redirecting
+        // to the parent report would swap in `MoneyReportHeader` and dead-end the carousel mid-review.
+        mockSiblingTransactionIDs = [TRANSACTION_ID, SIBLING_TRANSACTION_ID];
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('redirects when the sibling set holds only this expense, because the carousel renders no arrows for it', async () => {
+        mockSiblingTransactionIDs = [TRANSACTION_ID];
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('redirects when a sibling set left behind by another report does not contain this expense', async () => {
+        mockSiblingTransactionIDs = ['33333', SIBLING_TRANSACTION_ID];
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('keeps the thread route after the carousel clears its sibling set', async () => {
+        mockSiblingTransactionIDs = [TRANSACTION_ID, SIBLING_TRANSACTION_ID];
+
+        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        // `clearActiveTransactionIDs` runs when the carousel unmounts. Acting on that would eject the user out of a
+        // thread they are still paging through, so the suppression is latched for the thread it was observed on.
+        mockSiblingTransactionIDs = undefined;
+        rerender(<OneTransactionThreadRedirectHandler />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('keeps the thread route when the parent report holds more than one expense', async () => {
@@ -293,6 +360,24 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
         expect(mockGoBack).toHaveBeenCalledWith(backTo);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['a dynamic modal nested under the inbox report', SCREENS.REPORT, `/r/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
+        ['a dynamic modal nested under the search RHP report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/view/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
+        ['a sub-route of the search money request report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/r/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
+        ['a sub-route of the expense report RHP', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/e/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
+    ])('does not go back when backTo points at %s rather than the report itself', async (_name, routeName, backTo) => {
+        // `createDynamicRoute` builds a dynamic modal's path as `<activeRoute>/<suffix>`, so any modal opened from the
+        // parent report is nested under it. Popping onto one would drop the user back into the page they came from -
+        // for Review duplicates that is the list whose row they just tapped, making the row a dead control.
+        mockRouteName = routeName;
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('replaces the route when backTo is anchored at an action of a different report', async () => {
