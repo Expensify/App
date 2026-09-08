@@ -43,6 +43,9 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
+
+    /** Optional content rendered above the list, e.g. explanatory text about what the filter applies to */
+    header?: React.JSX.Element;
 };
 
 /**
@@ -59,6 +62,7 @@ function SingleSelectImpl({
     shouldShowList = true,
     hasTitle,
     hasHeader,
+    header,
     itemHeight,
     shouldUseFixedPopoverHeight,
     footer,
@@ -152,6 +156,7 @@ function SingleSelectImpl({
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
+                    customListHeaderContent={header}
                     footerContent={footer}
                 />
             </Activity>

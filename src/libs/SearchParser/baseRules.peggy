@@ -52,6 +52,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }

@@ -40,6 +40,7 @@ import type {
     IsFilterValue,
     IsFilterValues,
     ReceiptTypeValue,
+    TransactionStatusValue,
     SearchAdvancedFiltersKey,
     SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
@@ -103,6 +104,7 @@ const operatorToCharMap = {
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -979,6 +981,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
+                    filterKey === FILTER_KEYS.TRANSACTION_STATUS ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
@@ -1400,6 +1403,9 @@ function buildFilterFormValuesFromQuery(
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
             }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
+            filtersForm[filterKey] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue => VALID_TRANSACTION_STATUSES.has(transactionStatus));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;

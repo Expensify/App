@@ -1149,6 +1149,34 @@ const keywordTests = [
         },
     },
     {
+        query: 'transaction-status:pending',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: 'pending',
+            },
+        },
+    },
+    {
+        query: 'transactionStatus:pending,posted',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'transactionStatus',
+                right: ['pending', 'posted'],
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',

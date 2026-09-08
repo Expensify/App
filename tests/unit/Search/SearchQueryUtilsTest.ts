@@ -423,6 +423,17 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense receiptType:ereceipt,hotel');
         });
 
+        test('transaction status filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                transactionStatus: 'pending',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense transactionStatus:pending');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1730,6 +1741,42 @@ describe('SearchQueryUtils', () => {
 
             // invalid should be filtered out, ereceipt and hotel are valid CONST.SEARCH.RECEIPT_TYPE values
             expect(result.receiptType).toEqual(['ereceipt', 'hotel']);
+        });
+
+        test('transaction status filter validates against valid statuses', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:pending,invalid';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Pending and posted are mutually exclusive, so the form holds a single value: the first valid one, with the invalid value discarded
+            expect(result.transactionStatus).toEqual('pending');
+        });
+
+        test('transaction status filter keeps only the first value when a query lists several', () => {
+            // A hand-typed query can carry a comma-separated list, but the filter is single-select so only one value survives into the form.
+            const queryString = 'sortBy:date sortOrder:desc type:expense transaction-status:posted,pending';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result.transactionStatus).toEqual('posted');
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {

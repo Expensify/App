@@ -1,4 +1,5 @@
 import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,11 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     onNegationChange: (isNegated: boolean) => void;
 };
 
-type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
+type SingleSelectFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
 type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     baseFilterKey: SingleSelectFilterKeys;
 };
@@ -61,13 +66,21 @@ type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedF
 
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
+
+    // Pending and posted are only ever set on card transactions, so the filter says so rather than encoding the caveat in its name.
+    const header =
+        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS ? (
+            <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>{translate('search.filters.transactionStatus.hint')}</Text>
+        ) : undefined;
 
     return (
         <SingleSelect
             items={items}
             value={items.find((option) => option.value === value)}
             selectionListStyle={selectionListStyle}
+            header={header}
             footer={footer}
             allowDeselect
             onChange={(item) => onChange(item?.value)}
@@ -178,6 +191,7 @@ function ListFilterContent({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
                 return typeof v === 'string';
