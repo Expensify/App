@@ -4462,6 +4462,7 @@ const CONST = {
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS: 'preventPayoutNonReimbursableReports',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         PROHIBITED_EXPENSES: {
