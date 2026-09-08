@@ -544,8 +544,9 @@ function flagReportNavigatedAway(reportID: string | undefined) {
 // openReport of the session and resets only on a genuine reload (page refresh / cold start), so it's the
 // signal for "has this report already been loaded this session" — used by openReport below to also clear the
 // manual unread marker on a page refresh, on top of the navigate-away-and-back case above.
+// We use connectWithoutView because this is only read inside the `openReport` action, never during render.
 let allReportLoadingStates: OnyxCollection<ReportLoadingState>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
     callback: (value) => {
         allReportLoadingStates = value;
