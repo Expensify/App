@@ -106,29 +106,31 @@ function EditPromptPage({route}: EditPromptPageProps) {
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <View
-                    style={shouldShrinkPromptInput ? [StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE), styles.overflowHidden] : [styles.flex1]}
-                    onLayout={(event) => {
-                        promptTopOffsetRef.current = event.nativeEvent.layout.y;
-                    }}
-                >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PROMPT}
-                        label={translate('editAgentPage.instructions')}
-                        accessibilityLabel={translate('editAgentPage.instructions')}
-                        role={CONST.ROLE.PRESENTATION}
-                        type="markdown"
-                        excludedMarkdownStyles={['mentionReport']}
-                        defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
-                        multiline
-                        containerStyles={[styles.h100]}
-                        touchableInputWrapperStyle={[styles.flex1]}
-                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        onFocus={handleInputFocus}
-                    />
+                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                    <View
+                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [styles.flex1]}
+                        onLayout={(event) => {
+                            promptTopOffsetRef.current = event.nativeEvent.layout.y;
+                        }}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PROMPT}
+                            label={translate('editAgentPage.instructions')}
+                            accessibilityLabel={translate('editAgentPage.instructions')}
+                            role={CONST.ROLE.PRESENTATION}
+                            type="markdown"
+                            excludedMarkdownStyles={['mentionReport']}
+                            defaultValue={Str.htmlDecode(agentPrompt?.prompt ?? '')}
+                            multiline
+                            containerStyles={[styles.h100]}
+                            touchableInputWrapperStyle={[styles.flex1]}
+                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            onFocus={handleInputFocus}
+                        />
+                    </View>
+                    <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
                 </View>
-                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             </FormProvider>
         </ScreenWrapper>
     );
