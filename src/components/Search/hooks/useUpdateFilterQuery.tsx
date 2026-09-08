@@ -38,13 +38,7 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     }
 
     function setFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
-        const queryString =
-            buildFilterQueryWithSortDefaults(
-                values,
-                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
-                {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
-                policies,
-            ) ?? '';
+        const queryString = buildFilterQueryWithSortDefaults(values, {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy}, queryJSON ?? {}, policies) ?? '';
         if (!queryString) {
             return;
         }

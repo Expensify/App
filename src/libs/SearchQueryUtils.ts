@@ -902,6 +902,8 @@ type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
+    /** Original query filters, including predicates that cannot fit in a single form field. */
+    flatFilters?: QueryFilters;
 };
 
 /**
@@ -940,6 +942,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, groupBy, view, columns, limit, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
+    const merchantFilters =
+        options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT && !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO)) ?? [];
+    const lastMerchantFilter = merchantFilters.at(-1);
+    // The form displays the last positive Merchant clause. Preserve all original clauses until that field changes.
+    const shouldPreserveMerchantFilters =
+        merchantFilters.length > 1 &&
+        supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',') &&
+        getMerchantOperator(merchantOperator) ===
+            (lastMerchantFilter?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : DEFAULT_MERCHANT_OPERATOR);
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1000,6 +1011,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 if (keyInCorrectForm) {
                     let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
                     if (filterKey === FILTER_KEYS.MERCHANT && !isNegated) {
+                        if (shouldPreserveMerchantFilters) {
+                            return merchantFilters.map((filter) => buildFilterValuesString(FILTER_KEYS.MERCHANT, filter.filters).trim()).join(' ');
+                        }
+
                         operator =
                             getMerchantOperator(merchantOperator) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                 ? EXPLICIT_EQUAL_TO_OPERATOR
@@ -2462,7 +2477,7 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
-    currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    currentQueryOptions: BuildQueryStringOptions,
     policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
@@ -2481,6 +2496,7 @@ function buildFilterQueryWithSortDefaults(
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
         sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
         sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
+        flatFilters: currentQueryOptions.flatFilters,
     });
 
     if (!resetSort && !resetSortForViewChange) {
