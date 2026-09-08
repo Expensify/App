@@ -942,10 +942,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'ここから始めましょう！',
     },
     homePage: {
-        forYou: 'あなた向け',
+        toDos: 'To-do リスト',
         timeSensitiveSection: {
             title: '時間に敏感',
-            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
@@ -968,7 +968,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
             validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
-            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '住所を追加'},
+            addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
                 workspaceTitle: 'ビジネス用銀行口座がロックされました',
@@ -976,7 +976,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'ウォレット',
             },
-            addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '詳細を追加'},
+            addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1106,7 +1106,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'あなたの支出',
             awaitingApproval: '承認待ち',
             repaidLast30Days: '過去30日間の返済',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `最近の取引 • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `さらに${count}件表示`,
         recentlyAddedSection: {
@@ -4128,8 +4127,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
         enterTheDateOfBirthOfTheOwner: '所有者の生年月日はいつですか？',
-        enterTheLast4: '所有者の社会保障番号の下4桁を入力してください。',
-        last4SSN: 'SSN の下4桁',
+        enterTheSSN: '所有者の社会保障番号は何ですか？',
         dontWorry: 'ご安心ください。個人信用情報の審査は一切行いません。',
         enterTheOwnersAddress: 'オーナーの住所は何ですか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
@@ -4156,13 +4154,12 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         whatsYourDOB: '生年月日はいつですか？',
         whatsTheOwnersAddress: 'オーナーの住所は何ですか？',
         whatsYourAddress: 'あなたの住所は何ですか？',
-        whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
-        whatsYourLast: 'あなたの社会保障番号の下4桁は何ですか？',
+        whatsTheOwnersSSN: '所有者の社会保障番号は何ですか？',
+        whatsYourSSN: 'あなたの社会保障番号は何ですか？',
         whatsYourNationality: 'あなたの市民権を持つ国はどこですか？',
         whatsTheOwnersNationality: '所有者の国籍はどこですか？',
         countryOfCitizenship: '市民権のある国',
         dontWorry: 'ご安心ください。個人信用情報の審査は一切行いません。',
-        last4: 'SSN の下4桁',
         whyDoWeAsk: 'なぜこの情報が必要なのですか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
         legalName: '法的氏名',
@@ -4184,6 +4181,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         proofOfBeneficialOwner: '受益所有者の証明',
         proofOfBeneficialOwnerDescription:
             '事業の所有権が25%以上であることを証明するため、公認会計士、公証人、または弁護士が署名した宣誓書および組織図をご提出ください。日付は過去3か月以内のものであり、署名者の免許番号が記載されている必要があります。',
+        proofOfBeneficialOwnerDescriptionCA:
+            '直近の T2 法人所得税申告書に含まれる Schedule 50（株主情報）をご提出ください。事業の持分を 25％以上所有しているすべての個人が分かるものをご用意ください。',
         copyOfID: '実質的支配者の本人確認書類のコピー',
         copyOfIDDescription: '例：パスポート、運転免許証など',
         proofOfAddress: '実質的支配者の住所証明',
