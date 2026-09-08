@@ -216,13 +216,13 @@ function DynamicNewTaskPage() {
                                 titleStyle={styles.flex1}
                             />
                             {assignee?.displayName ? (
-                                <MenuItemWithLabel
-                                    label={translate('task.assignee')}
+                                <MenuItem.Root
                                     accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
-                                    onPress={navigateToAssignee}
+                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Content>
+                                            <MenuItem.Label>{translate('task.assignee')}</MenuItem.Label>
                                             <UserPill
                                                 avatar={assigneePersonalDetails?.avatar}
                                                 displayName={assignee.displayName}
@@ -235,7 +235,7 @@ function DynamicNewTaskPage() {
                                             <MenuItem.Chevron />
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
-                                </MenuItemWithLabel>
+                                </MenuItem.Root>
                             ) : (
                                 <MenuItemEmptyField
                                     description={translate('task.assignee')}
