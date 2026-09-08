@@ -220,6 +220,7 @@ const workspaceIcons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
