@@ -1,5 +1,6 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -15,7 +16,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useImperativeHandle, useMemo, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -35,9 +36,11 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
+const EMPTY_GROUP_KEYS: ReadonlySet<string> = new Set<string>();
+
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
+const isGroupFullyDeleted = (item: SearchListItem) => isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted);
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
@@ -94,7 +97,7 @@ function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Trans
  */
 function ExpenseGroupedSearchView({
     queryJSON,
-    data,
+    data: sourceData,
     columns,
     canSelectMultiple,
     isActionColumnWide,
@@ -116,6 +119,42 @@ function ExpenseGroupedSearchView({
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
+
+    // A group row carries no pendingAction of its own: its delete state is read off its child transactions.
+    // Deleting every expense in a group therefore leaves a window where the children have already been cleared
+    // from the snapshot but the group entry has not, and the group would read as "not deleted" again until the
+    // next Search response drops it. Carrying the group keys last seen fully pending-delete forward keeps the row
+    // out of the list across that window. A key is dropped as soon as the group has a child that is not pending
+    // delete (the delete failed and was rolled back) or the group leaves the snapshot.
+    const [lastSeen, setLastSeen] = useState<{data: SearchListItem[] | undefined; keys: ReadonlySet<string>}>({data: undefined, keys: EMPTY_GROUP_KEYS});
+    let groupKeysPendingDelete = lastSeen.keys;
+    if (lastSeen.data !== sourceData) {
+        const nextKeys = new Set<string>();
+        for (const item of sourceData) {
+            const key = item.keyForList;
+            if (!key || !isTransactionGroupListItemType(item)) {
+                continue;
+            }
+            if (item.transactions.length === 0 ? lastSeen.keys.has(key) : item.transactions.every(isRowDeleted)) {
+                nextKeys.add(key);
+            }
+        }
+        groupKeysPendingDelete = nextKeys;
+        setLastSeen({data: sourceData, keys: nextKeys});
+    }
+
+    const isGroupPendingDelete = (item: SearchListItem) => isRowDeleted(item) || isGroupFullyDeleted(item) || (!!item.keyForList && groupKeysPendingDelete.has(item.keyForList));
+
+    // Once a deleted group's children are gone the row has nothing left to render, so drop it from the list and
+    // let its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
+    const data = useMemo(
+        () =>
+            isOffline
+                ? sourceData
+                : sourceData.filter((item) => !(isTransactionGroupListItemType(item) && item.transactions.length === 0 && groupKeysPendingDelete.has(item.keyForList ?? ''))),
+        [sourceData, isOffline, groupKeysPendingDelete],
+    );
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -137,7 +176,6 @@ function ExpenseGroupedSearchView({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const {
-        isOffline,
         isKeyboardShown,
         safeAreaPaddingBottomStyle,
         toggle,
@@ -270,7 +308,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
-                isRowExiting={isGroupRowExiting(item)}
+                isRowExiting={isGroupPendingDelete(item)}
             >
                 <TransactionGroupListItem
                     showTooltip

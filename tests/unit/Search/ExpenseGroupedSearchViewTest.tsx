@@ -29,9 +29,10 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+const mockIsOffline = {current: false};
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
-        isOffline: false,
+        isOffline: mockIsOffline.current,
     })),
 );
 
@@ -179,7 +180,7 @@ type RenderOverrides = {
 };
 
 function renderView(overrides: RenderOverrides = {}) {
-    const data = overrides.data ?? createMockGroupData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
+    let data = overrides.data ?? createMockGroupData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
 
     function Wrapper() {
         const onSelectRow = useCallback((item: SearchListItem) => overrides.onSelectRow?.(item), []);
@@ -222,11 +223,19 @@ function renderView(overrides: RenderOverrides = {}) {
         );
     }
 
-    return render(
+    const buildTree = () => (
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider, ScrollOffsetContextProvider]}>
             <Wrapper />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+    const result = render(buildTree());
+    return {
+        ...result,
+        setData: (nextData: SearchListItem[]) => {
+            data = nextData;
+            result.rerender(buildTree());
+        },
+    };
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -239,6 +248,7 @@ beforeEach(() => {
     mockToggleAll.mockClear();
     mockSelectedTransactions.current = {};
     mockTopBar.current = null;
+    mockIsOffline.current = false;
     for (const key of Object.keys(mockRowSelect)) {
         delete mockRowSelect[key];
     }
@@ -330,6 +340,53 @@ describe('ExpenseGroupedSearchView', () => {
         await waitForBatchedUpdates();
 
         expect(countArmedExitAnimations(root)).toBe(1);
+    });
+
+    it('keeps a fully deleted group row out of the list once its child transactions are cleared', async () => {
+        // Deleting every expense in a group clears the children from the snapshot before the group entry itself is
+        // dropped by the next Search response. Across that window the group has no pending-delete child left to read
+        // its state from, so without the remembered key the row would reappear and then vanish again.
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        act(() => setData(createMockGroupData([{transactionCount: 0}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('row-group-0')).toBeNull();
+        expect(screen.getByTestId('row-group-1')).toBeOnTheScreen();
+    });
+
+    it('keeps a group row whose transactions have not loaded yet', async () => {
+        // An empty transaction list also means "this group's sub-snapshot has not arrived", so an empty group that was
+        // never deleting must still render.
+        renderView({data: createMockGroupData([{transactionCount: 0}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+
+    it('brings a group row back when a failed delete restores its child transactions', async () => {
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        act(() => setData(createMockGroupData([{transactionCount: 0}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+        expect(screen.queryByTestId('row-group-0')).toBeNull();
+
+        act(() => setData(createMockGroupData([{transactionCount: 2}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+
+    it('keeps a fully deleted group row visible while offline so its pending-delete styling shows', async () => {
+        mockIsOffline.current = true;
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        act(() => setData(createMockGroupData([{transactionCount: 0}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
     });
 
     it('does not arm the FadeOutUp exit on a group that survives a partial delete', async () => {
