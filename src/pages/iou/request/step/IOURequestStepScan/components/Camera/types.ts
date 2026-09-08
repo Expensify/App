@@ -25,6 +25,12 @@ type CameraProps = {
 
     /** Called when the user taps the multi-scan submit button on the preview ribbon. Used by native and mobile web. */
     onMultiScanSubmit?: () => void;
+
+    /**
+     * Whether a receipt captured here may be swapped for the full-resolution still that lands a moment
+     * later. Screens that submit at capture time opt out, since the upload can read the file mid-swap.
+     */
+    canUpgradeReceiptQuality?: boolean;
 };
 
 export default CameraProps;

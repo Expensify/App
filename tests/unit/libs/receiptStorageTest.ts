@@ -3,11 +3,13 @@ import type ReceiptStorageType from '@libs/ReceiptStorage/types';
 const mockExists = jest.fn<Promise<boolean>, [string]>();
 const mockMv = jest.fn<Promise<void>, [string, string]>();
 const mockMkdir = jest.fn<Promise<void>, [string]>();
+const mockUnlink = jest.fn<Promise<void>, [string]>();
 
 jest.mock('react-native-fs', () => ({
     exists: (path: string) => mockExists(path),
     moveFile: (from: string, to: string) => mockMv(from, to),
     mkdir: (path: string) => mockMkdir(path),
+    unlink: (path: string) => mockUnlink(path),
 }));
 
 jest.mock('@libs/NumberUtils', () => ({rand64: () => '1234'}));
@@ -27,6 +29,7 @@ describe('ReceiptStorage', () => {
         mockExists.mockResolvedValue(true);
         mockMv.mockResolvedValue(undefined);
         mockMkdir.mockResolvedValue(undefined);
+        mockUnlink.mockResolvedValue(undefined);
     });
 
     describe('adopt', () => {
@@ -70,6 +73,102 @@ describe('ReceiptStorage', () => {
             mockExists.mockResolvedValue(false);
 
             await expect(ReceiptStorage.adopt('file:///cache/img.jpg', 'receipt.jpg')).rejects.toThrow('not in durable storage');
+        });
+    });
+
+    describe('replace', () => {
+        const RECEIPT = 'CAM-1.jpg';
+        const STILL = '/var/mobile/tmp/still.jpg';
+
+        // Only the receipt is on disk, not the staged or backup paths a previous swap would have used.
+        const onlyTheReceiptExists = (path: string) => Promise.resolve(path === `${FOLDER}/${RECEIPT}`);
+
+        it('swaps the bytes and hands back the same durable name, so every consumer of the receipt follows along', async () => {
+            mockExists.mockImplementation(onlyTheReceiptExists);
+
+            const name = await ReceiptStorage.replace(RECEIPT, `file://${STILL}`);
+
+            expect(name).toBe(RECEIPT);
+            expect(mockMv.mock.calls).toEqual([
+                [STILL, `${FOLDER}/${RECEIPT}.staged`],
+                [`${FOLDER}/${RECEIPT}`, `${FOLDER}/${RECEIPT}.backup`],
+                [`${FOLDER}/${RECEIPT}.staged`, `${FOLDER}/${RECEIPT}`],
+            ]);
+        });
+
+        it('drops the file it moved aside once the swap went through, so a capture leaves one receipt behind', async () => {
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${FOLDER}/${RECEIPT}` || path === `${FOLDER}/${RECEIPT}.backup`));
+
+            await ReceiptStorage.replace(RECEIPT, STILL);
+
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`);
+        });
+
+        it('puts the original receipt back when the swap fails, rather than leaving the receipt missing', async () => {
+            const existing = new Set([`${FOLDER}/${RECEIPT}`]);
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockMv.mockImplementation((from: string, to: string) => {
+                if (from === `${FOLDER}/${RECEIPT}.staged` && to === `${FOLDER}/${RECEIPT}`) {
+                    return Promise.reject(new Error('no space left on device'));
+                }
+                existing.delete(from);
+                existing.add(to);
+                return Promise.resolve();
+            });
+
+            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow('no space left on device');
+
+            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+        });
+
+        it('reports where the receipt was left when the swap fails and the restore fails too', async () => {
+            const existing = new Set([`${FOLDER}/${RECEIPT}`]);
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockMv.mockImplementation((from: string, to: string) => {
+                if (to === `${FOLDER}/${RECEIPT}`) {
+                    return Promise.reject(new Error('no space left on device'));
+                }
+                existing.delete(from);
+                existing.add(to);
+                return Promise.resolve();
+            });
+
+            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow(`it is left at ${FOLDER}/${RECEIPT}.backup`);
+
+            // Freeing the staged copy gives a full disk room for the restore, so it happens even when the
+            // restore then fails.
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+        });
+
+        it('still reports success when only the housekeeping delete fails, because the receipt is already swapped', async () => {
+            mockExists.mockImplementation(onlyTheReceiptExists);
+            mockUnlink.mockRejectedValue(new Error('permission denied'));
+
+            await expect(ReceiptStorage.replace(RECEIPT, STILL)).resolves.toBe(RECEIPT);
+        });
+
+        it('rejects without touching anything when the receipt is not in durable storage', async () => {
+            mockExists.mockResolvedValue(false);
+
+            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow('not in durable storage');
+            expect(mockMv).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('discard', () => {
+        it('deletes a temporary file', async () => {
+            await ReceiptStorage.discard('file:///var/mobile/tmp/still.jpg');
+
+            expect(mockUnlink).toHaveBeenCalledWith('/var/mobile/tmp/still.jpg');
+        });
+
+        it('resolves without deleting when the file is already gone', async () => {
+            mockExists.mockResolvedValue(false);
+
+            await ReceiptStorage.discard('/var/mobile/tmp/still.jpg');
+
+            expect(mockUnlink).not.toHaveBeenCalled();
         });
     });
 

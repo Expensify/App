@@ -1,6 +1,7 @@
 import {cleanFileName, isLocalFile} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import RNFS from 'react-native-fs';
@@ -48,6 +49,73 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
     return verify(dir, uniqueName);
 };
 
+const discard: ReceiptStorage['discard'] = async (uriOrPath) => {
+    const path = fileURIToPath(uriOrPath);
+    if (!(await RNFS.exists(path))) {
+        return;
+    }
+    await RNFS.unlink(path);
+};
+
+/**
+ * Deletes a file left over by a swap. Never rethrows, since the receipt is already in its final state and
+ * a stale copy beside it is not worth failing over.
+ */
+async function discardLeftover(path: string) {
+    try {
+        await discard(path);
+    } catch (error) {
+        Log.warn('[ReceiptStorage] could not delete a leftover receipt copy', {path, error: error instanceof Error ? error.message : String(error)});
+    }
+}
+
+const replace: ReceiptStorage['replace'] = async (durableName, uriOrPath) => {
+    const dir = getReceiptsUploadFolderPath();
+    if (!dir) {
+        throw new Error('[ReceiptStorage] no receipts folder on this platform');
+    }
+
+    await verify(dir, durableName);
+    const target = `${dir}/${durableName}`;
+
+    // Neither platform can move a file onto one that already exists. NSFileManager refuses and Android's
+    // `renameTo` is unreliable, so stage the new bytes beside the receipt, then swap them in with two
+    // renames inside the directory. The original keeps a second name until the swap succeeds.
+    const stagedPath = `${target}.staged`;
+    const backupPath = `${target}.backup`;
+    // An attempt that died mid-swap would leave these occupied, and iOS refuses an occupied destination.
+    await discard(stagedPath);
+    await discard(backupPath);
+    await RNFS.moveFile(fileURIToPath(uriOrPath), stagedPath);
+
+    try {
+        await RNFS.moveFile(target, backupPath);
+        await RNFS.moveFile(stagedPath, target);
+    } catch (error) {
+        // A full disk is the likeliest reason the swap failed, so free the staged bytes before restoring.
+        await discardLeftover(stagedPath);
+
+        if (await RNFS.exists(target)) {
+            throw error;
+        }
+
+        // The receipt exists only under the backup name now, so a failed move back is what loses it.
+        try {
+            await RNFS.moveFile(backupPath, target);
+        } catch (restoreError) {
+            const reason = restoreError instanceof Error ? restoreError.message : String(restoreError);
+            throw new Error(`[ReceiptStorage] could not restore the receipt, it is left at ${backupPath}: ${reason}`);
+        }
+
+        throw error;
+    }
+
+    // The receipt is in place, so the copy set aside can go.
+    await discardLeftover(backupPath);
+
+    return verify(dir, durableName);
+};
+
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
 /**
@@ -75,6 +143,6 @@ const resolve: ReceiptStorage['resolve'] = (source) => {
     return durableName ? toLocalUri(durableName) : source;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, toLocalUri, resolve};
+const receiptStorage: ReceiptStorage = {adopt, replace, discard, toLocalUri, resolve};
 
 export default receiptStorage;

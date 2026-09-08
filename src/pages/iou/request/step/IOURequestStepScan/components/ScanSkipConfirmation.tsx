@@ -446,6 +446,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 onMultiScanSubmit={submitMultiScan}
                 shouldAcceptMultipleFiles
+                // This screen submits at capture time, so the upload can read the receipt file while a
+                // higher-resolution one is being swapped in.
+                canUpgradeReceiptQuality={false}
             />
             <GpsPermissionGate
                 startLocationPermissionFlow={startLocationPermissionFlow}
