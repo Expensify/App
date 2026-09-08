@@ -4,12 +4,13 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {connect, disconnect} from '@libs/actions/Delegate';
 import {close as modalClose} from '@libs/actions/Modal';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
-import OnyxUtils from '@libs/OnyxUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import Onyx from 'react-native-onyx';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
@@ -62,13 +63,13 @@ function useSwitchToDelegator() {
         }
 
         const [account, credentials, stashedCredentials, session, stashedSession, activePolicyID, gpsDraftDetails] = await Promise.all([
-            OnyxUtils.get(ONYXKEYS.ACCOUNT),
-            OnyxUtils.get(ONYXKEYS.CREDENTIALS),
-            OnyxUtils.get(ONYXKEYS.STASHED_CREDENTIALS),
-            OnyxUtils.get(ONYXKEYS.SESSION),
-            OnyxUtils.get(ONYXKEYS.STASHED_SESSION),
-            OnyxUtils.get(ONYXKEYS.NVP_ACTIVE_POLICY_ID),
-            OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS),
+            Onyx.get(ONYXKEYS.ACCOUNT),
+            Onyx.get(ONYXKEYS.CREDENTIALS),
+            Onyx.get(ONYXKEYS.STASHED_CREDENTIALS),
+            Onyx.get(ONYXKEYS.SESSION),
+            Onyx.get(ONYXKEYS.STASHED_SESSION),
+            Onyx.get(ONYXKEYS.NVP_ACTIVE_POLICY_ID),
+            Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS),
         ]);
         const delegatedAccess = account?.delegatedAccess;
 
