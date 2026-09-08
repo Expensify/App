@@ -26,8 +26,6 @@ type ConfirmationFieldsContextValue = {
     isNewManualExpenseFlowEnabled: boolean;
     /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
     canEnterScanFieldsManually: boolean;
-    /** Whether the amount / merchant / date fields still advertise that SmartScan fills them in ("Automatic") */
-    shouldShowAutomaticFieldHint: boolean;
     isPolicyExpenseChat: boolean;
 
     // Mode — *what kind* of expense is being confirmed

@@ -474,53 +474,66 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('');
         });
 
-        it('requires all three fields once one of them is entered', async () => {
+        it('submits a partially filled scan, leaving the blank fields to SmartScan', async () => {
             await renderScanConfirmation();
 
             fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
+            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '12.34');
             await waitForBatchedUpdatesWithAct();
 
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
 
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-            expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(1);
+            // The date was never picked, so it stays "Automatic" instead of blocking confirmation.
+            expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
         });
 
-        it('labels the amount, merchant and date fields "Automatic" until one of them is entered', async () => {
+        it('labels the amount, merchant and date fields "Automatic" until that field is entered', async () => {
             await renderScanConfirmation();
 
-            // The category field carries the same label, so count the three that leave rather than expecting none left.
+            // The category field carries the same label, so count the ones that leave rather than expecting none left.
             const automaticLabelCount = screen.getAllByText(translateLocal('common.automatic')).length;
             expect(automaticLabelCount).toBeGreaterThanOrEqual(3);
 
             fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 3);
+            // Only the merchant's label goes: the amount and the date are still the ones SmartScan reads.
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 1);
+
+            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '12.34');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 2);
         });
 
-        it('stops requiring the three fields once the entered one is cleared again', async () => {
+        it('hands a cleared date back to SmartScan instead of emptying it', async () => {
             await renderScanConfirmation();
 
-            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
-            await waitForBatchedUpdatesWithAct();
-            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
-            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {created: '2025-01-15', isCreatedSet: true});
+            });
+            expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('2025-01-15');
 
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-            expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
-
-            // Clearing the merchant makes it a plain scan again, so the error that blocked confirmation has to go with it.
-            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), '');
+            fireEvent(screen.getByLabelText(translateLocal('common.date')), 'onInputChange', '');
             await waitForBatchedUpdatesWithAct();
 
+            // The field reads as "Automatic" again, while the transaction keeps a date to fall back on.
+            expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('');
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
 
-            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+            const draft = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(draft?.created).toBe('2025-01-15');
+            expect(draft?.isCreatedSet).toBe(false);
         });
 
         it('submits the entered amount, merchant and date instead of waiting for SmartScan', async () => {

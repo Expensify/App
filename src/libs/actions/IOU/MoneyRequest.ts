@@ -975,6 +975,15 @@ function setMoneyRequestCreated(transactionID: string, created: string, isDraft:
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
+/**
+ * Returns the date to the state it starts the Scan confirmation in: the field renders empty again (SmartScan is back
+ * to being the one that fills it), while the seeded `created` stays on the transaction as the fallback date, so a
+ * cleared field can never submit an expense with no date at all.
+ */
+function clearMoneyRequestCreated(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isCreatedSet: false});
+}
+
 function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {customUnit: {attributes: {dates: {start, end}}}},
@@ -1138,6 +1147,7 @@ export {
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
+    clearMoneyRequestCreated,
     clearMoneyRequestMerchant,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,

@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {isConfirmationAmountMissing, isConfirmationDateMissing} from '@libs/MoneyRequestUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {areRequiredFieldsEmpty, getTag, hasManuallyEnteredScanFields, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
@@ -75,9 +75,6 @@ type UseFormErrorManagementParams = {
 
     /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
     isNewManualExpenseFlowEnabled: boolean;
-
-    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
-    canEnterScanFieldsManually: boolean;
 
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
@@ -152,7 +149,6 @@ function useFormErrorManagement({
     isTypeSplit,
     shouldShowReadOnlySplits,
     isNewManualExpenseFlowEnabled,
-    canEnterScanFieldsManually,
     isDistanceRequest,
     shouldShowDate,
     isReadOnly,
@@ -175,10 +171,7 @@ function useFormErrorManagement({
         ((!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport)));
 
     const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
-    // A scan the user started filling in (amount, merchant or date) behaves like a manual expense with a receipt
-    // attached, so the merchant becomes required no matter which chat the expense is headed to.
-    const hasEnteredScanFields = canEnterScanFieldsManually && hasManuallyEnteredScanFields(transaction);
-    const isMerchantRequired = (isPolicyExpenseChat && (!isScanRequest || !!isEditingSplitBill) && shouldShowMerchant) || hasEnteredScanFields;
+    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || !!isEditingSplitBill) && shouldShowMerchant;
     const isMerchantFieldValid = (() => {
         const merchantValue = iouMerchant ?? '';
         const trimmedMerchant = merchantValue.trim();
@@ -229,15 +222,12 @@ function useFormErrorManagement({
     // clear side can never drift from the validation side and strand a required error that can no longer be cleared (#96568).
     const isAmountRequiredMissing = isConfirmationAmountMissing(transaction);
     const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly);
-    // A scan the user started filling in requires all three of amount, merchant and date, so the error stays until
-    // the last of them is filled in — the same condition validation raises it from.
-    const isScanFieldRequiredMissing = hasEnteredScanFields && (!transaction?.isAmountSet || !transaction?.isCreatedSet || isMerchantEmpty);
     useEffect(() => {
-        if (!isNewManualExpenseFlowEnabled || formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isScanFieldRequiredMissing) {
+        if (!isNewManualExpenseFlowEnabled || formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing) {
             return;
         }
         setFormError('');
-    }, [isNewManualExpenseFlowEnabled, isAmountRequiredMissing, isDateRequiredMissing, isScanFieldRequiredMissing, setFormError]);
+    }, [isNewManualExpenseFlowEnabled, isAmountRequiredMissing, isDateRequiredMissing, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;

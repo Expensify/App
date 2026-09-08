@@ -46,7 +46,6 @@ const baseParams: Params = {
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
     isNewManualExpenseFlowEnabled: false,
-    canEnterScanFieldsManually: false,
     isDistanceRequest: false,
     shouldShowDate: false,
     isReadOnly: false,
@@ -243,9 +242,8 @@ describe('useFormErrorManagement', () => {
         expect(result.current.isMerchantFieldValid).toBe(false);
     });
 
-    it('requires the merchant once the user starts filling in the scan fields, whoever the expense is headed to', () => {
+    it('leaves the merchant optional on a scan the user has started filling in, since a blank field is still scanned', () => {
         const scanParams: Partial<Params> = {
-            canEnterScanFieldsManually: true,
             isNewManualExpenseFlowEnabled: true,
             isScanRequest: true,
             isPolicyExpenseChat: false,
@@ -268,8 +266,7 @@ describe('useFormErrorManagement', () => {
         );
 
         expect(untouched.current.isMerchantRequired).toBe(false);
-        expect(amountEntered.current.isMerchantRequired).toBe(true);
-        expect(amountEntered.current.isMerchantFieldValid).toBe(false);
+        expect(amountEntered.current.isMerchantRequired).toBe(false);
     });
 
     it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {

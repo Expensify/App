@@ -990,9 +990,9 @@ describe('useConfirmationValidation', () => {
             ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
             ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}],
             ['date', {isCreatedSet: true, created: '2025-01-15'}, {}],
-        ])('requires the remaining fields once the %s is entered', (_field, transactionOverrides, overrides) => {
+        ])('leaves the other fields optional once the %s is entered, since a blank field is still scanned', (_field, transactionOverrides, overrides) => {
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
-            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+            expect(result.current.validate()).toEqual({errorKey: null});
         });
 
         it('passes once all three fields are entered', () => {

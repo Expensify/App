@@ -14,7 +14,6 @@ import {
     getCalculatedTaxAmount,
     getTag,
     getTaxAmount,
-    hasManuallyEnteredScanFields,
     hasTaxRateWithMatchingValue,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
@@ -182,10 +181,9 @@ function useConfirmationValidation({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
     // The Scan confirmation reveals the amount / merchant / date fields behind "Show more" in the new manual expense
-    // flow. Filling in any one of them makes all three required, and subjects the amount to the same validation as a
-    // manually entered one.
-    const hasEnteredScanFields = canEnterScanFieldsManually && hasManuallyEnteredScanFields(transaction);
-    const shouldValidateEnteredAmount = isNewManualExpenseFlowEnabled && (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || hasEnteredScanFields);
+    // flow. Each is optional there — a field left blank is still read off the receipt — but one the user does fill in
+    // is subject to the same validation as a manually entered one.
+    const shouldValidateEnteredAmount = isNewManualExpenseFlowEnabled && (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
@@ -202,14 +200,8 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // A scan the user started filling in requires all three of amount, merchant and date. They all report
-        // `common.error.fieldRequired`, which each of the three fields renders inline when it is the empty one, so
-        // every field the user still has to fill in lights up at once.
-        if (hasEnteredScanFields && (!transaction?.isAmountSet || !transaction?.isCreatedSet || isMerchantEmpty)) {
-            return {errorKey: 'common.error.fieldRequired'};
-        }
-        // `isConfirmationAmountMissing` only applies to manually entered amounts — per diem, distance, and time set
-        // the amount programmatically, and so does a scan the user hasn't filled in themselves (handled above).
+        // `isConfirmationAmountMissing` only applies to manually entered amounts — per diem, distance and time set the
+        // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
         if (isNewManualExpenseFlowEnabled && isConfirmationAmountMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }

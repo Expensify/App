@@ -1,7 +1,7 @@
 /**
  * The "Automatic" hint the Scan confirmation shows inside the amount, merchant and date fields while SmartScan is
  * still the one filling them in. It mirrors the right label the category field carries for the same promise, and
- * disappears from all three the moment the user fills in any one of them.
+ * each field drops it as soon as that field has a value of its own.
  */
 import Icon from '@components/Icon';
 import Text from '@components/Text';

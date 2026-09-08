@@ -5248,31 +5248,25 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     });
 });
 
-describe('hasManuallyEnteredScanFields', () => {
+describe('hasAllManuallyEnteredScanFields', () => {
     function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
         return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
     }
 
-    it('returns false for an untouched scan draft', () => {
-        expect(TransactionUtils.hasManuallyEnteredScanFields(undefined)).toBe(false);
-        expect(TransactionUtils.hasManuallyEnteredScanFields(generateScanDraft())).toBe(false);
+    it('returns false while any of the three fields is still left to SmartScan', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(undefined)).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft())).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true}))).toBe(false);
     });
 
-    it.each([['amount', {isAmountSet: true}] as const, ['merchant', {isMerchantSet: true}] as const, ['date', {isCreatedSet: true}] as const])(
-        'returns true once the %s has been entered',
-        (_field, values) => {
-            expect(TransactionUtils.hasManuallyEnteredScanFields(generateScanDraft(values))).toBe(true);
-        },
-    );
+    it('returns true once every one of them has been entered', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}))).toBe(true);
+    });
 
     it('returns false for expense types that populate those fields programmatically', () => {
-        expect(TransactionUtils.hasManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: true}))).toBe(false);
-        expect(TransactionUtils.hasManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, isAmountSet: true}))).toBe(false);
-    });
-
-    it('only reports all fields entered once every one of them is', () => {
-        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true}))).toBe(false);
-        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}))).toBe(true);
+        const values = {isAmountSet: true, isMerchantSet: true, isCreatedSet: true};
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
     });
 });
 

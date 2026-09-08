@@ -32,7 +32,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, shouldShowAutomaticFieldHint} =
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, canEnterScanFieldsManually} =
         useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,6 +45,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
+    // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !displayMerchantValue;
 
     // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
     // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
@@ -135,7 +137,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
-                    rightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
+                    rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );

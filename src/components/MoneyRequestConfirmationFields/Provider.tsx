@@ -43,9 +43,6 @@ type ProviderProps = {
     /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
     canEnterScanFieldsManually?: boolean;
 
-    /** Whether the amount / merchant / date fields still advertise that SmartScan fills them in ("Automatic") */
-    shouldShowAutomaticFieldHint?: boolean;
-
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -98,7 +95,6 @@ function Provider({
     isEditingSplitBill = false,
     isNewManualExpenseFlowEnabled = false,
     canEnterScanFieldsManually = false,
-    shouldShowAutomaticFieldHint = false,
     isPolicyExpenseChat = false,
     isScanRequest = false,
     isDistanceRequest = false,
@@ -125,7 +121,6 @@ function Provider({
         isEditingSplitBill,
         isNewManualExpenseFlowEnabled,
         canEnterScanFieldsManually,
-        shouldShowAutomaticFieldHint,
         isPolicyExpenseChat,
         isScanRequest,
         isDistanceRequest,

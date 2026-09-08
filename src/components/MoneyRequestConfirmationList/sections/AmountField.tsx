@@ -66,19 +66,8 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {
-        isEditingSplitBill,
-        isNewManualExpenseFlowEnabled,
-        canEnterScanFieldsManually,
-        shouldShowAutomaticFieldHint,
-        isReadOnly,
-        didConfirm,
-        transactionID,
-        action,
-        iouType,
-        reportID,
-        reportActionID,
-    } = useConfirmationFields();
+    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} =
+        useConfirmationFields();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
     const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
@@ -103,13 +92,11 @@ function AmountField({
     const isP2P = isNewManualExpenseFlowEnabled
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    // `common.error.fieldRequired` is shared with the date and merchant fields, so only surface it on the amount input
-    // when the amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation
-    // raises the error from, so a scan expense (where the amount is populated programmatically and `isAmountSet` is
-    // never set) can't show a phantom required error under a perfectly good amount. A scan the user started filling in
-    // is the exception: its amount is empty until entered, and validation requires it alongside the merchant and date.
-    const shouldShowAmountRequiredError =
-        formError === 'common.error.fieldRequired' && (isConfirmationAmountMissing(transactionSlice) || (canEnterScanFieldsManually && !transactionSlice?.isAmountSet));
+    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
+    // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
+    // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
+    // blank) can't show a phantom required error under a field that is deliberately empty.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -129,6 +116,8 @@ function AmountField({
     const shouldShowEmptyAmount =
         isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
+    // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !transactionSlice?.isAmountSet;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
@@ -336,7 +325,7 @@ function AmountField({
                         shouldShowCurrencyButton
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
-                        leadingRightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
+                        leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                         disabled={isAmountFieldDisabled}
                     />
                 </View>

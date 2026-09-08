@@ -10,7 +10,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestCreated, setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,7 +47,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, isNewManualExpenseFlowEnabled, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, shouldShowAutomaticFieldHint} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -70,11 +70,10 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, isNewManual
     // A draft is seeded with today's date, but in the Scan flow the date belongs to the receipt, not to today, so the
     // picker stays empty until the user picks one — the same way the amount field starts empty.
     const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
-    const isDateEmpty = createdMissing || shouldShowEmptyDate;
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateEmpty ? translate('common.error.fieldRequired') : '';
+    const inlineDateErrorText = formError === 'common.error.fieldRequired' && createdMissing ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -89,6 +88,13 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, isNewManual
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            return;
+        }
+
+        // Clearing the date on a scan hands the field back to SmartScan rather than emptying it, the same way clearing
+        // the amount or the merchant does.
+        if (!newDate && canEnterScanFieldsManually) {
+            clearMoneyRequestCreated(transactionID, shouldUseTransactionDraft(action));
             return;
         }
 
@@ -127,8 +133,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, isNewManual
                     shouldDeferShowUntilPositioned
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear — which it can't without a value to clear.
-                    shouldHideClearButton={shouldShowAutomaticFieldHint}
-                    rightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
+                    shouldHideClearButton={shouldShowEmptyDate}
+                    rightHandSideComponent={shouldShowEmptyDate ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );
