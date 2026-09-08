@@ -212,7 +212,6 @@ describe('useFrozenSplitTransactionIDs', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: CURRENT_USER_LOGIN,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {[CURRENT_USER_LOGIN]: {email: CURRENT_USER_LOGIN, role: CONST.POLICY.ROLE.ADMIN}},
             },
         };
