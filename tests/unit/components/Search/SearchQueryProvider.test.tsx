@@ -270,7 +270,7 @@ describe('SearchQueryProvider', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
 
             act(() => {
-                result.current.resetSearchKey(false, result.current.currentSearchQueryJSON);
+                result.current.resetSearchKey(result.current.currentSearchQueryJSON);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
         });
@@ -297,7 +297,7 @@ describe('SearchQueryProvider', () => {
             // resetSearchKey doesn't special case a target query that resolves to the current search, so it
             // switches to whatever getInitialCurrentSearchKey picks (the first saved search, id 100).
             act(() => {
-                result.current.resetSearchKey(false, buildSearchQueryJSON(sharedQuery));
+                result.current.resetSearchKey(buildSearchQueryJSON(sharedQuery));
             });
             expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
         });
@@ -365,10 +365,10 @@ describe('SearchQueryProvider', () => {
             const {result, rerender} = renderProvider();
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
-            // The pending reset targets a different query, so nothing changes until the hash catches up.
+            // The reset targets a different query, so nothing changes until the hash catches up.
             const nextQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
             act(() => {
-                result.current.resetSearchKey(true, nextQueryJSON);
+                result.current.resetSearchKey(nextQueryJSON);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
@@ -386,9 +386,9 @@ describe('SearchQueryProvider', () => {
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
 
-            // pending is true but the queryJSON hash equals the current hash, so it applies right away.
+            // The queryJSON hash equals the current hash, so it applies right away instead of pending.
             act(() => {
-                result.current.resetSearchKey(true, result.current.currentSearchQueryJSON);
+                result.current.resetSearchKey(result.current.currentSearchQueryJSON);
             });
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
         });
