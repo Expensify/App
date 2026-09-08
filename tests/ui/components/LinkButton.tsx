@@ -5,7 +5,7 @@ import ButtonIcon from '@src/components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@src/components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import CONST from '@src/CONST';
 import colors from '@src/styles/theme/colors';
-import variables from '@src/styles/variables';
+import {fontScale} from '@src/styles/typography';
 
 import React from 'react';
 
@@ -57,7 +57,7 @@ describe('ButtonComposed — LinkButton', () => {
             // theme.link is blue300 in the default dark theme.
             expect(text).toHaveStyle({color: colors.blue300});
             expect(text).toHaveStyle({fontWeight: '400'});
-            expect(text).toHaveStyle({fontSize: variables.fontSizeLabel});
+            expect(text).toHaveStyle({fontSize: fontScale.label});
         });
 
         it('swaps the text color to linkHover when the button is hovered', () => {
