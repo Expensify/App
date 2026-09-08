@@ -110,9 +110,8 @@ const shouldDisplayNewMarkerOnReportAction = ({
     // just optimistic, preserving the #91940 behavior for cold opens.
     const prevMarkedReportAction = prevUnreadMarkerReportActionID ? prevSortedVisibleReportActionsObjects[prevUnreadMarkerReportActionID] : undefined;
     const isPreviouslyUnreadFromCurrentUser = currentUserAccountID === prevMarkedReportAction?.actorAccountID;
-    // So essentially, the previously unread cannot move from one new self-user-action to another. Once a
-    // self-authored action holds the marker, keep it there rather than letting it hop to a different
-    // self-authored action (e.g. a persisted reimbursable toggle) — the regression from Expensify/App#91940.
+    // Once a self-authored action holds the marker, keep it there rather than letting it hop to a different
+    // self-authored action (e.g. a persisted reimbursable toggle) - the regression from Expensify/App#91940.
     // This only applies while that previous anchor is still present: if it was deleted, the marker must be
     // allowed to relocate to the next unread message.
     const isDifferentUnread = isPrevUnreadMarkerReportActionPresent && isPreviouslyUnreadFromCurrentUser && prevMarkedReportAction?.reportActionID !== message.reportActionID;
