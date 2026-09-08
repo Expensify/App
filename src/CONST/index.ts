@@ -3965,6 +3965,12 @@ const CONST = {
         OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
+    CLOUDFLARE_ACCESS: {
+        // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
+        // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
+        NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
+    },
+
     ONFIDO: {
         CONTAINER_ID: 'onfido-mount',
         TYPE: {
