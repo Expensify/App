@@ -37,6 +37,10 @@ export default {
         height: 52,
     },
 
+    h42: {
+        height: 168,
+    },
+
     w15: {
         width: '15%',
     },

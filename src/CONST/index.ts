@@ -415,6 +415,7 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+        DELEGATE: 'delegate',
     },
 
     AUTH_METHOD: {
@@ -693,7 +694,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -922,7 +923,7 @@ const CONST = {
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
-                LAST_4_SSN: 'last-4-ssn',
+                SSN: 'ssn',
                 DOCUMENTS: 'documents',
                 CONFIRMATION: 'confirmation',
             },
@@ -941,7 +942,7 @@ const CONST = {
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -1069,6 +1070,7 @@ const CONST = {
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
+        REPORT_MERGE: 'reportMerge',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
