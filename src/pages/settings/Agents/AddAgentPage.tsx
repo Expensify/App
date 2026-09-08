@@ -67,6 +67,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
+    const shouldHideAvatar = isKeyboardActive && !isInLandscapeMode;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -199,7 +200,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 isSubmitDisabled={isDraftLoading}
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
-                    <View style={[styles.alignItemsCenter]}>
+                    <View style={[styles.alignItemsCenter, shouldHideAvatar && styles.dNone]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
