@@ -85,7 +85,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -237,7 +237,7 @@ function SubmitDetailsPage({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale},
+                  localize: {translate, dateFnsLocale, convertToDisplayString},
               });
     });
 

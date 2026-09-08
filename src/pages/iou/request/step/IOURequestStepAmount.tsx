@@ -76,7 +76,7 @@ function IOURequestStepAmount({
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -238,7 +238,7 @@ function IOURequestStepAmount({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale},
+                  localize: {translate, dateFnsLocale, convertToDisplayString},
               });
     });
     const participant = participants.at(0);
@@ -260,6 +260,7 @@ function IOURequestStepAmount({
         submitAmount({
             getCurrencyDecimals,
             getCurrencySymbol,
+            convertToDisplayString,
             translate,
             dateFnsLocale,
             report,
