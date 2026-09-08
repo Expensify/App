@@ -588,8 +588,11 @@ function BasePopoverMenu({
             if (focusedIndex === -1) {
                 return;
             }
+            const staysOpenOnSelect = currentMenuItems.at(focusedIndex)?.shouldCloseModalOnSelect === false;
+
             selectItem(focusedIndex);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            // Keep focus on a stay-open item (e.g. an inline toggle) so the next arrow key continues from it; otherwise reset.
+            setFocusedIndex(staysOpenOnSelect ? focusedIndex : -1);
         },
         {isActive: isVisible},
     );

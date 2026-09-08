@@ -512,6 +512,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     onSelected: navigateToCustomTagName,
                     shouldShowRightIcon: true,
                     value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                    pendingAction: policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction,
                 });
             }
             if (canWriteTags && !!policy?.glCodes) {
@@ -613,6 +614,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         canWriteTags,
         isRulesRevampEnabled,
         policyTagLists,
+        policyTags,
         navigateToCustomTagName,
         policy?.glCodes,
         policy?.showTagGLCodes,
