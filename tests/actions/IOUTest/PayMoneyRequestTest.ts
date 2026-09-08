@@ -383,7 +383,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -556,7 +556,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 .then(() => {
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1620,7 +1620,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     // Which owns a workspace
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1755,7 +1755,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2047,7 +2047,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},

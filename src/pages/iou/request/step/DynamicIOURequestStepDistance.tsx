@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -111,6 +112,7 @@ function DynamicIOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
@@ -612,6 +614,7 @@ function DynamicIOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,
@@ -628,6 +631,7 @@ function DynamicIOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        allTransactionViolations,
         blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
@@ -756,6 +760,7 @@ function DynamicIOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
             rules,
@@ -766,6 +771,7 @@ function DynamicIOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        allTransactionViolations,
         blockDistanceRequestIfNeeded,
         transactionBackup,
         getHasSelectedRouteChanged,

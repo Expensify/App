@@ -222,6 +222,7 @@ type CreateWorkspaceFromIOUPaymentOptions = {
     reportPreviewAction: ReportAction | undefined;
     currentUserAccountID: number;
     currentUserEmail: string;
+    currentUserDisplayName: string | undefined;
     iouReportOwnerEmail: string;
     currentUserLocalCurrency: string;
     lastWorkspaceNumber: number | undefined;
@@ -241,8 +242,13 @@ type CurrentUser = {
     avatar?: AvatarSource;
 };
 
+type PolicyOwner = {
+    email: string | undefined;
+    accountID: number | undefined;
+};
+
 type BuildPolicyDataOptions = {
-    policyOwnerEmail?: string;
+    policyOwner?: PolicyOwner;
     makeMeAdmin?: boolean;
     policyName: string;
     policyID?: string;
@@ -2455,7 +2461,7 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string, displayNameOverride?: string) {
+function getDisplayNameForWorkspace(email: string, userDisplayName: string | undefined) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
@@ -2467,8 +2473,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
         return Str.UCFirst(domain.split('.').at(0) ?? '');
     }
 
-    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
+    const displayName = userDisplayName?.trim();
     if (displayName) {
         return Str.UCFirst(displayName);
     }
@@ -2492,7 +2497,9 @@ function generateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayNameOverride);
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayName);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
@@ -2703,7 +2710,7 @@ function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction
 /**
  * Generates onyx data for creating a new workspace
  *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [policyOwner] the account to make the owner of the policy, when it isn't the current user
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
@@ -2715,7 +2722,7 @@ function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction
  */
 function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyDataKeys> & {params: CreateWorkspaceParams} {
     const {
-        policyOwnerEmail = '',
+        policyOwner,
         makeMeAdmin = false,
         policyName,
         policyID = generatePolicyID(),
@@ -2748,6 +2755,9 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     } = options;
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
+
+    const policyOwnerEmail = policyOwner?.email ?? '';
+    const ownerAccountID = policyOwner?.accountID ?? currentUserAccountIDParam;
 
     const {
         adminsChatReportID,
@@ -2811,7 +2821,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 name: policyName,
                 role: getRoleForCallerOnNewPolicy(isSubmitWorkspace, makeMeAdmin, policyOwnerEmail, currentUserEmailParam),
                 owner: policyOwnerEmail || currentUserEmailParam,
-                ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
+                ownerAccountID,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
@@ -3100,7 +3110,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             value: {
                 employeeList: null,
                 owner: policyOwnerEmail || currentUserEmailParam,
-                ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
+                ownerAccountID,
                 ...optimisticMccGroupData.failureData,
             },
         },
@@ -4377,6 +4387,7 @@ function createWorkspaceFromIOUPayment({
     reportPreviewAction,
     currentUserAccountID,
     currentUserEmail,
+    currentUserDisplayName,
     iouReportOwnerEmail,
     currentUserLocalCurrency,
     lastWorkspaceNumber,
@@ -4392,7 +4403,7 @@ function createWorkspaceFromIOUPayment({
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
+    const workspaceName = generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate, currentUserDisplayName);
     const employeeAccountID = iouReport?.ownerAccountID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as iouReport?.currency could be an empty string
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency || currentUserLocalCurrency);
@@ -8060,4 +8071,4 @@ export {
     setPolicyTimeTrackingDefaultRate,
     upgradeSubmit,
 };
-export type {BuildPolicyDataKeys, CurrentUser};
+export type {BuildPolicyDataKeys, CurrentUser, PolicyOwner};

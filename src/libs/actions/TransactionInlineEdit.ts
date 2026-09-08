@@ -200,7 +200,7 @@ function getIouParamsForTransaction({
     currentUserEmail,
     rules,
 }: GetIouParamsInput) {
-    // transaction is passed in by the caller; only the scoped violations are derived here for the thread-report build.
+    // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
     const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     // parentReport (already resolved to the self DM for unreported expenses), parentReportAction, and
@@ -242,6 +242,7 @@ function getIouParamsForTransaction({
         getCurrencySymbol,
         reportPolicyTags,
         rules,
+        violations: transactionViolationsForTransaction,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,

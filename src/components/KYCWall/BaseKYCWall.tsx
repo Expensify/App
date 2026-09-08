@@ -210,13 +210,14 @@ function KYCWall({
                         return;
                     }
 
-                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail);
+                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName);
                     const {policyID, workspaceChatReportID, adminsChatReportID} =
                         createWorkspaceFromIOUPayment({
                             iouReport,
                             reportPreviewAction,
                             currentUserAccountID,
                             currentUserEmail,
+                            currentUserDisplayName: currentUserDetails.displayName,
                             iouReportOwnerEmail: employeeLogin ?? '',
                             currentUserLocalCurrency: localCurrency,
                             lastWorkspaceNumber,
@@ -279,6 +280,7 @@ function KYCWall({
             reportPreviewAction,
             currentUserAccountID,
             currentUserEmail,
+            currentUserDetails.displayName,
             employeeLogin,
             doesSubmitterPersonalDetailExist,
             introSelected,
