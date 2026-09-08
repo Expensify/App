@@ -23,7 +23,6 @@ type GroupChatAvatarProps = {
     /** Group chat whose avatar to render */
     reportID: string;
 
-    /** Size of the avatar */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Container styles for the avatar. Replaces the size-derived default container styles when provided */

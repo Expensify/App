@@ -15,7 +15,6 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
-    /** Currently selected value */
     value?: string;
 
     /** Function to call when the user selects a value */

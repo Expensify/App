@@ -17,13 +17,11 @@ import {Str} from 'expensify-common';
 import React from 'react';
 
 type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
-    /** Currently selected type */
     value?: string;
 
     /** Route to the type picker */
     route: Route;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 

@@ -1323,15 +1323,6 @@ function isReportTotalPending(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * Check if a report is a draft report
- */
-function isDraftReport(reportID: string | undefined): boolean {
-    const draftReport = deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    return !!draftReport;
-}
-
-/**
  * @private
  */
 function isSearchReportArray(object: Report[] | OnyxCollection<Report>): object is Report[] {
@@ -13680,6 +13671,7 @@ function getChatListItemReportName(
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -13687,7 +13679,7 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -14778,7 +14770,6 @@ export {
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
-    isDraftReport,
     changeMoneyRequestHoldStatus,
     rejectMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,

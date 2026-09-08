@@ -951,10 +951,10 @@ const translations: TranslationDeepObject<typeof en> = {
         tooltip: 'Starte hier!',
     },
     homePage: {
-        forYou: 'Für dich',
+        toDos: 'Aufgaben',
         timeSensitiveSection: {
             title: 'Zeitkritisch',
-            addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Adresse hinzufügen'},
+            addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Hinzufügen'},
             addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
@@ -980,7 +980,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
             validateAccount: {title: 'Bestätigen Sie Ihr Konto', subtitle: 'Konto', cta: 'Bestätigen'},
-            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse zur Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Adresse hinzufügen'},
+            addHomeAddress: {title: 'Fügen Sie Ihre Privatadresse zur Entfernungserfassung hinzu', subtitle: 'Konto', cta: 'Hinzufügen'},
             fixFailedBilling: {title: 'Wir konnten Ihre hinterlegte Karte nicht belasten', subtitle: 'Abonnement'},
             unlockBankAccount: {
                 workspaceTitle: 'Ihr Geschäftskonto wurde gesperrt',
@@ -988,11 +988,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Geldbörse',
             },
-            addVirtualCardPersonalDetails: {
-                title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.',
-                subtitle: 'Expensify Karte',
-                cta: 'Details hinzufügen',
-            },
+            addVirtualCardPersonalDetails: {title: 'Fügen Sie Ihre Daten hinzu, um Ihre Expensify Karte anzuzeigen und zu verwenden.', subtitle: 'Expensify Karte', cta: 'Hinzufügen'},
             enterSignerInfo: {title: 'Unterzeichnerdaten erforderlich', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto ${bankAccountLastFour}`},
         },
         discoverSection: {
@@ -1122,7 +1118,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Ihre Ausgaben',
             awaitingApproval: 'Ausstehende Genehmigung',
             repaidLast30Days: 'Letzte 30 Tage zurückgezahlt',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `${count} weitere anzeigen`,
         recentlyAddedSection: {
@@ -1668,11 +1663,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
-        confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Diese Ausgabe ist zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-            other: 'Diese Ausgaben sind zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-        }),
+        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
@@ -3348,6 +3340,7 @@ ${amount} für ${merchant} – ${date}`,
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4184,8 +4177,7 @@ ${amount} für ${merchant} – ${date}`,
         legalFirstName: 'Rechtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         enterTheDateOfBirthOfTheOwner: 'Wie lautet das Geburtsdatum des Eigentümers?',
-        enterTheLast4: 'Wie lauten die letzten 4 Ziffern der Sozialversicherungsnummer des Inhabers?',
-        last4SSN: 'Letzte 4 Ziffern der SSN',
+        enterTheSSN: 'Wie lautet die Sozialversicherungsnummer des Inhabers?',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         enterTheOwnersAddress: 'Wie lautet die Adresse des Eigentümers?',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
@@ -4212,13 +4204,12 @@ ${amount} für ${merchant} – ${date}`,
         whatsYourDOB: 'Wie ist dein Geburtsdatum?',
         whatsTheOwnersAddress: 'Wie lautet die Adresse des Eigentümers?',
         whatsYourAddress: 'Wie lautet deine Adresse?',
-        whatAreTheLast: 'Wie lauten die letzten 4 Ziffern der Sozialversicherungsnummer des Inhabers?',
-        whatsYourLast: 'Wie lauten die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsTheOwnersSSN: 'Wie lautet die Sozialversicherungsnummer des Inhabers?',
+        whatsYourSSN: 'Wie lautet Ihre Sozialversicherungsnummer?',
         whatsYourNationality: 'Was ist dein Staatsangehörigkeitsland?',
         whatsTheOwnersNationality: 'In welchem Land ist der/die Inhaber:in Staatsbürger:in?',
         countryOfCitizenship: 'Staatsangehörigkeit',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
-        last4: 'Letzte 4 Ziffern der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
         legalName: 'Rechtlicher Name',
@@ -4243,6 +4234,8 @@ ${amount} für ${merchant} – ${date}`,
         proofOfBeneficialOwner: 'Nachweis des wirtschaftlich Berechtigten',
         proofOfBeneficialOwnerDescription:
             'Bitte legen Sie eine unterzeichnete Bescheinigung und ein Organigramm vor, ausgestellt von einem vereidigten Buchhalter, Notar oder Rechtsanwalt, die den Besitz von 25 % oder mehr des Unternehmens bestätigt. Das Dokument muss innerhalb der letzten drei Monate datiert sein und die Lizenznummer der unterzeichnenden Person enthalten.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Bitte geben Sie Ihren Schedule 50 (Aktionärsinformationen) aus Ihrer aktuellsten T2-Körperschaftsteuererklärung an, in dem jede Person aufgeführt ist, die 25 % oder mehr des Unternehmens besitzt.',
         copyOfID: 'Kopie des Ausweises des wirtschaftlich Berechtigten',
         copyOfIDDescription: 'Beispiele: Reisepass, Führerschein usw.',
         proofOfAddress: 'Adressnachweis für wirtschaftlich Berechtigte',
@@ -4761,6 +4754,7 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+            recruiting: 'Personalbeschaffung',
             rooms: 'Räume',
             findDomain: 'Domain finden',
             cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
@@ -8470,37 +8464,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         hr: {
             title: 'Personalwesen',
-            connections: 'Verbindungen',
             connectionsSubtitle:
                 'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
-            connect: 'Verbinden',
-            syncNow: 'Jetzt synchronisieren',
-            disconnect: 'Trennen',
-            disconnectTitle: (providerName: string) => `${providerName} trennen`,
-            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
             alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren HR-Plattformen hergestellt werden',
             alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
-            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
-            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
-            approvalMode: 'Genehmigungsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
-            finalApprover: 'Endgültige:r Genehmiger:in',
             providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
-            notSet: 'Nicht festgelegt',
+            syncing: 'Mitarbeitende werden synchronisiert',
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen ${providerName}-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
             approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
-            approvalModes: {
-                basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.'},
-                manager: {
-                    label: 'Manager-Genehmigung',
-                    description: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
-                },
-                custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.'},
+            approvalModeDescriptions: {
+                basic: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.',
+                manager: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
+                custom: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8540,22 +8523,50 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
-            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
-            syncing: 'Mitarbeitende werden synchronisiert',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Einrichtung abschließen',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
             },
+        },
+        recruiting: {
+            title: 'Personalbeschaffung',
+            connectionsSubtitle:
+                'Verbinden Sie Ihr Recruiting-System, um Kandidatendaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuelle Arbeit korrekt zu halten.',
+            alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren ATS-Plattformen hergestellt werden',
+            alreadyConnectedPrompt: 'Sie müssen Ihr aktuelles ATS trennen, bevor Sie ein anderes verbinden.',
+            syncing: 'Kandidaten werden synchronisiert',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Kandidaten.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Sie sehen Ihr ATS hier nicht? <a href="#">Fragen Sie Concierge</a>, und wir können es hinzufügen.</muted-text-label>`,
+            importSettings: 'Import-Einstellungen',
+            defaultApprover: 'Standardgenehmiger',
+            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+        },
+        merge: {
+            connections: 'Verbindungen',
+            connect: 'Verbinden',
+            findIntegration: 'Integration finden',
+            syncNow: 'Jetzt synchronisieren',
+            disconnect: 'Trennen',
+            disconnectTitle: (providerName: string) => `${providerName} trennen`,
+            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
+            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             notSync: 'Nicht synchronisiert',
+            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
-            findIntegration: 'Integration finden',
-        },
-        merge: {
+            notSet: 'Nicht festgelegt',
+            completeSetup: 'Einrichtung abschließen',
+            approvalMode: 'Genehmigungsmodus',
+            finalApprover: 'Endgültige:r Genehmiger:in',
+            approvalModes: {
+                basic: 'Einfache Genehmigung',
+                manager: 'Manager-Genehmigung',
+                custom: 'Benutzerdefinierte Genehmigung',
+                advanced: 'Erweiterte Genehmigung',
+            },
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
@@ -9540,6 +9551,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         exportedTo: 'Exportiert nach',
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
+            allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
             selectAllOnThisPage: 'Alle auf dieser Seite auswählen',
         },
         errors: {
@@ -9652,6 +9664,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exportiert nach ${translatedLabel}`;
@@ -10894,6 +10907,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         multipleTaxExport: 'Kanadischer Export mit mehreren Steuern',
+        reconciliationAllExpenses: 'Abstimmung - Alle Ausgaben',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
