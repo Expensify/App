@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-function CampfireTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+function CampfireTravelInvoicingPayableAccountPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const campfireConfig = policy?.connections?.campfire?.config;
     const campfireData = policy?.connections?.campfire?.data;
@@ -75,4 +75,4 @@ function CampfireTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCon
     );
 }
 
-export default withPolicyConnections(CampfireTravelInvoicingPayableAccountSelectPage);
+export default withPolicyConnections(CampfireTravelInvoicingPayableAccountPage);
