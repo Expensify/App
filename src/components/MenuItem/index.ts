@@ -38,6 +38,7 @@ import MenuItemFieldNamePlaceholder from './leaves/content/MenuItemFieldNamePlac
 import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
 import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemBrickRoadIndicator from './leaves/trailing/icons/MenuItemBrickRoadIndicator';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
 import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
@@ -55,6 +56,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     FieldName: MenuItemFieldName,
     FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
     FieldValue: MenuItemFieldValue,
+    BrickRoadIndicator: MenuItemBrickRoadIndicator,
     Chevron: MenuItemChevron,
     NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
