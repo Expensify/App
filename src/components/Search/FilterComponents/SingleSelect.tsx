@@ -46,6 +46,9 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
 
     /** Optional content rendered above the list, e.g. explanatory text about what the filter applies to */
     header?: React.JSX.Element;
+
+    /** Height of `header`, added to the list height so the header does not consume space reserved for the rows */
+    headerHeight?: number;
 };
 
 /**
@@ -63,6 +66,7 @@ function SingleSelectImpl({
     hasTitle,
     hasHeader,
     header,
+    headerHeight,
     itemHeight,
     shouldUseFixedPopoverHeight,
     footer,
@@ -139,6 +143,7 @@ function SingleSelectImpl({
             hasTitle={hasTitle}
             isSearchable={isSearchable}
             itemHeight={itemHeight ?? variables.optionRowHeightCompact}
+            extraHeight={headerHeight}
             shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
