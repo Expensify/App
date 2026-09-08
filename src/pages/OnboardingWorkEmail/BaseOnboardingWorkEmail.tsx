@@ -78,7 +78,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
         parentReportAction: addWorkEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
-    const isAddWorkEmailTaskCompleted = addWorkEmailTaskReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const returnToOriginReport = useReturnToOriginReport();
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
@@ -122,20 +121,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             });
         };
 
-        // A Concierge task starts a forward-only version of the same flow. Resolve its first unfinished step so a
-        // completed predecessor task can resume validation or workspace selection without reopening the form.
+        // A Concierge task always opens the work-email form while the primary login is unvalidated, so the user can
+        // replace a pending work email. Advancing to validation happens only after a submission in this modal session.
         if (isConciergeTaskFlow) {
-            if (isAddWorkEmailTaskCompleted) {
-                Navigation.navigate(isCurrentPrimaryValidated ? ROUTES.ONBOARDING_WORKSPACES.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
-                return;
-            }
-
-            // A validated private-domain account already has the work email needed to look up workspaces. A validated
-            // public-domain account must still be allowed to add a work email.
-            if (isCurrentPrimaryValidated && !account?.isFromPublicDomain) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {
-                    forceReplace: true,
-                });
+            if (isCurrentPrimaryValidated) {
+                returnToOriginReport();
                 return;
             }
 
@@ -205,7 +195,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isFocused,
         isJoiningCompanyWorkspace,
         isConciergeTaskFlow,
-        isAddWorkEmailTaskCompleted,
         hasSubmittedWorkEmail,
         returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
