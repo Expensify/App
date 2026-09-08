@@ -27,7 +27,6 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {convertToDisplayString as convertToDisplayStringUtil} from './CurrencyUtils';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
@@ -438,6 +437,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
  */
 function getLastMessageTextForReport({
     translate,
+    convertToDisplayString,
     dateFnsLocale,
     report,
     personalDetails,
@@ -458,6 +458,7 @@ function getLastMessageTextForReport({
     currentUserAccountID,
 }: {
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -542,8 +543,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -566,8 +566,7 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -584,8 +583,7 @@ function getLastMessageTextForReport({
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -600,8 +598,7 @@ function getLastMessageTextForReport({
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
             getLoginByAccountID(lastReportAction.actorAccountID, personalDetails),
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            convertToDisplayStringUtil,
+            convertToDisplayString,
             currentUserAccountID,
         );
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
@@ -609,8 +606,7 @@ function getLastMessageTextForReport({
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessageWithHTML = getForReportAction({
             translate,
-            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-            convertToDisplayString: convertToDisplayStringUtil,
+            convertToDisplayString,
             reportAction: lastReportAction,
             policy,
             movedFromReport,
@@ -732,8 +728,7 @@ function getLastMessageTextForReport({
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -758,8 +753,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
         lastMessageTextFromReport = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastReportAction);
@@ -792,8 +786,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
-        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getAutoReimbursementMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE)) {
         lastMessageTextFromReport = getCategoryTaxRateMessage(translate, lastReportAction);
@@ -889,16 +882,14 @@ function getLastMessageTextForReport({
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
-                // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayStringUtil);
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayString);
             } else if (!isExpenseReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-                            getReportPreviewMessage(translate, convertToDisplayStringUtil, {
+                            getReportPreviewMessage(translate, convertToDisplayString, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -1114,6 +1105,7 @@ type GetReportAlternateTextParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 /**
@@ -1145,6 +1137,7 @@ function getReportAlternateText({
     formatPhoneNumber,
     dateFnsLocale,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1181,6 +1174,7 @@ function getReportAlternateText({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             report,
             personalDetails,
@@ -1205,7 +1199,7 @@ function getReportAlternateText({
 
     // Specifically for concierge chats and expense reports, which don't meet any of the conditions in the if statement below
     if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction) ?? lastMessageText;
+        lastMessageText = getActionableCard3DSTransactionApprovalMessage(translate, lastAction, convertToDisplayString, convertToDisplayStringWithoutCurrency) ?? lastMessageText;
     } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) && !!getDelegateSubmitMessage(translate, lastAction, currentUserLogin)) {
         lastMessageText = Parser.htmlToText(getDelegateSubmitMessage(translate, lastAction, currentUserLogin));
     }
