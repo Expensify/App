@@ -24,6 +24,13 @@ type PKCEPair = PKCEModule.PKCEPair;
 
 const AUTHORIZE_URL = 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization?mock=1';
 
+// OAuthClient imports CONFIG, whose native dependency is unavailable in the Jest environment.
+jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: {CLIENT_ID: 'client-123'}}}));
+
+// CloudflareSession imports Log, whose native dependency is unavailable in the Jest environment. The session
+// behavior under test is platform-independent, so keep that native dependency out of this test.
+jest.mock('@libs/Log', () => ({__esModule: true, default: {warn: jest.fn()}}));
+
 // The module gates its subscription and cleanup on a complete config. Everything under test is behind it
 jest.mock('@libs/CloudflareAccess/Config', () => ({
     __esModule: true,

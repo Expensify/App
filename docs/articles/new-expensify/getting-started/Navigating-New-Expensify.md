@@ -18,7 +18,7 @@ If you'd like a guided walkthrough of the New Expensify experience, explore the 
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/qlgnexxbsdtp)
 - [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
 
 
