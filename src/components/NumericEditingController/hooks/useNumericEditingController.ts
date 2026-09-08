@@ -124,7 +124,7 @@ function useNumericEditingController({
 
     useDecimalsChangeEffect(decimals, (newDecimals) => {
         // Empty values and values already valid at the new precision need no update.
-        if (externalValue === '' || validateAmount(currentValue, newDecimals, maxLength, allowNegative)) {
+        if (currentValue === '' || validateAmount(currentValue, newDecimals, maxLength, allowNegative)) {
             return;
         }
 

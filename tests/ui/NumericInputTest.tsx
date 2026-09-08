@@ -309,6 +309,28 @@ describe('NumericInput', () => {
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1.23');
         });
 
+        it('strips decimals from an in-progress value when the accepted decimals decrease', () => {
+            // Given an empty composition whose in-progress value has two decimal places
+            const {rerender} = renderNumericInput({value: ''});
+            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '1.23');
+
+            // When the accepted number of decimals drops to zero
+            rerender(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <NumericInput
+                        onInputChange={onInputChange}
+                        decimals={0}
+                        value=""
+                    >
+                        <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    </NumericInput>
+                </ComposeProviders>,
+            );
+
+            // Then the in-progress value is sanitized to the new precision
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('1');
+        });
+
         it('rejects an edit with more integer digits than the root maxLength allows', () => {
             // Given a composition limited to two integer digits and value "12"
             renderNumericInput({value: '12', maxLength: 2});
