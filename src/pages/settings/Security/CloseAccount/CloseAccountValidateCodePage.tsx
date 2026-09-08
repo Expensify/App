@@ -15,11 +15,14 @@ import {closeAccount} from '@userActions/User';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 
-function shouldBlockCloseAccountAction(accountID: number | undefined, policies: Record<string, any> | undefined, reasonForLeaving?: string) {
+function shouldBlockCloseAccountAction(accountID: number | undefined, policies: OnyxCollection<Policy> | undefined, reasonForLeaving?: string) {
     if (!reasonForLeaving) {
         return true;
     }
