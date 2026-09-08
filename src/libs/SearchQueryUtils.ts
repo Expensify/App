@@ -947,7 +947,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const lastMerchantFilter = merchantFilters.at(-1);
     // The form displays the last positive Merchant clause. Preserve all original clauses until that field changes.
     const shouldPreserveMerchantFilters =
-        merchantFilters.length > 1 &&
+        merchantFilters.length > 0 &&
         supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',') &&
         getMerchantOperator(merchantOperator) ===
             (lastMerchantFilter?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : DEFAULT_MERCHANT_OPERATOR);
