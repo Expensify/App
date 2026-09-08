@@ -21,7 +21,6 @@ import ReportActionMessageContent from './actionContents/ReportActionMessageCont
 import TextCommentFragment from './comment/TextCommentFragment';
 
 type ReportActionItemMessageProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -33,7 +32,6 @@ type ReportActionItemMessageProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 };
 

@@ -147,6 +147,12 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
+// Values accepted by the `intent` param on the onboarding deeplink. Deliberately not the internal onboarding choice
+// strings (`newDotEmployer`), so renaming those can't break links already sitting in someone's inbox.
+const onboardingIntents = {
+    SUBMIT: 'submit',
+} as const;
+
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
     VSB: 'vsb',
@@ -348,6 +354,17 @@ const CONST = {
             WEEK: 'weeks',
             MONTH: 'months',
         },
+        OOO_LEAVE_TYPES: {
+            NORMAL: 'normalOOO',
+            PARENTAL: 'parental leave',
+            MATERNITY: 'maternity leave',
+            PATERNITY: 'paternity leave',
+            MEDICAL: 'medical leave',
+            CAREGIVER: 'caregiver leave',
+            QUALIFIED: 'qualified leave',
+            BEREAVEMENT: 'bereavement leave',
+            JURY_DUTY: 'jury duty',
+        },
     },
 
     RECEIPT_CAMERA: {
@@ -398,6 +415,7 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+        DELEGATE: 'delegate',
     },
 
     AUTH_METHOD: {
@@ -428,6 +446,19 @@ const CONST = {
             NAME: 'name',
             REVERSE: 'reverse',
         },
+    },
+
+    // Report kinds the ReportAvatar dispatcher routes on. Each kind maps to a report-type avatar wrapper.
+    REPORT_AVATAR_KIND: {
+        EXPENSE: 'expense',
+        IOU: 'iou',
+        TASK: 'task',
+        INVOICE: 'invoice',
+        CHAT_THREAD: 'chatThread',
+        GROUP_CHAT: 'groupChat',
+        POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        ROOM: 'room',
+        DEFAULT: 'default',
     },
 
     // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
@@ -663,7 +694,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -767,7 +798,6 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
-            IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -893,7 +923,7 @@ const CONST = {
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
-                LAST_4_SSN: 'last-4-ssn',
+                SSN: 'ssn',
                 DOCUMENTS: 'documents',
                 CONFIRMATION: 'confirmation',
             },
@@ -912,7 +942,7 @@ const CONST = {
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -1025,10 +1055,10 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         DUALENTRY: 'dualEntry',
+        BUSINESS_CENTRAL: 'businessCentral',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1039,6 +1069,8 @@ const CONST = {
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
+        MERGE_ATS: 'mergeATSConnections',
+        REPORT_MERGE: 'reportMerge',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1357,6 +1389,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
@@ -1365,6 +1398,7 @@ const CONST = {
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    QA_EXPENSIFY_URL: 'https://qa.exops.io',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-do-i-enable-camera-access-for-mobile-browsers-so-i-can-take-photos-of-my-receipts',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
@@ -1423,7 +1457,7 @@ const CONST = {
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
         EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
-        EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
+        EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
         IFRAME_SANDBOX: 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
     },
@@ -1627,6 +1661,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
+
+                // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
+                ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
@@ -1668,6 +1705,7 @@ const CONST = {
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
                 MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKED_REDEEMED: 'MARKEDREDEEMED', // OldDot Action
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'ACTIONMARKEDREIMBURSEDFROMINTEGRATION', // OldDot Action
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
@@ -1981,6 +2019,7 @@ const CONST = {
         DEFAULT_EXPENSE_REPORT_NAME: 'New Report',
         PERMISSIONS: {
             READ: 'read',
+            COMMENT: 'comment',
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
@@ -1997,11 +2036,13 @@ const CONST = {
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
             MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
+            RECONCILIATION_ALL_EXPENSES: 'reconciliation_all_expenses',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
             MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
+            RECONCILIATION_ALL_EXPENSES: 'Reconciliation - All Expenses',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2219,6 +2260,11 @@ const CONST = {
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
         },
+        DB_SIZE_SOURCE: {
+            SQLITE: 'sqlite',
+            INDEXED_DB: 'indexed_db',
+            UNAVAILABLE: 'unavailable',
+        },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
@@ -2257,6 +2303,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_RECEIPT_PREPARE: 'ManualReceiptPrepare',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
         SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
@@ -2308,6 +2355,13 @@ const CONST = {
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
         ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
+        // Exact account-size counts attached to every span
+        ATTRIBUTE_REPORTS_COUNT_RAW: 'reports_count_raw',
+        ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW: 'personal_details_count_raw',
+        ATTRIBUTE_POLICIES_COUNT_RAW: 'policies_count_raw',
+        ATTRIBUTE_TRANSACTIONS_COUNT_RAW: 'transactions_count_raw',
+        ATTRIBUTE_DB_SIZE_BYTES: 'db_size_bytes',
+        ATTRIBUTE_DB_SIZE_SOURCE: 'db_size_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
@@ -2350,9 +2404,21 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_CAPTURE_METHOD: 'capture_method',
+        ATTRIBUTE_FLASH_USED: 'flash_used',
+        ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
+        ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        CAPTURE_METHOD: {
+            PHOTO: 'photo',
+            SNAPSHOT: 'snapshot',
+        },
+        SPAN_PLATFORM: {
+            NATIVE: 'native',
+            WEB: 'web',
+        },
         /** Which report-actions skeleton cancelled a send-message span (value of the canceled_by_skeleton attribute). */
         CANCELED_BY_SKELETON: {
             REPORT_ACTIONS_REPORT_DATA_LOADING: 'report_actions_report_data_loading',
@@ -3206,11 +3272,20 @@ const CONST = {
         },
     },
 
-    MERGE_HR: {
+    MERGE: {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
+            ADVANCED: 'advanced',
             CUSTOM: 'custom',
+        },
+        ATS_APPROVER_FIELD: {
+            RECRUITER: 'recruiter',
+            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+        },
+        CATEGORY: {
+            HRIS: 'hris',
+            ATS: 'ats',
         },
         COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
@@ -3562,6 +3637,14 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    // The vendor-name portion for card expenses that don't match an existing vendor. It is untranslated on purpose
+    // so the rendered helper text names the vendor record the admin sees in QuickBooks Online or Sage Intacct.
+    // Translations own the sentence punctuation because the name can appear mid-sentence.
+    NON_REIMBURSABLE_FALLBACK_VENDOR_NAME: {
+        CREDIT_CARD: 'Credit Card Misc',
+        DEBIT_CARD: 'Debit Card Misc',
+    },
+
     QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
         CHECK: 'CHECK',
@@ -3636,7 +3719,6 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
-        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
@@ -3696,7 +3778,6 @@ const CONST = {
         SUB_PAGE_NAMES: {
             PLAID_BANK_ACCOUNT: 'plaid',
             MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             LEGAL_NAME: 'legal-name',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
@@ -3748,8 +3829,15 @@ const CONST = {
     ENVIRONMENT: {
         DEV: 'development',
         STAGING: 'staging',
+        QA: 'qa',
         PRODUCTION: 'production',
         ADHOC: 'adhoc',
+    },
+
+    SERVER: {
+        PRODUCTION: 'production',
+        STAGING: 'staging',
+        QA: 'qa',
     },
 
     ENABLE_PAYMENTS: {
@@ -3876,6 +3964,12 @@ const CONST = {
         // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
         // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
         OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
+    },
+
+    CLOUDFLARE_ACCESS: {
+        // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
+        // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
+        NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
     },
 
     ONFIDO: {
@@ -4119,6 +4213,17 @@ const CONST = {
             FIELD_LIST_TITLE: 'text_title',
             TAX: 'tax',
         },
+        /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
+        EXPENSE_DEFAULTS_SECTION: {
+            CATEGORIES: 'categories',
+            MERCHANTS: 'merchants',
+            MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
         DEFAULT_FIELD_LIST_TARGET: 'expense',
@@ -4276,6 +4381,7 @@ const CONST = {
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
+            IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -4429,6 +4535,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
+                MERGE_ATS: 'merge_ats',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {},
             UNSUPPORTED_NAMES: {
@@ -4446,6 +4553,7 @@ const CONST = {
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
+                MERGE_ATS: 'merge-ats',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -4460,16 +4568,38 @@ const CONST = {
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
                 merge_hris: 'Merge HR',
+                merge_ats: 'Merge ATS',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CATEGORY: {
+                HR: 'hr',
+                RECRUITING: 'recruiting',
+            },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
             },
+            // The `origin` the backend stamps on a report field imported by an accounting integration. These values
+            // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
+            get REPORT_FIELD_ORIGIN() {
+                return {
+                    [this.NAME.QBO]: 'qbo',
+                    [this.NAME.QBD]: 'qbd',
+                    [this.NAME.XERO]: 'xero',
+                    [this.NAME.NETSUITE]: 'netsuite',
+                    [this.NAME.SAGE_INTACCT]: 'intacct',
+                    [this.NAME.CERTINIA]: 'financialforce',
+                    [this.NAME.RILLET]: 'rillet',
+                    [this.NAME.DUALENTRY]: 'dualentry',
+                } as const;
+            },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
+            },
+            get RECRUITING_CONNECTION_NAMES() {
+                return [this.NAME.MERGE_ATS] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
@@ -4715,6 +4845,13 @@ const CONST = {
         XX_LARGE: 'xx-large',
         XXX_LARGE: 'xxx-large',
         XXXX_LARGE: 'xxxx-large',
+    },
+
+    AVATAR_SHAPE: {
+        // Fully round, used for user avatars
+        CIRCLE: 'circle',
+        // Corner radius scaled to the avatar size, used for workspace avatars
+        ROUNDED_SQUARE: 'rounded-square',
     },
 
     COMPANY_CARD: {
@@ -5534,6 +5671,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        ATTENDEES: 'attendees',
         BILLABLE: 'billable',
         REPORT: 'report',
     },
@@ -6201,7 +6339,6 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
-        /** Use for Tooltips */
         TOOLTIP: 'tooltip',
         /** Use for dialog/modal elements */
         DIALOG: 'dialog',
@@ -6634,6 +6771,7 @@ const CONST = {
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
         BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        BROKEN_CARD_CONNECTION_531: 'brokenCardConnection531',
         BROKEN_CARD_CONNECTION_REAUTH: 'brokenCardConnectionReauth',
         SEVEN_DAY_HOLD: 'sevenDayHold',
     },
@@ -6644,7 +6782,6 @@ const CONST = {
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
-    /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
         REPORT_ACTION: 'REPORT_ACTION',
@@ -6701,6 +6838,7 @@ const CONST = {
     EXPENSIFY_ICON_NAME: 'Expensify',
 
     ONBOARDING_CHOICES: {...onboardingChoices},
+    ONBOARDING_INTENTS: {...onboardingIntents},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
     CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
@@ -6741,6 +6879,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
+
+    // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -7090,6 +7231,11 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
+                VIOLATIONS: {
+                    column: this.TABLE_COLUMNS.VIOLATIONS,
+                    search: true,
+                    reportView: false,
+                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7203,6 +7349,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
@@ -7399,6 +7546,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
             MERCHANT: 'merchant',
@@ -7407,6 +7555,7 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
+            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7507,6 +7656,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paidBy',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -7592,6 +7742,7 @@ const CONST = {
             FROM: 'from',
             TO: 'to',
             PAYER: 'payer',
+            PAID_BY: 'paid-by',
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
@@ -7646,6 +7797,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
+                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7740,6 +7892,7 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -8260,6 +8413,7 @@ const CONST = {
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
         HAS_WALLET_TERMS_ERRORS: 'hasWalletTermsErrors',
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
+        HAS_HOME_ADDRESS_INFO: 'hasHomeAddressInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
@@ -8353,8 +8507,6 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
         ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
-        IBAN_LABEL_KEYWORD: 'iban',
-        SWIFT_LABEL_KEYWORD: 'swift',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
@@ -8377,7 +8529,6 @@ const CONST = {
         PAGE_NAME: {
             COUNTRY: 'country',
             ACCOUNT_DETAILS: 'account-details',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             ACCOUNT_TYPE: 'account-type',
             BANK_INFORMATION: 'bank-information',
             ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
@@ -8388,12 +8539,11 @@ const CONST = {
             MAPPING: {
                 COUNTRY_SELECTOR: 0,
                 BANK_ACCOUNT_DETAILS: 1,
-                INTERNATIONAL_BANK_ACCOUNT_DETAILS: 2,
-                ACCOUNT_TYPE: 3,
-                BANK_INFORMATION: 4,
-                ACCOUNT_HOLDER_INFORMATION: 5,
-                CONFIRMATION: 6,
-                SUCCESS: 7,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
             },
         },
     },
@@ -9206,6 +9356,7 @@ const CONST = {
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
                 FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
+                CATEGORY_TAX_RULE_ITEM: 'WorkspaceRules-CategoryTaxRuleItem',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
@@ -9550,6 +9701,9 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+        LAYER_ORDER_ANCHOR_SOURCE: 'layer-order-anchor-source',
+        ROUTE_ANCHOR: 'route-anchor',
+        WAYPOINTS_ANCHOR: 'waypoints-anchor',
     },
 
     ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
@@ -9591,6 +9745,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
@@ -9633,6 +9788,9 @@ type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
+/** Valid values for the `intent` param on the onboarding deeplink */
+type OnboardingIntent = ValueOf<typeof CONST.ONBOARDING_INTENTS>;
+
 /** Valid `page` values for the Enable Payments flow */
 type EnablePaymentsPageType = ValueOf<typeof CONST.ENABLE_PAYMENTS.PAGE_NAMES>;
 
@@ -9654,6 +9812,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,
     EnablePaymentsSubPageType,

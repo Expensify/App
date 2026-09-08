@@ -4,8 +4,6 @@ description: Learn how to fix common problems with your Expensify Card, includin
 keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
 ---
 
-<div id="new-expensify" markdown="1">
-
 You can troubleshoot most Expensify Card issues in just a few steps. This guide walks you through the most common problems — like declined transactions, activation issues, or Smart Limit errors — and shows how to get your card working again.
 
 ---
@@ -59,6 +57,8 @@ Every workspace has a shared spend limit that affects all cards. If the workspac
 
 Workspace Admins can check the available limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, Workspace Admins can view the current balance, remaining limit, and any warnings related to settlement.
 
+![The Workspace Admin Expensify Card page (Workspaces > [Workspace Name] > Expensify Card) showing remaining limit/balance and the "Settle Balance" button]({{site.url}}/assets/images/Expensify_Card_Settle_Now.png){:width="100%"}
+
 ## Transaction declined by a Spend Rule
 
 Your Workspace Admin may have set a Spend Rule on your card that declines transactions based on the merchant, spend category, or amount. Certain categories (such as ATMs and gambling) are also blocked by default on every Expensify Card and cannot be overridden.
@@ -99,8 +99,9 @@ To check for bank account issues, navigate to **Workspaces > [Workspace Name] > 
 The workspace limit refreshes automatically after the workspace's regular Expensify Card settlement. To refresh it earlier:
 
 1. Go to **Workspaces > [Workspace Name] > Expensify Card**
-2. Click **Settle Balance** to trigger an early settlement.
-3. Once the settlement clears, the workspace limit will be refreshed.
+2. Click **Settle balance**.
+3. In the confirmation window, click **Settle balance** again to confirm the early settlement.
+4. Once the settlement clears, the workspace limit will be refreshed.
 
 </div>
 

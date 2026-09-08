@@ -70,7 +70,6 @@ describe('useShowNotFoundPageInIOUStep', () => {
             name: 'Corporate policy',
             owner: '',
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: false,
             employeeList: {
                 [currentUserEmail]: {
                     email: currentUserEmail,

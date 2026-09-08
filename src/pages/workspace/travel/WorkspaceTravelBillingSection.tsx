@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +65,6 @@ import TravelBillingLearnHow from './TravelBillingLearnHow';
 import TravelBillingSubtitleWrapper from './TravelBillingSubtitleWrapper';
 
 type WorkspaceTravelBillingSectionProps = {
-    /** The ID of the policy */
     policyID: string;
 };
 
@@ -79,6 +79,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
+    const {allFeeds: accessibleTravelFeeds} = useExpensifyCardFeedsForFeedSelector(policyID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
 
     const {showConfirmModal, closeModal} = useConfirmModal();
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
@@ -221,6 +222,12 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             return;
         }
 
+        // The domain already runs a travel feed this workspace can join, so let the admin pick one instead of provisioning another.
+        if (accessibleTravelFeeds.length > 0) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TRAVEL_BILLING_SELECT_FEED.path, ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)));
+            return;
+        }
+
         // Turning ON - check if bank account setup is needed first
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
             // No bank accounts - start add bank account flow
@@ -254,7 +261,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
             confirmText: translate('workspace.bankAccount.updateToUSD'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         isCurrencyModalOpen.current = false;
         if (result.action !== ModalActions.CONFIRM || !policy) {
@@ -500,7 +507,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 prompt={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.body')}
                 confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.disableModal.confirm')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
 
             <ConfirmModal
@@ -521,7 +528,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 prompt={payBalanceModalBody}
                 confirmText={payBalanceCtaText}
                 cancelText={translate('common.cancel')}
-                success
+                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
             />
         </>
     );

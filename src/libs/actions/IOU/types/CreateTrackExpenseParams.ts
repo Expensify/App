@@ -50,8 +50,7 @@ type CreateTrackExpenseParams = {
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
     delegateAccountID: number | undefined;
     reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    isDraftChatReport?: boolean;
+    isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 

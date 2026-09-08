@@ -27,7 +27,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         owner: policy.owner,
         connections: policy.connections,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         isJoinRequestPending: policy.isJoinRequestPending,
         pendingAction: policy.pendingAction,
         errors: policy.errors,
@@ -42,6 +41,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         achAccount: policy.achAccount,
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
+        areRulesEnabled: policy.areRulesEnabled,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -77,6 +77,10 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    // Migrated Control workspaces leave `areRulesEnabled` undefined; Violations by submitter then depends on
+    // Classic category rules stored on POLICY_CATEGORIES. No selector: mapping this collection would still be
+    // large, and shallowEqual on the raw references is cheaper than deepEqual of a transformed copy.
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
@@ -126,6 +130,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
                 hasReportAwaitingApproval,
+                policyCategories: allPolicyCategories,
             }),
         [
             currentUserLoginAndAccountID?.email,
@@ -140,6 +145,7 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             draftTransactionIDs,
             isTrackIntentUser,
             hasReportAwaitingApproval,
+            allPolicyCategories,
         ],
     );
 
