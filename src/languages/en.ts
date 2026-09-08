@@ -2592,7 +2592,7 @@ const translations = {
         copyCodes: 'Copy codes',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
-        enable2FA: 'Enable 2FA',
+        enable2FA: 'Enable',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredNetSuiteDescription: 'For security purposes, NetSuite requires two-factor authentication to connect the integration.',
