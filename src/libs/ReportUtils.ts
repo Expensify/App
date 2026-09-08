@@ -3967,7 +3967,8 @@ function getIconsForChatThread(
     if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
-    if (report.parentReportID === conciergeReportIDOnyxConnect) {
+    const parentReport = getReport(report.parentReportID, deprecatedAllReports);
+    if (isDM(parentReport) && chatIncludesConcierge(parentReport)) {
         return getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails);
     }
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
