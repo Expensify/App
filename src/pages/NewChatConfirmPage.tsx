@@ -133,7 +133,8 @@ function NewChatConfirmPage() {
     const personalData = useCurrentUserPersonalDetails();
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
@@ -201,7 +202,7 @@ function NewChatConfirmPage() {
             introSelected,
             isSelfTourViewed: !!guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
+            conciergeChat,
             currentUserAccountID: personalData.accountID,
             avatarUri: newGroupDraft.avatarUri ?? '',
             avatarFile,

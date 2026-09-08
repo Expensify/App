@@ -19,11 +19,12 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-/** Config fields shared by the Merge-backed connections (Merge HR and Merge ATS) that can hold an update error. */
-type MergeConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups' | 'filters' | 'approverField';
+type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
+type RecruitingConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'filters' | 'approverField';
+type MergeConnectionErrorFieldName = HRConnectionErrorFieldName | RecruitingConnectionErrorFieldName;
 
-function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug) {
-    const params: ConnectPolicyToMergeParams = {policyID, integration};
+function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug, category: ValueOf<typeof CONST.MERGE.CATEGORY>) {
+    const params: ConnectPolicyToMergeParams = {policyID, integration, category};
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_MERGE,
         shouldSkipWebProxy: true,
