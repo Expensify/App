@@ -6,9 +6,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import shouldShowChangeWorkspaceOwnerPage from '@libs/shouldShowChangeWorkspaceOwnerPage';
 
@@ -37,6 +37,7 @@ type DynamicWorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & Platfor
 
 function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}: DynamicWorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {translate} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.path);
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
@@ -62,12 +63,12 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         }
 
         if (!policy.errorFields && policy.isChangeOwnerFailed) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path), {forceReplace: true});
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_ERROR.path), {forceReplace: true});
             return;
         }
 
         if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path), {forceReplace: true});
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.path), {forceReplace: true});
             return;
         }
 
@@ -76,7 +77,7 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
             Navigation.setParams({error: changeOwnerErrors.at(0)});
         }
-    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
+    }, [accountID, policy, policy?.errorFields?.changeOwner, policyID, buildDynamicRoute]);
 
     const isLoading = isLoadingPolicy || !!policy?.isLoading;
 

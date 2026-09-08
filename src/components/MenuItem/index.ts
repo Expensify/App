@@ -5,7 +5,8 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the text leaves, announced top line first.
+ * The row's accessibility label is derived from the text leaves, announced top line first and followed by the
+ * hints trailing leaves register.
  *
  * @example Simple navigation row
  * ```tsx
@@ -37,6 +38,7 @@ import MenuItemFieldNamePlaceholder from './leaves/content/MenuItemFieldNamePlac
 import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
 import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
 import MenuItemChevron from './leaves/trailing/MenuItemChevron';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
@@ -54,6 +56,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
     FieldValue: MenuItemFieldValue,
     Chevron: MenuItemChevron,
+    NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
 });
 
