@@ -54,6 +54,7 @@ const initialContainerState = {
     width: 0,
     left: 0,
     bottom: 0,
+    isMenuAbove: false,
     cursorCoordinates: {x: 0, y: 0},
 };
 
@@ -151,6 +152,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             }
 
             let measuredHeight = 0;
+            const isMenuAbove = isSuggestionMenuAboveRef.current && (isEnoughSpaceToRenderMenuAboveForBig || isEnoughSpaceToRenderMenuAboveForSmall);
             if (isSuggestionMenuAboveRef.current && isEnoughSpaceToRenderMenuAboveForBig) {
                 // calculation for big suggestion box above the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
@@ -168,6 +170,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
+                isMenuAbove,
                 cursorCoordinates,
             });
         });
@@ -190,6 +193,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         return null;
     }
 
+    console.log({isMenuAbove: containerState.isMenuAbove});
+
     return (
         <AutoCompleteSuggestionsPortal
             {...props}
@@ -198,7 +203,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             bottom={containerState.bottom}
             keyboardHeight={keyboardHeight}
             measuredHeightOfSuggestionRows={suggestionHeight}
-            isInLandscapeMode={isInLandscapeMode}
+            isMenuAbove={containerState.isMenuAbove}
         />
     );
 }

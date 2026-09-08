@@ -23,7 +23,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     bottom = 0,
     keyboardHeight = 0,
     resetSuggestions = () => {},
-    isInLandscapeMode = false,
+    isMenuAbove = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
@@ -40,12 +40,14 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
 
     const hostRelativeBottom = hostFrameBottom === null ? 0 : bottom + keyboardHeight - (windowHeight - hostFrameBottom);
     const isHostFrameMeasured = hostFrameBottom !== null;
-    const bottomPadding = getBottomSuggestionPadding(bottom, isInLandscapeMode);
+    const bottomPadding = getBottomSuggestionPadding(isMenuAbove);
     const containerStyle = StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: hostRelativeBottom + bottomPadding});
 
     if (!width) {
         return null;
     }
+
+    console.log({bottomPadding});
 
     return (
         <Portal hostName="suggestions">

@@ -28,12 +28,11 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     left = 0,
     width = 0,
     bottom = 0,
-    // keyboardHeight and isInLandscapeMode are only used on native platforms to adjust the bottom position
+    // keyboardHeight and isMenuAbove are only used on native platforms to adjust the bottom position
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     keyboardHeight = 0,
     resetSuggestions = () => {},
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isInLandscapeMode = false,
+    isMenuAbove = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
@@ -56,7 +55,9 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                     onPress={resetSuggestions}
                     style={zIndexStyle}
                 />
-                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()}), zIndexStyle]}>{componentToRender}</View>
+                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}>
+                    {componentToRender}
+                </View>
             </>,
             bodyElement,
         )

@@ -10,7 +10,9 @@ type AutoCompleteSuggestionsPortalProps<TSuggestion> = ExternalProps<TSuggestion
     /** Keyboard height `bottom` was offset by, used on native to re-base `bottom` onto the portal host's frame */
     keyboardHeight?: number;
     measuredHeightOfSuggestionRows: number;
-    isInLandscapeMode?: boolean;
+
+    /** Whether the menu is rendered above the caret, which decides the gap kept between the menu and the caret */
+    isMenuAbove?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export
