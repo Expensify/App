@@ -14,6 +14,7 @@ import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from
 
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import getLeftOffset from './getSuggestionsLeftOffset';
+import getSuggestionsViewportBottom from './getSuggestionsViewportBottom';
 
 const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean, isInLandscapeMode: boolean): number => {
     if (isInLandscapeMode) {
@@ -112,7 +113,9 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
-            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            // Read in the same tick as the composer measurement above, so both describe the same layout state.
+            const viewportBottom = getSuggestionsViewportBottom(windowHeight);
+            let bottomValue = viewportBottom - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
@@ -157,7 +160,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                bottomValue = viewportBottom - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
 
             setSuggestionHeight(measuredHeight);

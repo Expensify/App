@@ -17,17 +17,6 @@ import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
 
 const zIndexStyle = {zIndex: variables.autoCompleteSuggestionsZIndex};
 
-/** Keyboard height on WebKit, where the keyboard shrinks the visual viewport that `bottom` is derived from but not the layout viewport it is applied to. 0 elsewhere. */
-function getVisualViewportBottomOffset() {
-    const visualViewport = window.visualViewport;
-
-    if (!visualViewport) {
-        return 0;
-    }
-
-    return Math.max(0, document.documentElement.clientHeight - Math.round(visualViewport.height * visualViewport.scale));
-}
-
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
  * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
@@ -67,14 +56,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                     onPress={resetSuggestions}
                     style={zIndexStyle}
                 />
-                <View
-                    style={[
-                        StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding() + getVisualViewportBottomOffset()}),
-                        zIndexStyle,
-                    ]}
-                >
-                    {componentToRender}
-                </View>
+                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()}), zIndexStyle]}>{componentToRender}</View>
             </>,
             bodyElement,
         )
