@@ -16,6 +16,8 @@ import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import applyOnyxUpdatesReliably from '@src/libs/actions/applyOnyxUpdatesReliably';
+
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -746,6 +748,24 @@ describe('OnyxUpdateManager', () => {
             await OnyxUpdateManager.queryPromise;
             expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
         });
+    });
+
+    it('should fetch the missing updates when an apply fails, even with no visible gap', async () => {
+        const update: OnyxUpdatesFromServer<never> = {...OnyxUpdateMockUtils.createUpdate(2), previousUpdateID: 0};
+        OnyxUpdates.apply.mockImplementationOnce(() => Promise.reject(new Error('apply failed')));
+
+        let wasQueuePausedWhenFetching = false;
+        App.getMissingOnyxUpdates.mockImplementationOnce(() => {
+            wasQueuePausedWhenFetching = SequentialQueue.isPaused();
+            return Promise.resolve({jsonCode: 200, onyxData: []});
+        });
+
+        await applyOnyxUpdatesReliably(update, {shouldRunSync: true});
+
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(wasQueuePausedWhenFetching).toBe(true);
+
+        SequentialQueue.unpause();
     });
 
     it('should apply deferred updates after fetching pending updates', () => {

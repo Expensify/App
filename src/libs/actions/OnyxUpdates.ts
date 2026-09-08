@@ -24,6 +24,8 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
+let lastFailedUpdateID = 0;
+
 function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
@@ -42,6 +44,7 @@ Onyx.connectWithoutView({
         // too — a stale value from the previous session would mask real gaps after signing back in.
         if (val === undefined) {
             lastUpdateIDPendingFlush = 0;
+            lastFailedUpdateID = 0;
         }
     },
 });
@@ -107,13 +110,15 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
-    pusherEventsPromise = updates
+    const applyPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
         });
 
-    return pusherEventsPromise;
+    pusherEventsPromise = applyPromise.catch(() => {});
+
+    return applyPromise;
 }
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
@@ -194,6 +199,15 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
+                if (lastFailedUpdateID && isCatchUpRequest && Number(lastUpdateID) >= lastFailedUpdateID) {
+                    lastFailedUpdateID = 0;
+                }
+
+                if (lastFailedUpdateID && Number(lastUpdateID) > lastFailedUpdateID) {
+                    Log.info('[OnyxUpdateManager] Not advancing past an update whose apply failed', false, {lastUpdateID, lastFailedUpdateID});
+                    return result;
+                }
+
                 // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
                 // live watermark and only ever move it forward. Otherwise a slower, older update could overwrite a
                 // newer one, moving the watermark backwards and making gap detection refetch already-applied updates.
@@ -210,6 +224,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
             })
             .catch((error) => {
                 if (shouldAdvanceLastUpdateID) {
+                    lastFailedUpdateID = lastFailedUpdateID ? Math.min(lastFailedUpdateID, Number(lastUpdateID)) : Number(lastUpdateID);
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
                         type,
                         command: request?.command,
