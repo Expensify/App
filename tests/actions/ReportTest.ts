@@ -1359,6 +1359,7 @@ describe('actions/Report', () => {
 
         // When a new report is created and the owner is only known by the personal details passed to openReport
         Report.openReport({
+            conciergeChat: undefined,
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: undefined,
@@ -1395,6 +1396,7 @@ describe('actions/Report', () => {
 
         // When a new report is created and the personal details passed to openReport don't contain that participant
         Report.openReport({
+            conciergeChat: undefined,
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: undefined,
