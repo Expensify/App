@@ -16,7 +16,6 @@ import EReceipt from './EReceipt';
 import PerDiemEReceipt from './PerDiemEReceipt';
 
 type EReceiptWithSizeCalculationProps = {
-    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 
     /** The transaction data in search */
@@ -28,7 +27,6 @@ type EReceiptWithSizeCalculationProps = {
     /** Callback to be called when the image loads */
     onLoad?: () => void;
 
-    /** Determines which receipt component to render */
     receiptType?: 'default' | 'perDiem';
 
     /** Overrides theme props set by default by useReceipt */

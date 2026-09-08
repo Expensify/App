@@ -64,7 +64,7 @@ jobs:
 
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(sed 's/^hermes-v\{0,1\}//' node_modules/react-native/sdks/.hermesversion)" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION=$(sed 's/^hermes-v\{0,1\}//' node_modules/react-native/sdks/.hermesv1version)" >> "$GITHUB_OUTPUT"
 
       - name: Fetch prebuild files from upstream RN
         uses: ./.github/actions/composite/fetchReactNativePrebuild

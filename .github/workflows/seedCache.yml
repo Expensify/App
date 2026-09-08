@@ -1,4 +1,4 @@
-name: Seed sticky disks
+name: Seed caches
 
 on:
   push:
@@ -42,3 +42,7 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
           SEED_STICKY_DISKS: 'true'
+
+  seedJestPerfCache:
+    name: Seed Jest perf cache
+    uses: ./.github/workflows/seedJestPerfCache.yml

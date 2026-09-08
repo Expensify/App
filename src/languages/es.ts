@@ -1658,11 +1658,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: '¡Todo listo!',
         noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprove: 'Confirmar importe a aprobar',
-        confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Este gasto está retenido. ¿Quieres aprobarlo de todos modos?',
-            other: 'Estos gastos están retenidos. ¿Quieres aprobarlos de todos modos?',
-        }),
+        confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Quieres aprobar sólo los gastos que cumplen con los requisitos o aprobar todo el informe?',
+        confirmApprovalAllHoldAmount: 'Todos los gastos están retenidos. ¿Aprobar de todos modos?',
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
         confirmPayAllHoldAmount: () => ({
@@ -3250,6 +3247,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
+            domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
         },
         tasks: {
             testDriveAdminTask: {
