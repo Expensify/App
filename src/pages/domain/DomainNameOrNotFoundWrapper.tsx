@@ -26,7 +26,7 @@ function DomainNameOrNotFoundWrapper({domainAccountID, onLinkPress, children}: D
     const [domainName, domainNameResult] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     if (isLoadingOnyxValue(domainNameResult)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domainName) {

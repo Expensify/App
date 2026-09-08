@@ -244,6 +244,35 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
+    it('Should never offer a "Go back" button, however long the loader stays up', async () => {
+        // /v/ is a cold deep-link entry point, so there is usually no history to pop and a "Go back"
+        // button would be dead. The page opts out of the loader's default recovery UI for that reason.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {accountID: 1, validateCode: '123456'});
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+
+        // setupAfterEnv installs real timers globally; the loader timeout is only reachable on fake ones.
+        jest.useFakeTimers();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT * 2);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+        expect(screen.queryByText(translateLocal('common.goBack'))).toBeNull();
+        expect(screen.queryByText(translateLocal('common.thisIsTakingLongerThanExpected'))).toBeNull();
+        jest.useRealTimers();
+    });
+
     it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validate code is cached', async () => {
         // Genuinely-stuck fallback: 2FA is required but there's no cached `credentials.validateCode`, so
         // the sign-in page can't render the authenticator stage and there's nowhere to send the user.

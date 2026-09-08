@@ -221,7 +221,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator shouldUseGoBackButton />
+                <FullScreenLoadingIndicator />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"

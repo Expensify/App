@@ -280,7 +280,7 @@ function SearchChangeApproverPage() {
         );
 
     if (!isOffline && isLoadingBulkChangeApproverPage) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
