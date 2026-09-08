@@ -45,6 +45,7 @@ import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
+import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -691,8 +692,8 @@ function MenuItem({
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         styles.flex1,
-        title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
+        title ? {} : StyleUtils.getFontSizeStyle(fontScale.text),
+        title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(lineHeightScale.text),
         !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
