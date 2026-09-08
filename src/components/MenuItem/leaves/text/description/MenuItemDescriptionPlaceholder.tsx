@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {fontScale, lineHeightScale} from '@styles/typography';
 
 import React from 'react';
 
@@ -19,7 +19,7 @@ function MenuItemDescriptionPlaceholder({children, numberOfLines = 2}: MenuItemD
 
     return (
         <Text
-            style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal), StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight), styles.breakWord]}
+            style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(fontScale.text), StyleUtils.getLineHeightStyle(lineHeightScale.text), styles.breakWord]}
             numberOfLines={numberOfLines}
         >
             {children}
