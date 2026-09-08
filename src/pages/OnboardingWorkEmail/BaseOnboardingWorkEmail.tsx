@@ -129,7 +129,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // replace a pending work email. Advancing to validation happens only after a submission in this modal session.
         if (isConciergeTaskFlow) {
             if (isCurrentPrimaryValidated) {
-                returnToOriginReport();
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
                 return;
             }
 
