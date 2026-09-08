@@ -19,7 +19,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {initDraftSplitExpenseDataForEdit, initSplitExpenseItemData, resolveSplitItemReportID, resolveSplitMileageRate, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {
+    getSplitReimbursable,
+    initDraftSplitExpenseDataForEdit,
+    initSplitExpenseItemData,
+    resolveSplitItemReportID,
+    resolveSplitMileageRate,
+    updateSplitExpenseDistanceFromAmount,
+} from './IOU/SplitExpenseItems';
 
 // We read the whole transactions collection here only because `initSplitExpense` runs in the action
 // layer (not a component/hook), where `useOnyx` can't be called, and it doesn't affect UI rendering, so
@@ -117,7 +124,7 @@ function initSplitExpense(
                 merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
-                reimbursable: transactionDetails?.reimbursable,
+                reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, originalTransaction),
             },
         });
 
@@ -219,7 +226,7 @@ function initSplitExpense(
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
-            reimbursable: transactionDetails?.reimbursable,
+            reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, transaction),
             customUnit: transaction?.comment?.customUnit,
             odometerStart: transaction?.comment?.odometerStart,
             odometerEnd: transaction?.comment?.odometerEnd,
