@@ -1,7 +1,7 @@
 ---
 title: Approve Expenses
 description: Approve, hold, reject, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, rejected report message, this report was rejected, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 internalScope: Audience is Workspace approvers and admins. Covers approving and managing submitted expenses and reports. Does not cover creating or submitting expenses.
 ---
 
@@ -133,6 +133,19 @@ As the assigned approver, you can reject an entire expense report to return it t
 
 - **Rejected to the submitter**: The report moves back to Draft. The submitter must fix any issues and manually resubmit — rejected reports are skipped when Submissions is enabled.
 - **Rejected to a previous approver**: The report stays Outstanding and prior approvals are preserved, so it won't restart the entire approval workflow.
+
+The rejection reason you entered is posted as a comment on the report, and the submitter is notified.
+
+## Where the rejected report message appears
+
+When a report is rejected back to the submitter, the message **This report was rejected.** appears in two places:
+
+- On the report preview in the workspace chat, between the expenses and the action button.
+- On the report row under **Spend > Reports**.
+
+Everyone who can see the report sees this message, not just the submitter. The message clears once the report is submitted again.
+
+Reports rejected back to a previous approver do not show this message, because those reports stay Outstanding instead of moving back to Draft.
 
 ---
 
