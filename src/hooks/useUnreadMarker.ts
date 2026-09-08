@@ -34,6 +34,9 @@ type UseUnreadMarkerParams = {
 
     /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
+
+    /** Whether the report has unread activity for the current user */
+    isReportUnread?: boolean;
 };
 
 type UseUnreadMarkerResult = {
@@ -53,6 +56,7 @@ function useUnreadMarker({
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
+    isReportUnread = true,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -120,13 +124,14 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
+        isReportUnread,
         prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
-        oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
+        isReportUnread && oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
     if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
