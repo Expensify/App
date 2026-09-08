@@ -52,8 +52,8 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
-    }, [bankAccountID, bankStatement?.length, isLoadingDraft]);
+        Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
+    }, [bankAccountID, bankStatement?.length, getAgreementsRoute, isDynamic, isLoadingDraft, persistedRouteParams]);
 
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
