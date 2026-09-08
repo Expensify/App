@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
+let hasConciergeAttention = false;
 let currentPageTitle = '';
 let shouldShowBranchNameInTitle = false;
 
@@ -50,7 +51,8 @@ function updateDocumentTitle() {
 
     const favicon = document.getElementById('favicon');
     if (favicon instanceof HTMLLinkElement) {
-        favicon.href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        const defaultIcon = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        favicon.href = hasConciergeAttention ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
     }
 }
 
@@ -66,5 +68,13 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+function setConciergeAttention(hasAttention: boolean) {
+    if (hasConciergeAttention === hasAttention) {
+        return;
+    }
+    hasConciergeAttention = hasAttention;
+    updateDocumentTitle();
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {setPageTitle, setConciergeAttention};
