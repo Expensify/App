@@ -945,10 +945,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const merchantFilters =
         options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT && !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO)) ?? [];
     const lastMerchantFilter = merchantFilters.at(-1);
+    const isMerchantValueUnchanged = supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
     // The form displays the last positive Merchant clause. Preserve all original clauses until that field changes.
     const shouldPreserveMerchantFilters =
         merchantFilters.length > 0 &&
-        supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',') &&
+        isMerchantValueUnchanged &&
         getMerchantOperator(merchantOperator) ===
             (lastMerchantFilter?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : DEFAULT_MERCHANT_OPERATOR);
     const filtersString: string[] = [];
@@ -1013,6 +1014,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     if (filterKey === FILTER_KEYS.MERCHANT && !isNegated) {
                         if (shouldPreserveMerchantFilters) {
                             return merchantFilters.map((filter) => buildFilterValuesString(FILTER_KEYS.MERCHANT, filter.filters).trim()).join(' ');
+                        }
+
+                        if (lastMerchantFilter && isMerchantValueUnchanged) {
+                            // The form string cannot distinguish a list from a Merchant name containing a comma.
+                            const updatedOperator = getMerchantOperator(merchantOperator);
+                            const updatedFilters = lastMerchantFilter.filters.map((filter) => ({...filter, operator: updatedOperator}));
+                            return buildFilterValuesString(FILTER_KEYS.MERCHANT, updatedFilters).trim();
                         }
 
                         operator =

@@ -50,6 +50,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
@@ -2655,8 +2656,40 @@ describe('SearchQueryUtils', () => {
                 expect(secondUpdate.updatedQuery.flatFilters).toContainEqual({key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]});
             });
 
+            test.each<{input: string; operator: MerchantMatchType; expectedValue: string | string[]}>([
+                {input: 'merchant*:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
+                {input: 'merchant=I,Ig', operator: 'contains', expectedValue: ['I', 'Ig']},
+                {input: 'merchant:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
+                {input: 'merchant*:"I,Ig"', operator: 'eq', expectedValue: 'I,Ig'},
+                {input: 'merchant="I,Ig"', operator: 'contains', expectedValue: 'I,Ig'},
+                {input: 'merchant*:"Coffee, Shop",Uber', operator: 'eq', expectedValue: ['Coffee, Shop', 'Uber']},
+                {input: 'merchant="Coffee, Shop",Uber', operator: 'contains', expectedValue: ['Coffee, Shop', 'Uber']},
+                {input: 'merchant=I merchant*:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
+                {input: 'merchant*:I merchant=I,Ig', operator: 'contains', expectedValue: ['I', 'Ig']},
+            ])('preserves Merchant values when changing only the match type: %j', ({input, operator, expectedValue}) => {
+                const {updatedQuery} = updateQuery(input, {merchantOperator: operator});
+
+                expect(updatedQuery.filters).toEqual({operator, left: 'merchant', right: expectedValue});
+            });
+
+            test('keeps a Merchant list through successive match type and Currency changes without mutating the original query', () => {
+                const {originalQuery, updatedQuery} = updateQuery('merchant*:I,Ig', {merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO});
+                const currencyUpdate = updateQuery(buildSearchQueryString(updatedQuery), {currency: ['USD']});
+
+                expect(originalQuery.filters).toEqual({operator: 'contains', left: 'merchant', right: ['I', 'Ig']});
+                expect(currencyUpdate.updatedQuery.flatFilters).toContainEqual({
+                    key: 'merchant',
+                    filters: [
+                        {operator: 'eq', value: 'I'},
+                        {operator: 'eq', value: 'Ig'},
+                    ],
+                });
+                expect(currencyUpdate.updatedQuery.flatFilters).toContainEqual({key: 'currency', filters: [{operator: 'eq', value: 'USD'}]});
+            });
+
             test.each<{updates: Partial<SearchAdvancedFiltersForm>; expected: string}>([
                 {updates: {merchant: 'Tea'}, expected: 'merchant*:Tea'},
+                {updates: {merchant: 'I,Ig', merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}, expected: 'merchant="I,Ig"'},
                 {updates: {merchant: undefined}, expected: ''},
             ])('replaces or removes a Merchant list on an explicit change: %j', ({updates, expected}) => {
                 const {updatedQuery} = updateQuery('merchant*:Amazon,Uber', updates);
