@@ -5845,6 +5845,7 @@ describe('ReportUtils', () => {
                 undefined,
                 false,
                 undefined,
+                undefined,
             );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
