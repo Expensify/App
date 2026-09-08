@@ -143,16 +143,12 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** A unique Onyx key identifying the form */
         formID: TFormID;
 
-        /** Text to be displayed in the submit button */
         submitButtonText: string;
-
-        /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Controls the submit button's visibility */
         isSubmitButtonVisible?: boolean;
 
-        /** Callback to submit the form */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
         /** Should the button be enabled when offline */
@@ -164,10 +160,12 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
         /** Should fix the errors alert be displayed when there is an error in the form */
         shouldHideFixErrorsAlert?: boolean;
 
+        /** Hides the server error banner even when `formState.errors` is set */
+        shouldHideServerError?: boolean;
+
         /** Whether ScrollWithContext should be used instead of regular ScrollView. Set to true when there's a nested Picker component in Form. */
         scrollContextEnabled?: boolean;
 
-        /** Whether to use ScrollView */
         shouldUseScrollView?: boolean;
 
         /** Container styles */
@@ -198,10 +196,12 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

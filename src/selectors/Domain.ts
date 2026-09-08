@@ -201,7 +201,7 @@ function selectRestrictedPrimaryPolicyID(groupID?: string) {
  * @param accountID - The account ID to check admin status for
  * @returns A selector function that takes a domain and returns boolean
  */
-function isAdminSelector(accountID: number) {
+function isAdminSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => {
         if (!domain || !accountID) {
             return false;
@@ -211,6 +211,11 @@ function isAdminSelector(accountID: number) {
             ([key, value]) => key.startsWith(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX) && value !== undefined && value !== null && Number(value) === accountID,
         );
     };
+}
+
+/** Creates a selector that reports whether the given account has a pending adminship request on the domain. */
+function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
+    return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
 }
 
 /** Creates a selector that extracts the pending action for a security group's setting */
@@ -255,6 +260,7 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    hasPendingAdminshipRequestSelector,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,

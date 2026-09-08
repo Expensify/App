@@ -40,7 +40,7 @@ import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/Tra
 
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
@@ -56,7 +56,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyReportViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** Policy that the report belongs to */
@@ -65,12 +64,8 @@ type MoneyReportViewProps = {
     /** Indicates whether the iou report is a combine report */
     isCombinedReport?: boolean;
 
-    /** Indicates whether the total should be shown */
     shouldShowTotal?: boolean;
-
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
-
     pendingAction?: PendingAction;
 
     /** Whether we should display the animated banner above the component */
@@ -132,7 +127,7 @@ function MoneyReportView({
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
         styles.alignSelfCenter,
-        StyleUtils.getFontSizeStyle(variables.fontSizeH1),
+        StyleUtils.getFontSizeStyle(fontScale.h2),
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 

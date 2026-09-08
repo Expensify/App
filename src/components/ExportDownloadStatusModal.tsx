@@ -39,7 +39,6 @@ type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
     exportID: string;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Callback when the modal is closed */
