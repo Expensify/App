@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasSubmittedViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
@@ -37,12 +38,12 @@ import {
     isSearchBeforeViolationsSnapshotStarted,
     isSearchRootParams,
     serializeQueryJSONForBackend,
+    resolvePolicyIDFromName,
     sanitizeSearchValue,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
-    stripSearchValueQuotes,
     withExactMatchFilterKeys,
 } from '@src/libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -317,6 +318,15 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
+        test('rebuilds a single value containing a comma as one value', () => {
+            expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+            expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
+        });
+
+        test('rebuilds a comma separated list as separate values', () => {
+            expect(getQueryWithUpdatedValues('category:Travel,Meals')).toEqual(`${defaultQuery} category:Travel,Meals`);
+        });
+
         test('returns query with user emails substituted', () => {
             const userQuery = 'from:johndoe@example.com hello';
 
@@ -464,12 +474,12 @@ describe('SearchQueryUtils', () => {
         test('has empty category values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
-                category: ['equipment', 'consulting', 'none,Uncategorized'],
+                category: ['equipment', 'consulting', CONST.SEARCH.CATEGORY_EMPTY_VALUE],
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
+            expect(result).toEqual(`type:expense category:equipment,consulting,${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
         });
 
         test('empty filter values', () => {
@@ -1944,6 +1954,20 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different similarSearchHash for queries with different has values', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with the same has value but different dates', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-year has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
         it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
             const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
@@ -2409,6 +2433,17 @@ describe('SearchQueryUtils', () => {
             const keywordFilter = newQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
             expect(keywordFilter?.filters.at(0)?.value).toBe('status:done');
             expect(getFilterFromQuery(newQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toBe(undefined);
+        });
+
+        test.each([
+            ['a straight quote', 'A"B'],
+            ['a curly quote', 'A“B'],
+            ['a backslash', 'A\\B'],
+        ])('round-trips a bare keyword containing %s', (_label, keyword) => {
+            const result = buildSearchQueryString(buildSearchQueryJSON(`type:expense ${keyword}`));
+
+            const keywordFilter = buildSearchQueryJSON(result)?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
         });
 
         test('does not add quotes to non-keyword filter values', () => {
@@ -3801,6 +3836,42 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('queryHasSubmittedViolationFilter', () => {
+        test('returns true for a positive has:submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the has filter is negated', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false when submitted-violation is negated alongside other positive has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns true when submitted-violation is positive alongside other has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the query has no submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false for an undefined queryJSON', () => {
+            expect(queryHasSubmittedViolationFilter(undefined)).toBe(false);
+        });
+    });
+
     describe('getAllPolicyValues', () => {
         const policy1 = createRandomPolicy(1, undefined, 'Workspace 1');
         const policy2 = createRandomPolicy(2, undefined, 'Workspace 2');
@@ -4150,20 +4221,54 @@ describe('SearchQueryUtils', () => {
             expect(sanitizeSearchValue('Acme\xA0Inc')).toBe('"Acme\xA0Inc"');
         });
 
-        it('only quotes on a comma when asked to', () => {
-            expect(sanitizeSearchValue('Acme,Inc')).toBe('Acme,Inc');
-            expect(sanitizeSearchValue('Acme,Inc', true)).toBe('"Acme,Inc"');
+        it('quotes on a comma, so a value containing one is not read back as two', () => {
+            expect(sanitizeSearchValue('Globex,Ltd')).toBe('"Globex,Ltd"');
+        });
+
+        it('escapes quotes and backslashes so the parser reads them as part of the value', () => {
+            expect(sanitizeSearchValue('A"B')).toBe('A\\"B');
+            expect(sanitizeSearchValue('A\\B')).toBe('A\\\\B');
+            expect(sanitizeSearchValue('Acme "US",Inc')).toBe('"Acme \\"US\\",Inc"');
+            expect(sanitizeSearchValue('Acme “US” Inc')).toBe('"Acme \\“US\\” Inc"');
+        });
+
+        it('serializes a value with no character needing escaping exactly as before', () => {
+            expect(sanitizeSearchValue('Acme, Inc.')).toBe('"Acme, Inc."');
+            expect(sanitizeSearchValue('Travel')).toBe('Travel');
         });
     });
 
-    describe('stripSearchValueQuotes', () => {
-        it('removes straight and curly quotes', () => {
-            expect(stripSearchValueQuotes('Acme,"Inc')).toBe('Acme,Inc');
-            expect(stripSearchValueQuotes('Acme “US” Inc')).toBe('Acme US Inc');
+    describe('resolvePolicyIDFromName', () => {
+        const ACME_ID = '26BE5C4005E188DB';
+        const OTHER_ID = '312ECD05D0CD4B27';
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${ACME_ID}`]: {...createRandomPolicy(1, undefined, 'Acme, Inc.'), id: ACME_ID},
+            [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Beta Corp'), id: OTHER_ID},
+        };
+
+        it('resolves a name that matches exactly one workspace', () => {
+            expect(resolvePolicyIDFromName('Acme, Inc.', policies)).toBe(ACME_ID);
         });
 
-        it('leaves a value without quotes untouched', () => {
-            expect(stripSearchValueQuotes('Acme, Inc.')).toBe('Acme, Inc.');
+        it('matches the name regardless of case', () => {
+            expect(resolvePolicyIDFromName('acme, inc.', policies)).toBe(ACME_ID);
+        });
+
+        it('leaves a value that is already a policy ID alone', () => {
+            expect(resolvePolicyIDFromName(ACME_ID, policies)).toBe(ACME_ID);
+        });
+
+        it('leaves an unknown name alone', () => {
+            expect(resolvePolicyIDFromName('Nonexistent', policies)).toBe('Nonexistent');
+        });
+
+        it('leaves an ambiguous name alone rather than guessing', () => {
+            const duplicates = {
+                ...policies,
+                [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_ID}`]: {...createRandomPolicy(2, undefined, 'Acme, Inc.'), id: OTHER_ID},
+            };
+
+            expect(resolvePolicyIDFromName('Acme, Inc.', duplicates)).toBe('Acme, Inc.');
         });
     });
 });

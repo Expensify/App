@@ -202,7 +202,6 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
-                    isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }

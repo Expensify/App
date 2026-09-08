@@ -1,7 +1,19 @@
-import {isGovernmentRateUnmodified, validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
+import {
+    getDistanceExpenseTypeForPolicy,
+    getExpectedUnitForCurrency,
+    getGovernmentRateCountryForCurrency,
+    getGovernmentRateCountryPhraseTranslationKey,
+    isCurrencySupportedForAutoUpdate,
+    isGovernmentRateUnmodified,
+    isMapOrGPSRequired,
+    validateTaxClaimableValue,
+} from '@libs/PolicyDistanceRatesUtils';
 
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
+import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
@@ -97,6 +109,116 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);
+        });
+    });
+
+    describe('getGovernmentRateCountryForCurrency', () => {
+        it('should map each supported currency to the country that publishes its rates', () => {
+            expect(getGovernmentRateCountryForCurrency('USD')).toBe('US');
+            expect(getGovernmentRateCountryForCurrency('CAD')).toBe('CA');
+            expect(getGovernmentRateCountryForCurrency('GBP')).toBe('GB');
+            expect(getGovernmentRateCountryForCurrency('AUD')).toBe('AU');
+        });
+
+        it('should return undefined for an unsupported or missing currency', () => {
+            expect(getGovernmentRateCountryForCurrency('NZD')).toBeUndefined();
+            expect(getGovernmentRateCountryForCurrency('')).toBeUndefined();
+            expect(getGovernmentRateCountryForCurrency(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('isCurrencySupportedForAutoUpdate', () => {
+        it('should return true only for the supported currencies', () => {
+            expect(isCurrencySupportedForAutoUpdate('USD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('CAD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('GBP')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('AUD')).toBe(true);
+            expect(isCurrencySupportedForAutoUpdate('NZD')).toBe(false);
+            expect(isCurrencySupportedForAutoUpdate(undefined)).toBe(false);
+        });
+    });
+
+    describe('getExpectedUnitForCurrency', () => {
+        it('should return the unit each government publishes its rates in', () => {
+            expect(getExpectedUnitForCurrency('USD')).toBe('mi');
+            expect(getExpectedUnitForCurrency('GBP')).toBe('mi');
+            expect(getExpectedUnitForCurrency('CAD')).toBe('km');
+            expect(getExpectedUnitForCurrency('AUD')).toBe('km');
+        });
+
+        it('should return undefined for an unsupported currency', () => {
+            expect(getExpectedUnitForCurrency('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('getGovernmentRateCountryPhraseTranslationKey', () => {
+        it('should return the country phrase key for a supported currency', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey('USD')).toBe('workspace.distanceRates.governmentRateCountries.US');
+            expect(getGovernmentRateCountryPhraseTranslationKey('GBP')).toBe('workspace.distanceRates.governmentRateCountries.GB');
+        });
+
+        it('should return undefined for an unsupported currency', () => {
+            expect(getGovernmentRateCountryPhraseTranslationKey('NZD')).toBeUndefined();
+        });
+    });
+
+    describe('isMapOrGPSRequired', () => {
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
+
+        it('should return true when the workspace has the setting enabled', () => {
+            expect(isMapOrGPSRequired(buildPolicy({requireMapOrGPS: true}))).toBe(true);
+        });
+
+        it('should return true when the workspace excludes commutes, even with the setting off', () => {
+            const policy = buildPolicy({
+                requireMapOrGPS: false,
+                commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'},
+            });
+
+            expect(isMapOrGPSRequired(policy)).toBe(true);
+        });
+
+        it('should return false when neither the setting nor commuter exclusions are set', () => {
+            expect(isMapOrGPSRequired(buildPolicy({}))).toBe(false);
+        });
+
+        it('should return false without a policy', () => {
+            expect(isMapOrGPSRequired(undefined)).toBe(false);
+        });
+    });
+
+    describe('getDistanceExpenseTypeForPolicy', () => {
+        const buildPolicy = (policy: Partial<Policy>): Policy => ({...createRandomPolicy(0), ...policy});
+
+        it('should keep the remembered type when the workspace does not require GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: false});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+        });
+
+        it('should fall back to map when the workspace starts requiring GPS or map entry', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should fall back to map when commuter exclusions require it', () => {
+            const policy = buildPolicy({commuterExclusions: {method: 'fixedDistance', fixedDistance: 10, fixedDistanceUnit: 'mi'}});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        });
+
+        it('should leave map and GPS types untouched', () => {
+            const policy = buildPolicy({requireMapOrGPS: true});
+
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            expect(getDistanceExpenseTypeForPolicy(policy, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+        });
+
+        it('should pass through an unset preference', () => {
+            expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
         });
     });
 });

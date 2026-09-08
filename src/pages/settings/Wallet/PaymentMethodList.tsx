@@ -126,9 +126,6 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
-    /** The policy ID associated with the workspace, if component is rendered in workspace context */
-    policyID?: string;
-
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
@@ -194,7 +191,6 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
-    policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
@@ -246,12 +242,15 @@ function PaymentMethodList({
         status: BankAccountConnectionStatus,
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        isPendingDelete = false,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        // An account queued for deletion is struck through, so its action is disabled rather than hidden.
+        isActionDisabled: isPendingDelete,
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
@@ -625,7 +624,14 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
-                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
+                connectionStatus: bankConnectionStatus
+                    ? mapBankStatusToRowStatus(
+                          bankConnectionStatus,
+                          paymentMethodPress,
+                          paymentMethodThreeDotsPress,
+                          paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      )
+                    : undefined,
             };
         });
         return combinedPaymentMethods;
@@ -635,12 +641,7 @@ function PaymentMethodList({
 
     const onPressItem = () => {
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
-            const path = Navigation.getActiveRoute();
-            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
-                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
-            }
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
         onAddBankAccountPress();

@@ -30,7 +30,7 @@ import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -46,6 +46,7 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import {format, toZonedTime} from 'date-fns-tz';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -64,6 +65,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const card = cardsList?.[cardID];
     // Keep the latest card snapshot so a confirmation that resolves after the card refreshes (e.g. while the
@@ -145,7 +147,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                 prompt: translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimitType'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
@@ -170,7 +172,10 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         }
     }
 
-    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
+    // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
+    // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
+    const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}` : undefined;
 
     const data = [];
 

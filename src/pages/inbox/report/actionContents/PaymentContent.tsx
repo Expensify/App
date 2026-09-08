@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import {policyACHAccountNumberSelector} from '@selectors/Policy';
 import React from 'react';
 
 type PaymentContentProps = {
@@ -22,7 +23,7 @@ type PaymentContentProps = {
 
 function PaymentContent({action, policyID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyACHAccountNumber] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyACHAccountNumberSelector});
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
@@ -39,7 +40,7 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     }
 
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-        const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policy);
+        const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         if (wasAutoPaid) {
             const translation = crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);

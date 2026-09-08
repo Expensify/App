@@ -10,6 +10,7 @@ import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 type OctokitCompareCommits = InternalOctokit['rest']['repos']['compareCommits'];
 type OctokitCompareCommitsResponse = Awaited<ReturnType<OctokitCompareCommits>>;
@@ -185,6 +186,7 @@ describe('GithubUtils', () => {
             });
 
             // Prepare the mocked GitHub API
+            internalOctokit.rest.repos = materializeOctokitNamespace(internalOctokit.rest.repos);
             mockCompareCommits = jest.spyOn(internalOctokit.rest.repos, 'compareCommits');
 
             // Replace the real initOctokit with our mocked one

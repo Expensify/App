@@ -17,10 +17,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import variables from '@styles/variables';
+import {lineHeightScale} from '@styles/typography';
 
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 
@@ -70,23 +70,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
     }
     if (rule.vendorID) {
-        // Three-tier resolution mirrors the revamp table (see MerchantTypeRulesUtils.ts):
-        //   1. Active-source hit → vendor name.
-        //   2. Active source loaded but this ID is not in it → "unavailable" (so a rule pointing at a
-        //      stale/inactive connection never surfaces a misleading name).
-        //   3. No active vendor-matching source (e.g. admin switched the non-reimbursable export mode
-        //      away from vendor-matching) → permissive lookup across every connection so the historical
-        //      vendor name still renders. Raw external ID as a last resort while connection data hasn't
-        //      hydrated.
-        const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
-        let vendorValue: string;
-        if (activeVendorName) {
-            vendorValue = activeVendorName;
-        } else if (isMatchingVendorListLoaded(policy)) {
-            vendorValue = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-        } else {
-            vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? rule.vendorID;
-        }
+        const unavailableLabel = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+        const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }
     if (rule.reimbursable !== undefined) {
@@ -202,7 +187,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: lineHeightScale.text}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
