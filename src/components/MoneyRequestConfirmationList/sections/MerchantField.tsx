@@ -15,44 +15,25 @@ import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/Validation
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;
-    isNewManualExpenseFlowEnabled: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
 };
 
-function MerchantField({
-    isMerchantRequired,
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    shouldDisplayFieldError,
-    formError,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: MerchantFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, shouldShowAutomaticFieldHint} =
+        useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -154,6 +135,7 @@ function MerchantField({
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
+                    rightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );

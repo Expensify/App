@@ -35,6 +35,9 @@ type UseReportPreviewCarouselParams = {
     /** Transactions that belong to the previewed report */
     transactions: Transaction[];
 
+    /** Called with the transactions in the order the carousel renders them, used to seed the expense view's arrows */
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+
     /** Violations for the previewed transactions, used to sort RBR transactions first */
     transactionViolations: Parameters<typeof compareByRBR>[2];
 
@@ -66,6 +69,7 @@ type UseReportPreviewCarouselParams = {
  */
 function useReportPreviewCarousel({
     transactions,
+    onOrderedTransactionsChange,
     transactionViolations,
     iouReport,
     policy,
@@ -81,7 +85,7 @@ function useReportPreviewCarousel({
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const isFocusedRef = useIsFocusedRef();
 
-    const carouselTransactions = useMemo(() => {
+    const sortedTransactions = useMemo(() => {
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
@@ -102,8 +106,10 @@ function useReportPreviewCarousel({
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
             return localeCompare(getCreated(a), getCreated(b));
         });
-        return sorted.slice(0, MAX_PREVIEWS_NUMBER + 1);
+        return sorted;
     }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
+
+    const carouselTransactions = useMemo(() => sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1), [sortedTransactions]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -156,7 +162,8 @@ function useReportPreviewCarousel({
 
     useEffect(() => {
         carouselTransactionsRef.current = carouselTransactions;
-    }, [carouselTransactions]);
+        onOrderedTransactionsChange?.(sortedTransactions);
+    }, [carouselTransactions, onOrderedTransactionsChange, sortedTransactions]);
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));

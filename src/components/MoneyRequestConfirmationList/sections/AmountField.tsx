@@ -11,7 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
+import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
@@ -31,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {amountSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -46,7 +49,6 @@ type AmountFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    autoFocus?: boolean;
     isParticipantPickerVisible?: boolean;
 };
 
@@ -62,11 +64,24 @@ function AmountField({
     policy,
     clearFormErrors,
     setFormError,
-    autoFocus = false,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} =
-        useConfirmationFields();
+    const {
+        isEditingSplitBill,
+        isNewManualExpenseFlowEnabled,
+        canEnterScanFieldsManually,
+        shouldShowAutomaticFieldHint,
+        isReadOnly,
+        didConfirm,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+    } = useConfirmationFields();
+    // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
+    // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
+    const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -88,9 +103,13 @@ function AmountField({
     const isP2P = isNewManualExpenseFlowEnabled
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
-    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
-    // amount itself is the missing value.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
+    // `common.error.fieldRequired` is shared with the date and merchant fields, so only surface it on the amount input
+    // when the amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation
+    // raises the error from, so a scan expense (where the amount is populated programmatically and `isAmountSet` is
+    // never set) can't show a phantom required error under a perfectly good amount. A scan the user started filling in
+    // is the exception: its amount is empty until entered, and validation requires it alongside the merchant and date.
+    const shouldShowAmountRequiredError =
+        formError === 'common.error.fieldRequired' && (isConfirmationAmountMissing(transactionSlice) || (canEnterScanFieldsManually && !transactionSlice?.isAmountSet));
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -118,7 +137,7 @@ function AmountField({
     // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
     // receives focus.
     useEffect(() => {
-        if (!autoFocus || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -130,7 +149,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [autoFocus, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -271,7 +290,7 @@ function AmountField({
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');
         } else if (!isInlineAmountInvalid) {
-            clearFormErrors(['common.error.invalidAmount', 'common.error.fieldRequired']);
+            clearFormErrors(['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);
@@ -317,6 +336,7 @@ function AmountField({
                         shouldShowCurrencyButton
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
+                        leadingRightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
                         disabled={isAmountFieldDisabled}
                     />
                 </View>

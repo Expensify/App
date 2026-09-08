@@ -4,7 +4,7 @@ import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {isConfirmationAmountMissing, isConfirmationDateMissing, isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -16,7 +16,6 @@ import {
     getTaxAmount,
     hasManuallyEnteredScanFields,
     hasTaxRateWithMatchingValue,
-    isCreatedMissing,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
@@ -209,9 +208,9 @@ function useConfirmationValidation({
         if (hasEnteredScanFields && (!transaction?.isAmountSet || !transaction?.isCreatedSet || isMerchantEmpty)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
-        // isAmountSet only applies to manually entered amounts — per diem, distance, and time set the amount
-        // programmatically, and so does a scan the user hasn't filled in themselves.
-        if (shouldValidateEnteredAmount && !transaction?.isAmountSet) {
+        // `isConfirmationAmountMissing` only applies to manually entered amounts — per diem, distance, and time set
+        // the amount programmatically, and so does a scan the user hasn't filled in themselves (handled above).
+        if (isNewManualExpenseFlowEnabled && isConfirmationAmountMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
@@ -225,10 +224,8 @@ function useConfirmationValidation({
             return {errorKey: 'common.error.invalidAmount'};
         }
         // The date is an inline, clearable required field in the new manual flow for every type that shows it
-        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it. Gating on the same
-        // `shouldShowDate && !isReadOnly` condition that renders the inline picker keeps validation and UI in sync,
-        // and skips read-only/scan flows where the date is populated server-side.
-        if (isNewManualExpenseFlowEnabled && shouldShowDate && !isReadOnly && isCreatedMissing(transaction)) {
+        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it.
+        if (isNewManualExpenseFlowEnabled && isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';

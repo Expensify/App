@@ -48,6 +48,7 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    rightHandSideComponent,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -243,6 +244,7 @@ function DatePicker({
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
+                    rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
 

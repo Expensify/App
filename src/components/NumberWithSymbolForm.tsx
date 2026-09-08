@@ -120,6 +120,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
+    /** Extra content rendered at the start of the right-hand side, before the flip and currency buttons. `displayAsTextInput` mode only. */
+    leadingRightHandSideComponent?: React.ReactNode;
+
     /** Callback when currency button is pressed */
     onCurrencyButtonPress?: () => void;
 
@@ -199,6 +202,7 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
+    leadingRightHandSideComponent,
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
@@ -498,6 +502,7 @@ function NumberWithSymbolForm({
     const textInputRightHandSideComponent = useMemo(() => {
         return (
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {leadingRightHandSideComponent}
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
@@ -536,6 +541,7 @@ function NumberWithSymbolForm({
         allowNegativeInput,
         disabled,
         shouldShowCurrencyButton,
+        leadingRightHandSideComponent,
         styles,
         icons,
         handleFlipPress,
@@ -580,7 +586,7 @@ function NumberWithSymbolForm({
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
                 testID={props.testID}
-                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
             />
         );
     }

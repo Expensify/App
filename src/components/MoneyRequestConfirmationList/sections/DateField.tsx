@@ -28,6 +28,7 @@ import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {dateStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -37,7 +38,6 @@ type DateFieldProps = {
     isReadOnly: boolean;
     isNewManualExpenseFlowEnabled: boolean;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -45,21 +45,9 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({
-    shouldDisplayFieldError,
-    didConfirm,
-    isReadOnly,
-    isNewManualExpenseFlowEnabled,
-    formError,
-    clearFormErrors,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, isNewManualExpenseFlowEnabled, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, shouldShowAutomaticFieldHint} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -97,10 +85,6 @@ function DateField({
         // be written — that write is what marks the date as chosen by the user.
         if (newDate === iouCreated && !shouldShowEmptyDate) {
             return;
-        }
-
-        if (newDate) {
-            clearFormErrors(['common.error.fieldRequired']);
         }
 
         if (isEditingSplitBill) {
@@ -141,6 +125,10 @@ function DateField({
                     disabled={didConfirm}
                     errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned
+                    // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
+                    // component whenever the clear button can appear — which it can't without a value to clear.
+                    shouldHideClearButton={shouldShowAutomaticFieldHint}
+                    rightHandSideComponent={shouldShowAutomaticFieldHint ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );

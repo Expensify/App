@@ -26,6 +26,7 @@ import {
     getCurrency,
     getMerchant,
     getRateID,
+    hasManuallyEnteredScanFields,
     hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestUtil,
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
@@ -358,6 +359,13 @@ function MoneyRequestConfirmationList({
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+    // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
+    // being re-derived per hook, where the two could be updated independently.
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
+    // The Scan confirmation labels the amount, merchant and date fields "Automatic" to say SmartScan reads them off
+    // the receipt. Filling in any one of them opts the expense out of SmartScan entirely, so the label leaves all
+    // three at once rather than only the field that was filled in.
+    const shouldShowAutomaticFieldHint = canEnterScanFieldsManually && !hasManuallyEnteredScanFields(transaction);
 
     const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
         transaction,
@@ -381,6 +389,8 @@ function MoneyRequestConfirmationList({
         isNewManualExpenseFlowEnabled,
         canEnterScanFieldsManually,
         isDistanceRequest,
+        isReadOnly,
+        shouldShowDate,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -507,7 +517,7 @@ function MoneyRequestConfirmationList({
         isNewManualExpenseFlowEnabled,
         canEnterScanFieldsManually,
         isReadOnly,
-        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        shouldShowDate,
         isTaxAmountEmpty,
     });
 
@@ -572,7 +582,9 @@ function MoneyRequestConfirmationList({
             isEditingSplitBill={isEditingSplitBill}
             isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             canEnterScanFieldsManually={canEnterScanFieldsManually}
+            shouldShowAutomaticFieldHint={shouldShowAutomaticFieldHint}
             isPolicyExpenseChat={isPolicyExpenseChat}
+            isScanRequest={isScanRequest}
             isDistanceRequest={isDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isTimeRequest={isTimeRequest}
