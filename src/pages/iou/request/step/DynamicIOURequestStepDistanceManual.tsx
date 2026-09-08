@@ -131,6 +131,7 @@ function DynamicIOURequestStepDistanceManual({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -290,6 +291,7 @@ function DynamicIOURequestStepDistanceManual({
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack(backTo);
@@ -350,6 +352,7 @@ function DynamicIOURequestStepDistanceManual({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 

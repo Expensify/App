@@ -630,6 +630,7 @@ describe('Check valid amount for IOU/Expense request', () => {
 
     test('Expense amount should be negative', () => {
         const expenseReport = ReportUtils.buildOptimisticExpenseReport({
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: '212',
             policyID: '123',
@@ -954,6 +955,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport,
                     routeReport,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 }),
             ).toBeUndefined();
         });
@@ -969,6 +971,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport,
                     routeReport,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('500');
         });
@@ -980,7 +983,7 @@ describe('getExistingTransactionID', () => {
             const reportNameValuePair: ReportNameValuePairs = {private_isArchived: testDate};
             jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(false);
 
-            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, reportNameValuePair})).toBeUndefined();
+            expect(IOUUtils.resolveReportForMoneyRequest({transaction, transactionReport, routeReport, reportNameValuePair, rules: undefined})).toBeUndefined();
         });
 
         it('returns undefined when canAddTransaction rejects the picked report and it differs from the route (forces a new optimistic IOU)', () => {
@@ -997,6 +1000,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport: nonOutstandingPick,
                     routeReport,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 }),
             ).toBeUndefined();
         });
@@ -1011,6 +1015,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport,
                     routeReport,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('100');
         });
@@ -1025,6 +1030,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport,
                     routeReport: undefined,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('500');
         });
@@ -1045,6 +1051,7 @@ describe('getExistingTransactionID', () => {
                     transactionReport: processingPick,
                     routeReport,
                     reportNameValuePair: nonArchivedReportNameValuePair,
+                    rules: undefined,
                 })?.reportID,
             ).toBe('500');
         });

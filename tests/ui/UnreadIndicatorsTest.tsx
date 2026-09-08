@@ -879,6 +879,7 @@ describe('Unread Indicators', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
         await waitForBatchedUpdates();
 

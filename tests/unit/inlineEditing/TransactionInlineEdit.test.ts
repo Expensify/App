@@ -99,6 +99,7 @@ describe('TransactionInlineEdit', () => {
             parentReport: baseParentReport,
             policy: basePolicy,
             parentReportActions: undefined,
+            rules: undefined,
         };
 
         const policyCategories: PolicyCategories = {
@@ -650,6 +651,7 @@ describe('TransactionInlineEdit', () => {
                 introSelected: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 currentUserEmail: '',
+                rules: undefined,
             };
         }
 

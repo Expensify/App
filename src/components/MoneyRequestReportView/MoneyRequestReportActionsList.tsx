@@ -135,6 +135,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`) as unknown as [OnyxTypes.Report];
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
@@ -786,6 +787,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
 
     return (

@@ -68,7 +68,8 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const participantReportID = transaction?.participants?.at(0)?.reportID;
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
-    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, reportNameValuePair)) || isUnreported;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, rules, reportNameValuePair)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -181,6 +182,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},

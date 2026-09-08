@@ -47,7 +47,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
@@ -105,17 +104,6 @@ type ApprovalWorkflowRuleMatch = {
     /** Email the matched rule forwards the report to. Undefined when the rule finalizes the report instead. */
     forwardsTo?: string;
 };
-
-let allRules: OnyxCollection<Rule>;
-
-// The approval workflow rules are read by pure routing helpers that aren't attached to any view, so this uses
-// connectWithoutView().
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.RULE,
-    callback: (value) => {
-        allRules = value;
-    },
-});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -1980,7 +1968,7 @@ function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: Appro
 /**
  * Check the policy's approval workflow rules to determine where the report goes next.
  */
-function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext): ApprovalWorkflowRuleMatch | undefined {
+function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
     if (!policy?.id || !context.submitterEmail) {
         return undefined;
     }
@@ -1988,9 +1976,9 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
     const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
 
     // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
-    const ruleKeys = Object.keys(allRules ?? {}).sort();
+    const ruleKeys = Object.keys(rules ?? {}).sort();
     for (const ruleKey of ruleKeys) {
-        const rule = allRules?.[ruleKey];
+        const rule = rules?.[ruleKey];
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
@@ -2007,8 +1995,8 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
     return undefined;
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, reportTotal = 0): string {
-    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal});
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
     if (ruleMatch) {
         return ruleMatch.forwardsTo ?? '';
     }
@@ -2028,8 +2016,8 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     return employee?.submitsTo ?? defaultApprover ?? '';
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, reportTotal = 0) {
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, reportTotal);
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
     return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
 }
 
@@ -2037,7 +2025,13 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  * Returns the email the expense report should submit to per workspace approval config
  * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
+function getSubmitToEmail(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -2047,7 +2041,7 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin, expenseReport?.total ?? 0);
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
@@ -2060,12 +2054,18 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, shouldFallBackWhenManagerIsNotMember);
+function getSubmitToAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): number {
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -2077,7 +2077,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, true));
+    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }
@@ -2093,8 +2093,8 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
  * terms of who submitted the report as well as who is approving it. Without it only the legacy employeeList
  * forwardsTo/overLimitForwardsTo is considered.
  */
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, submitterEmail?: string): string {
-    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}) : undefined;
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, rules: OnyxCollection<Rule>, submitterEmail?: string): string {
+    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}, rules) : undefined;
     if (ruleMatch) {
         return ruleMatch.forwardsTo ?? '';
     }

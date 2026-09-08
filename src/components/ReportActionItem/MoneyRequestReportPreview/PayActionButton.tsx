@@ -59,6 +59,7 @@ function PayActionButton() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -104,6 +105,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
+                    rules,
                 });
             } else {
                 payMoneyRequest({
@@ -128,6 +130,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    rules,
                 });
             }
         }

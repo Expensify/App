@@ -2818,7 +2818,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -2884,7 +2884,9 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, false, undefined, {managedCardTransactionID});
+        Report.createNewReport({accountID: 1234}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
+            managedCardTransactionID,
+        });
 
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_APP_REPORT, expect.objectContaining({managedCardTransactionID}), expect.anything());
     });
@@ -2904,7 +2906,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -2941,7 +2943,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
+        Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2975,7 +2977,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -3016,7 +3018,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, [CONST.BETAS.ALL], false, TestHelper.getCurrencyDecimalsLocal, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -3675,6 +3677,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUserAccountID: 1,
@@ -3711,6 +3714,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3773,6 +3777,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3845,6 +3850,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -3943,6 +3949,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4029,6 +4036,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicy({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -4083,6 +4091,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4175,6 +4184,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -4221,6 +4231,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4253,6 +4264,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4284,6 +4296,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4315,6 +4328,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4348,6 +4362,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4401,6 +4416,7 @@ describe('actions/Report', () => {
             Report.changeReportPolicyAndInviteSubmitter({
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -4458,7 +4474,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4480,7 +4496,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -4505,7 +4521,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await waitForBatchedUpdates();
 
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, false);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -4542,7 +4558,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, true);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, undefined, true);
             expect(result).toBeDefined();
             expect(result?.policyExpenseChatReportID).toBeDefined();
         });
@@ -4572,7 +4588,16 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+                const result = Report.convertIOUReportToExpenseReport(
+                    iouReport,
+                    policyWithEmptyFieldList,
+                    policyID,
+                    'expenseChat123',
+                    undefined,
+                    TestHelper.getCurrencyDecimalsLocal,
+                    undefined,
+                    [],
+                );
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4604,7 +4629,16 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+                const result = Report.convertIOUReportToExpenseReport(
+                    iouReport,
+                    policyWithEmptyFieldList,
+                    policyID,
+                    'expenseChat124',
+                    undefined,
+                    TestHelper.getCurrencyDecimalsLocal,
+                    undefined,
+                    [],
+                );
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4636,7 +4670,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4701,7 +4735,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4759,7 +4793,9 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, undefined, [
+                transaction,
+            ]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4805,7 +4841,9 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, undefined, [
+                transaction,
+            ]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4833,7 +4871,7 @@ describe('actions/Report', () => {
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false, TestHelper.getCurrencyDecimalsLocal);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false, TestHelper.getCurrencyDecimalsLocal, undefined);
             expect(result).toBeUndefined();
         });
     });
@@ -4849,6 +4887,7 @@ describe('actions/Report', () => {
             Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4904,6 +4943,7 @@ describe('actions/Report', () => {
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -4969,6 +5009,7 @@ describe('actions/Report', () => {
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5018,6 +5059,7 @@ describe('actions/Report', () => {
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5080,6 +5122,7 @@ describe('actions/Report', () => {
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport: undefined,
                 policy,
                 currentUserAccountID: 1,
@@ -5145,6 +5188,7 @@ describe('actions/Report', () => {
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
                 parentReport,
                 policy,
                 currentUserAccountID: 1,
@@ -10329,6 +10373,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -10396,6 +10441,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,
@@ -10461,6 +10507,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             Report.mergeReports({
+                rules: undefined,
                 destinationReportID: DESTINATION_REPORT_ID,
                 sourceReportIDs: [SOURCE_REPORT_1_ID, SOURCE_REPORT_2_ID],
                 isASAPSubmitBetaEnabled: false,

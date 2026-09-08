@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
@@ -23,6 +24,7 @@ import {
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -88,6 +90,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -99,7 +102,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
@@ -115,7 +118,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID, getCurrencyDecimals]);
+    }, [policy, report, currentUserAccountID, getCurrencyDecimals, rules]);
 
     const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
     const isInvoiceReport = isInvoiceReportUtils(report);

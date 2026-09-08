@@ -74,6 +74,7 @@ function QuickCreationActionsBar() {
     const hasMultipleChatEnabledPolicies = !!defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies;
     const [defaultChatEnabledPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
@@ -108,6 +109,7 @@ function QuickCreationActionsBar() {
                 allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -118,7 +120,7 @@ function QuickCreationActionsBar() {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals, rules],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

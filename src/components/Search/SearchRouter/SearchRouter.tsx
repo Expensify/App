@@ -90,6 +90,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -224,6 +225,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
+                    rules,
                     policy: contextualReportPolicy,
                     sortedActions,
                     conciergeReportID,
@@ -303,6 +305,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isTrackIntentUser,
             dateFnsLocale,
             convertToDisplayString,
+            rules,
         ],
     );
 

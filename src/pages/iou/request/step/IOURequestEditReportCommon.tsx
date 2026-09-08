@@ -87,6 +87,7 @@ function IOURequestEditReportCommon({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -166,7 +167,7 @@ function IOURequestEditReportCommon({
                     return false;
                 }
 
-                if (canAddTransaction(report, undefined, true)) {
+                if (canAddTransaction(report, rules, undefined, true)) {
                     return true;
                 }
 
@@ -200,6 +201,7 @@ function IOURequestEditReportCommon({
         isTimeRequest,
         translate,
         formatPhoneNumber,
+        rules,
     ]);
 
     const navigateBack = () => {

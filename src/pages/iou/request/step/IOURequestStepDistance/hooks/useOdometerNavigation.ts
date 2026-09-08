@@ -156,6 +156,7 @@ function useOdometerNavigation({
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
@@ -230,6 +231,7 @@ function useOdometerNavigation({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 }

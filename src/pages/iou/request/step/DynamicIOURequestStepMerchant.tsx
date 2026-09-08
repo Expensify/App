@@ -67,6 +67,7 @@ function DynamicIOURequestStepMerchant({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -162,6 +163,7 @@ function DynamicIOURequestStepMerchant({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);

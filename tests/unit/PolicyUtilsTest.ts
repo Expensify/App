@@ -842,7 +842,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
             });
             it('should return the policy approver/owner if the policy use the optional workflow', () => {
                 const policy: Policy = {
@@ -857,7 +857,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
             });
             it('should return the employee submitsTo if the policy use the advance workflow', () => {
                 const policy: Policy = {
@@ -873,7 +873,7 @@ describe('PolicyUtils', () => {
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
             });
         });
         describe('Has category/tag approver', () => {
@@ -907,7 +907,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 };
                 await Onyx.multiSet({...transactionData});
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
                 const policy: Policy = {
@@ -933,7 +933,7 @@ describe('PolicyUtils', () => {
                 };
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(adminAccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(adminAccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -967,7 +967,7 @@ describe('PolicyUtils', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                 };
                 await Onyx.multiSet({...transactionData});
-                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
                 const policy: Policy = {
@@ -1015,7 +1015,7 @@ describe('PolicyUtils', () => {
                 };
                 await Onyx.multiSet({...transactionData});
 
-                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email, undefined)).toBe(tagApprover1AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -1052,7 +1052,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     };
                     await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -1088,7 +1088,7 @@ describe('PolicyUtils', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     };
                     await Onyx.multiSet({...transactionData});
-                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(tagApprover2AccountID);
                 });
             });
         });
@@ -1119,7 +1119,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
         });
         it('should return the known approver accountID when the policy route is reliable', () => {
             const policy: Policy = {
@@ -1136,7 +1136,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
         });
         it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
             const policy: Policy = {
@@ -1164,7 +1164,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
         });
     });
     describe('shouldShowPolicy', () => {
@@ -1228,7 +1228,7 @@ describe('PolicyUtils', () => {
                 type: CONST.POLICY.TYPE.PERSONAL,
                 approver: categoryApprover1Email,
             };
-            const result = getManagerAccountID(policy, '');
+            const result = getManagerAccountID(policy, '', undefined);
 
             expect(result).toBe(categoryApprover1AccountID);
         });
@@ -1242,7 +1242,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
 
-            const result = getManagerAccountID(policy, '');
+            const result = getManagerAccountID(policy, '', undefined);
 
             expect(result).toBe(-1);
         });
@@ -1260,7 +1260,7 @@ describe('PolicyUtils', () => {
                 },
             };
 
-            const result = getManagerAccountID(policy, employeeEmail);
+            const result = getManagerAccountID(policy, employeeEmail, undefined);
 
             expect(result).toBe(adminAccountID);
         });
@@ -1285,7 +1285,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
             };
 
-            expect(getSubmitToEmail(policy, report, employeeEmail)).toBe(adminEmail);
+            expect(getSubmitToEmail(policy, report, employeeEmail, undefined)).toBe(adminEmail);
         });
 
         it('should return the default approver', () => {
@@ -1296,7 +1296,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
 
-            const result = getManagerAccountID(policy, '');
+            const result = getManagerAccountID(policy, '', undefined);
 
             expect(result).toBe(categoryApprover1AccountID);
         });
@@ -1363,6 +1363,13 @@ describe('PolicyUtils', () => {
             employeeList: {
                 [employeeEmail]: {email: employeeEmail, submitsTo: categoryApprover1Email},
             },
+        };
+
+        const rulesCollection: OnyxCollection<Rule> = {
+            [`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule(submitRule),
+            [`${ONYXKEYS.COLLECTION.RULE}2`]: buildRule(underLimitRule),
+            [`${ONYXKEYS.COLLECTION.RULE}3`]: buildRule(overLimitRule),
+            [`${ONYXKEYS.COLLECTION.RULE}4`]: buildRule(terminalRule),
         };
 
         beforeEach(async () => {
@@ -1459,42 +1466,46 @@ describe('PolicyUtils', () => {
 
         describe('getForwardsToFromRules', () => {
             it('returns the first approver from the submit rule', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000})).toEqual({forwardsTo: adminEmail});
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toEqual({forwardsTo: adminEmail});
             });
 
             it('returns the next approver from the matching approve rule', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -5000})).toEqual({forwardsTo: approverEmail});
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -20000})).toEqual({
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -5000}, rulesCollection)).toEqual({
+                    forwardsTo: approverEmail,
+                });
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: adminEmail, reportTotal: -20000}, rulesCollection)).toEqual({
                     forwardsTo: categoryApprover1Email,
                 });
             });
 
             it('matches with no forwardsTo when the rule finalizes the report', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: approverEmail, reportTotal: -5000})).toEqual({forwardsTo: undefined});
+                expect(getForwardsToFromRules(policy, {submitterEmail: employeeEmail, currentApproverEmail: approverEmail, reportTotal: -5000}, rulesCollection)).toEqual({
+                    forwardsTo: undefined,
+                });
             });
 
             it('returns undefined when no rule covers the submitter', () => {
-                expect(getForwardsToFromRules(policy, {submitterEmail: guideEmail, reportTotal: -5000})).toBeUndefined();
+                expect(getForwardsToFromRules(policy, {submitterEmail: guideEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
             });
 
             it('ignores rules belonging to another workspace', () => {
-                expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000})).toBeUndefined();
+                expect(getForwardsToFromRules({...policy, id: 'OTHER_POLICY'}, {submitterEmail: employeeEmail, reportTotal: -5000}, rulesCollection)).toBeUndefined();
             });
         });
 
         it('getManagerAccountID prefers the rules over the employee submitsTo', () => {
-            expect(getManagerAccountID(policy, employeeEmail)).toBe(adminAccountID);
+            expect(getManagerAccountID(policy, employeeEmail, rulesCollection)).toBe(adminAccountID);
         });
 
         it('getForwardsToAccount follows the rules for the next hop', () => {
-            expect(getForwardsToAccount(policy, adminEmail, -5000, employeeEmail)).toBe(approverEmail);
-            expect(getForwardsToAccount(policy, adminEmail, -20000, employeeEmail)).toBe(categoryApprover1Email);
-            expect(getForwardsToAccount(policy, approverEmail, -5000, employeeEmail)).toBe('');
+            expect(getForwardsToAccount(policy, adminEmail, -5000, rulesCollection, employeeEmail)).toBe(approverEmail);
+            expect(getForwardsToAccount(policy, adminEmail, -20000, rulesCollection, employeeEmail)).toBe(categoryApprover1Email);
+            expect(getForwardsToAccount(policy, approverEmail, -5000, rulesCollection, employeeEmail)).toBe('');
         });
 
         it('getApprovalChain walks the whole rule chain', () => {
             const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
-            expect(getApprovalChain(policy, report, employeeEmail)).toEqual([adminEmail, approverEmail]);
+            expect(getApprovalChain(policy, report, employeeEmail, rulesCollection)).toEqual([adminEmail, approverEmail]);
         });
     });
 
@@ -1532,7 +1543,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(ownerAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
         });
         it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
             const policy: Policy = {
@@ -1564,7 +1575,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
         });
     });
 

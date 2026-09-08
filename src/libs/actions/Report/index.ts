@@ -245,6 +245,7 @@ import type {
     ReportAction,
     ReportAttributesDerivedValue,
     ReportUserIsTyping,
+    Rule,
     SidePanelContext,
     Transaction,
     TransactionViolation,
@@ -467,6 +468,7 @@ type MergeReportsProps = {
     allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
+    rules: OnyxCollection<Rule>;
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     selfDMReportActions: OnyxEntry<ReportActions>;
@@ -4025,6 +4027,7 @@ function updateReportField({
     recentlyUsedReportFields,
     shouldFixViolations = false,
     isTrackIntentUser,
+    rules,
 }: {
     report: Report;
     reportField: PolicyReportField;
@@ -4037,6 +4040,7 @@ function updateReportField({
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>;
     shouldFixViolations: boolean | undefined;
     isTrackIntentUser: boolean | undefined;
+    rules: OnyxCollection<Rule>;
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -4055,6 +4059,7 @@ function updateReportField({
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        rules,
     });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
@@ -4388,6 +4393,7 @@ type BuildNewReportOptimisticDataParams = {
     betas: OnyxEntry<Beta[]>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
     reportName?: string;
 };
 
@@ -4402,12 +4408,13 @@ function buildNewReportOptimisticData({
     betas,
     isTrackIntentUser,
     getCurrencyDecimals,
+    rules,
     reportName,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals, rules);
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -4422,6 +4429,7 @@ function buildNewReportOptimisticData({
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        rules,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -4626,6 +4634,8 @@ function buildNewReportOptimisticData({
     };
 }
 
+// Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
@@ -4634,6 +4644,7 @@ function createNewReport(
     betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
@@ -4654,6 +4665,7 @@ function createNewReport(
         betas,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
         reportName,
     });
 
@@ -7227,6 +7239,7 @@ function moveIOUReportToPolicy(
     policy: Policy,
     reportPreviewAction: OnyxEntry<ReportAction>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
@@ -7255,6 +7268,7 @@ function moveIOUReportToPolicy(
         optimisticExpenseChatReportID,
         reportPreviewAction,
         getCurrencyDecimals,
+        rules,
         reportTransactions,
     );
 
@@ -7282,6 +7296,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     submitterLogin: string | undefined,
     doesSubmitterPersonalDetailExist: boolean,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
@@ -7414,7 +7429,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         failureData: convertedFailureData,
         movedExpenseReportAction,
         movedReportAction,
-    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportPreviewAction, getCurrencyDecimals, reportTransactions);
+    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportPreviewAction, getCurrencyDecimals, rules, reportTransactions);
 
     optimisticData.push(...convertedOptimisticData);
     successData.push(...convertedSuccessData);
@@ -7440,6 +7455,7 @@ function convertIOUReportToExpenseReport(
     optimisticPolicyExpenseChatReportID: string,
     reportPreviewAction: OnyxEntry<ReportAction>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     reportTransactions: Transaction[] = [],
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -7456,7 +7472,7 @@ function convertIOUReportToExpenseReport(
         total: -(iouReport?.total ?? 0),
     };
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, true);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
         expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
@@ -7708,6 +7724,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction,
     isTrackIntentUser,
     getCurrencyDecimals,
+    rules,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7723,6 +7740,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7747,7 +7765,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -7778,7 +7796,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, true),
+                managerID: getNextApproverAccountID(report, rules, true),
             },
         });
 
@@ -7828,6 +7846,7 @@ function buildOptimisticChangePolicyData({
             isASAPSubmitBetaEnabled,
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -8205,6 +8224,7 @@ function changeReportPolicy({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
+    rules,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8221,6 +8241,7 @@ function changeReportPolicy({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
+    rules: OnyxCollection<Rule>;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8240,6 +8261,7 @@ function changeReportPolicy({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     });
 
     const params = {
@@ -8275,6 +8297,7 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
+    rules,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8292,6 +8315,7 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
+    rules: OnyxCollection<Rule>;
 }) {
     if (
         !report.reportID ||
@@ -8354,6 +8378,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
@@ -8534,6 +8559,7 @@ function mergeReports({
     bankAccountList,
     allReports: allReportsParam,
     allReportActions = {},
+    rules,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8564,6 +8590,7 @@ function mergeReports({
         transactions: transactionsToMove,
         allTransactionViolation,
         reports,
+        rules,
         skippedReportIDs: sourceReportIDs,
         isTrackIntentUser,
         personalPolicyOutputCurrency,

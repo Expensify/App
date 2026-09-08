@@ -180,6 +180,7 @@ function DynamicIOURequestStepDistance({
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
@@ -613,6 +614,7 @@ function DynamicIOURequestStepDistance({
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             transactionWasSaved.current = true;
@@ -661,6 +663,7 @@ function DynamicIOURequestStepDistance({
         personalPolicy?.outputCurrency,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -755,6 +758,7 @@ function DynamicIOURequestStepDistance({
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -798,6 +802,7 @@ function DynamicIOURequestStepDistance({
         splitDraftTransaction,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const renderItem = useCallback(

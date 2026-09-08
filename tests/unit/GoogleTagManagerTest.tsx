@@ -300,6 +300,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

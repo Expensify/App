@@ -26,14 +26,16 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         isTrackIntentUser,
         report: moneyRequestReport,
         policy,
+        rules,
     });
 
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport, rules);
     const isSubmitterSameAsNextApprover =
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;

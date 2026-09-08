@@ -151,6 +151,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -421,6 +422,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
 
     /**

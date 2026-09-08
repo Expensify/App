@@ -196,6 +196,7 @@ function AttachmentPickerWithMenuItems({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectOption = useCallback(
@@ -229,6 +230,7 @@ function AttachmentPickerWithMenuItems({
                         betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
+                        rules,
                         true,
                         shouldDismissEmptyReportsConfirmation,
                     ),
@@ -240,7 +242,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
         }
     };
 
@@ -332,7 +334,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, rules, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -354,6 +356,7 @@ function AttachmentPickerWithMenuItems({
         icons,
         betas,
         draftTransactionIDs,
+        rules,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

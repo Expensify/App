@@ -940,8 +940,8 @@ function setWorkspaceApprovalMode(
     currentUserAccountID: number,
     currentUserEmail: string,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<Rule>,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
-    rules?: OnyxCollection<Rule>,
 ) {
     if (!policy) {
         return;
@@ -1023,6 +1023,7 @@ function setWorkspaceApprovalMode(
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser,
+                rules,
             });
 
             reportsOptimisticData.push({

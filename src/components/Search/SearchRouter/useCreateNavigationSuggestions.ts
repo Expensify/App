@@ -109,6 +109,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, sessionEmail);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
@@ -157,6 +158,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );

@@ -74,6 +74,7 @@ function useSelectionModeReportActions({
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -145,6 +146,7 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        rules,
         isOffline,
     });
 
@@ -170,6 +172,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
             isOffline,
+            rules,
         });
     })();
 
@@ -234,7 +237,7 @@ function useSelectionModeReportActions({
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
-                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
+                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser, rules}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,

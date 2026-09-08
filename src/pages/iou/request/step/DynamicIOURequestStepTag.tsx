@@ -117,6 +117,7 @@ function DynamicIOURequestStepTag({
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const parentTransactionTag = useMemo(() => {
         if (!isEditingSplit) {
             return '';
@@ -187,6 +188,7 @@ function DynamicIOURequestStepTag({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             saveAndNavigateBack();
             return;

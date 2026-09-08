@@ -166,6 +166,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
@@ -252,6 +253,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating a money request category
                 updateMoneyRequestCategory({
+                    rules: undefined,
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
@@ -304,6 +306,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating the money request category
                 updateMoneyRequestCategory({
+                    rules: undefined,
                     transactionID,
                     transactionThreadReport: {reportID: '3'},
                     parentReport: undefined,
@@ -367,6 +370,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
@@ -427,6 +431,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
+                rules: undefined,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
@@ -500,6 +505,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
+                rules: undefined,
                 transactionID: fakeTransaction.transactionID,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
@@ -677,6 +683,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestAmountAndCurrency({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
@@ -717,6 +724,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the transaction attendees
             updateMoneyRequestAttendees({
+                rules: undefined,
                 transactionID: transaction.transactionID,
                 reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
@@ -763,6 +771,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             updateMoneyRequestAttendees({
+                rules: undefined,
                 transactionID: transaction.transactionID,
                 reportPolicyTags: undefined,
                 transactionThreadReport: createRandomReport(2, 'policyExpenseChat'),
@@ -829,6 +838,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the expense tag
             updateMoneyRequestTag({
+                rules: undefined,
                 transactionID: '1',
                 transactionThreadReport,
                 parentReport: iouReport,
@@ -892,6 +902,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When unsetting the tag
             updateMoneyRequestTag({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport: undefined,
@@ -967,6 +978,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the date
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -1033,6 +1045,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating billable to true
             updateMoneyRequestBillable({
+                rules: undefined,
                 transactionID,
                 reportPolicyTags: undefined,
                 transactionThreadReport,
@@ -1071,6 +1084,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestBillable is called with an undefined transactionID
             updateMoneyRequestBillable({
+                rules: undefined,
                 transactionID: undefined,
                 reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
@@ -1159,6 +1173,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction,
@@ -1256,6 +1271,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction,
@@ -1377,6 +1393,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction,
@@ -1456,6 +1473,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction,
@@ -1506,6 +1524,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction2,
@@ -1598,6 +1617,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When saving the edit without touching the waypoints
             updateMoneyRequestDistance({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transaction: fakeTransaction,
@@ -1680,6 +1700,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
+                rules: undefined,
                 transactionID,
                 reportPolicyTags: undefined,
                 transactionThreadReport,
@@ -1718,6 +1739,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
+                rules: undefined,
                 transactionID: undefined,
                 reportPolicyTags: undefined,
                 transactionThreadReport: {reportID: '1'},
@@ -1783,6 +1805,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the merchant
             updateMoneyRequestMerchant({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -1841,6 +1864,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating merchant for the track-expense
             updateMoneyRequestMerchant({
+                rules: undefined,
                 transactionID,
                 transactionThreadReport,
                 parentReport,
@@ -1950,6 +1974,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating the merchant with the given isOffline value
                 updateMoneyRequestMerchant({
+                    rules: undefined,
                     transactionID,
                     transactionThreadReport,
                     parentReport,
@@ -2224,6 +2249,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -2355,6 +2381,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -2455,6 +2482,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -2576,6 +2604,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -2699,6 +2728,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                rules: undefined,
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
@@ -2805,6 +2835,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     introSelected: undefined,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     currentUserEmail: RORY_EMAIL,
+                    rules: undefined,
                 },
                 newMerchant,
             );
