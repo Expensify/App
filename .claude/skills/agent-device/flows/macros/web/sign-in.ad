@@ -4,7 +4,6 @@ context platform=web
 # @pre    role="button" label="Continue"
 # @post   text="Welcome!" || text="Home"
 # @post   role="button" label="Join" || role="button" label="Search"
-# @tag    auth
 # @param  EMAIL Login email. Use randomized alias format `agent-device-testing+<9digits>@gmail.com` to avoid account flagging.
 
 fill "role=\"textbox\" label=\"Phone or email\" || label=\"Phone or email\"" "${EMAIL}"

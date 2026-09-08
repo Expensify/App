@@ -26,6 +26,7 @@ type ConfirmationFieldsContextValue = {
     isPolicyExpenseChat: boolean;
 
     // Mode — *what kind* of expense is being confirmed
+    isScanRequest: boolean;
     isDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;

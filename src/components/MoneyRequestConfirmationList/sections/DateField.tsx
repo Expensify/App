@@ -36,7 +36,6 @@ type DateFieldProps = {
     didConfirm: boolean;
     isReadOnly: boolean;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -44,7 +43,7 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, clearFormErrors, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
@@ -77,10 +76,6 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
         if (newDate === iouCreated) {
             return;
-        }
-
-        if (newDate) {
-            clearFormErrors(['common.error.fieldRequired']);
         }
 
         if (isEditingSplitBill) {
