@@ -7647,7 +7647,6 @@ export {
     getColumnsToShow,
     insertColumnBeforeTotalAmount,
     getHasOptions,
-    getHasOptionAvailability,
     getSubmittedViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
