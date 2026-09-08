@@ -576,7 +576,7 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.CAMPFIRE_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,

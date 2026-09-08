@@ -4787,6 +4787,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_CAMPFIRE_IMPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
