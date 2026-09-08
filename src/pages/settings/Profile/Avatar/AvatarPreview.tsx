@@ -1,5 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
@@ -130,14 +130,13 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     />
                 </View>
             ) : (
-                <Avatar
+                <UserAvatar
                     containerStyles={avatarStyle}
                     imageStyles={avatarStyle}
                     source={avatarURL}
-                    avatarID={accountID}
+                    accountID={accountID}
                     fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    type={CONST.ICON_TYPE_AVATAR}
                 />
             )}
             <AttachmentPicker

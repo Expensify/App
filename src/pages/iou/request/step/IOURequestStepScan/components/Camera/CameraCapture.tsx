@@ -21,6 +21,7 @@ import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/co
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import variables from '@styles/variables';
 
@@ -52,6 +53,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
     const onUnmount = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
     };
 
     const {
@@ -90,14 +92,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
             });
         }
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
         });
 
         const imageBase64 = cameraRef.current.getScreenshot();
@@ -128,6 +130,9 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            if (!isMultiScanEnabled) {
+                startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.WEB);
+            }
             onCapture(file, source);
         });
     };

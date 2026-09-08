@@ -11,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
@@ -18,10 +20,8 @@ import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIs
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
-import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -44,7 +44,8 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -56,6 +57,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const {cardRules} = useExpensifyCardRules(policyID);
 
     const data = issueNewCard?.data;
+    const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
+    });
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
@@ -93,10 +98,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             // Redirect to the validateCode page when there is an error with the user's validateCode authentication
             if (errorMessage.toLowerCase().includes('request a new code')) {
                 clearIssueNewCardError(policyID);
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
+                Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
             }
         }
-    }, [issueNewCard, isSuccessful, policyID]);
+    }, [issueNewCard, isSuccessful, policyID, buildDynamicRoute]);
 
     const handleIssueCard = useCallback(() => {
         if (!policyID) {
@@ -109,9 +114,9 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone, buildDynamicRoute]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -186,7 +191,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
+                    title={cardholder}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}

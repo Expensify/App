@@ -1,5 +1,6 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -22,7 +23,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PermissionStatus} from 'react-native-permissions';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -196,6 +196,7 @@ function useSearchSelectorBase({
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -211,7 +212,7 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -291,6 +292,7 @@ function useSearchSelectorBase({
                     options: optionsWithContacts,
                     draftComments,
                     dateFnsLocale,
+                    convertToDisplayString,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -320,6 +322,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -355,6 +358,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -392,6 +396,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,

@@ -90,7 +90,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
@@ -151,6 +151,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     selfDMReportActions,
                     delegateAccountID,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

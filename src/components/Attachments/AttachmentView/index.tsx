@@ -2,11 +2,11 @@ import {useAttachmentCarouselPagerActions} from '@components/Attachments/Attachm
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/ButtonComposed';
+import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
-import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -28,7 +28,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isMapBasedDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -110,12 +110,13 @@ type AttachmentViewProps = Attachment & {
     rotation?: RotationDegrees;
 };
 
-function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
+function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined, fileType?: string) {
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
 
-    const isFileNameImage = fileName && Str.isImage(fileName);
+    const isFileNameImage = !!fileName && Str.isImage(fileName);
+    const isFileTypeImage = !!fileType?.startsWith('image/') && Str.isImage(`image.${fileType.slice('image/'.length)}`);
 
-    return isSourceImage || isFileNameImage;
+    return isSourceImage || isFileNameImage || isFileTypeImage;
 }
 
 function AttachmentView({
@@ -200,10 +201,10 @@ function AttachmentView({
     }, [file]);
 
     useEffect(() => {
-        const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
+        const isImageSource = typeof source !== 'function' && checkIsFileImage(source, file?.name, file?.type);
         const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
         onAttachmentError?.(source, isErrorInImage && isImageSource);
-    }, [fallbackSource, file?.name, imageError, onAttachmentError, source]);
+    }, [fallbackSource, file?.name, file?.type, imageError, onAttachmentError, source]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -253,16 +254,6 @@ function AttachmentView({
                 </ScrollView>
             </View>
         );
-    }
-
-    // New Expensify builds the distance e-receipt from the expense, which is why the server stores only the route
-    // map as the thumbnail for it to draw around. The generated PDF beside it is for Expensify Classic, which
-    // cannot build one in the frontend, and it prints the routed trip rather than what the expense bills. Showing
-    // that PDF here made the enlarged receipt contradict every other surface, so draw the card instead. This runs
-    // before the PDF branch below, which would otherwise return first.
-    // See https://github.com/Expensify/Expensify/issues/545298 and https://github.com/Expensify/App/issues/97013.
-    if (transaction && isMapBasedDistanceRequest(transaction)) {
-        return <ScaledDistanceEReceipt transaction={transaction} />;
     }
 
     // Check both source and file.name since PDFs dragged into the text field
@@ -324,15 +315,23 @@ function AttachmentView({
         );
     }
 
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && !isOdometerDistanceRequest(transaction) && transaction) {
+        // Distance eReceipts are now generated as a PDF, but to keep it backwards compatible we still show the old eReceipt view for image receipts
+        const isImageReceiptSource = checkIsFileImage(source, file?.name, file?.type);
+        if (!hasReceiptSource(transaction) || isImageReceiptSource) {
+            return <DistanceEReceipt transaction={transaction} />;
+        }
+    }
+
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
 
     // isLocalSource checks if the source is blob as that's the type of the temp image coming from mobile web
-    const isFileImage = checkIsFileImage(source, file?.name);
+    const isFileImage = checkIsFileImage(source, file?.name, file?.type);
     const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
 
-    const isImage = isFileImage ?? isLocalSourceImage;
+    const isImage = isFileImage || (!file?.name && isLocalSourceImage);
 
     if (isImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {

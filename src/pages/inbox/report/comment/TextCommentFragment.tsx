@@ -15,7 +15,7 @@ import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -25,7 +25,6 @@ import type {StyleProp, TextStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {useEffect} from 'react';
 import {View} from 'react-native';
 
 import RenderCommentHTML from './RenderCommentHTML';
@@ -70,14 +69,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     const processedTextArray = splitTextWithEmojis(message);
-
-    // Original effect anchor, kept while the visible variant below is validated against it in Sentry.
-    useEffect(() => {
-        if (!reportActionID) {
-            return;
-        }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
-    }, [reportActionID]);
 
     const endSendMessageVisibleSpanOnLayout = () => {
         if (!reportActionID) {
@@ -166,7 +157,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 <>
                     <Text style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight]}> </Text>
                     <Text
-                        fontSize={variables.fontSizeSmall}
+                        fontSize={fontScale.micro}
                         color={theme.textSupporting}
                         style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
