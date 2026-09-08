@@ -2139,6 +2139,7 @@ const CONST = {
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
+            BOTTOM_DOCKED_INSET: 'bottom_docked_inset',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
             FULLSCREEN: 'fullscreen',

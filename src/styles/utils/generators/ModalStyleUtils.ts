@@ -67,12 +67,14 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         popoverAnchorPosition = {},
         innerContainerStyle = {},
         outerStyle = {},
-        shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
+
+        // Wide layout: a 1px theme.border stroke around centered alert modals, matching the floating RHP cards.
+        const centeredModalBorder = !isSmallScreenWidth ? {borderWidth: 1, borderColor: theme.border} : {};
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
@@ -112,6 +114,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
+                    ...centeredModalBorder,
                 };
 
                 // setting this to undefined we effectively disable the
@@ -216,6 +219,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderWidth: 0,
                     marginTop: 'auto',
                     marginBottom: 'auto',
+                    ...centeredModalBorder,
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
@@ -228,35 +232,37 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddBottomSafeAreaPadding = false;
                 break;
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
+            case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET:
+                // Bottom-docked modals float: fully rounded, inset 8px on every side, and lifted above the safe area so they
+                // sit on top of the home bar (the safe area is added as margin below the card, not padding inside it).
+                // The horizontal and top insets are padding on the outer modal so the card's width:100% can never exceed
+                // the viewport (avoids off-screen overflow for content-measured popovers).
                 modalStyle = {
                     ...modalStyle,
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    paddingHorizontal: variables.bottomDockedInsetMargin,
+                    paddingTop: variables.bottomDockedInsetMargin,
                     zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.modalBaseZIndex,
                 };
                 modalContainerStyle = {
                     width: '100%',
-                    borderTopLeftRadius: variables.componentBorderRadiusLarge,
-                    borderTopRightRadius: variables.componentBorderRadiusLarge,
+                    // Explicit numeric marginBottom so getModalPaddingStyles adds the safe area to it (instead of replacing it).
+                    marginBottom: variables.bottomDockedInsetMargin,
+                    borderRadius: variables.bottomDockedInsetBorderRadius,
+                    borderWidth: 1,
+                    borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
-                    // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
-                    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
-                    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
                     ...(isMobile() ? {maxHeight: `${windowDimensions.windowHeight}px`, height: 'fit-content'} : {}),
                 };
 
-                if (shouldUseModalPaddingStyle) {
-                    modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
-
-                    if (!enableEdgeToEdgeBottomSafeAreaPadding) {
-                        modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
-                    }
-                }
-
-                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding && !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                // Push the card above the home bar: the bottom safe area is added to the 8px bottom margin (below the
+                // card), never as padding inside it. On mobile web there is no home bar, so the margin stays 8px.
+                shouldAddBottomSafeAreaPadding = false;
+                shouldAddBottomSafeAreaMargin = true;
                 shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
@@ -285,21 +291,34 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';
                 break;
-            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
+            case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
+                // On wide layout the box is widened by the inset on both sides so the floating card inside is rhpWidth.
+                const rightDockedBoxWidth = variables.rhpWidth + 2 * variables.rhpFloatingCardMargin;
                 modalStyle = {
                     ...modalStyle,
-                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - rightDockedBoxWidth,
+                    width: isSmallScreenWidth ? '100%' : rightDockedBoxWidth,
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
                     zIndex: variables.modalRightDockedZIndex,
                 };
-                modalContainerStyle = {
-                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                    height: '100%',
-                    overflow: 'hidden',
-                };
+                modalContainerStyle = isSmallScreenWidth
+                    ? {
+                          width: '100%',
+                          height: '100%',
+                          overflow: 'hidden',
+                      }
+                    : {
+                          // Floating RHP style, matching RightModalNavigator's skinny RHP.
+                          flex: 1,
+                          margin: variables.rhpFloatingCardMargin,
+                          borderRadius: variables.componentBorderRadiusLarge,
+                          borderWidth: 1,
+                          borderColor: theme.border,
+                          boxShadow: theme.shadow,
+                          overflow: 'hidden',
+                      };
 
                 animationIn = 'slideInRight';
                 animationOut = 'slideOutRight';
@@ -308,6 +327,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 shouldAddTopSafeAreaPadding = true;
                 break;
+            }
             default:
                 modalStyle = {height: '100%'};
                 modalContainerStyle = {};

@@ -9,6 +9,8 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -38,6 +40,8 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 <Icon
                     src={Concierge}
                     fill={theme.icon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
                 />
             </PressableWithoutFeedback>
         </Tooltip>

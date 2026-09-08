@@ -135,6 +135,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 animationOutTiming={animationOutTiming}
                 disableAnimation={false}
                 shouldHandleNavigationBack
+                shouldUseInsetBottomDocked
                 innerContainerStyle={styles.pv0}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
