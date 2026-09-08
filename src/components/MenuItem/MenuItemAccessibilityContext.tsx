@@ -122,4 +122,5 @@ function useMenuItemAccessibility() {
 }
 
 export default MenuItemAccessibilityContext;
+export type {MenuItemLabelSlot};
 export {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityLabel, useMenuItemAccessibilityAnnouncement, useMenuItemAccessibility};

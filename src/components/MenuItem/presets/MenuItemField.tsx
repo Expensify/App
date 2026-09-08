@@ -6,7 +6,7 @@ import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemFieldName from '@components/MenuItem/leaves/content/MenuItemFieldName';
 import MenuItemFieldNamePlaceholder from '@components/MenuItem/leaves/content/MenuItemFieldNamePlaceholder';
 import MenuItemFieldValue from '@components/MenuItem/leaves/content/MenuItemFieldValue';
-import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
+import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 

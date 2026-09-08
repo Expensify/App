@@ -1,6 +1,6 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import variables from '@styles/variables';
+import {fontScale, lineHeightScale} from '@styles/typography';
 
 import React from 'react';
 
@@ -16,7 +16,7 @@ function MenuItemFieldNamePlaceholder(props: MenuItemSupportingTextProps) {
         <BaseMenuItemSupportingText
             {...props}
             slot="top"
-            style={[StyleUtils.getFontSizeStyle(variables.fontSizeNormal), StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight)]}
+            style={[StyleUtils.getFontSizeStyle(fontScale.text), StyleUtils.getLineHeightStyle(lineHeightScale.text)]}
         />
     );
 }

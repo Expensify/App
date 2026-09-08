@@ -5,7 +5,7 @@ import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemTitle from '@components/MenuItem/leaves/content/MenuItemTitle';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
-import MenuItemChevron from '@components/MenuItem/leaves/trailing/MenuItemChevron';
+import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
