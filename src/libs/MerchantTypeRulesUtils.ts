@@ -15,14 +15,7 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {
-    getExpenseDefaultRuleSummaryFields,
-    getPolicyExpenseDefaultRules,
-    getRuleFilterLeaves,
-    getRuleMerchantMatchSummary,
-    isEditableMerchantRule,
-    isExpenseDefaultTaxValue,
-} from './ExpenseDefaultRuleUtils';
+import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 

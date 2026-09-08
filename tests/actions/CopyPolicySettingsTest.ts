@@ -586,7 +586,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     },
                 });
 
-                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {});
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['distanceRates'], {}, {}, {});
 
                 const policy = getOptimisticPolicy(optimisticData);
                 expect(Object.keys(policy?.customUnits?.[targetExistingDistanceID]?.rates ?? {})).toEqual(['TGT_DEFAULT']);
