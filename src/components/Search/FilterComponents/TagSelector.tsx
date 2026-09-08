@@ -91,7 +91,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
 
     // Selected tags that are not in the current result page stay visible once the search is cleared, so the selection doesn't disappear from the list.
     // Prepend missing selected items to the top (after "No tag") so they don't land at the bottom of the paginated list.
-    // Do not gate on !isSearching so they stay mounted during refetches without flashing.
+    // Do not gate on !isSearching so they stay mounted during re-fetches without flashing.
     if (!searchQuery) {
         const itemValues = new Set(tagItems.map((item) => item.value));
         const missingSelectedItems = selectedTagsItems.filter((selectedItem) => !itemValues.has(selectedItem.value)).toSorted((a, b) => localeCompare(a.text.toString(), b.text.toString()));

@@ -69,17 +69,15 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
     // Track if we have cached data to avoid showing loading state on remount
     const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
-    const isFilteringLocallyRef = useRef(false);
+    const [isFilteringLocally, setIsFilteringLocally] = useState(false);
 
-    const prevPolicyIDsRef = useRef(policyIDs);
-    if (prevPolicyIDsRef.current !== policyIDs) {
-        prevPolicyIDsRef.current = policyIDs;
-        isFilteringLocallyRef.current = false;
-    }
+    useEffect(() => {
+        setIsFilteringLocally(false);
+    }, [policyIDs]);
 
     // Only treat the cache as complete when the empty-query dataset is fully loaded.
     // A finished server search for a non-empty term can still be a partial result set.
-    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocallyRef.current);
+    const hasCompleteEmptyQueryCache = hasCachedData && !hasMore && (searchQuery === '' || isFilteringLocally);
 
     // Keep ref updated with latest values for use in stable callbacks
     const stateRef = useRef({hasMore, nextCursor, searchQuery, hasCachedData, hasCompleteEmptyQueryCache, isSearching, isLoadingMore});
@@ -127,13 +125,13 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
 
         // When the full empty-query dataset is already cached, filter locally instead of hitting the server on every keystroke.
         if (currentHasCompleteEmptyQueryCache) {
-            isFilteringLocallyRef.current = true;
+            setIsFilteringLocally(true);
             setSearchTagFiltersPagination(false, '', query);
             setHasCompletedSearch(true);
             return;
         }
 
-        isFilteringLocallyRef.current = false;
+        setIsFilteringLocally(false);
         const requestSeq = ++requestSeqRef.current;
 
         // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
@@ -160,7 +158,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     // Clear persisted pagination and cached pages when the filter closes so a fresh open re-fetches with valid hasMore.
     useEffect(() => {
         return () => {
-            isFilteringLocallyRef.current = false;
+            setIsFilteringLocally(false);
             clearSearchTagFiltersState();
         };
     }, []);
