@@ -10,7 +10,11 @@ import renderScreenWithCover from '../../utils/ScreenCoverHarness';
 
 // The component refuses a parser that is not a worklet, and the worklets babel plugin is skipped under Jest, so the
 // hash that marks a function as one is attached by hand.
-const parser = Object.assign((): MarkdownRange[] => [], Object.fromEntries([['__workletHash', 1]]));
+function createParserWorklet(workletHash: number) {
+    return Object.assign((): MarkdownRange[] => [], Object.fromEntries([['__workletHash', workletHash]]));
+}
+
+const parser = createParserWorklet(1);
 
 /** The ids the C++ registry would resolve, which is what `.at()` in `MarkdownGlobal.cpp` looks a parse up by. */
 const liveParserIds = new Set<number>();
@@ -79,6 +83,29 @@ describe('MarkdownTextInput parser registration', () => {
 
         expect(registerCallCount).toBe(1);
         expect(liveParserIds.has(getDecoratorParserId())).toBe(true);
+    });
+
+    it('moves the decorator to a live id and drops the previous one when the parser changes identity', () => {
+        const {rerender} = render(
+            <MarkdownTextInput
+                parser={parser}
+                testID="concierge-composer"
+            />,
+        );
+        const initialParserId = getDecoratorParserId();
+
+        // RNMarkdownTextInput builds a new parser worklet whenever currentUserMentions changes.
+        rerender(
+            <MarkdownTextInput
+                parser={createParserWorklet(2)}
+                testID="concierge-composer"
+            />,
+        );
+
+        const replacementParserId = getDecoratorParserId();
+        expect(replacementParserId).not.toBe(initialParserId);
+        expect(liveParserIds.has(replacementParserId)).toBe(true);
+        expect(liveParserIds.size).toBe(1);
     });
 
     it('leaves one live parser id behind the decorator under StrictMode', () => {

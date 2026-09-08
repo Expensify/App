@@ -1,0 +1,63 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
+index 4edd28e..478d800 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
+@@ -15,6 +15,9 @@ namespace livemarkdown {
+     jsi::Runtime &rt = markdownRuntime->getJSIRuntime();
+ 
+     const auto markdownWorklet = expensify::livemarkdown::getMarkdownWorklet(parserId);
++    if (markdownWorklet == nullptr) {
++      return jni::make_jstring("[]");
++    }
+ 
+     const auto input = jsi::String::createFromUtf8(rt, text->toStdString());
+     const auto output = markdownRuntime->runGuarded(markdownWorklet, input);
+diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
+index 89bb209..3077b9d 100644
+--- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
++++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
+@@ -212,10 +212,8 @@ - (void)drainPendingWarmups
+   const auto &markdownRuntime = expensify::livemarkdown::getMarkdownRuntime();
+   jsi::Runtime &rt = markdownRuntime->getJSIRuntime();
+ 
+-  std::shared_ptr<SerializableWorklet> markdownWorklet;
+-  try {
+-    markdownWorklet = expensify::livemarkdown::getMarkdownWorklet([parserId intValue]);
+-  } catch (const std::out_of_range &error) {
++  const auto markdownWorklet = expensify::livemarkdown::getMarkdownWorklet([parserId intValue]);
++  if (markdownWorklet == nullptr) {
+     return @[];
+   }
+ 
+diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
+index 67f93eb..4b2bb44 100644
+--- a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.cpp
+@@ -36,7 +36,14 @@ void unregisterMarkdownWorklet(const int parserId) {
+ 
+ std::shared_ptr<SerializableWorklet> getMarkdownWorklet(const int parserId) {
+   std::unique_lock<std::mutex> lock(globalMarkdownShareableWorkletsMutex);
+-  return globalMarkdownShareableWorklets.at(parserId);
++  const auto worklet = globalMarkdownShareableWorklets.find(parserId);
++  if (worklet == globalMarkdownShareableWorklets.end()) {
++    // The id was unregistered (the effect cleanup of a hidden <Activity>, or a parser that changed identity) and
++    // the decorator view has not received its replacement yet. A parse in that window must not fail: the caller
++    // formats nothing, and the replacement id re-parses the text as soon as the view receives it.
++    return nullptr;
++  }
++  return worklet->second;
+ }
+ 
+ } // namespace livemarkdown
+diff --git a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
+index e181726..0b273a3 100644
+--- a/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
++++ b/node_modules/@expensify/react-native-live-markdown/cpp/MarkdownGlobal.h
+@@ -18,6 +18,7 @@ const int registerMarkdownWorklet(const std::shared_ptr<SerializableWorklet> &ma
+ 
+ void unregisterMarkdownWorklet(const int parserId);
+ 
++// Returns nullptr for an id that is not registered (any more).
+ std::shared_ptr<SerializableWorklet> getMarkdownWorklet(const int parserId);
+ 
+ } // namespace livemarkdown
