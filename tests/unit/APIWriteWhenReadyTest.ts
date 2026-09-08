@@ -3,7 +3,7 @@ import type {WriteReadyBarrier, WriteWhenReadyOptions} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
+import {claimReadGateForDeferredWrite, push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,12 +18,16 @@ jest.mock('@libs/Network/SequentialQueue', () => ({
     waitForIdle: jest.fn(() => Promise.resolve()),
     // Called by the network layer on init; stub so advancing fake timers doesn't hit a missing export.
     flush: jest.fn(),
+    // Returns the callback writeWhenReady runs once its write has reached the queue, or definitely won't.
+    // The gate itself is covered in SequentialQueueReadGateTest.
+    claimReadGateForDeferredWrite: jest.fn(() => jest.fn()),
 }));
 jest.mock('@libs/Navigation/TransitionTracker');
 jest.mock('@libs/Pusher');
 jest.mock('@libs/NetworkState');
 
 const mockPush = jest.mocked(pushToSequentialQueue);
+const mockClaimReadGate = jest.mocked(claimReadGateForDeferredWrite);
 const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
 
 // writeWhenReady's deferral behaviour is command-agnostic; UPDATE_PREFERRED_LOCALE is just an arbitrary write command.
@@ -307,6 +311,8 @@ describe('API.writeWhenReady', () => {
         const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(() => {
             throw new Error('write boom');
         });
+        const settleClaim = jest.fn();
+        mockClaimReadGate.mockReturnValue(settleClaim);
         try {
             const onyxData: DeferWriteOnyxData = {
                 optimisticData: [
@@ -329,8 +335,13 @@ describe('API.writeWhenReady', () => {
             // error the caller needs to see, not something to paper over
             await expect(outcome).resolves.toBe('rejected');
             expect(mockPush).not.toHaveBeenCalled();
+
+            // And the claim is released on the way out. This is the only assertion on execute()'s catch;
+            // without it the gate would stay held and every later READ would sit on the safety timeout.
+            expect(settleClaim).toHaveBeenCalledTimes(1);
         } finally {
             updateSpy.mockRestore();
+            mockClaimReadGate.mockImplementation(() => jest.fn());
         }
     });
 
@@ -587,6 +598,85 @@ describe('API.writeWhenReady', () => {
         // Then the safety timeout must stay strictly longer, or the safety net could fire before the
         // default barrier's own legitimate worst case
         expect(SAFETY_TIMEOUT_MS).toBeGreaterThan(CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS);
+    });
+
+    describe('sequential queue read gate', () => {
+        // clearAllMocks() doesn't clear implementations, so reset the stub up front rather than relying on
+        // the previous test having cleaned up after itself.
+        beforeEach(() => {
+            mockClaimReadGate.mockImplementation(() => jest.fn());
+        });
+
+        // One claim whose settle callback a test can assert on directly.
+        function stubReadGateClaim() {
+            const settleClaim = jest.fn();
+            mockClaimReadGate.mockReturnValue(settleClaim);
+            return settleClaim;
+        }
+
+        it('claims the read gate synchronously, before the barrier settles', () => {
+            // Given a barrier that has not settled, so nothing has reached the queue yet
+            const {barrier} = makeAbortableBarrier();
+
+            // When the write is deferred
+            deferWrite(barrier);
+
+            // Then the gate is already claimed on this same tick. A READ firing on the next line - the
+            // destination screen refetching what this write is about to change - has to park behind it,
+            // which is precisely the ordering `write()` would have given for free.
+            expect(mockClaimReadGate).toHaveBeenCalledTimes(1);
+            expect(mockPush).not.toHaveBeenCalled();
+        });
+
+        it('settles the claim once the write reaches the queue', async () => {
+            // Given a deferred write holding the gate
+            const settleClaim = stubReadGateClaim();
+            const {barrier, release} = makeAbortableBarrier();
+            deferWrite(barrier);
+            expect(settleClaim).not.toHaveBeenCalled();
+
+            // When the barrier releases it onto the queue
+            release();
+            await flushMicrotasks(() => settleClaim.mock.calls.length > 0);
+
+            // Then the claim settles off the write promise, rather than assuming push() ran synchronously
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            expect(settleClaim).toHaveBeenCalledTimes(1);
+        });
+
+        it('settles the claim even when the write rejects', async () => {
+            // Given a deferred write whose push() fails. processRequest is async, so this surfaces as a
+            // rejection and takes the .finally() path, not execute()'s catch - that branch is covered by
+            // 'rejects the returned promise when the write throws synchronously'.
+            const settleClaim = stubReadGateClaim();
+            mockPush.mockImplementationOnce(() => {
+                throw new Error('push failed');
+            });
+            const {barrier, release} = makeAbortableBarrier();
+            const deferred = deferWrite(barrier);
+
+            // When the barrier releases it
+            release();
+            await flushMicrotasks(() => settleClaim.mock.calls.length > 0);
+
+            // Then the claim is still settled, rather than parking every READ for good
+            await expect(deferred).rejects.toThrow('push failed');
+            expect(settleClaim).toHaveBeenCalledTimes(1);
+        });
+
+        it('skips the claim when the caller opts out', async () => {
+            // Given a write deferred with the read gate turned off
+            const {barrier, release} = makeAbortableBarrier();
+            deferWriteWithOptions(barrier, {shouldClaimReadGate: false});
+
+            // When the barrier releases it onto the queue
+            release();
+            await flushMicrotasks(pushHappened);
+
+            // Then no gate was ever claimed, so READs ran freely for the length of the deferral
+            expect(mockClaimReadGate).not.toHaveBeenCalled();
+            expect(mockPush).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('onRelease/onWriteStarted options', () => {

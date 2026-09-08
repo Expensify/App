@@ -109,7 +109,6 @@ const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -211,7 +210,6 @@ const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -308,7 +306,6 @@ mockSnapshotData[policyKey] = createMock<Policy>({
     owner: 'apb@apb.com',
     ownerAccountID: mockReportItemWithHold.ownerAccountID,
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
 });
 mockSnapshotData[reportKey] = createMock<Report>({
     reportID: mockReportItemWithHold.reportID,

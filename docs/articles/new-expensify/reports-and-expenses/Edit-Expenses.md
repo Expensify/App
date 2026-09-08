@@ -70,9 +70,17 @@ On Draft and Outstanding reports, you can edit:
 
 # FAQ
 
+## Can I edit expenses on Draft and Outstanding reports? 
+
+Yes, expenses on Draft and Outstanding reports can still be edited.
+
+## Can I edit expenses on Approved reports? 
+
+Yes. However, the report submitter will need to ask the approver to unapprove the report before the expenses can be edited again.
+
 ## Can I edit expenses on Paid and Done reports? 
 
-No, Paid or Done reports are locked and cannot be reopened for editing. 
+No, expenses on Paid and Done reports are locked and cannot be reopened for editing. 
 
 ## Why are some fields not editable in the Edit multiple panel?
 

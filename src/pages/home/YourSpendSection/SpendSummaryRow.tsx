@@ -114,7 +114,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={iconSrc}
                             fill={theme.icon}

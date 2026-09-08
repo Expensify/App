@@ -637,7 +637,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         prompt: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteTags();
@@ -834,7 +834,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                           buttonAction: navigateToImportSpreadsheet,
                       },
                       {
-                          success: true,
+                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                           buttonAction: navigateToCreateTagPage,
                           icon: expensifyIcons.Plus,
                           buttonText: translate('workspace.tags.addTag'),

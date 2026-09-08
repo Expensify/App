@@ -716,7 +716,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 prompt={translate('cardPage.freezeDescription')}
                 confirmText={translate('cardPage.freezeCard')}
                 cancelText={translate('common.cancel')}
-                danger
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
             <ConfirmModal
                 title={`${translate('cardPage.unfreezeCard')}?`}

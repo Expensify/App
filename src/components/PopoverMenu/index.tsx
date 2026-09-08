@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -227,13 +228,17 @@ type PopoverMenuContentProps = {
 };
 
 function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match Popover's own dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding, style: contentContainerStyle});
 
     if (shouldUseScrollView) {
         return (
             <ScrollView
                 contentContainerStyle={contentContainerStyle}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                addBottomSafeAreaPadding={shouldAddBottomSafeAreaPadding}
             >
                 {children}
             </ScrollView>

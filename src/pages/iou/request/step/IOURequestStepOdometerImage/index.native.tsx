@@ -183,7 +183,7 @@ function IOURequestStepOdometerImage({
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
-                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
             },
         });
 

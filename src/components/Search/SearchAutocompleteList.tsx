@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -148,7 +149,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     return (
         <BareUserListItem
             item={item}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
@@ -181,6 +181,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -256,6 +257,7 @@ function SearchAutocompleteList({
         }
         return getSearchOptions({
             dateFnsLocale,
+            convertToDisplayString,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -297,6 +299,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         dateFnsLocale,
+        convertToDisplayString,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

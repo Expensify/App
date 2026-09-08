@@ -114,7 +114,7 @@ describe('Reconnect', () => {
         expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
     });
 
-    test('foreground triggers reconnect and flush when app becomes active while online', async () => {
+    test('foreground flushes the queue without syncing', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
@@ -125,7 +125,7 @@ describe('Reconnect', () => {
 
         becameActiveCallback();
 
-        expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(reconnectApp)).not.toHaveBeenCalled();
         expect(jest.mocked(flush)).toHaveBeenCalledTimes(1);
     });
 

@@ -415,7 +415,6 @@ function DatePresetFilterBase({
                     {presets?.map((preset) => (
                         <SingleSelectListItem
                             key={preset}
-                            keyForList={preset}
                             showTooltip
                             item={{
                                 keyForList: preset,
@@ -490,7 +489,6 @@ function DatePresetFilterBase({
             {CONST.SEARCH.CUSTOM_DATE_MODIFIERS.map((dateModifier) => (
                 <SingleSelectListItem
                     key={dateModifier}
-                    keyForList={dateModifier}
                     showTooltip
                     item={{
                         keyForList: dateModifier,

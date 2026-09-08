@@ -250,6 +250,26 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
+    it('shows info GBR on Profile when commuter exclusions require a missing home address', async () => {
+        await setupUser('user@expensify.com');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                id: '1',
+                name: 'Boulder Development',
+                commuterExclusions: {method: 'homeAndOffice'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('decoration-Profile-rbr').children).toEqual([CONST.BRICK_ROAD_INDICATOR_STATUS.INFO]);
+        });
+    });
+
     it('shows Subscription for agent account', async () => {
         mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.TEAM);
         await setupUser('testbot_123@expensify.ai', true);

@@ -232,6 +232,8 @@ function ReportFetchHandler() {
         createTransactionThreadReport({
             introSelected,
             conciergeChat,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -539,6 +541,8 @@ function ReportFetchHandler() {
         createTransactionThreadReport({
             introSelected,
             conciergeChat,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
             betas,
@@ -548,6 +552,8 @@ function ReportFetchHandler() {
         });
     }, [
         introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
         betas,

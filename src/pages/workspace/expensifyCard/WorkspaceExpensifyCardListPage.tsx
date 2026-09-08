@@ -344,7 +344,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             {
                                 buttonText: translate('workspace.expensifyCard.issueCard'),
                                 buttonAction: handleIssueCardPress,
-                                success: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                                 hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                             },

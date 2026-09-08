@@ -83,3 +83,4 @@ function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMen
 
 export default getDomainMenuItems;
 export {DOMAIN_MENU_ICON_NAMES};
+export type {DomainMenuIconMap};

@@ -15,36 +15,41 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: '!contains(fromJSON(''["OSBotify", "imgbot[bot]", "melvin-bot[bot]", "codecov[bot]"]''), github.actor) && !contains(github.event.issue.assignees.*.login, github.event.comment.user.login)'
     steps:
-      # Expensify employees commenting on Help Wanted issues are giving direction, not bidding for the job,
-      # so none of these checks should ever apply to them. author_association is not enough: it only reports
-      # MEMBER for publicly visible org members, so a concealed employee would look like an outside
-      # contributor. Reading org team membership needs a read:org token, hence OS_BOTIFY_TOKEN.
-      - name: Check whether the commenter is an Expensify employee
-        id: isExpensifyEmployee
+      # A content-free job claim is acceptable from approved contributors and partner engineers, but is spam
+      # from everyone else. author_association is not enough for concealed members, so verify team membership
+      # with the read:org token. Partner affiliation is accepted only when the commenter explicitly states it.
+      - name: Check whether the commenter is an approved contributor or partner
+        id: commenterTrust
         env:
-          # Passed through the environment rather than interpolated into the script, so a crafted login can't inject shell
+          # Passed through the environment rather than interpolated into the script, so crafted values can't inject shell.
           COMMENTER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
         run: |
-          if OUTPUT=$(gh api "/orgs/Expensify/teams/expensify-expensify/memberships/${COMMENTER}" --silent 2>&1); then
-            echo 'RESULT=employee' >> "$GITHUB_OUTPUT"
-          elif echo "$OUTPUT" | grep -q '(HTTP 404)'; then
-            echo 'RESULT=not-employee' >> "$GITHUB_OUTPUT"
-          else
-            # gh exits non-zero for any error, not just 404, so a token or API problem lands here. Skipping is
-            # the safe direction: classifying an employee's comment could get it minimized as spam.
-            echo "::warning::Could not verify Expensify membership for ${COMMENTER}, skipping ProposalPolice: ${OUTPUT}"
-            echo 'RESULT=unknown' >> "$GITHUB_OUTPUT"
+          TRUSTED=false
+          for TEAM in expensify-expensify contributor-plus contributor-plus-backend; do
+            if OUTPUT=$(gh api "/orgs/Expensify/teams/${TEAM}/memberships/${COMMENTER}" --silent 2>&1); then
+              TRUSTED=true
+              break
+            elif [[ "$OUTPUT" != *'(HTTP 404)'* ]]; then
+              echo "::warning::Could not verify ${COMMENTER}'s ${TEAM} membership: ${OUTPUT}"
+            fi
+          done
+
+          shopt -s nocasematch
+          if [[ "$COMMENT_BODY" =~ (^|[[:space:]])from[[:space:]]+(Callstack|Margelo|Software[[:space:]]?Mansion)([^[:alnum:]_]|$) ]]; then
+            TRUSTED=true
           fi
 
-      - if: steps.isExpensifyEmployee.outputs.RESULT == 'not-employee'
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+          echo "TRUSTED=${TRUSTED}" >> "$GITHUB_OUTPUT"
+
+      - uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
 
       # Classifies new comments that don't follow the proposal template, detects duplicate proposals,
       # and grades edits to existing proposals. Action type logic can be found in the script files.
       - name: Run ProposalPolice™ Comment Check Script
-        if: steps.isExpensifyEmployee.outputs.RESULT == 'not-employee'
         uses: ./.github/actions/javascript/proposalPoliceComment
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
+          IS_TRUSTED_COMMENTER: ${{ steps.commenterTrust.outputs.TRUSTED }}

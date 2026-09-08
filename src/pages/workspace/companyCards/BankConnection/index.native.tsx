@@ -113,11 +113,15 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                     return;
                 }
-                setAssignCardStepAndData({
-                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                    isEditing: false,
-                });
-                return;
+                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
+                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                if (!assignCard?.isRefreshing) {
+                    setAssignCardStepAndData({
+                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                        isEditing: false,
+                    });
+                    return;
+                }
             }
             // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
             // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
@@ -153,6 +157,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         feed,
         isFeedExpired,
         assignCard?.cardToAssign?.dateOption,
+        assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,

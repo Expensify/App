@@ -1,4 +1,4 @@
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
@@ -33,9 +33,12 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     const hash = queryJSON?.hash;
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
+    // Without this, a plain page-level fetch during active select-all clears totals on arrival
+    // (shouldClearTotals in getOnyxLoadingData), wiping a total the Search-internal effect already fetched.
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().

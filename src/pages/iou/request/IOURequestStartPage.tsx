@@ -15,6 +15,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
@@ -44,7 +45,7 @@ import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportO
 import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
-import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
+import {IOURequestStepConfirmationContentWithWritableReportOrNotFound as IOURequestStepConfirmationContent} from './step/IOURequestStepConfirmation';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
@@ -222,6 +223,13 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
 
+    // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
+    // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
+    // shouldEnableMaxHeight gates the keyboard-open height clamp and `marginTop: viewportOffsetTop`, and together with
+    // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
+    // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
+    const shouldEnableManualConfirmationMaxHeight = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL) && canUseTouchScreen() && !isMobileSafari();
+
     let manualContent: React.ReactNode;
     if (!shouldEmbedConfirmation) {
         manualContent = (
@@ -255,7 +263,7 @@ function IOURequestStartPage({
         );
     } else {
         manualContent = (
-            <IOURequestStepConfirmation
+            <IOURequestStepConfirmationContent
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
@@ -273,7 +281,7 @@ function IOURequestStartPage({
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
-                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
+                shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM || shouldEnableManualConfirmationMaxHeight}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}

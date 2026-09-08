@@ -153,7 +153,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRESERVED_ACCOUNT,
     ONYXKEYS.HYBRID_APP,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
@@ -229,10 +229,6 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
-}
-
-function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -998,7 +994,6 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openApp,
-    setAppLoading,
     reconnectApp,
     loadPostDataForOpenOrReconnect,
     triggerFullReconnect,

@@ -125,6 +125,11 @@ type DomainPendingAction = {
      * Pending action for the domain itself
      */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for requesting adminship of a domain already claimed by someone else
+     */
+    requestAdminship?: OnyxCommon.PendingAction;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
 
 export type {DomainSecurityGroupPendingActions};

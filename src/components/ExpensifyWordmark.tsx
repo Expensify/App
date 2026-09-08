@@ -27,6 +27,7 @@ type ExpensifyWordmarkProps = {
 const logoComponents = {
     [CONST.ENVIRONMENT.DEV]: DevLogo,
     [CONST.ENVIRONMENT.STAGING]: StagingLogo,
+    [CONST.ENVIRONMENT.QA]: StagingLogo,
     [CONST.ENVIRONMENT.PRODUCTION]: ProductionLogo,
     [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };

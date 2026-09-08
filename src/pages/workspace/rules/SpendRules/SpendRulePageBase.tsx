@@ -259,7 +259,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
             prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -427,11 +427,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
         <>
             <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                 <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.spendRules.restrictCardSpendSubtitle')}</Text>
-                <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
+                <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
             </View>
             {cardsMenuItem}
             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
+            <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
             {currenciesMenuItem}
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>

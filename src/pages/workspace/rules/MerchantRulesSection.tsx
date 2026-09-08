@@ -20,7 +20,7 @@ import Parser from '@libs/Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
-import variables from '@styles/variables';
+import {lineHeightScale} from '@styles/typography';
 
 import {clearPolicyCodingRuleErrors} from '@userActions/Policy/Rules';
 
@@ -187,7 +187,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
-                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: variables.fontSizeNormalHeight}]}
+                                        descriptionTextStyle={[styles.textNormalThemeText, {lineHeight: lineHeightScale.text}]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}

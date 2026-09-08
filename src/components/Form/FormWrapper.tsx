@@ -71,12 +71,6 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
 
-        /**
-         * Whether the button should have a background layer in the color of theme.appBG.
-         * This is needed for buttons that allow content to display under them.
-         */
-        shouldSubmitButtonBlendOpacity?: boolean;
-
         /** Fires at most once per frame during scrolling. */
         onScroll?: () => void;
 
@@ -84,6 +78,12 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
+
+        /** Styles for the container wrapping the submit button and footer content */
+        submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+        /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+        submitButtonInnerStyles?: StyleProp<ViewStyle>;
     };
 
 function FormWrapper({
@@ -98,7 +98,7 @@ function FormWrapper({
     submitButtonStyles,
     submitFlexEnabled = true,
     enabledWhenOffline,
-    isSubmitActionDangerous = false,
+    buttonVariant,
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
@@ -114,12 +114,13 @@ function FormWrapper({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
-    shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
+    submitButtonAndFooterContainerStyles,
+    submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -169,6 +170,13 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
+    const scrollTo = (y: number) => {
+        // Wait for the keyboard animation to complete
+        setTimeout(() => {
+            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -194,6 +202,7 @@ function FormWrapper({
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
+        scrollTo,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (
@@ -216,13 +225,14 @@ function FormWrapper({
                 shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
             ]}
             enabledWhenOffline={enabledWhenOffline}
-            isSubmitActionDangerous={isSubmitActionDangerous}
+            buttonVariant={buttonVariant}
             disablePressOnEnter={disablePressOnEnter}
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
-            shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
+            buttonAndFooterContainerStyles={submitButtonAndFooterContainerStyles}
+            buttonStyles={submitButtonInnerStyles}
         />
     );
 

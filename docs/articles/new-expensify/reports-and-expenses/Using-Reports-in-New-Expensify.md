@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -44,9 +44,15 @@ Filter reports by type, status, category, or date to find specific information.
    - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
+   - **Paid by:** The member who paid the report. On the **Expense Report** type, this sits directly below **Paid status**. On the **Expense** type, it sits directly below **Paid**.
 6. Click **View Results** to see the filtered results.
 
-![Spend page showing available report filtering options]({{site.url}}/assets/images/Filter-reports.png){:width="100%"}
+<!-- SCREENSHOT:
+Suggestion: The Spend tab on web with the Expense Report type selected and the Filters panel open, scrolled so that Paid status and Paid by are both visible, and with the Filters, Display, Save, and Create controls visible in the toolbar above the table.
+Location: Immediately after the filter steps in "How to filter in Spend"
+Purpose: The previous screenshot showed a Columns control that no longer exists and a filter list without Paid status or Paid by, so members hunting for those controls were sent to the wrong place. A current capture confirms the toolbar controls and where the Paid by filter sits.
+-->
+
 ---
 
 ## How to customize the Spend column view 
@@ -57,7 +63,7 @@ To customize columns:
 
 1. Go to the **Spend** tab on the left (web only).
 2. Run a search or apply filters if needed.
-3. Click the **Columns** icon (next to **Filters**).
+3. Click **Display**, then select **Edit columns**.
 4. Use the checkboxes to show or hide specific columns.
 5. Drag and drop columns to rearrange their order.
 6. Click **Save** to save your column layout.
@@ -67,10 +73,10 @@ You can choose from a wide range of columns, including:
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
 - **Submitted** – The date the report was submitted for approval
-- **Paid status** – How a paid report was settled: **Marked as paid**, **Withdrawing**, or **Confirmed**
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
-- **Paid status** – The payment stage of a paid report: Marked as paid, Withdrawing, or Confirmed
+- **Paid status** – The payment stage of a paid report: **Marked as paid**, **Withdrawing**, or **Confirmed**
+- **Paid by** – The member who paid the report. This stays blank until the report is paid, and it updates as soon as you pay the report from **Spend**
 - **Action** – Shows available actions like approve or reject
 - **MCC** – The Merchant Category Code from the transaction
 - **Tax code** – The tax code applied to the expense
@@ -80,7 +86,7 @@ You can choose from a wide range of columns, including:
 - **Custom field 2** – The Custom field 2 value set for the report submitter
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report
 
-To view the full list of available columns, click the **Columns** icon in the **Spend** tab.
+To view the full list of available columns, click **Display** in the **Spend** tab, then select **Edit columns**.
 
 ---
 
@@ -205,10 +211,10 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 3. Apply the **Draft** filter to view all unsubmitted reports.
 
 ## Can I change which columns appear in my reports?
-Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Use the **Columns** icon to customize your table layout.
+Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Click **Display**, then select **Edit columns**, to customize your table layout.
 
 ## Can I reorder the columns?
-Absolutely. Just drag and drop the columns in the order you prefer within the **Columns** settings panel.
+Absolutely. Just drag and drop the columns in the order you prefer within the **Edit columns** panel.
 
 ## Can I save different column views?
 Yes. Each saved search stores your column layout, filters, and sorting preferences. You can save multiple versions for different workflows.

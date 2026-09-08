@@ -23,7 +23,7 @@ const mockSelfDMReport: Report = createSelfDM(1, ACCOUNT_ID);
 const workspaceChat: Report = {...createPolicyExpenseChat(2), policyID: POLICY_ID, ownerAccountID: ACCOUNT_ID};
 
 // Auto-reporting is on, so without the track-expense carve-out the default target resolves to the workspace chat.
-const mockDefaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, isPolicyExpenseChatEnabled: true, autoReporting: true};
+const mockDefaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, autoReporting: true};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,

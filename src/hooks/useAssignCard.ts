@@ -11,7 +11,6 @@ import {
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -33,6 +32,7 @@ import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
@@ -146,6 +146,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {currencyList} = useCurrencyListState();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -204,7 +205,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         if (activeEmployees.length === 1) {
             const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
+            const personalDetails = employeePersonalDetails[userEmail];
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
             cardToAssign.customCardName = getDefaultCardName(memberName);
 

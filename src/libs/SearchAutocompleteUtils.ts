@@ -1,5 +1,5 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
 
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
@@ -10,7 +10,7 @@ import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTyp
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -193,6 +193,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;
@@ -312,11 +313,18 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
-    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+    const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
-    if (isNameField) {
-        const fieldPattern = `${fieldKey}:`;
-        const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+    if (nameFieldKey) {
+        // The typed key can be the syntax form or the user-friendly form (e.g. paidBy vs paid-by). Match whichever appears last.
+        let fieldPattern = `${fieldKey}:`;
+        let keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+        const userFriendlyPattern = `${getUserFriendlyKey(nameFieldKey)}:`;
+        const userFriendlyKeyIndex = textInputValue.toLowerCase().lastIndexOf(userFriendlyPattern.toLowerCase());
+        if (userFriendlyKeyIndex > keyIndex) {
+            keyIndex = userFriendlyKeyIndex;
+            fieldPattern = userFriendlyPattern;
+        }
 
         if (keyIndex !== -1) {
             const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);

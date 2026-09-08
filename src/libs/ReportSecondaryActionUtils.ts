@@ -25,6 +25,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -173,10 +174,9 @@ function isSplitAction(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === currentUserAccountID;
     const isOpenReport = isOpenReportUtils(report);
-    const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const userIsPolicyMember = isPolicyMember(policy, currentUserLogin);
 
-    if (!(userIsPolicyMember && isPolicyExpenseChat)) {
+    if (!(userIsPolicyMember && isGroupPolicy(policy))) {
         return false;
     }
 
@@ -192,10 +192,8 @@ function isSubmitAction({
     report,
     reportTransactions,
     policy,
-    reportNameValuePairs,
     reportActions,
     reportMetadata,
-    isChatReportArchived = false,
     primaryAction,
     violations,
     currentUserLogin,
@@ -205,17 +203,17 @@ function isSubmitAction({
     report: Report;
     reportTransactions: Transaction[];
     policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
-    isChatReportArchived?: boolean;
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     violations?: OnyxCollection<TransactionViolation[]>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     ownerLogin: string | undefined;
 }): boolean {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -306,6 +304,10 @@ function isApproveAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -373,6 +375,10 @@ function isApproveAction(
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
@@ -414,6 +420,31 @@ function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPayment
     );
 }
 
+// Cancelling appends a new action instead of removing the old pay action, so a report can hold stale pay actions
+// (paid elsewhere, cancelled, re-paid via bank). Use the latest pay action so a superseded one doesn't keep Cancel around.
+function getLatestPayAction(payActions: ReportAction[]): ReportAction | undefined {
+    return payActions.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
+}
+
+function getPayActionPaymentType(action: ReportAction | undefined): string | undefined {
+    if (!action) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(action);
+    return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
+}
+
+function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
+    if (!action) {
+        return false;
+    }
+    const now = new Date();
+    const paymentDatetime = new Date(action.created);
+    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+    return nowUTC.getTime() > cutoffTimeUTC.getTime();
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -426,6 +457,10 @@ function isCancelPaymentAction(
     const isIOUReport = isIOUReportUtils(report);
 
     if (!isExpenseReport && !isIOUReport) {
+        return false;
+    }
+
+    if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -443,16 +478,21 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
+    const canCancelPayment =
+        isPayer ||
+        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
-    if (!isAdmin || !isPayer) {
+    if (!canCancelPayment) {
         return false;
     }
 
     const payActions = getReportPayActions(report.reportID);
+    const latestPayAction = getLatestPayAction(payActions);
+    const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
-    // Check if payment was made via bank account (not elsewhere)
-    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
+    const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
@@ -469,13 +509,7 @@ function isCancelPaymentAction(
     const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
     const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
 
-    const hasDailyNachaCutoffPassed = payActions.some((action) => {
-        const now = new Date();
-        const paymentDatetime = new Date(action.created);
-        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() > cutoffTimeUTC.getTime();
-    });
+    const hasDailyNachaCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
@@ -724,6 +758,10 @@ function shouldShowEditSplitInDeleteAction(
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     // This should be removed after we change how instant submit works
@@ -747,6 +785,10 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
 }
 
 function isReopenAction(report: Report, policy?: Policy): boolean {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     if (!isExpenseReport) {
         return false;
@@ -1025,10 +1067,8 @@ function getSecondaryReportActions({
             report,
             reportTransactions,
             policy,
-            reportNameValuePairs,
             reportActions,
             reportMetadata,
-            isChatReportArchived,
             primaryAction,
             violations,
             currentUserLogin,
@@ -1071,7 +1111,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(report, currentUserAccountID)) {
+    if (canRejectReportAction(report, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -1207,7 +1247,7 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(parentReport, currentUserAccountID)) {
+    if (canRejectReportAction(parentReport, currentUserAccountID, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 

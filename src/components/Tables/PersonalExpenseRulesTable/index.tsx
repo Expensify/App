@@ -11,6 +11,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -118,7 +119,7 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
                 subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
                 buttons={[
                     {
-                        success: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                         buttonAction: navigateToNewRulePage,
                         icon: icons.Plus,
                         buttonText: translate('expenseRulesPage.newRule'),

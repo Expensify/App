@@ -1,8 +1,6 @@
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {MenuItemWithLink} from '@components/MenuItemList';
-import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,9 +30,6 @@ const CARD_LAYOUT = {
 } as const;
 
 type SectionProps = Partial<ChildrenProps> & {
-    /** An array of props that are passed to individual MenuItem components */
-    menuItems?: MenuItemWithLink[];
-
     /** The text to display in the title of the section */
     title?: string;
 
@@ -115,7 +110,6 @@ function Section({
     icon,
     cardLayout = CARD_LAYOUT.ICON_ON_RIGHT,
     iconContainerStyles,
-    menuItems,
     subtitle,
     subtitleStyles,
     subtitleTextStyles,
@@ -229,8 +223,6 @@ function Section({
                       )}
 
                 <View style={[styles.w100, childrenStyles]}>{children}</View>
-
-                <View style={[styles.w100]}>{!!menuItems && <MenuItemList menuItems={menuItems} />}</View>
             </View>
         </View>
     );

@@ -11,8 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateMergeHRGroups} from '@libs/actions/connections/MergeHR';
-import {isMergeHRConnected} from '@libs/HRUtils';
+import {updateMergeHRGroups} from '@libs/actions/connections/merge/HR';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -95,7 +95,7 @@ function MergeHRGroupsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!!policy && !isMergeHRConnected(policy)}
+            shouldBeBlocked={!!policy && !isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

@@ -299,7 +299,7 @@ describe('getWorkspaceMenuItems', () => {
                 [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
                     config: {integration: 'workday'},
                     data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
                 },
             },
         });

@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -52,6 +53,8 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
     const [selectedDurationUnit, setSelectedDurationUnit] = useState<string>(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
+    const [isLeaveTypeModalVisible, setIsLeaveTypeModalVisible] = useState(false);
+    const [selectedLeaveType, setSelectedLeaveType] = useState<string>(CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [durationAmount, setDurationAmount] = useState('');
@@ -67,6 +70,14 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     ];
 
     const durationUnitButtonLabel = durationUnitItems.find((item) => item.value === selectedDurationUnit)?.label ?? '';
+    const leaveTypeItems = [
+        {value: CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL, label: translate('chronos.normalOOO')},
+        ...Object.values(CONST.CHRONOS.OOO_LEAVE_TYPES)
+            .filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL)
+            .map((leaveType) => ({value: leaveType, label: leaveType})),
+    ];
+    const selectedLeaveTypeItem = leaveTypeItems.find((item) => item.value === selectedLeaveType);
+    const shouldShowReason = selectedLeaveType === CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL;
 
     const startDateAsDate = parseDate(startDate);
     const isHourDuration = selectedDurationUnit === CONST.CHRONOS.OOO_DURATION_UNITS.HOUR;
@@ -89,6 +100,13 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             }
         }
         setIsDurationUnitModalVisible(false);
+    };
+
+    const applyLeaveType = (item: ValuePickerItem) => {
+        if (item.value) {
+            setSelectedLeaveType(item.value);
+        }
+        setIsLeaveTypeModalVisible(false);
     };
 
     const applyStartDate = (newStartDate: string) => {
@@ -184,7 +202,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             time: values[INPUT_IDS.TIME],
             durationAmount: values[INPUT_IDS.DURATION_AMOUNT],
             durationUnit: selectedDurationUnit,
-            reason: values[INPUT_IDS.REASON],
+            reason: shouldShowReason ? values[INPUT_IDS.REASON] : selectedLeaveType,
             workingPercentage: values[INPUT_IDS.WORKING_PERCENTAGE],
         });
 
@@ -284,14 +302,35 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         shouldEnableKeyboardAvoidingView={false}
                     />
                 </View>
+                {shouldShowReason && (
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.REASON}
+                            label={translate('chronos.reason')}
+                            accessibilityLabel={translate('chronos.reason')}
+                            role={CONST.ROLE.PRESENTATION}
+                            placeholder="on vacation"
+                        />
+                    </View>
+                )}
                 <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.REASON}
-                        label={translate('chronos.reason')}
-                        accessibilityLabel={translate('chronos.reason')}
-                        role={CONST.ROLE.PRESENTATION}
-                        placeholder="on vacation"
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        style={styles.ph0}
+                        title={selectedLeaveTypeItem?.label ?? ''}
+                        description={translate('chronos.leaveType')}
+                        onPress={() => setIsLeaveTypeModalVisible(true)}
+                    />
+                    <ValueSelectorModal
+                        isVisible={isLeaveTypeModalVisible}
+                        label={translate('chronos.leaveType')}
+                        selectedItem={selectedLeaveTypeItem}
+                        items={leaveTypeItems}
+                        onClose={() => setIsLeaveTypeModalVisible(false)}
+                        onItemSelected={applyLeaveType}
+                        onBackdropPress={Navigation.dismissModal}
+                        shouldEnableKeyboardAvoidingView={false}
                     />
                 </View>
                 <View style={styles.mb4}>

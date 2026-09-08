@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -90,6 +91,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
     const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
@@ -110,7 +112,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {currentUserAccountID, dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          currentUserAccountID,
+                          dateFnsLocale,
+                          convertToDisplayString,
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                      },
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -134,6 +146,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             sortedActions,
             currentUserAccountID,
             dateFnsLocale,
+            convertToDisplayString,
         ],
     );
 

@@ -2,6 +2,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -94,7 +95,7 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
  * measured in the bold font the header uses while the column is sorted, so sorting a column never truncates its label.
  */
 function measureHeaderLabelWidth(label: string, sortIconWidth: number): number | null {
-    const width = measureTextWidth(label, {fontSize: variables.fontSizeSmall, fontWeight: '700'});
+    const width = measureTextWidth(label, {fontSize: fontScale.micro, fontWeight: '700'});
 
     if (width === null) {
         return null;

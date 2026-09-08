@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -44,11 +45,13 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
@@ -104,8 +107,8 @@ type ParticipantSearchResultsProps = {
     /** Setter to toggle textInputAutoFocus from the contact permission flow */
     setTextInputAutoFocus: (value: boolean) => void;
 
-    /** Callback to propagate selected participants to the parent flow */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to propagate selected participants to the parent flow. selectedPolicy is the chosen workspace's policy. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Callback to advance the parent flow */
     onFinish: (value?: string, participants?: Participant[]) => void;
@@ -162,6 +165,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -233,7 +237,10 @@ function ParticipantSearchResults({
             });
         }
 
-        onParticipantsAdded(newParticipants);
+        // Resolve the chosen workspace's policy and pass it up so the confirmation step can reset the rate and category
+        // without subscribing to every policy. allPolicies is already loaded on this screen, so this adds no new subscription.
+        const selectedPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        onParticipantsAdded(newParticipants, selectedPolicy);
 
         if (!option.isSelfDM) {
             onFinish(undefined, newParticipants);
@@ -314,6 +321,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             personalDetails,
             true,
@@ -390,7 +398,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )

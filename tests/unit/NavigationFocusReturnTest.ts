@@ -1978,6 +1978,30 @@ describe('restoreTriggerForRoute', () => {
         expect(launcherSpy).not.toHaveBeenCalled();
     });
 
+    it('re-seeds the redirect target (not the captured primary) as the trigger candidate for the next round trip', () => {
+        // Mouse modality: focusin does not re-record the restored element, so seedTriggerCandidate is the only source.
+        simulateMouse();
+        const primary = appendButton();
+        const redirectTarget = appendButton();
+        setLastMouseTriggerForTests(primary);
+        captureTriggerForRoute('route-a');
+
+        // Primary's .focus() handler redirects focus to redirectTarget (simulating a composite widget).
+        const focusSpy = jest.spyOn(primary, 'focus').mockImplementation(() => {
+            redirectTarget.focus();
+        });
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+        focusSpy.mockRestore();
+
+        // Second round trip, no click in between. The capture must reach for the element that actually holds focus,
+        // not the primary whose onFocus bounced away from it.
+        redirectTarget.blur();
+        captureTriggerForRoute('route-b');
+        expect(restoreTriggerForRoute('route-b')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+    });
+
     it('must not treat pre-existing non-body focus as an onFocus redirect when the candidate silently no-ops', () => {
         const launcher = appendButton();
         const primary = appendButton();
@@ -2383,6 +2407,37 @@ describe('handleStateChange integration', () => {
         // Either the scheduled restore fired or we consume it manually — both prove capture happened.
         const stored = restoreTriggerForRoute('a');
         expect(stored || document.activeElement === trigger).toBe(true);
+    });
+
+    it('restores on every round trip when the navigation is keyboard-shortcut driven in mouse modality (issue #99569)', () => {
+        withFakeTimers(() => {
+            handleStateChange(onA);
+
+            // User clicks into a composer and types, which puts us in mouse modality, so focusin never
+            // records lastInteractiveElement, and Cmd+Shift+K latches no Enter/Space activation.
+            const composer = document.createElement('textarea');
+            document.body.appendChild(composer);
+            composer.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            composer.focus();
+
+            // Round trip 1: open the RHP with the shortcut, then click Back.
+            handleStateChange(onAB);
+            const backButton = appendButton();
+            backButton.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
+            backButton.remove();
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+
+            // Round trip 2: the shortcut again, with no click on the composer in between. The backward transition
+            // cleared the click-tracked trigger, so only the restore's re-seed can supply it.
+            handleStateChange(onAB);
+            composer.blur();
+            handleStateChange(onA);
+            flushTransitions();
+            expect(document.activeElement).toBe(composer);
+        });
     });
 
     it('should do nothing when the focused route has not changed', () => {

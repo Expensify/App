@@ -12,9 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {getReportFieldInitialValue, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -47,13 +46,14 @@ function ReportFieldsSettingsPage({
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {canWrite: canWriteReportFields} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS);
 
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
     if (!reportField) {
         return <NotFoundPage />;
     }
+
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
@@ -62,7 +62,7 @@ function ReportFieldsSettingsPage({
 
     const confirmAndDeleteReportField = async () => {
         const result = await showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.reportFields.delete'),
             prompt: translate('workspace.reportFields.deleteConfirmation'),
             confirmText: translate('common.delete'),
@@ -131,7 +131,7 @@ function ReportFieldsSettingsPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                         />
                     )}
-                    {canWriteReportFields && !hasAccountingConnections && (
+                    {canWriteReportFields && !isImportedReportField && (
                         <View style={styles.flexGrow1}>
                             <MenuItemAction
                                 icon={icons.Trashcan}

@@ -19,6 +19,7 @@ import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type ConfirmationPageProps = {
@@ -49,6 +50,12 @@ type ConfirmationPageProps = {
     /** Whether we should show a primary confirmation button */
     shouldShowButton?: boolean;
 
+    /** Whether the primary confirmation button should be disabled */
+    isButtonDisabled?: boolean;
+
+    /** Whether the primary confirmation button should show a loading spinner */
+    isButtonLoading?: boolean;
+
     /** The text for the secondary button label */
     secondaryButtonText?: string;
 
@@ -73,6 +80,9 @@ type ConfirmationPageProps = {
     /** Additional style for the footer */
     footerStyle?: ViewStyle;
 
+    /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
+    footerComponent?: React.ReactNode;
+
     /** Additional style for the container */
     containerStyle?: ViewStyle;
 
@@ -90,6 +100,8 @@ function ConfirmationPage({
     buttonText = '',
     onButtonPress = () => {},
     shouldShowButton = false,
+    isButtonDisabled = false,
+    isButtonLoading = false,
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
@@ -98,6 +110,7 @@ function ConfirmationPage({
     descriptionStyle,
     ctaStyle,
     footerStyle,
+    footerComponent,
     containerStyle,
     innerContainerStyle,
 }: ConfirmationPageProps) {
@@ -109,46 +122,51 @@ function ConfirmationPage({
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
-                {(() => {
-                    if (shouldShowStaticFallback) {
-                        return (
-                            <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                                <ImageSVG
-                                    src={illustrations.Fireworks}
-                                    contentFit="contain"
-                                />
-                            </View>
-                        );
-                    }
-                    if (isLottie) {
-                        return (
-                            <Lottie
-                                source={illustration}
-                                autoPlay
-                                loop
-                                style={[styles.confirmationAnimation, illustrationStyle]}
-                                webStyle={{
-                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
-                                }}
-                            />
-                        );
-                    }
-                    return (
-                        <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                            <ImageSVG
-                                src={illustration}
-                                contentFit="contain"
-                            />
-                        </View>
-                    );
-                })()}
-                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
-                {!!descriptionComponent && descriptionComponent}
-                {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
-                {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
-                {!!ctaComponent && ctaComponent}
+            <View style={styles.flex1}>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
+                        {(() => {
+                            if (shouldShowStaticFallback) {
+                                return (
+                                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                                        <ImageSVG
+                                            src={illustrations.Fireworks}
+                                            contentFit="contain"
+                                        />
+                                    </View>
+                                );
+                            }
+                            if (isLottie) {
+                                return (
+                                    <Lottie
+                                        source={illustration}
+                                        autoPlay
+                                        loop
+                                        style={[styles.confirmationAnimation, illustrationStyle]}
+                                        webStyle={{
+                                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                        }}
+                                    />
+                                );
+                            }
+                            return (
+                                <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                                    <ImageSVG
+                                        src={illustration}
+                                        contentFit="contain"
+                                    />
+                                </View>
+                            );
+                        })()}
+                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                        {!!descriptionComponent && descriptionComponent}
+                        {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
+                        {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
+                        {!!ctaComponent && ctaComponent}
+                    </View>
+                </ScrollView>
+                {!!footerComponent && <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, styles.ph5]}>{footerComponent}</View>}
             </View>
             {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>
@@ -168,6 +186,8 @@ function ConfirmationPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-primary-button"
                             style={styles.mt3}
+                            isDisabled={isButtonDisabled}
+                            isLoading={isButtonLoading}
                             onPress={onButtonPress}
                         >
                             <Button.KeyboardShortcut />

@@ -136,6 +136,12 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
+
+    /** Styles for the container wrapping the submit button and footer content */
+    submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+    submitButtonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormProvider({
@@ -154,6 +160,7 @@ function FormProvider({
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
+    shouldHideServerError = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
     shouldShowLoadingImmediatelyOnPress = true,
@@ -186,7 +193,7 @@ function FormProvider({
     // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const errorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {
@@ -414,12 +421,17 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
+    const scrollTo = useCallback((y: number) => {
+        formWrapperRef.current?.scrollTo(y);
+    }, []);
+
     useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
         submit,
         scrollToEnd,
+        scrollTo,
     }));
 
     const registerInput = useCallback<RegisterInput>(

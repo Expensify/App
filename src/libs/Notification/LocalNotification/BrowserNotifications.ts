@@ -1,26 +1,59 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
+import {format} from '@libs/NumberFormatUtils';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
-import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrencyList, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 
 // Web implementation only. Do not import for direct use. Use LocalNotification.
 import {SafeString, Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
+
+// The browser-notification pipeline is driven by Pusher events outside React, so there is no component to inject the
+// currency formatter from CurrencyListContextProvider. Subscribe to the currency list here and mirror the provider's
+// implementation instead of relying on CurrencyUtils' module-scope fallback.
+let currencyList: CurrencyList = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (value) => {
+        currencyList = value ?? {};
+    },
+});
+const convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'] = (amountInCents, currencyCode) => {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = currencyList?.[sanitizedCurrency]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    });
+};
 
 /**
  * Checks if the user has granted permission to show browser notifications, prompting them
@@ -165,7 +198,6 @@ export default {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
             translate: translateLocal,
-            // Non-React call path (pusher/notification pipeline): pass the standalone util, which falls back to the module-scope currency list.
             convertToDisplayString,
             reportAction,
             policy,

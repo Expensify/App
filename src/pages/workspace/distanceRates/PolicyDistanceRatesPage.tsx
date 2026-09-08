@@ -349,7 +349,7 @@ function PolicyDistanceRatesPage({
                         prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteRates();

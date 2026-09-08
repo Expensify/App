@@ -92,7 +92,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID, categoryName)),
+            onPress: () => Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID)),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
             isWorkspaceOnly: true,
         },

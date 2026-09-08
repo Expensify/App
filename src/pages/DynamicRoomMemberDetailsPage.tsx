@@ -111,7 +111,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                             <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
                         </Button>
                         <ConfirmModal
-                            danger
+                            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                             title={translate('workspace.people.removeRoomMemberButtonTitle')}
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}

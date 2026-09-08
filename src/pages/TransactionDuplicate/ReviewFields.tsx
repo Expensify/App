@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
@@ -81,7 +81,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
 
             <Text
                 family="EXP_NEW_KANSAS_MEDIUM"
-                fontSize={variables.fontSizeLarge}
+                fontSize={fontScale.pageHeader}
                 style={[styles.pb5, styles.ph5, stepNames.length < 1 && styles.mt3]}
             >
                 {label}

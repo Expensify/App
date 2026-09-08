@@ -1,7 +1,7 @@
 import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getConnectedHRProvider} from '@libs/HRUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -278,7 +278,7 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
-type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
 const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
     if (!policy) {
@@ -288,7 +288,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => 
         type: policy.type,
         role: policy.role,
         id: policy.id,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,

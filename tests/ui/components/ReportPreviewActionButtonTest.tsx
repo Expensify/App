@@ -8,9 +8,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {View} from 'react-native';
 
-// The dispatcher owns no props and reads its decision from context, so drive the decision through the mocked context
-// slice and stub each branch component with a spy so we can assert which one gets rendered for a given action.
 const mockActionState: {reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>; connectedIntegration: ConnectionName | undefined} = {
     reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
     connectedIntegration: undefined,
@@ -79,8 +78,16 @@ jest.mock('@components/ButtonComposed', () => {
     };
 });
 
-jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({flex1: {}})}));
+// These must stay distinct objects: with `{}` values the style assertions below pass even when the styles are missing.
+const mockStyles = {flex1: {flex: 1}, flexRow: {flexDirection: 'row'}, gap2: {gap: 8}};
+jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => mockStyles}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
+
+function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
+    const container = rendered.UNSAFE_getAllByType(View).at(0);
+    const style: unknown = container?.props.style;
+    return Array.isArray(style) ? style : [style];
+}
 
 describe('ReportPreviewActionButton', () => {
     beforeEach(() => {
@@ -106,7 +113,8 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.connectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
         render(<ReportPreviewActionButton />);
         expect(mockExport).toHaveBeenCalled();
-        expect(mockView).not.toHaveBeenCalled();
+        // View renders alongside the primary action, not instead of it.
+        expect(mockView).toHaveBeenCalled();
     });
 
     it('falls back to the View button for EXPORT_TO_ACCOUNTING when no integration is connected', () => {
@@ -115,5 +123,16 @@ describe('ReportPreviewActionButton', () => {
         render(<ReportPreviewActionButton />);
         expect(mockView).toHaveBeenCalled();
         expect(mockExport).not.toHaveBeenCalled();
+    });
+    it('lays the primary action and View out in a row, and keeps a lone View full-width', () => {
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        const withPrimary = render(<ReportPreviewActionButton />);
+        expect(flattenContainerStyle(withPrimary)).toEqual(expect.arrayContaining([mockStyles.flexRow, mockStyles.gap2]));
+        withPrimary.unmount();
+
+        jest.clearAllMocks();
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+        const viewOnly = render(<ReportPreviewActionButton />);
+        expect(flattenContainerStyle(viewOnly)).not.toEqual(expect.arrayContaining([mockStyles.flexRow]));
     });
 });

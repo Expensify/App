@@ -241,6 +241,16 @@ function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQuer
     return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
 }
 
+/**
+ * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
+ * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
+ * `headerButtonsOptions` with the EXPORT value on each one.
+ */
+function getExportMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    const exportOptions = headerButtonsOptions.filter((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOptions.at(0)?.subMenuItems ?? exportOptions;
+}
+
 describe('useSearchBulkActions - CSV export flow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -275,10 +285,8 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        expect(exportOption).toBeDefined();
-
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
+        expect(onSelected).toBeDefined();
 
         await act(async () => {
             onSelected?.();
@@ -286,7 +294,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalled();
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({excludedTransactionIDList: ['tx2']}));
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('exports an excluded unloaded group as a query filter instead of a transaction ID', async () => {
@@ -307,8 +314,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -360,8 +366,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -400,8 +405,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -443,8 +447,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -466,7 +469,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchItemsToCSV).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).toBeNull();
     });
 
     it('beginExportWithTemplate tracks the export', async () => {
@@ -483,8 +485,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
+        const templateSubItem = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
         expect(templateSubItem).toBeDefined();
         act(() => {
@@ -492,7 +493,6 @@ describe('useSearchBulkActions - CSV export flow', () => {
         });
 
         expect(mockQueueExportSearchWithTemplate).toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('hides template exports when an all-matching expense selection has exclusions', async () => {
@@ -519,8 +519,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const exportItems = exportOption?.subMenuItems ?? [];
+        const exportItems = getExportMenuItems(result.current.headerButtonsOptions);
 
         expect(exportItems.some((item) => item.text === 'Custom template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);

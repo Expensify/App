@@ -29,13 +29,13 @@ type ReceiptSectionProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether the receipt can be replaced */
-    isReceiptEditable: boolean;
+    isReceiptEditable?: boolean;
 
     /** Whether the receipt should be displayed */
     shouldDisplayReceipt: boolean;
 
     /** Whether the receipt is currently being stitched */
-    isLoadingReceipt: boolean;
+    isLoadingReceipt?: boolean;
 
     /** Path of the receipt asset (URL or local) */
     receiptPath: string | number;
@@ -44,7 +44,7 @@ type ReceiptSectionProps = {
     receiptFilename: string;
 
     /** Whether optional fields are expanded (drives compact-mode dimensions) */
-    showMoreFields: boolean;
+    showMoreFields?: boolean;
 
     /** Callback when the receipt PDF fails to load */
     onPDFLoadError?: () => void;
@@ -55,14 +55,14 @@ type ReceiptSectionProps = {
 
 function ReceiptSection({
     policy,
-    isReceiptEditable,
     shouldDisplayReceipt,
-    isLoadingReceipt,
     receiptPath,
     receiptFilename,
-    showMoreFields,
     onPDFLoadError,
     onPDFPassword,
+    showMoreFields = false,
+    isReceiptEditable = false,
+    isLoadingReceipt = false,
 }: ReceiptSectionProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();

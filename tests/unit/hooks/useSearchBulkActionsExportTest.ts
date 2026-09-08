@@ -197,14 +197,27 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
     default: () => jest.fn(),
 }));
 
-jest.mock('@libs/SearchUIUtils', () => ({
-    shouldShowDeleteOption: () => false,
-    getSelectedGroupFilterEntry: jest.fn(),
-    navigateToSearchRHP: jest.fn(),
-    getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
-    getSearchColumnTranslationKey: jest.fn((column: string) => column),
-    getColumnsToShow: jest.fn(() => []),
-}));
+jest.mock('@libs/SearchUIUtils', () => {
+    return {
+        shouldShowDeleteOption: () => false,
+        getSelectedGroupFilterEntry: jest.fn(),
+        navigateToSearchRHP: jest.fn(),
+        getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+        getSearchColumnTranslationKey: jest.fn((column: string) => column),
+        getColumnsToShow: jest.fn(() => []),
+        insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
+            if (columns.includes(columnId)) {
+                return;
+            }
+            const totalAmountIndex = columns.findIndex((column) => column === 'amount');
+            if (totalAmountIndex === -1) {
+                columns.push(columnId);
+                return;
+            }
+            columns.splice(totalAmountIndex, 0, columnId);
+        },
+    };
+});
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     __esModule: true,
@@ -291,6 +304,23 @@ const groupedExpenseQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense groupBy:category',
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+};
+
+const groupedSubmittedViolationQueryJSON: SearchQueryJSON = {
+    ...groupedExpenseQueryJSON,
+    inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.FROM} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+    flatFilters: [
+        {
+            key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+            filters: [
+                {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION,
+                },
+            ],
+        },
+    ],
 };
 
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
@@ -390,22 +420,27 @@ function makeSearchResults(reports: Report[], reportActionsByReportID: Record<st
     };
 }
 
-function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
-    return headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)?.subMenuItems;
+/**
+ * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
+ * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
+ * `headerButtonsOptions` with the EXPORT value on each one.
+ */
+function getExportMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    const exportOptions = headerButtonsOptions.filter((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOptions.at(0)?.subMenuItems ?? exportOptions;
 }
 
 function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
-    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-    return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
+    return getExportMenuItems(headerButtonsOptions).map((item) => item.text);
 }
 
-/** The export menu collapses into a single top-level option when it holds only one item, so look in both shapes. */
 function getExportOptionByText(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions'], text: string) {
-    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-    if (!exportOption) {
-        return undefined;
-    }
-    return exportOption.subMenuItems?.find((item) => item.text === text) ?? (exportOption.text === text ? exportOption : undefined);
+    return getExportMenuItems(headerButtonsOptions).find((item) => item.text === text);
+}
+
+/** The Export entry's nested submenu items. Only valid for selections where Export is not the only bulk action. */
+function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    return headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)?.subMenuItems;
 }
 
 /** The parameters the last plain-CSV export sent to the backend, with the serialized query parsed back. */
@@ -515,10 +550,9 @@ describe('useSearchBulkActions - export options', () => {
             expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBeDefined();
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const subMenuItems = exportOption?.subMenuItems ?? [];
-        expect(subMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
-        expect(subMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
+        const exportMenuItems = getExportMenuItems(result.current.headerButtonsOptions);
+        expect(exportMenuItems.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(false);
+        expect(exportMenuItems.some((item) => item.text === 'workspace.common.markAsExported')).toBe(false);
     });
 
     it('offers per-integration export options when reports span workspaces connected to different integrations', async () => {
@@ -1059,14 +1093,14 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
     });
 
-    it('routes "Mark as exported" through the same flow: partial modal first, then export-again, then marks the subset', async () => {
+    it('routes "Mark as exported" through the partial modal only, skipping export-again, then marks the subset', async () => {
         /**
          * Given: a multi-integration selection (report1 → NetSuite already exported, report2 → QBO).
          *
          * When: the user clicks NetSuite's "Mark as exported".
          *
-         * Then: it goes through the identical shared flow as export — partial-export modal first, then the
-         *       export-again modal — and only report1 is marked as exported to NetSuite.
+         * Then: only the partial-export modal is shown — the export-again modal is skipped because marking
+         *       never (re-)exports to the integration — and only report1 is marked as exported to NetSuite.
          */
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
             id: POLICY_ID_2,
@@ -1095,10 +1129,76 @@ describe('useSearchBulkActions - export options', () => {
             expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
         });
 
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(1, expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(2, expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+        expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('marks already-exported reports without showing the export-again modal', async () => {
+        /**
+         * Given: a single-integration selection where every selected report has already been exported
+         *        (the backend set `isExportedToIntegration`).
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the reports are marked straight away with no confirmation at all. The export-again copy warns
+         *       that reports are about to be exported again to the integration, which never happens here:
+         *       MarkAsExported only logs a per-report exported action.
+         */
+        mockCurrentSearchResults = makeSearchResults([makeExportedSnapshotReport(), makeExportedSnapshotReport(REPORT_ID_2, POLICY_ID)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('marks reports the backend flagged with a pending export field without showing the export-again modal', async () => {
+        /**
+         * Given: a selection whose already-exported state is represented by `pendingFields.export` rather than
+         *        `isExportedToIntegration` — the other shape the backend uses.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the reports are still marked straight away with no export-again warning.
+         */
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), isExportedToIntegration: false, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('shows templates when reports are selected through their report groups', async () => {
@@ -1145,6 +1245,75 @@ describe('useSearchBulkActions - export options', () => {
         expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
     });
 
+    it('keeps the Export entry as a submenu even when only one export option is available', async () => {
+        // Regression test for https://github.com/Expensify/App/issues/98779: a full group selection offers a single
+        // export option ('export.currentView'). While other bulk actions sit alongside it (Hold here), the Export
+        // entry must still open the Export submenu (keeping its generic label and subMenuItems) rather than
+        // collapsing straight into that single option.
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+                canHold: true,
+            }),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+        });
+
+        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        expect(exportOption?.subMenuItems).toHaveLength(1);
+        expect(exportOption?.text).toBe('common.export');
+        // The Export row itself labels the submenu here, so the dropdown must not also carry an "Export" header.
+        expect(result.current.bulkActionsMenuHeaderText).toBeUndefined();
+    });
+
+    it('opens directly onto the single export option when Export is the only bulk action', async () => {
+        // Export is the only bulk action offered under select all, so there is no main menu to go back to. The one
+        // export option is surfaced directly instead of behind an "Export" row whose submenu would render a back
+        // arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
+        });
+
+        const soleOption = result.current.headerButtonsOptions.at(0);
+        expect(soleOption?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+        expect(soleOption?.subMenuItems).toBeUndefined();
+        expect(soleOption?.backButtonText).toBeUndefined();
+        expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
+    });
+
+    it('opens directly onto every export option when Export is the only bulk action', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(1);
+        });
+
+        // Every entry is an export option itself — there is no "Export" row wrapping them and so no back arrow.
+        expect(result.current.headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        expect(result.current.headerButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
+        expect(result.current.headerButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
+        // "Export" moves to the dropdown header instead, so the options are still labeled without a back caret.
+        expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
+    });
+
     it('exports the current view of a grouped search with the default expense columns', async () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
@@ -1169,6 +1338,64 @@ describe('useSearchBulkActions - export options', () => {
         // translate and the column translation key are both mocked as the identity here, so every column
         // carries a label of its own name - what matters is that a label is sent for each one.
         expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+    });
+
+    it('exports Violations on a grouped search that filters by submitted-violation even without saved columns', async () => {
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedSubmittedViolationQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
+        const violationsIndex = expectedColumns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        expectedColumns.splice(violationsIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+        const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
+        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+    });
+
+    it('exports Violations on a grouped submitted-violation search even when saved columns omit it', async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedSubmittedViolationQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const {isBasicExport, query} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [
+                    CONST.SEARCH.TABLE_COLUMNS.TYPE,
+                    CONST.SEARCH.TABLE_COLUMNS.TAG,
+                    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    CONST.SEARCH.TABLE_COLUMNS.FROM,
+                    CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                ],
+            }),
+        );
     });
 
     it('exports the current view of a grouped search with the configured expense columns in order', async () => {

@@ -22,7 +22,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -87,7 +87,6 @@ const allPolicies = {
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'test@expensify.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
     } as Policy,
 };
@@ -106,6 +105,7 @@ const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
 const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     dateFnsLocale: undefined,
+    convertToDisplayString,
     conciergeReportID: undefined,
     isSearching: true,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -113,6 +113,7 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
 
 const ValidOptionsConfig = {
     dateFnsLocale: undefined,
+    convertToDisplayString,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -149,6 +150,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getSearchOptions({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 translate: translateLocal,
                 options,
                 betas: mockedBetas,
@@ -179,7 +181,10 @@ describe('OptionsListUtils', () => {
             translateLocal,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+            });
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -196,7 +201,10 @@ describe('OptionsListUtils', () => {
             translateLocal,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+            });
         });
     });
 
@@ -214,6 +222,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     dateFnsLocale: undefined,
+                    convertToDisplayString,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -279,6 +288,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                convertToDisplayString,
                 undefined,
                 mockedPersonalDetails,
                 true,
@@ -293,7 +303,20 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                {},
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                undefined,
+                mockedPersonalDetails,
+                true,
+            ),
         );
     });
 
@@ -305,6 +328,7 @@ describe('OptionsListUtils', () => {
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
@@ -318,6 +342,7 @@ describe('OptionsListUtils', () => {
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
@@ -334,6 +359,7 @@ describe('OptionsListUtils', () => {
         const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
             dateFnsLocale: undefined,
+            convertToDisplayString,
             conciergeReportID: undefined,
         });
 
@@ -350,7 +376,10 @@ describe('OptionsListUtils', () => {
         );
 
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails);
+            filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails, {
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+            });
         });
     });
 
@@ -359,6 +388,7 @@ describe('OptionsListUtils', () => {
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             dateFnsLocale: undefined,
+            convertToDisplayString,
             conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
@@ -367,6 +397,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             getSearchOptions({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,

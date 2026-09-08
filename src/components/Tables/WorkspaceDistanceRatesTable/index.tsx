@@ -118,7 +118,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
 
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
                       Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
                   },

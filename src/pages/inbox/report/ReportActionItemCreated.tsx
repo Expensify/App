@@ -1,6 +1,6 @@
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -102,7 +102,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}
                         >
-                            <ReportActionAvatars
+                            <ReportAvatar
                                 reportID={reportID}
                                 size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{

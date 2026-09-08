@@ -3,7 +3,6 @@ context platform=android
 # @pre    id="username"
 # @pre    role="button" label="Continue"
 # @post   role="button" label="Join" || role="button" label="Search"
-# @tag    auth
 # @param  EMAIL Login email. Use randomized alias format `agent-device-testing+<9digits>@gmail.com` to avoid account flagging.
 
 fill "id=\"username\" || label=\"Phone or email\" editable=true" "${EMAIL}"

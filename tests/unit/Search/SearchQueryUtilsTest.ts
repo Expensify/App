@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasSubmittedViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
@@ -1953,6 +1954,20 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different similarSearchHash for queries with different has values', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with the same has value but different dates', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-year has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
         it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
             const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
@@ -3818,6 +3833,42 @@ describe('SearchQueryUtils', () => {
 
             expect(result.value).toBeUndefined();
             expect(result.isNegated).toBe(false);
+        });
+    });
+
+    describe('queryHasSubmittedViolationFilter', () => {
+        test('returns true for a positive has:submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the has filter is negated', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false when submitted-violation is negated alongside other positive has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns true when submitted-violation is positive alongside other has filters', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.RECEIPT} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the query has no submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false for an undefined queryJSON', () => {
+            expect(queryHasSubmittedViolationFilter(undefined)).toBe(false);
         });
     });
 

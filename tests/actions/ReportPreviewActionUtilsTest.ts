@@ -397,7 +397,6 @@ describe('getReportPreviewAction', () => {
             owner: OWNER_EMAIL,
             ownerAccountID: OWNER_ACCOUNT_ID,
             outputCurrency: 'USD',
-            isPolicyExpenseChatEnabled: true,
             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: OWNER_EMAIL,
             preventSelfApproval: false,

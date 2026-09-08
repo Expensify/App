@@ -3,7 +3,6 @@ context platform=web
 # @pre    text="What’s your work email?"
 # @post   text="Home"
 # @post   role="button" label="Search"
-# @tag    onboarding
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
 

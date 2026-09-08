@@ -1,7 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 
 import {updateGustoFinalApprover} from '@libs/actions/connections/Gusto';
-import {isGustoConnected} from '@libs/HRUtils';
+import {isGustoConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -26,7 +26,7 @@ function GustoFinalApproverPage({
         isConnected: isGustoConnected,
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
-        getHeaderTitle: () => translate('workspace.hr.finalApprover'),
+        getHeaderTitle: () => translate('workspace.merge.finalApprover'),
         handleSave: ({policyID: id, email, currentFinalApprover}) => updateGustoFinalApprover(id, email, currentFinalApprover),
     };
 

@@ -31,7 +31,7 @@ import type {GestureResponderEvent} from 'react-native';
 
 import {SafeString} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useEffect} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -45,9 +45,12 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
+
+    /** Empty selection shows no error until the user tries to save */
+    shouldDeferEmptySelectionError?: boolean;
 };
 
-function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, shouldDeferEmptySelectionError = false}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -56,6 +59,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -128,10 +132,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1;
+    const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1 && (!shouldDeferEmptySelectionError || hasAttemptedSave);
 
     const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
-        if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
+        if (!selectedOptions.length && !option) {
+            if (shouldDeferEmptySelectionError) {
+                setHasAttemptedSave(true);
+            }
             return;
         }
 
@@ -141,7 +148,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
-        if (!shouldShowErrorMessage && !selectedOptions.length) {
+        if (!shouldShowErrorMessage && !selectedOptions.length && !shouldDeferEmptySelectionError) {
             return;
         }
 

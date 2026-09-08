@@ -18,7 +18,10 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, shouldShowPolicy} from '@libs/PolicyUtils';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+import Permissions from '@libs/Permissions';
+// eslint-disable-next-line no-restricted-imports -- TravelDot booking requires a paid workspace, matching the existing FAB behavior.
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -27,12 +30,14 @@ import {clearLastSearchParams} from '@userActions/ReportNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {primaryLoginSelector} from '@src/selectors/Account';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import {Str} from 'expensify-common';
 import {useState} from 'react';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
@@ -72,9 +77,18 @@ function replaceTopmostModalWithAction(action: () => void) {
     Navigation.dismissModal({afterTransition: action});
 }
 
+function openBookTravel(policyID: string | undefined, isTravelEnabled: boolean) {
+    if (isTravelEnabled) {
+        openTravelDotLink(policyID);
+        return;
+    }
+
+    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(policyID));
+}
+
 function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'NewWorkspace']);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -84,10 +98,12 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [reportID] = useState(() => generateReportID());
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     // Match Quick Creation and Search actions by using shared report eligibility rules.
     const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, sessionEmail);
@@ -96,12 +112,23 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
+    const isTravelVisible = !!activePolicy?.isTravelEnabled;
+    const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
+    const isTravelEnabled =
+        !isBlockedFromSpotnanaTravel &&
+        !!primaryContactMethod &&
+        !Str.isSMSLogin(primaryContactMethod) &&
+        isPaidGroupPolicy(activePolicy) &&
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const createExpenseMatchTerms = [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')];
     const createReportMatchTerms = [translate('report.newReport.createReport')];
     const trackDistanceMatchTerms = [translate('iou.trackDistance')];
     const chatMatchTerms = [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`];
     const invoiceMatchTerms = [translate('workspace.invoices.sendInvoice')];
+    const bookTravelLabel = translate('travel.bookTravel');
+    const travelMatchTerms = [bookTravelLabel];
     const workspaceMatchTerms = [translate('workspace.new.newWorkspace'), translate('onboarding.workspace.createWorkspace'), translate('homePage.gettingStartedSection.createWorkspace')];
     const matchQuery = stripNavigationIntentPrefix(query);
     const shouldPrepareCreateReport =
@@ -204,6 +231,17 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                     });
                 }),
             keyForList: 'create_invoice',
+        },
+        {
+            visible: isTravelVisible,
+            text: bookTravelLabel,
+            icon: icons.Suitcase,
+            matchTerms: travelMatchTerms,
+            action: () =>
+                replaceTopmostModalWithAction(() => {
+                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled));
+                }),
+            keyForList: 'create_travel',
         },
         {
             visible: shouldShowNewWorkspaceButton,

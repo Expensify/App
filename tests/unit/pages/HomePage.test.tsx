@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- Jest factory mocks use CommonJS require() which returns untyped modules; typing each mock precisely is not practical here */
 import {render, screen, within} from '@testing-library/react-native';
 
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import HomePage from '@pages/home/HomePage';
@@ -15,6 +16,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
@@ -57,9 +59,12 @@ jest.mock('@components/Navigation/QuickCreationActionsBar', () => {
     }
     return MockQuickCreationActionsBar;
 });
+// Rendered as a host View so `shouldShowLoadingBar` can be read back off the element's props.
 jest.mock('@components/Navigation/TopBar', () => {
-    function MockTopBar() {
-        return null;
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
+    function MockTopBar({shouldShowLoadingBar}: {shouldShowLoadingBar?: boolean}) {
+        return ReactModule.createElement(RNView, {testID: 'topBar', shouldShowLoadingBar});
     }
     return MockTopBar;
 });
@@ -90,6 +95,7 @@ jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
+const mockUseNetwork = jest.mocked(useNetwork);
 
 function buildLayout(shouldUseNarrowLayout: boolean): ReturnType<typeof useResponsiveLayout> {
     return {
@@ -115,6 +121,10 @@ function setWideLayout() {
     mockUseResponsiveLayout.mockReturnValue(buildLayout(false));
 }
 
+function setIsOffline(isOffline: boolean) {
+    mockUseNetwork.mockReturnValue({isOffline});
+}
+
 const renderHomePage = () =>
     render(
         <OnyxListItemProvider>
@@ -134,8 +144,65 @@ describe('HomePage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         setNarrowLayout();
+        setIsOffline(false);
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
+    // top loading bar used to hang on Home. The bar must stay hidden while offline no matter what the flags say.
+    describe('loading bar visibility', () => {
+        function renderedShouldShowLoadingBar() {
+            return screen.getByTestId('topBar').props.shouldShowLoadingBar;
+        }
+
+        it('hides the loading bar while offline when report data is still loading', async () => {
+            // Given report data stuck loading while the user is offline
+            setIsOffline(true);
+            await Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the top bar is told not to show the loading bar
+            expect(renderedShouldShowLoadingBar()).toBe(false);
+        });
+
+        it('shows the loading bar when report data is loading and the user is online', async () => {
+            // Given the same loading flag, but online
+            setIsOffline(false);
+            await Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the loading bar is still shown, so the offline case above is the guard and not a dead assertion
+            expect(renderedShouldShowLoadingBar()).toBe(true);
+        });
+
+        it('hides the loading bar while offline when the app is still loading', async () => {
+            // Given the app stuck loading while the user is offline
+            setIsOffline(true);
+            await Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: true,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            });
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the top bar is told not to show the loading bar
+            expect(renderedShouldShowLoadingBar()).toBe(false);
+        });
     });
 
     // For you sits above Getting started on narrow layouts, regardless of the onboarding intent.

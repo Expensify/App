@@ -12,9 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
+import {isReportFieldImportedFromIntegration, validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -84,7 +83,7 @@ function ReportFieldsAddListValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={hasAccountingConnections(policy)}
+            shouldBeBlocked={isReportFieldImportedFromIntegration(reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
