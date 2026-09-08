@@ -75,7 +75,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const saveSettlementFrequency = () => {
         if (!programKey) {
-            Log.alert('[WorkspaceSettlementFrequencyPage] updateSettlementFrequency called without a detected card program key');
+            Log.alert('[WorkspaceSettlementFrequencyPage] saveSettlementFrequency called without a detected card program key');
             return;
         }
         updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, settings?.monthlySettlementDate);
