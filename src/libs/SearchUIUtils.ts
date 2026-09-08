@@ -223,6 +223,7 @@ import {
     getTaxName,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
+    getDisplayMerchant,
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
     hasDisplayableMCC,
@@ -275,6 +276,7 @@ type GetReportSectionsParams = {
     currentAccountID: number;
     currentUserEmail: string;
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
@@ -292,6 +294,7 @@ type GetTransactionSectionsParams = {
     currentUserEmail: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -1285,6 +1288,7 @@ function getTransactionItemCommonFormattedProperties(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
+    preferredLocale: Locale,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
@@ -1301,7 +1305,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
-    const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
+    const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : getDisplayMerchant(transactionItem, merchant, preferredLocale);
 
     const posted = getFormattedPostedDate(transactionItem?.posted);
 
@@ -2264,6 +2268,7 @@ function getTransactionsSections({
     currentUserEmail,
     formatPhoneNumber,
     translate,
+    preferredLocale,
     isActionLoadingSet,
     bankAccountList,
     reportActions = {},
@@ -2344,6 +2349,7 @@ function getTransactionsSections({
                 formatPhoneNumber,
                 report,
                 translate,
+                preferredLocale,
             );
             const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
@@ -3170,6 +3176,7 @@ function getReportSections({
     currentAccountID,
     currentUserEmail,
     translate,
+    preferredLocale,
     isOffline,
     formatPhoneNumber,
     isActionLoadingSet,
@@ -3361,6 +3368,7 @@ function getReportSections({
                 formatPhoneNumber,
                 report,
                 translate,
+                preferredLocale,
             );
 
             const transactionReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
@@ -4050,6 +4058,7 @@ function getSections({
             currentAccountID,
             currentUserEmail,
             translate,
+            preferredLocale,
             isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
@@ -4095,6 +4104,7 @@ function getSections({
         currentUserEmail,
         formatPhoneNumber,
         translate,
+        preferredLocale,
         isActionLoadingSet,
         bankAccountList,
         reportActions,

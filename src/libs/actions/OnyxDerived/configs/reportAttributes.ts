@@ -256,7 +256,7 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
-        // Not the NVP alone: `translate` falls back to the committed locale when the chunk is missing while `Intl` still honours the request, mixing languages within one name.
+        // The dependency slot carries the committed locale, not the raw NVP, so this is the one every consumer below reads rather than each picking its own.
         const activeLocale = preferredLocale && IntlStore.hasLocale(preferredLocale) ? preferredLocale : IntlStore.getCurrentLocale();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(activeLocale, path, ...parameters);
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
@@ -267,7 +267,7 @@ export default createOnyxDerivedValueConfig({
             const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
             const decimals = getCurrencyDecimals(sanitizedCurrency);
             const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
-            return format(preferredLocale, convertedAmount, {
+            return format(activeLocale, convertedAmount, {
                 style: 'currency',
                 currency: sanitizedCurrency,
 
@@ -282,7 +282,7 @@ export default createOnyxDerivedValueConfig({
             const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
             const decimals = getCurrencyDecimals(sanitizedCurrency);
             const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-            return formatToParts(preferredLocale, convertedAmount, {
+            return formatToParts(activeLocale, convertedAmount, {
                 style: 'currency',
                 currency: sanitizedCurrency,
                 minimumFractionDigits: decimals,

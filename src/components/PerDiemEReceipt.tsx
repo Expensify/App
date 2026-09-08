@@ -6,18 +6,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {getPerDiemDates, getPerDiemDestination} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import type Locale from '@src/types/onyx/Locale';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -40,42 +36,6 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
         return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
     });
     return subRateComments.join(', ');
-}
-
-/**
- * Strips the trailing date range that `computePerDiemExpenseMerchant` appended, leaving the location. Rebuilding the
- * range from the structured dates identifies it exactly. The positional split is only for rows stored before the range
- * was pinned to enUS, whose comma count depends on the locale that wrote them.
- */
-function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string) {
-    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = start ? DateUtils.toLocalDate(start) : undefined;
-    const endDate = end ? DateUtils.toLocalDate(end) : undefined;
-    // Validity checked before formatting: `getStablePerDiemMerchantDateRange` goes through date-fns, which throws on an
-    // Invalid Date, and this runs inside render with no error boundary.
-    if (startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
-        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(startDate, endDate)}`;
-        if (merchant.endsWith(dateRangeSuffix)) {
-            return merchant.slice(0, -dateRangeSuffix.length);
-        }
-    }
-    const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 3) {
-        return '';
-    }
-    return merchantParts.slice(0, merchantParts.length - 3).join(', ');
-}
-
-function getPerDiemDates(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale) {
-    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = start ? DateUtils.formatToMediumDate(start, locale) : '';
-    const endDate = end ? DateUtils.formatToMediumDate(end, locale) : '';
-    if (!startDate || !endDate) {
-        // No structured dates, so fall back to the merchant string.
-        const merchantParts = merchant.split(', ');
-        return merchantParts.length < 3 ? merchant : merchantParts.slice(-3).join(', ');
-    }
-    return `${startDate} - ${endDate}`;
 }
 
 function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {

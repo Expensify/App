@@ -103,14 +103,14 @@ function TransactionItemRow({
         isTrackIntentUser,
     });
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const createdAt = getTransactionCreated(transactionItem);
     const transactionThreadReportID =
         transactionThreadReportIDProp ?? (reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined);
     const transactionAttendees = useAttendees(transactionItem);
 
     const bgActiveStyles = isSelected && shouldHighlightItemWhenSelected ? styles.activeComponentBG : EMPTY_ACTIVE_STYLE;
-    const merchant = getMerchantName(transactionItem, translate);
+    const merchant = getMerchantName(transactionItem, translate, preferredLocale);
 
     const getMissingFieldError = () => {
         if (isSettled(report)) {

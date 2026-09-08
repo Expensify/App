@@ -33,7 +33,7 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {getDisplayMerchant, isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import {fontScale} from '@styles/typography';
@@ -88,7 +88,8 @@ function TransactionPreviewContent({
         () => getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {},
         [transaction, policy, isParentPolicyExpenseChat],
     );
-    const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
+    const {amount, comment: requestComment, merchant: storedMerchant, category, currency: requestCurrency} = transactionDetails;
+    const merchant = storedMerchant === undefined ? undefined : getDisplayMerchant(transaction, storedMerchant, preferredLocale);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
     // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.

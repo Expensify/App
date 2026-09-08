@@ -98,7 +98,7 @@ type RecentlyAddedData = {
 function useRecentlyAddedData(): RecentlyAddedData {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
 
     const query = useMemo(
@@ -267,7 +267,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
                     transactionID: transaction.transactionID,
                     reportID: transaction.reportID,
                     created: getCreated(sourceTransaction),
-                    merchant: getMerchantName(sourceTransaction, translate),
+                    merchant: getMerchantName(sourceTransaction, translate, preferredLocale),
                     // Expense-report, self-DM, and tracked transactions are stored with an inverted sign, so the
                     // displayed amount must be negated for them (mirrors the Search transaction list).
                     amount: getAmount(sourceTransaction, isFromExpenseReport, isFromTrackedExpense),
@@ -282,7 +282,17 @@ function useRecentlyAddedData(): RecentlyAddedData {
             });
 
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed, nextDeletedTransactionIDs: nextDeleted};
-    }, [snapshotData, unconfirmedTransactionIDs, deletedTransactionIDs, accountID, localTransactions, pendingTransactionIDs?.added, pendingTransactionIDs?.deleted, translate]);
+    }, [
+        snapshotData,
+        unconfirmedTransactionIDs,
+        deletedTransactionIDs,
+        accountID,
+        localTransactions,
+        pendingTransactionIDs?.added,
+        pendingTransactionIDs?.deleted,
+        translate,
+        preferredLocale,
+    ]);
 
     const hasSameUnconfirmedIDs =
         nextUnconfirmedTransactionIDs.size === unconfirmedTransactionIDs.size && [...nextUnconfirmedTransactionIDs].every((id) => unconfirmedTransactionIDs.has(id));
