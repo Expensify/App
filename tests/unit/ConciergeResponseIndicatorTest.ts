@@ -111,6 +111,7 @@ describe('Concierge response favicon', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.useRealTimers();
+        jest.restoreAllMocks();
     });
 
     it('preserves unread counts and keeps Concierge priority through title updates and back navigation', () => {
@@ -170,6 +171,61 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
+    it('shares report listeners and keeps them until the last unfinished request completes', () => {
+        const connect = jest.spyOn(Onyx, 'connectWithoutView');
+        const disconnect = jest.spyOn(Onyx, 'disconnect');
+        start();
+        start({responseReportActionID: '201', questionReportActionID: '101'});
+        expect(connect).toHaveBeenCalledTimes(1);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
+
+        emit({status: 'completed'});
+        expect(disconnect).not.toHaveBeenCalled();
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
+
+        emit({reportActionID: '201', status: 'completed'});
+        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+
+        // A new question can subscribe again while earlier replies still await acknowledgement.
+        start({responseReportActionID: '202', questionReportActionID: '102'});
+        expect(connect).toHaveBeenCalledTimes(2);
+        emit({reportActionID: '202', status: 'failed'});
+        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+    });
+
+    it('keeps a shared report subscribed when one send fails', async () => {
+        const disconnect = jest.spyOn(Onyx, 'disconnect');
+        start();
+        start({responseReportActionID: '201', questionReportActionID: '101'});
+        await saveQuestion({errors: {error: 'Unable to send'}});
+        expect(disconnect).not.toHaveBeenCalled();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        emit({reportActionID: '201', status: 'failed'});
+        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it("uses the latest shared actions to find a new request's reply thread", async () => {
+        const connect = jest.spyOn(Onyx, 'connectWithoutView');
+        const disconnect = jest.spyOn(Onyx, 'disconnect');
+        start();
+        const secondQuestionID = '101';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [secondQuestionID]: {reportActionID: secondQuestionID, pendingAction: null, childReportID: threadID},
+        });
+        start({responseReportActionID: '201', questionReportActionID: '101'});
+        expect(connect).toHaveBeenCalledTimes(2);
+        emit({reportID: threadID, reportActionID: '201', status: 'completed'});
+        expect(disconnect).toHaveBeenCalledTimes(1);
+        emit({status: 'failed'});
+        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+    });
+
     it('ignores unsolicited, custom-agent, stale, and mismatched stream events', () => {
         emit();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
@@ -209,9 +265,12 @@ describe('Concierge response favicon', () => {
     });
 
     it('recovers a missing completion from the durable reply after streaming has started', async () => {
+        const disconnect = jest.spyOn(Onyx, 'disconnect');
         start();
         emit();
         await saveResponse();
+        expect(disconnect).toHaveBeenCalledTimes(1);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
         jest.advanceTimersByTime(300000);
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
     });
