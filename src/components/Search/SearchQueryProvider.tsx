@@ -72,7 +72,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
-    const getInitialCurrentSearchKey = (queryJSON = currentSearchQueryJSON) => {
+    const getSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
         const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
             const lastSearchFilterQuery = getLastSearchQuery(searchFilters, search.key);
             const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
@@ -99,7 +99,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
     };
 
-    const [currentSearchKey, setCurrentSearchKey] = useState(getInitialCurrentSearchKey);
+    const [currentSearchKey, setCurrentSearchKey] = useState(getSearchKeyForQuery);
     // Search key can be undefined when the query is not bound to any search key (e.g., query with type of chat).
     // `null` means there is no pending current search key.
     const [pendingCurrentSearchKey, setPendingCurrentSearchKey] = useState<SearchKey | undefined | null>(null);
@@ -109,7 +109,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
 
     const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
-        const searchKey = getInitialCurrentSearchKey(queryJSON);
+        const searchKey = getSearchKeyForQuery(queryJSON);
         if (queryJSON?.hash !== currentSearchHash) {
             setPendingCurrentSearchKey(searchKey);
         } else {
