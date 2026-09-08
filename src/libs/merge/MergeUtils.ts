@@ -1,8 +1,10 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type useConfirmModal from '@hooks/useConfirmModal';
 
 import DateUtils from '@libs/DateUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -51,6 +53,24 @@ function getMergeFinalApprover(policy: OnyxEntry<Policy>, connectionName: MergeC
     return null;
 }
 
+function getMergeFinalApproverDisplayName(
+    finalApprover: string | undefined | null,
+    policyEmployeePersonalDetails: PersonalDetailsByLogin,
+    translate: LocaleContextProps['translate'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
+    if (!finalApprover) {
+        return translate('workspace.merge.notSet');
+    }
+    return temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],
+        defaultValue: finalApprover,
+        shouldFallbackToHidden: false,
+        translate,
+        formatPhoneNumber,
+    });
+}
+
 /**
  * Returns true when the user has already manually synced ("Sync now") the given Merge connection the maximum number of
  * times within the rolling window (e.g. 2 times in the last 24 hours).
@@ -92,6 +112,7 @@ function showMergeManualSyncLimitModalIfReached(
 
 export {
     getMergeFinalApprover,
+    getMergeFinalApproverDisplayName,
     hasMergeAuthenticationError,
     hasMergeSyncError,
     isMergeConnected,

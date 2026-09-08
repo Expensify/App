@@ -201,10 +201,12 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
+    scrollTo: (y: number) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
