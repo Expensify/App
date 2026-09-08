@@ -1,4 +1,5 @@
-import {setMergeHRInitialSyncModalShown} from '@libs/actions/connections/merge/HR';
+import {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, setMergeInitialSyncModalShown} from '@libs/actions/connections/merge';
+import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Visibility from '@libs/Visibility';
 
@@ -13,13 +14,13 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 /**
- * Shows a one-time informational modal when the Merge HR connection's initial sync is in progress.
+ * Shows a one-time informational modal when the given Merge connection's initial sync is in progress.
  */
-function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
+function useMergeInitialSyncingModal(policyID: string, connectionName: MergeConnectionName, isFocused: boolean) {
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
-    const [hasShownModal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`);
+    const [hasShownModal] = useOnyx(`${MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS[connectionName]}${policyID}`);
     const [isAppVisible, setIsAppVisible] = useState(Visibility.isVisible);
     const [isAnyModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => !!modal?.isVisible});
 
@@ -29,17 +30,17 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
         if (hasShownModal) {
             return;
         }
-        setMergeHRInitialSyncModalShown(policyID);
+        setMergeInitialSyncModalShown(policyID, connectionName);
         showConfirmModal({
-            id: `merge-hr-syncing-${policyID}`,
-            title: translate('workspace.hr.syncingModalTitle'),
-            prompt: translate('workspace.hr.syncingModalDescription'),
+            id: `merge-syncing-${connectionName}-${policyID}`,
+            title: translate('workspace.merge.syncingModalTitle'),
+            prompt: translate('workspace.merge.syncingModalDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
     });
 
-    const mergeLastSync = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync;
+    const mergeLastSync = policy?.connections?.[connectionName]?.lastSync;
 
     useEffect(() => {
         const isInitialSyncInProgress = mergeLastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.SYNCING && mergeLastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL;
@@ -52,4 +53,4 @@ function useMergeHRInitialSyncingModal(policyID: string, isFocused: boolean) {
     }, [mergeLastSync?.syncStatus, mergeLastSync?.syncType, isFocused, isAppVisible, isAnyModalVisible]);
 }
 
-export default useMergeHRInitialSyncingModal;
+export default useMergeInitialSyncingModal;

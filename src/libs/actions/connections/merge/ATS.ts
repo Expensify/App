@@ -136,8 +136,4 @@ function updateMergeATSApproverField(policyID: string, approverField: string | n
     write(WRITE_COMMANDS.UPDATE_MERGE_ATS_APPROVER_FIELD, {policyID, approverField}, {optimisticData, successData, failureData});
 }
 
-function setMergeATSInitialSyncModalShown(policyID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
-}
-
-export {updateMergeATSApproverField, updateMergeATSFilters, setMergeATSInitialSyncModalShown};
+export {updateMergeATSApproverField, updateMergeATSFilters};

@@ -4,9 +4,9 @@ import {openLink} from '@userActions/Link';
 
 import {useEffect} from 'react';
 
-import type ConnectToHRFlowProps from './types';
+import type ConnectToMergeFlowProps from './types';
 
-function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
+function ConnectToMergeFlow({setupLink}: ConnectToMergeFlowProps) {
     const {environmentURL} = useEnvironment();
 
     useEffect(() => {
@@ -16,4 +16,4 @@ function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     return null;
 }
 
-export default ConnectToHRFlow;
+export default ConnectToMergeFlow;
