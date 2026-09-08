@@ -42,7 +42,7 @@ function DynamicContactMethodsPage() {
     // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
     const repeatedContactMethodsSuffix = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.CONTACT_METHODS.path);
-    // Returning from a nested contact-method screen can leave a duplicate Contact Methods route in the stack. Remove it so Back targets the real parent instead of this screen.
+    // Remove duplicate Contact Methods route when returning from a nested contact-method screen
     const backTo = repeatedContactMethodsSuffix
         ? getPathWithoutDynamicSuffix(repeatedContactMethodsSuffix.pathUsedForMatching, repeatedContactMethodsSuffix.actualSuffix, repeatedContactMethodsSuffix.pattern) || ROUTES.HOME
         : backPath;
