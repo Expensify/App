@@ -26,6 +26,8 @@ You can manage the following options:
 - **Card feed name**  
   Update the name of the card feed to help identify it.
 
+  For commercial card feeds, this name also appears on each imported expense. The **Card** row in the expense details shows the card feed name followed by the last four digits of the card, for example **Visa cards - 1234**.
+
 - **Allow deleting transactions**  
   Enable this setting to allow cardholders to delete card transactions.
    

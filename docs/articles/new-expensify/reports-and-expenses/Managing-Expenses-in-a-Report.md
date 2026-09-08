@@ -1,7 +1,8 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, expense details, expense type, reimbursable, non-reimbursable, purchase amount, converted amount, card feed name]
+internalScope: Audience is all members and Workspace Admins. Covers adding, moving, deleting, and editing expenses in a report, the report expense table, and what the expense details show. Does not cover creating or submitting reports, or connecting company cards.
 ---
 
 Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
@@ -129,6 +130,49 @@ Additional columns can be enabled from the **Columns** picker:
   - Withdrawal ID
 
 Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
+
+---
+
+## What the Amount row shows in the expense details
+
+At the top of the expense details, the **Amount** row shows the expense total. The label above the total describes the expense in this format:
+
+**Amount • [expense type] • [reimbursable status]**
+
+The expense type is one of the following:
+
+  - **Cash**
+  - **Distance**
+  - **Per diem**
+  - **Time**
+  - **Pending**
+  - **Expensify Card**
+  - **Company card**
+  - **Personal card**
+  - **Travel Card**
+
+The reimbursable status is either **Reimbursable** or **Non-reimbursable**, and it matches the **Reimbursable** toggle in the expense details. This status only appears when the report contains a single expense.
+
+For example, a manual expense you paid for yourself shows **Amount • Cash • Reimbursable**.
+
+Two additional amounts can appear on their own line directly under the **Amount** row:
+
+  - **Purchase [amount]** shows the original amount the merchant charged on a company card expense when it differs from the posted amount.
+  - **Converted [amount]** shows the expense converted into the report's currency when the expense was made in a different currency.
+
+---
+
+## What the Card row shows on an imported card expense
+
+The **Card** row only appears on expenses imported from a card.
+
+For expenses imported from a commercial card feed (Visa, Mastercard, or American Express), the **Card** row shows the card feed name followed by the last four digits of the card, for example **Visa cards - 1234**. If a Workspace Admin renamed the feed using the **Card feed name** setting, the **Card** row shows that name instead.
+
+The card list under **Workspaces > [Workspace Name] > Company cards** is unaffected and still shows the masked card number.
+
+[Learn how to rename a company card feed](/articles/new-expensify/connect-credit-cards/Configure-Company-Card-Settings).
+
+---
 
 ## How to use comments and collaboration on a report
 
