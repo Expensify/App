@@ -4848,11 +4848,11 @@ function navigateToConciergeChatAndDeleteReport(
     );
 }
 
-function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number, personalDetails: OnyxEntry<PersonalDetailsList>) {
+function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number, optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>) {
     const personalDetailsToRemove: PersonalDetailsList = {};
 
     for (const accountID of Object.keys(report?.participants ?? {}).map(Number)) {
-        if (accountID === currentUserAccountID || !personalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (accountID === currentUserAccountID || !optimisticPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         personalDetailsToRemove[accountID] = null;
@@ -4875,7 +4875,7 @@ function clearCreateChatError(
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -4885,7 +4885,7 @@ function clearCreateChatError(
     }
 
     if (report?.errorFields?.createChat && isOptimisticReport) {
-        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID, personalDetails);
+        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID, optimisticPersonalDetails);
     }
 
     navigateToConciergeChatAndDeleteReport(
