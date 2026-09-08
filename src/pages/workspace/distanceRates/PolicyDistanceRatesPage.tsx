@@ -215,6 +215,7 @@ function PolicyDistanceRatesPage({
     );
 
     const unitTranslation = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+    const currentUnit = customUnit?.attributes?.unit;
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -489,6 +490,7 @@ function PolicyDistanceRatesPage({
                     <WorkspaceDistanceRatesTable
                         policyID={policyID}
                         ratesData={ratesData}
+                        unit={currentUnit}
                         selectedKeys={selectedDistanceRates}
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}
