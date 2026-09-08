@@ -69,7 +69,7 @@ import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCo
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -1315,7 +1315,7 @@ function resetSplitShares(
 
 function setDraftSplitTransaction(
     transactionID: string | undefined,
-    splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
+    splitTransactionDraft: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>,
     transactionChanges: TransactionChanges,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],

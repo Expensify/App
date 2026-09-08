@@ -100,7 +100,7 @@ import type {ReadonlyDeep, ValueOf} from 'type-fest';
 import {format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import lodashDeepClone from 'lodash/cloneDeep';
+import cloneMutable from '@libs/cloneMutable';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
@@ -190,11 +190,11 @@ function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isManualDistanceRequest(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
 }
 
-function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isOdometerDistanceRequest(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
@@ -726,7 +726,7 @@ function getDistanceMerchantForTransaction({
     getCurrencySymbol,
     commuterExclusionData,
 }: {
-    transaction: OnyxEntry<Transaction>;
+    transaction: ReadonlyDeep<OnyxEntry<Transaction>>;
     distanceInMeters: number;
     unit: Unit | undefined;
     rate: number | undefined;
@@ -754,7 +754,7 @@ function getDistanceMerchantForTransaction({
  * imperative locale accessors the optimistic update paths below have to rely on.
  */
 function getRecalculatedDistanceMerchant(
-    transaction: OnyxEntry<Transaction>,
+    transaction: ReadonlyDeep<OnyxEntry<Transaction>>,
     distanceInMeters: number,
     unit: Unit | undefined,
     rate: number | undefined,
@@ -789,7 +789,7 @@ function getUpdatedTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
-    transaction: Transaction;
+    transaction: ReadonlyDeep<Transaction>;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
@@ -803,7 +803,7 @@ function getUpdatedTransaction({
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = lodashDeepClone(transaction);
+    const updatedTransaction = cloneMutable<Transaction>(transaction);
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -2665,7 +2665,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
 /**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
+function getRateID(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -2674,7 +2674,7 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: ReadonlyDeep<OnyxEntry<Transaction>>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
         // When editing a distance rate, the draft transaction's customUnitRateID
         // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
@@ -2699,7 +2699,7 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
  * @param  policy - The policy which the user has access to and which the report is tied to.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: ReadonlyDeep<OnyxEntry<Transaction>>): Record<string, TaxRate> {
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
 
@@ -2718,7 +2718,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 /**
  * Gets the tax value of a selected tax
  */
-function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+function getTaxValue(policy: OnyxEntry<Policy>, transaction: ReadonlyDeep<OnyxEntry<Transaction>>, taxCode: string) {
     const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
@@ -3272,7 +3272,12 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
+function getCategoryTaxDetails(
+    category: string,
+    transaction: ReadonlyDeep<OnyxEntry<Transaction>>,
+    policy: OnyxEntry<Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};

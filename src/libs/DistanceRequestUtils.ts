@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {format, parseISO} from 'date-fns';
 
@@ -379,7 +380,7 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
-    storedCustomUnit?: TransactionCustomUnit;
+    storedCustomUnit?: ReadonlyDeep<TransactionCustomUnit>;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
