@@ -3355,7 +3355,7 @@ describe('actions/Report', () => {
             expect(await getManuallyMarkedUnreadReportActionID()).toBe('1');
         });
 
-        it('should clear the manual unread mark when the user explicitly marks the report as read', async () => {
+        it('should keep the manual unread mark when the user explicitly marks the report as read', async () => {
             // Given a report the user explicitly marked as unread
             await givenManuallyMarkedUnreadReport();
 
@@ -3363,9 +3363,9 @@ describe('actions/Report', () => {
             Report.readNewestAction(READ_NEWEST_REPORT_ID, true, true);
             await waitForBatchedUpdates();
 
-            // Then the "New" marker is no longer anchored on that action. A `null` in an Onyx MERGE removes
-            // the key, so the field reads back as `undefined` rather than `null`.
-            expect(await getManuallyMarkedUnreadReportActionID()).toBeUndefined();
+            // Then the "New" marker still stays anchored on that action. Only openReport clears the mark, on
+            // return to the report or on a refresh.
+            expect(await getManuallyMarkedUnreadReportActionID()).toBe('1');
         });
     });
 
