@@ -29,7 +29,7 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -99,6 +99,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
+    const hasCreatedEmptyWorkspaceContent = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -208,8 +209,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             return;
         }
 
+        if (!hasCreatedEmptyWorkspaceContent.current) {
+            hasCreatedEmptyWorkspaceContent.current = true;
+            const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+            createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat);
+        }
         returnToOriginReport();
-    }, [isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport]);
+    }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -221,6 +227,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
             // so just close instead of completing onboarding again.
             if (hasCompletedGuidedSetupFlow) {
+                const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+                createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
                 returnToOriginReport();
                 return;
             }

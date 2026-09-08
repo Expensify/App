@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {createJoinWorkspaceOnboardingContent, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -120,6 +120,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         [isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
     );
 
+    const handleSkipButtonPress = useCallback(() => {
+        if (isConciergeTaskFlow) {
+            createJoinWorkspaceOnboardingContent('validateEmail', domain, email);
+            returnToOriginReport();
+            return;
+        }
+        continueAfterPrivateDomain(route.params?.backTo);
+    }, [continueAfterPrivateDomain, domain, email, isConciergeTaskFlow, returnToOriginReport, route.params?.backTo]);
+
     // Only users whose current primary login is both validated and public-domain are blocked from this screen, since
     // the "people on YOUR domain" copy would otherwise reference gmail.com. The account flag can lag a primary-login
     // change, so only use it until the login itself is available in Onyx.
@@ -210,7 +219,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => (isConciergeTaskFlow ? returnToOriginReport() : continueAfterPrivateDomain(route.params?.backTo))}
+                        handleSkipButtonPress={handleSkipButtonPress}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />

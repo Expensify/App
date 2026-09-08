@@ -4,8 +4,10 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {prepareOnboardingOnyxData} from '@libs/ReportUtils';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,13 +16,18 @@ import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
+import type Report from '@src/types/onyx/Report';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import type {OnboardingCompanySize} from './OnboardingFlow';
+
+import {getOnboardingMessages} from './OnboardingFlow';
+
+type JoinWorkspaceOnboardingContentType = 'validateEmail' | 'joinWorkspace' | 'empty';
 
 let isLoadingReportData = true;
 // Tracks whether we've seen loading start (true) in the current session.
@@ -103,6 +110,42 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
 
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
+}
+
+function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardingContentType, companyDomain: string, workEmail: string, conciergeChat?: OnyxEntry<Report>) {
+    const {joinWorkspaceMessages} = getOnboardingMessages();
+    let onboardingMessage = joinWorkspaceMessages.joinWorkspace;
+    if (contentType === 'validateEmail') {
+        onboardingMessage = joinWorkspaceMessages.validateEmail;
+    } else if (contentType === 'empty') {
+        onboardingMessage = {...joinWorkspaceMessages.joinWorkspace, tasks: []};
+    }
+    const onboardingData = prepareOnboardingOnyxData({
+        introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE},
+        engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+        onboardingMessage,
+        companySize: undefined,
+        companyDomain,
+        workEmail,
+        conciergeChat,
+    });
+
+    if (!onboardingData) {
+        return;
+    }
+
+    API.write(
+        WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
+        {
+            domain: companyDomain,
+            guidedSetupData: JSON.stringify(onboardingData.guidedSetupData),
+        },
+        {
+            optimisticData: onboardingData.optimisticData,
+            successData: onboardingData.successData,
+            failureData: onboardingData.failureData,
+        },
+    );
 }
 
 function completeHybridAppOnboarding() {
@@ -227,6 +270,7 @@ export {
     setOnboardingCompanySize,
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
+    createJoinWorkspaceOnboardingContent,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
