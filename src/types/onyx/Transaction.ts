@@ -630,6 +630,13 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
         selectedTransactionIDs?: string[];
 
+        /**
+         * Per-level tag edits captured during a bulk edit, keyed by tag list index.
+         * Only used in the bulk-edit draft transaction so apply time can merge each edited level into
+         * every selected transaction's own tag instead of overwriting all levels with one shared string.
+         */
+        bulkEditTagChanges?: Record<string, string>;
+
         /** The transaction tag */
         tag?: string;
 

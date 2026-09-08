@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
+import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -80,7 +81,7 @@ function MoneyRequestReportGroupHeader({
     const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: variables.lineHeightNormal} : [styles.labelStrong];
+    const textStyle = shouldUseNarrowLayout ? {fontSize: fontScale.label, lineHeight: lineHeightScale.label} : [styles.labelStrong];
 
     const handleToggleSelection = () => {
         onToggleSelection?.(groupKey);
