@@ -391,15 +391,6 @@ function checkIfLocalFileIsAccessible(
     return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-/**
- * Clears the failed state of a receipt upload without touching the expense itself.
- *
- * Deliberately separate from the dismiss path, which deletes the expense.
- *
- * Resolves once the writes have landed. A retry has to wait for that: a failed money request leaves
- * `errorFields.createChat` on its report, and `shouldCreateNewMoneyRequestReport` reads that field back, so
- * dispatching before the merge reaches the cache would build a second report instead of reusing this one.
- */
 function clearReceiptUploadError({
     transactionID,
     reportID,

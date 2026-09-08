@@ -9,12 +9,6 @@ import type {ReceiptRetryContext, RetryOutcome} from './types';
 import buildRetryPayload, {canBuildRetryPayload} from './buildRetryPayload';
 import resolveReceiptFile from './resolveReceiptFile';
 
-/**
- * Re-sends a receipt whose upload the queue gave up on.
- *
- * `onBeforeDispatch` is awaited, not just called: the builder reads back the `errorFields.createChat` it clears,
- * and `Onyx.merge` has not reached the cache by the time a synchronous `requestMoney` would look.
- */
 function retryReceiptUpload(context: ReceiptRetryContext, onBeforeDispatch?: () => Promise<unknown>): Promise<RetryOutcome> {
     const {receiptError} = context;
 

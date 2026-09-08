@@ -18,11 +18,6 @@ const POLICY_ID = 'A0000000000000001';
 
 const receiptFile: FileObject = {name: 'receipt.jpg', type: 'image/jpeg', uri: 'file:///receipts/receipt.jpg'};
 
-/**
- * Shaped the way a real failed expense actually looks, which is not the way it is easy to assume:
- * `iouRequestType` is `manual` rather than `scan` once the amount has been confirmed, and `participants` is
- * absent because the create path calls `buildOptimisticTransaction` without it.
- */
 function buildFailedTransaction(overrides: Partial<Transaction> = {}): Transaction {
     return {
         transactionID: TRANSACTION_ID,

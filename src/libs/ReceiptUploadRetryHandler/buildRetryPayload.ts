@@ -22,8 +22,6 @@ function isRetryableFlow(context: ReceiptRetryContext): boolean {
         return false;
     }
 
-    // Not `isScanRequest`: `iouRequestType` stays `manual` on a receipt expense whose amount was confirmed, so it
-    // says nothing about whether a file is left to re-send.
     if (!isLocalFile(transaction.receipt?.source)) {
         return false;
     }
@@ -44,10 +42,8 @@ function getCurrentUserAccountID(): number {
     return getCurrentUserPersonalDetails()?.accountID ?? getCurrentUserAccountIDFromSession();
 }
 
-/** Derived from the report, not the transaction: the create path calls `buildOptimisticTransaction` without `participants`. */
 function resolveParticipant(iouReport: OnyxEntry<Report>): Participant | undefined {
     const participants = getMoneyRequestParticipantsFromReport(iouReport, getCurrentUserAccountID());
-    // Anything ambiguous - an invoice room yields two - gets no retry rather than a guess.
     if (participants.length !== 1) {
         return undefined;
     }
@@ -57,7 +53,6 @@ function resolveParticipant(iouReport: OnyxEntry<Report>): Participant | undefin
         return participant;
     }
 
-    // A DM participant carries only an account ID, but `login` travels to the API as `debtorEmail`.
     const login = getAllPersonalDetails()[participant.accountID]?.login;
     return login ? {...participant, login} : undefined;
 }
@@ -69,7 +64,6 @@ function getMerchantForRetry(merchant: string | undefined): string {
     return merchant;
 }
 
-/** Checked before the Retry button renders, so the button is absent rather than present and inert. */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
     const {transaction, iouReport} = context;
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport);
@@ -99,9 +93,6 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
     const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
 
     return {
-        // `requestMoney` turns this into `moneyRequestReportID`, which routes the retry onto the existing report.
-        // Deliberately not `existingIOUReport`: that path reads `errorFields.createChat` off this render-time
-        // snapshot, which the failure set, and would build a second report.
         report: iouReport,
         participantParams: {
             payeeEmail: currentUser?.login,
@@ -127,7 +118,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         },
         // Reusing the original ID is what makes a re-send safe: if the first attempt did reach Auth, the retry
         // comes back `Transaction already created.` and `SequentialQueue` applies `successData` instead of
-        // creating a second expense.
+        // creating a second expense
         optimisticTransactionID: transaction.transactionID,
         optimisticIOUReportID: iouReport.reportID,
         optimisticChatReportID: iouReport.chatReportID,

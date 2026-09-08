@@ -17,17 +17,14 @@ type ResolveReceiptFile = (source: string, filename: string) => Promise<FileObje
 type ReceiptRetryContext = {
     receiptError: ReceiptError;
 
-    /** Outlives the discarded request, so it is the source of truth for the payload. */
     transaction: OnyxEntry<Transaction>;
 
-    /** The money request report the failed expense sits on. Passing it back keeps the retry on the same report. */
     iouReport: OnyxEntry<Report>;
 
     policyParams: BasePolicyParams;
 
     betas: OnyxEntry<Beta[]>;
 
-    /** Concierge's chat is looked up from this, for the onboarding side effects `requestMoney` performs. */
     conciergeReportID: string | undefined;
 
     isSelfTourViewed: boolean;
@@ -38,14 +35,11 @@ type ReceiptRetryContext = {
 
     delegateAccountID: number | undefined;
 
-    /** From React context, so it cannot be read outside a component. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
-    /** From React context, so it cannot be read outside a component. */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
-/** Only `dispatched` means a request went out. */
 type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed';
 
 export type {ReceiptRetryContext, ResolveReceiptFile, RetryOutcome};

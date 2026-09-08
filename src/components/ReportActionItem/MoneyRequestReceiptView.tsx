@@ -425,7 +425,6 @@ function MoneyRequestReceiptView({
     const {showConfirmModal} = useConfirmModal();
 
     const retryableReceiptError = Object.values(errors ?? {}).find((error): error is ReceiptError => isReceiptError(error));
-    // Nothing is persisted on the error, so everything the retry needs is gathered live, here.
     const receiptRetryContext: ReceiptRetryContext | undefined = retryableReceiptError
         ? {
               receiptError: retryableReceiptError,
@@ -442,8 +441,7 @@ function MoneyRequestReceiptView({
               getCurrencyDecimals,
           }
         : undefined;
-    // Deliberately not a file-reachability check: that would mean I/O per errored receipt on every render. Retry
-    // is offered wherever Save receipt and Delete expense are, for any expense that can be rebuilt at all.
+
     const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
 
     const retryReceiptUploadAndClearError = () => {
