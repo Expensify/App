@@ -151,7 +151,6 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const isTrustedCommenter = getInput('IS_TRUSTED_COMMENTER') === 'true';
     const openAI = new OpenAIUtils(apiKey);
 
     const issueNumber = payload.issue?.number ?? -1;
@@ -169,7 +168,7 @@ async function run() {
             console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
             const intentResponse = await openAI.promptResponses({
                 instructions: buildCommentIntentInstructions(),
-                input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),
+                input: buildCommentIntentInput(newProposalBody),
                 model: PROPOSAL_POLICE_MODEL,
                 promptCacheKey: 'proposal-police-comment-intent',
                 textFormat: COMMENT_INTENT_RESPONSE_FORMAT,
