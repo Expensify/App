@@ -3,12 +3,10 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -47,7 +45,6 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
@@ -85,33 +82,19 @@ function EditAgentRulePage({
         Navigation.goBack();
     };
 
-    const handleDelete = () => {
-        if (!policy || !agentRule) {
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('workspace.rules.agentRules.deleteRule'),
-            prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            deletePolicyAgentRule(policy, ruleID);
-            Navigation.goBack();
-        });
-    };
-
     const inputWrapperStyles = useAgentPromptInputStyles();
 
     const deleteHeaderProps = useRuleDeleteHeaderProps({
-        canDelete: !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        onDelete: handleDelete,
+        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        onDelete: () => {
+            if (!policy) {
+                return;
+            }
+            deletePolicyAgentRule(policy, ruleID);
+        },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
+        titleKey: 'workspace.rules.agentRules.deleteRule',
+        promptKey: 'workspace.rules.agentRules.deleteRuleConfirmation',
     });
 
     if (!agentRule) {

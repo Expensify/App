@@ -246,29 +246,12 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
     };
 
     const deleteRule = () => {
-        if (!canWriteSpendRules) {
-            return;
-        }
-
         if (!existingRule) {
             return;
         }
 
-        showConfirmModal({
-            title: translate('workspace.rules.spendRules.deleteRule'),
-            prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
-            clearDraftSpendRule();
-            Navigation.goBack();
-        });
+        deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
+        clearDraftSpendRule();
     };
 
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -276,6 +259,8 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
         canDelete: canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted,
         onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
+        titleKey: 'workspace.rules.spendRules.deleteRule',
+        promptKey: 'workspace.rules.spendRules.deleteRuleConfirmation',
     });
 
     const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {

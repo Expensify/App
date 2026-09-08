@@ -439,43 +439,24 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         startWithLoading(() => saveRule());
     };
 
-    const handleDelete = () => {
-        if (!canWriteRules) {
-            return;
-        }
+    const deleteRule = () => {
         if (!policy) {
             return;
         }
-        if (!ruleID && !editCategoryTaxRuleFor) {
-            return;
+        setIsClosing(true);
+        if (editCategoryTaxRuleFor) {
+            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
+        } else if (ruleID) {
+            deletePolicyCodingRule(policy, ruleID);
         }
-
-        showConfirmModal({
-            title: translate('workspace.rules.merchantRules.deleteRule'),
-            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            setIsClosing(true);
-            if (editCategoryTaxRuleFor) {
-                deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
-            } else if (ruleID) {
-                deletePolicyCodingRule(policy, ruleID);
-            }
-            Navigation.goBack();
-        });
     };
 
-    // A category tax rule is its category, so it carries no pending state of its own; only a merchant rule can
+    // A category tax rule is its category, so it carries no pending state of its own. Only a merchant rule can
     // already be on its way out. Declared above the not-found returns below, since a hook can't run conditionally.
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const deleteHeaderProps = useRuleDeleteHeaderProps({
-        canDelete: canWriteRules && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule),
-        onDelete: handleDelete,
+        canDelete: canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule),
+        onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE,
     });
 
