@@ -36,6 +36,7 @@ import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransac
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -322,7 +323,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                             {shouldShowPrimaryText && (
                                                 <Text
-                                                    fontSize={variables.fontSizeNormal}
+                                                    fontSize={fontScale.text}
                                                     style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                     numberOfLines={1}
                                                 >
@@ -332,7 +333,7 @@ function TransactionPreviewContent({
                                         </View>
                                         {!shouldUseScanningLayout && (
                                             <Text
-                                                fontSize={variables.fontSizeNormal}
+                                                fontSize={fontScale.text}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                 numberOfLines={1}
                                             >

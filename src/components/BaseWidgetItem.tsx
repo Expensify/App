@@ -22,9 +22,6 @@ type BaseWidgetItemProps = {
     /** Icon to display */
     icon: IconAsset;
 
-    /** Background color for the icon container */
-    iconBackgroundColor: string;
-
     /** Primary title text */
     title: string;
 
@@ -37,14 +34,11 @@ type BaseWidgetItemProps = {
     /** Callback when CTA is pressed */
     onCtaPress: () => void;
 
-    /** Optional: fill color for the icon (defaults to white) */
-    iconFill?: string;
-
     /** The visual variant of the CTA button */
     buttonVariant?: ButtonVariant;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonVariant}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -58,12 +52,12 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
-                    <View style={styles.getWidgetItemIconContainerStyle(iconBackgroundColor)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={icon}
                             width={ICON_SIZE}
                             height={ICON_SIZE}
-                            fill={iconFill ?? theme.white}
+                            fill={theme.icon}
                         />
                     </View>
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
