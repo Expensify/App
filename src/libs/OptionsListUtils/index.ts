@@ -17,14 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {
-    getLoginByAccountID,
-    getPersonalDetailsByID,
-    getPersonalDetailForAccountID,
-    getPersonalDetailsForAccountIDs,
-    getPersonalDetailsListByIDs,
-    temporaryGetDisplayNameOrDefault,
-} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
