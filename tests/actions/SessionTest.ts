@@ -913,7 +913,9 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
-            expect(resetRootSpy).toHaveBeenCalledWith(expect.objectContaining({stale: true, routes: expect.any(Array)}));
+            const [state] = resetRootSpy.mock.calls.at(0) ?? [];
+            expect(state?.stale).toBe(true);
+            expect(state?.routes.length).toBeGreaterThan(0);
             jest.restoreAllMocks();
         });
 
