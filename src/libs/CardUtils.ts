@@ -1214,6 +1214,44 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** The reason a proposed company card name is invalid. Callers translate it via `getCompanyCardNameErrorMessage`. */
+type CompanyCardNameError = 'required' | 'tooLong';
+
+/** Normalizes a company card name by converting non-breaking spaces and trimming surrounding whitespace. */
+function sanitizeCompanyCardName(name: string): string {
+    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
+}
+
+/**
+ * Validates a company card name against every rule (required, length). This is the single source of
+ * truth shared by the RHP edit form, the assign-card name step, and inline table editing. Returns an
+ * error code, or undefined when the name is valid.
+ */
+function getCompanyCardNameError(newName: string): CompanyCardNameError | undefined {
+    const sanitized = sanitizeCompanyCardName(newName);
+
+    if (!sanitized) {
+        return 'required';
+    }
+
+    if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CompanyCardNameError} into a user-facing message for the given name. */
+function getCompanyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CompanyCardNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(sanitizeCompanyCardName(name)), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
 function getCompanyCardCustomName(
     cardID: string | number | undefined,
@@ -2212,6 +2250,9 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    sanitizeCompanyCardName,
+    getCompanyCardNameError,
+    getCompanyCardNameErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
@@ -2294,4 +2335,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CompanyCardNameError};

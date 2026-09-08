@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useCompanyCardInlineEdit from '@hooks/useCompanyCardInlineEdit';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -132,6 +133,7 @@ function WorkspaceCompanyCardsTable({
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
+    const {canEditName, renameCard} = useCompanyCardInlineEdit({domainOrWorkspaceAccountID, bankName, canWriteCompanyCards});
 
     const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
@@ -191,6 +193,9 @@ function WorkspaceCompanyCardsTable({
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedCardKeys.length > 0 || isSelectionModeEnabled;
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
         {
@@ -223,19 +228,23 @@ function WorkspaceCompanyCardsTable({
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+                  const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  const customCardName = getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? '');
 
                   return {
                       cardName,
                       keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                       encryptedCardNumber,
-                      customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
-                      isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      customCardName,
+                      isCardDeleted,
+                      disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
                       cardholder,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
+                      canEditName: canEditName && isAssigned && !isCardDeleted && !isSelectionModeActive,
+                      onRenameName: assignedCard?.cardID !== undefined ? (newName: string) => renameCard(String(assignedCard.cardID), customCardName, newName) : undefined,
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
               })

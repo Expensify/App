@@ -1,5 +1,6 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/ButtonComposed';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
@@ -36,6 +37,12 @@ type WorkspaceCompanyCardTableRowData = TableData &
 
         /** Assigned card */
         assignedCard?: Card;
+
+        /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
+        canEditName?: boolean;
+
+        /** Persists an inline rename of the card name. Provided only when `canEditName` is supported. */
+        onRenameName?: (newName: string) => void;
 
         /** On dismiss error callback */
         onDismissError?: () => void;
@@ -192,11 +199,12 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={customCardName ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={customCardName ?? ''}
+                                accessibilityLabel={translate('workspace.companyCards.cardName')}
+                                canEdit={!!item.canEditName && !item.isCardDeleted}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}

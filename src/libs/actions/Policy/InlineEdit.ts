@@ -1,8 +1,13 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
+import {getCompanyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
+
+import {updateCompanyCardName} from '@userActions/CompanyCards';
+
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 /**
  * Shared persistence helpers for inline editing of workspace policy items (categories, tags, distance
@@ -57,4 +62,23 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
 
 // #endregion Tags
 
-export {renameCategoryInline, renameTagInline};
+// #region Company Cards
+
+/**
+ * Renames a company card from an inline table edit. Sanitizes the input and delegates to the canonical
+ * rename action. Silently no-ops when the name is unchanged or fails validation (matching the Spend
+ * inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ */
+function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
+    const sanitized = sanitizeCompanyCardName(newName);
+
+    if (sanitized === currentName || getCompanyCardNameError(newName)) {
+        return;
+    }
+
+    updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, currentName);
+}
+
+// #endregion Company Cards
+
+export {renameCategoryInline, renameTagInline, renameCompanyCardInline};
