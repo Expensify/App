@@ -39,7 +39,7 @@ function DynamicContactMethodsPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from, not a hardcoded default.
+    // Strip the `contact-methods` suffix off the current URL so the back button returns to wherever this list was launched from
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
     const repeatedContactMethodsSuffix = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.CONTACT_METHODS.path);
     // Returning from a nested contact-method screen can leave a duplicate Contact Methods route in the stack. Remove it so Back targets the real parent instead of this screen.
