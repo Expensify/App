@@ -621,6 +621,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -648,6 +649,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -671,6 +673,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -707,6 +710,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -745,6 +749,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -789,6 +794,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
@@ -819,6 +825,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -847,6 +854,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -873,6 +881,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -1125,6 +1134,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
@@ -1149,6 +1159,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE)?.onSelected?.();
+        await waitFor(() => expect(bulkDuplicateExpenses).toHaveBeenCalled());
 
         expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
         expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);

@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import cloneMutable from '@libs/cloneMutable';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -71,7 +72,7 @@ import type {Receipt, TransactionChanges, TransactionCustomUnit, WaypointCollect
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -188,8 +189,8 @@ type RequestMoneyInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
-    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransactionDraft: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>;
+    existingTransaction?: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>;
     isSelfTourViewed: boolean;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -211,7 +212,7 @@ type MoneyRequestInformationParams = {
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
-    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     newReportTotal?: number;
     newNonReimbursableTotal?: number;
@@ -1544,7 +1545,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             // Explicitly set merchant from splitExpense to ensure it's not overwritten
             optimisticTransaction.merchant = preservedMerchant;
         } else {
-            optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+            // `fastMerge` is typed `<TValue>(target: TValue, source: TValue)`, so it cannot take a readonly
+            // target and a mutable source. The clone is the honest fix: the merge result is mutated in place below.
+            optimisticTransaction = fastMerge(cloneMutable<OnyxTypes.Transaction>(existingTransaction), optimisticTransaction, false);
         }
     }
 
@@ -1574,7 +1577,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        // Clone before destructuring: a rest element of a readonly value keeps its nested arrays readonly,
+        // and `fastMerge` requires target and source to be the same type.
+        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = cloneMutable<OnyxTypes.Transaction>(existingTransaction);
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
         if (customUnit && optimisticTransaction.comment) {
             optimisticTransaction.comment.customUnit = customUnit;

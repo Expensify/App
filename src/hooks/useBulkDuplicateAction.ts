@@ -14,6 +14,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import Onyx from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -54,7 +55,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
@@ -78,7 +78,9 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
-    const handleDuplicate = () => {
+    const handleDuplicate = async () => {
+        const transactionDrafts = validTransactionDraftsSelector(await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT));
+
         bulkDuplicateExpenses({
             dateFnsLocale,
             getCurrencyDecimals,

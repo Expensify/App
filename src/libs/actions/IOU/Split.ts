@@ -131,7 +131,7 @@ type CreateDistanceRequestInformation = {
     currentUserAccountID: number;
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
-    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
     isASAPSubmitBetaEnabled: boolean;

@@ -63,7 +63,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -883,7 +883,7 @@ function setLastSelectedDistanceRate(policy: OnyxEntry<Policy>, customUnitRateID
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
-function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>, customUnitRateID: string, policy: OnyxEntry<Policy>, isDraft: boolean) {
+function setMoneyRequestDistanceRate(currentTransaction: ReadonlyDeep<OnyxEntry<Transaction>>, customUnitRateID: string, policy: OnyxEntry<Policy>, isDraft: boolean) {
     if (!currentTransaction) {
         Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
         return;

@@ -11,7 +11,7 @@ type BulkDuplicateHandlerProps = {
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report> | undefined;
     searchData: Record<string, unknown> | undefined;
-    onHandlerReady: (handler: () => void) => void;
+    onHandlerReady: (handler: () => void | Promise<void>) => void;
     onAfterDuplicate?: () => void;
 };
 

@@ -7,6 +7,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import cloneMutable from '@libs/cloneMutable';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -105,6 +106,7 @@ import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -184,7 +186,7 @@ type GetTrackExpenseInformationParticipantParams = {
 type GetTrackExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
-    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: ReadonlyDeep<OnyxEntry<OnyxTypes.Transaction>>;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
@@ -1150,7 +1152,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
     if (isDistanceRequest) {
-        optimisticTransaction = fastMerge(existingTransactionData, optimisticTransaction, false);
+        optimisticTransaction = fastMerge(cloneMutable<OnyxTypes.Transaction>(existingTransactionData), optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:

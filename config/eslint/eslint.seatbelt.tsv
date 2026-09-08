@@ -864,6 +864,7 @@
 "../../src/libs/actions/replaceOptimisticReportWithActualReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/canFocusInputOnScreenFocus/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/cloneMutable.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/compoundParamsKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	2
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4

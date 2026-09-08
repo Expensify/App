@@ -211,8 +211,8 @@ function useSelectedTransactionsActions({
         ],
     );
 
-    const duplicateHandlerRef = useRef<() => void>(() => {});
-    const setDuplicateHandler = useCallback((handler: () => void) => {
+    const duplicateHandlerRef = useRef<() => void | Promise<void>>(() => {});
+    const setDuplicateHandler = useCallback((handler: () => void | Promise<void>) => {
         duplicateHandlerRef.current = handler;
     }, []);
     const invokeDuplicateHandler = useCallback(() => {

@@ -10,6 +10,7 @@ import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
+import cloneMutable from '@libs/cloneMutable';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
@@ -100,7 +101,6 @@ import type {ReadonlyDeep, ValueOf} from 'type-fest';
 import {format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import cloneMutable from '@libs/cloneMutable';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
@@ -152,7 +152,7 @@ type TransactionParams = {
 type BuildOptimisticTransactionParams = {
     originalTransactionID?: string;
     existingTransactionID?: string;
-    existingTransaction?: OnyxEntry<Transaction>;
+    existingTransaction?: ReadonlyDeep<OnyxEntry<Transaction>>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
@@ -186,7 +186,7 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
-function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isGPSDistanceRequest(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 }
 
@@ -198,7 +198,7 @@ function isOdometerDistanceRequest(transaction: ReadonlyDeep<OnyxEntry<Transacti
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
+function hasAppliedCommuterExclusion(transaction: ReadonlyDeep<OnyxEntry<Transaction>>): boolean {
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
@@ -2647,7 +2647,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
-function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isCustomUnitRateIDForP2P(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -3531,7 +3531,7 @@ function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fie
     return autoFillableFields.includes(fieldType);
 }
 
-function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+function isExpenseUnreported(transaction?: ReadonlyDeep<Transaction>): transaction is ReadonlyDeep<UnreportedTransaction> {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
