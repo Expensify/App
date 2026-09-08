@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,6 +40,7 @@ function useGroupChatDraftParticipantSync(
     const isScreenFocusedRef = useIsFocusedRef();
 
     const {dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;
@@ -65,6 +67,7 @@ function useGroupChatDraftParticipantSync(
                   (getParticipantsOption({accountID: participant.accountID, login: participant.login}, allPersonalDetails, translate) as OptionData)
                 : getUserToInviteOption({
                       dateFnsLocale,
+                      convertToDisplayString,
                       searchValue: participant?.login,
                       personalDetails: allPersonalDetails,
                       loginList,
