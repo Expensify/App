@@ -57,6 +57,7 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         defaultBillable: true,
         eReceipts: true,
         preventSelfApproval: true,
+        preventPayoutNonReimbursableReports: true,
         ...overrides,
     };
 }
@@ -97,6 +98,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
         defaultBillable: false,
         eReceipts: false,
         preventSelfApproval: false,
+        preventPayoutNonReimbursableReports: false,
         customUnits: {},
         ...overrides,
     };
@@ -167,6 +169,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'eReceipts',
                         'isAttendeeTrackingEnabled',
                         'preventSelfApproval',
+                        'preventPayoutNonReimbursableReports',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
                     ],
