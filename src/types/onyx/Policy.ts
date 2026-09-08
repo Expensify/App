@@ -3728,4 +3728,6 @@ export type {
     CampfireVendor,
     CampfireAccount,
     CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
 };
