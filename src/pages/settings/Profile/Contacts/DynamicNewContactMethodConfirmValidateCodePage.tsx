@@ -51,7 +51,6 @@ function DynamicNewContactMethodConfirmValidateCodePage() {
                 clearPendingContactActionErrors();
             }}
             onClose={() => {
-                // Contact Methods is already underneath this screen, so pop it instead of resolving its dynamic route again.
                 Navigation.goBack();
             }}
             isLoading={pendingContactAction?.isLoading}
