@@ -159,12 +159,12 @@ function AddPersonalBankAccountPage() {
         route.name === SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT ? ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(pageName, action) : ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(pageName, action);
     const onFinished = (data?: unknown) => exitFlow(!!data);
 
-    const setupPageName =
-        personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL
-            ? SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS
-            : personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
-              ? SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT
-              : undefined;
+    let setupPageName: string | undefined;
+    if (personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+        setupPageName = SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
+    } else if (personalBankAccount?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+        setupPageName = SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT;
+    }
     const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
     const hasCompletedPlaidConnection = !!selectedPlaidAccount?.plaidAccessToken;
     const canResumeSavedPage = isManual || fullPersonalBankAccount?.currentPage === SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT || hasCompletedPlaidConnection;
@@ -190,7 +190,12 @@ function AddPersonalBankAccountPage() {
     const isResumeStateLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, personalBankAccountMetadata, fullPersonalBankAccountMetadata, plaidDataMetadata);
     const hasCompletedConnection = isManual ? !!personalBankAccount?.routingNumber && !!personalBankAccount?.accountNumber : hasCompletedPlaidConnection;
     const draftStartFrom = hasCompletedConnection && firstIncompletePageIndex > 0 ? firstIncompletePageIndex : Math.max(setupPageIndex, 0);
-    const startFrom = isResumeStateLoading ? -1 : fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET ? (savedPageIndex >= 0 ? savedPageIndex : draftStartFrom) : 0;
+    let startFrom = 0;
+    if (isResumeStateLoading) {
+        startFrom = -1;
+    } else if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
+        startFrom = savedPageIndex >= 0 ? savedPageIndex : draftStartFrom;
+    }
     const isURLSubPageValid = !urlSubPage || pages.some((page) => page.pageName === urlSubPage);
     const fallbackPageName = pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName;
     const fallbackRoute = fallbackPageName ? buildRoute(fallbackPageName) : undefined;

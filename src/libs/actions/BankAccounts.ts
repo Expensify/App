@@ -97,8 +97,8 @@ type OpenPersonalBankAccountSetupViewProps = {
 
 type OpenWalletPersonalBankAccountSetupProps = {
     personalBankAccount: OnyxEntry<PersonalBankAccount>;
-    personalDraft: OnyxEntry<PersonalBankAccountForm>;
-    internationalDraft: OnyxEntry<InternationalBankAccountForm>;
+    personalDraft: OnyxEntry<Pick<PersonalBankAccountForm, 'setupType'>>;
+    internationalDraft: OnyxEntry<Pick<InternationalBankAccountForm, 'bankCountry'>>;
     isUserValidated?: boolean;
 };
 

@@ -1,7 +1,7 @@
-import useOnyx from '@hooks/useOnyx';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import useOnyx from './useOnyx';
 
 function useWalletPersonalBankAccountSetup() {
     const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);

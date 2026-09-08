@@ -201,7 +201,7 @@ describe('actions/BankAccounts', () => {
 
             openWalletPersonalBankAccountSetup({
                 personalBankAccount,
-                personalDraft: personalDraft as Parameters<typeof openWalletPersonalBankAccountSetup>[0]['personalDraft'],
+                personalDraft,
                 internationalDraft: undefined,
             });
 

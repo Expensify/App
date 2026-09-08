@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import InternationalDepositAccountContent from './InternationalDepositAccountContent';
 
@@ -32,25 +32,27 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
         corpayFields?.bankCountry === draftValues?.bankCountry &&
         (!draftValues?.bankCurrency || corpayFields?.bankCurrency === draftValues.bankCurrency) &&
         !!corpayFields?.formFields?.length;
-    const shouldRefreshResumeFields =
-        personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields && !personalBankAccount?.isLoading;
     const resumeFieldsKey = `${draftValues?.bankCountry ?? ''}:${draftValues?.bankCurrency ?? ''}`;
-    const [requestedResumeFieldsKey, setRequestedResumeFieldsKey] = useState('');
-    const [isRefreshingResumeFields, setIsRefreshingResumeFields] = useState(false);
-    const shouldWaitForResumeFields = isRefreshingResumeFields || (shouldRefreshResumeFields && requestedResumeFieldsKey !== resumeFieldsKey);
+    const requestedResumeFieldsKeyRef = useRef('');
+    const [completedResumeFieldsKey, setCompletedResumeFieldsKey] = useState('');
+    const shouldRefreshResumeFields =
+        personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET &&
+        !!draftValues?.bankCountry &&
+        !hasMatchingCorpayFields &&
+        !personalBankAccount?.isLoading &&
+        completedResumeFieldsKey !== resumeFieldsKey;
 
     useEffect(() => {
-        if (isLoading || !shouldRefreshResumeFields || requestedResumeFieldsKey === resumeFieldsKey || !draftValues?.bankCountry) {
+        if (isLoading || !shouldRefreshResumeFields || requestedResumeFieldsKeyRef.current === resumeFieldsKey || !draftValues?.bankCountry) {
             return;
         }
-        setRequestedResumeFieldsKey(resumeFieldsKey);
-        setIsRefreshingResumeFields(true);
+        requestedResumeFieldsKeyRef.current = resumeFieldsKey;
         fetchCorpayFields(draftValues.bankCountry, draftValues.bankCurrency, false, false, {preserveExistingDraft: true}).finally(() => {
-            setIsRefreshingResumeFields(false);
+            setCompletedResumeFieldsKey(resumeFieldsKey);
         });
-    }, [draftValues?.bankCountry, draftValues?.bankCurrency, isLoading, requestedResumeFieldsKey, resumeFieldsKey, shouldRefreshResumeFields]);
+    }, [draftValues?.bankCountry, draftValues?.bankCurrency, isLoading, resumeFieldsKey, shouldRefreshResumeFields]);
 
-    if (isLoading || shouldWaitForResumeFields) {
+    if (isLoading || shouldRefreshResumeFields) {
         return <FullScreenLoadingIndicator />;
     }
 
