@@ -57,6 +57,14 @@ const ENVIRONMENT = {
 // Categories are only available inside the formatted `codeframe` string, which is not a public API of
 // oxc-transform-react. Hence the exact version pin in package.json, the throw on an unmapped category,
 // and the fixtures in oxlint-migration/port-probe/: an upstream rename has to fail loudly.
+//
+// CURRENTLY INERT. This module analyzes every file and returns nothing, because oxc-transform-react
+// 0.148.0 narrowed `result.errors` to fatal React Compiler diagnostics only (oxc-project/oxc#26128),
+// and `should_panic` in crates/oxc_react_compiler/src/diagnostics.rs answers false unconditionally
+// for `panicThreshold: 'none'`. All twelve rc/* rules are `off` in .oxlintrc.json as a result; the
+// reasoning and the measured numbers live there. The code below is left in the shape that worked on
+// 0.147.0 rather than adapted, because that is the shape that starts working again the moment
+// upstream exposes non-fatal diagnostics.
 const CATEGORY_PATTERN = /react-compiler\(([^)]+)\)/;
 
 const cache = new Map();

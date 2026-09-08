@@ -69,6 +69,14 @@ def main():
         accepted_ox_lines = entry.get('oxlintLines')
         if len(es_hits) != expected:
             verdict, ok = f'FAIL: eslint found {len(es_hits)}, fixture claims {expected}', False
+        elif entry.get('blockedUpstream'):
+            # The fixture still proves ESLint reports (checked above); oxlint cannot, for a reason
+            # written down in the entry. Asserted as zero rather than skipped, so this flips to a
+            # failure the day upstream makes it reportable, which is the signal to act.
+            if ox_hits:
+                verdict, ok = f'FAIL: oxlint now reports {ox_lines} -- upstream fixed it, drop blockedUpstream and re-enable the rule', False
+            else:
+                verdict, ok = 'blocked upstream, oxlint silent as recorded', True
         elif accepted_ox_lines is not None and not entry.get('whyOxlintLines'):
             verdict, ok = 'FAIL: oxlintLines needs a whyOxlintLines saying why the anchors differ', False
         elif accepted_ox_lines is not None:
@@ -92,7 +100,12 @@ def main():
     if failures:
         print(f'{len(failures)}/{len(MANIFEST)} rules FAILED: {", ".join(failures)}')
         sys.exit(1)
-    print(f'All {len(MANIFEST)} rules behave identically on both tools.')
+    blocked = [rule for rule, entry in MANIFEST.items() if entry.get('blockedUpstream')]
+    if blocked:
+        print(f'{len(MANIFEST) - len(blocked)} rules behave identically on both tools.')
+        print(f'{len(blocked)} blocked upstream, oxlint silent by known cause: {", ".join(blocked)}')
+    else:
+        print(f'All {len(MANIFEST)} rules behave identically on both tools.')
 
 
 if __name__ == '__main__':

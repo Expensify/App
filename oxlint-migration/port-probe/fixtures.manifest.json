@@ -100,47 +100,84 @@
         "fixture": "fixtures/rhPurity.tsx",
         "oxlintRule": "rc/purity",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; the compiler rules had no fixture at all before, and 10 of the 16 had no evidence of any kind"
     },
-    "react-hooks/set-state-in-render": {"fixture": "fixtures/rhSetStateInRender.tsx", "oxlintRule": "rc/set-state-in-render", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/globals": {"fixture": "fixtures/rhGlobals.tsx", "oxlintRule": "rc/globals", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/error-boundaries": {"fixture": "fixtures/rhErrorBoundaries.tsx", "oxlintRule": "rc/error-boundaries", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/use-memo": {"fixture": "fixtures/rhUseMemo.tsx", "oxlintRule": "rc/use-memo", "expected": 1, "why": "covered 2026-08-12"},
-    "react-hooks/unsupported-syntax": {"fixture": "fixtures/rhUnsupportedSyntax.tsx", "oxlintRule": "rc/unsupported-syntax", "expected": 1, "why": "covered 2026-08-12"},
+    "react-hooks/set-state-in-render": {
+        "fixture": "fixtures/rhSetStateInRender.tsx",
+        "oxlintRule": "rc/set-state-in-render",
+        "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
+        "why": "covered 2026-08-12"
+    },
+    "react-hooks/globals": {
+        "fixture": "fixtures/rhGlobals.tsx",
+        "oxlintRule": "rc/globals",
+        "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
+        "why": "covered 2026-08-12"
+    },
+    "react-hooks/error-boundaries": {
+        "fixture": "fixtures/rhErrorBoundaries.tsx",
+        "oxlintRule": "rc/error-boundaries",
+        "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
+        "why": "covered 2026-08-12"
+    },
+    "react-hooks/use-memo": {
+        "fixture": "fixtures/rhUseMemo.tsx",
+        "oxlintRule": "rc/use-memo",
+        "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
+        "why": "covered 2026-08-12"
+    },
+    "react-hooks/unsupported-syntax": {
+        "fixture": "fixtures/rhUnsupportedSyntax.tsx",
+        "oxlintRule": "rc/unsupported-syntax",
+        "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
+        "why": "covered 2026-08-12"
+    },
     "react-hooks/incompatible-library": {
         "fixture": "fixtures/rhIncompatibleLibrary.tsx",
         "oxlintRule": "rc/incompatible-library",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; react-hook-form is matched by module name, so the package does not have to be installed"
     },
     "react-hooks/refs": {
         "fixture": "fixtures/rhRefs.tsx",
         "oxlintRule": "rc/refs",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; ported to rc/ 2026-08-21. Doubles as the direct test of the Rust engine's reason for existing: the component also carries an eslint-disable-next-line react-hooks/exhaustive-deps comment, which makes oxlint's native react/refs report nothing (measured 0) while ESLint and rc/refs both report line 20"
     },
     "react-hooks/immutability": {
         "fixture": "fixtures/rhImmutability.tsx",
         "oxlintRule": "rc/immutability",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12, ported to rc/ 2026-08-21. Both tools report TWO diagnostics here (the reassignment and the escaping function) and this harness compares a set of (file, line, rule), so the two collapse into one row. Deliberately so: the fixture is one line because the two engines anchor the second diagnostic differently, ESLint on the escape site and the Rust compiler on the modification site. That divergence, and the count of two, are asserted separately by npm run oxlint-react-compiler-rust against oxlint-migration/native-vs-sidecar-probe/rhImmutabilityAnchor.tsx"
     },
     "react-hooks/set-state-in-effect": {
         "fixture": "fixtures/rhSetStateInEffect.tsx",
         "oxlintRule": "rc/set-state-in-effect",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/static-components": {
         "fixture": "fixtures/rhStaticComponents.tsx",
         "oxlintRule": "rc/static-components",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/preserve-manual-memoization": {
         "fixture": "fixtures/rhPreserveManualMemoization.tsx",
         "oxlintRule": "rc/preserve-manual-memoization",
         "expected": 1,
+        "blockedUpstream": "BLOCKED 2026-09-08: oxc-transform-react 0.148.0 narrowed result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic returns false for the default panicThreshold, so the Rust engine returns nothing. 12/12 of these fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0. The rule is off in .oxlintrc.json; see the rc/* block there for why panicThreshold: all_errors is not a workaround",
         "why": "covered 2026-08-12; previously repo parity only"
     },
     "react-hooks/exhaustive-deps": {

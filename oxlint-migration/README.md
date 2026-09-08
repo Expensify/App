@@ -59,6 +59,32 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `ruleMap.py` | the shared rule-id map and `PORT_PLAN`; imported by most of the above | library |
 | `compareNativeCtxValues.py`, `eslint-ctx-values-rule.mjs` | reproduction for the two upstream bugs in Oxlint's native `react/jsx-no-constructed-context-values` (wrong anchor line, no component-scope check) | on demand, until both are filed |
 
+## The one thing still blocking the switch
+
+All twelve `rc/*` React Compiler rules are `off` in `.oxlintrc.json`. They were ported and measured
+working on `oxc-transform-react` 0.147.0. Version 0.148.0 narrowed `result.errors` to *fatal* React
+Compiler diagnostics ([oxc-project/oxc#26128](https://github.com/oxc-project/oxc/pull/26128), "match
+Babel diagnostic reporting"), and `should_panic` in `crates/oxc_react_compiler/src/diagnostics.rs`
+answers `false` unconditionally for the default `panicThreshold: "none"`, so the Rust engine now
+analyzes every file and returns nothing. Measured: 12/12 fixtures report on 0.147.0, 0/12 on 0.148.0
+and 0.149.0.
+
+Forcing the diagnostics fatal to read them back does not work. `panicThreshold: "all_errors"` aborts
+on the first function that fails to compile and returns only what it accumulated, so later components
+in the same file are never analyzed: two components each with a ref read gives 1 finding where ESLint
+gives 2. Whole-repo that was `refs` 215 vs 215 with mismatched locations both ways, `immutability` 6
+vs 7, and `preserve-manual-memoization` 2 vs 65. Wrong in both directions, so worse than off.
+
+Cost while off: 352 findings ESLint reports and oxlint does not. What it needs is for oxc to expose
+non-fatal React Compiler diagnostics; their own `outputMode: "lint"` is documented as "analyze and
+report diagnostics without applying compiler output", which is precisely the missing channel.
+
+Nothing here silently tolerates it. `checkReactCompilerRust.mjs` derives an `ENGINE_REPORTS` flag and
+asserts either the real expectations or the blocked ones, ending with a check that the twelve rules
+are enabled if and only if the engine can feed them. The `port-probe/` entries carry
+`blockedUpstream`, which asserts ESLint still reports and oxlint still does not. So the day upstream
+fixes this, both suites fail and say what to turn back on.
+
 ## Files that are records, not inputs
 
 `migration-details.log` (what `npx @oxlint/migrate` skipped and why) and `dep-override-files.json`
