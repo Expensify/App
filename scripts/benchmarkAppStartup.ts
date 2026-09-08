@@ -73,15 +73,15 @@ async function main(rootDirectory: string): Promise<void> {
                 required: false,
             },
             'app-path': {
-                description: 'Path to the app artifact; required with --cold on iOS',
+                description: 'Path to the app artifact; required with --cold comparison mode on iOS',
                 required: false,
             },
             'app-path-a': {
-                description: 'Path to the first benchmark artifact; required with --cold comparison mode',
+                description: 'Path to the first benchmark artifact; required with --cold comparison mode on iOS',
                 required: false,
             },
             'app-path-b': {
-                description: 'Path to the second benchmark artifact; required with --cold comparison mode',
+                description: 'Path to the second benchmark artifact; required with --cold comparison mode on iOS',
                 required: false,
             },
             output: {
