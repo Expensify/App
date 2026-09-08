@@ -99,7 +99,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
-    const hasCreatedEmptyWorkspaceContent = useRef(false);
+    const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -209,9 +209,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             return;
         }
 
-        if (!hasCreatedEmptyWorkspaceContent.current) {
-            hasCreatedEmptyWorkspaceContent.current = true;
-            const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        if (companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
+            createdEmptyWorkspaceContentDomains.current.add(companyDomain);
             createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat);
         }
         returnToOriginReport();
