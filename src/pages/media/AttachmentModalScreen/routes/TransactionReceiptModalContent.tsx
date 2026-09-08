@@ -443,7 +443,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
+                return applyDurableReceipt(imageUriResult, croppedFilename, file, true).then(() => {
                     setIsCropSaving(false);
                     exitCropMode();
                 });
