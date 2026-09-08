@@ -256,7 +256,8 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
-        const activeLocale = preferredLocale ?? IntlStore.getCurrentLocale();
+        // Not the NVP alone: `translate` falls back to the committed locale when the chunk is missing while `Intl` still honours the request, mixing languages within one name.
+        const activeLocale = preferredLocale && IntlStore.hasLocale(preferredLocale) ? preferredLocale : IntlStore.getCurrentLocale();
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(activeLocale, path, ...parameters);
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
         // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
@@ -317,9 +318,7 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
-        // Report names are locale-dependent, so a locale change needs a full recompute, but only once the new chunk has
-        // landed. Comparing against the stored locale skips the no-op first load, and `hasLocale` skips the NVP write and the
-        // loading-flag tick, which would both recompute every name in the language the user just left.
+        // Comparing against the stored locale holds off during the load window, where recomputing would rewrite every name in the language the user just left.
         const needsFullRecompute =
             ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&
                 activeLocale !== currentValue?.locale &&
