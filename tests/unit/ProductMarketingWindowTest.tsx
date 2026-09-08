@@ -327,6 +327,101 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
     });
 
+    it.each([false, true])('hides marketing before delegate/loading updates during Copilot entry (first session: %s)', async (isFirstSession) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: !isFirstSession});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+
+        // ConnectAsDelegate changes the session before loading and delegatedAccess are updated.
+        // Preserve the still-eligible owner policy/login to exercise that intermediate render.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: USER_EMAIL}});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, {});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('keeps the original session eligible when a failed Copilot connection leaves a stashed session', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {errorFields: {connect: {[SECOND_USER_EMAIL]: {1: 'Connection failed'}}}}});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it('does not latch onboarding from the destination during the pre-delegate transition gap', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
     it('does not latch incomplete onboarding observed while acting as a copilot', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
