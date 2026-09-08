@@ -1,22 +1,14 @@
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
+import {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 
 import useContainerWidth from '@hooks/useContainerWidth';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {BAR_HEIGHT, ICON_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from '@pages/home/common/widgetSkeletonRow';
-
-import variables from '@styles/variables';
+import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowButton, WidgetSkeletonRowIcon} from '@pages/home/common/widgetSkeletonRow';
 
 import {View} from 'react-native';
-
-// BaseWidgetItem renders its CTA button at `BUTTON_SIZE.SMALL`.
-const BUTTON_WIDTH = variables.widgetItemButtonMinWidth;
-const BUTTON_HEIGHT = variables.componentSizeSmall;
-// The real button's `buttonBorderRadius` is 100, which CSS clamps proportionally down to a stadium.
-// SVG clamps `rx` and `ry` independently, so that same 100 would draw an ellipse.
-const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 
 // Matches the design mockup for this card.
 const ROW_COUNT = 3;
@@ -29,7 +21,7 @@ function ForYouSkeleton() {
     const {iconTextGap, rowHeight, horizontalPadding} = useWidgetSkeletonRowGeometry();
 
     const renderSkeletonItem = () => {
-        const titleX = horizontalPadding + ICON_SIZE + iconTextGap;
+        const titleX = horizontalPadding + ICON_SLOT_SIZE + iconTextGap;
 
         return (
             <>
@@ -42,11 +34,10 @@ function ForYouSkeleton() {
                     width={TITLE_BAR_WIDTH}
                     height={BAR_HEIGHT}
                 />
-                <SkeletonRect
-                    transform={[{translateX: pageWidth - horizontalPadding - BUTTON_WIDTH}, {translateY: (rowHeight - BUTTON_HEIGHT) / 2}]}
-                    width={BUTTON_WIDTH}
-                    height={BUTTON_HEIGHT}
-                    borderRadius={BUTTON_BORDER_RADIUS}
+                <WidgetSkeletonRowButton
+                    cardWidth={pageWidth}
+                    horizontalPadding={horizontalPadding}
+                    rowHeight={rowHeight}
                 />
             </>
         );
@@ -54,7 +45,7 @@ function ForYouSkeleton() {
 
     return (
         <View
-            style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
+            style={styles.getWidgetRowGroupStyle(shouldUseNarrowLayout)}
             onLayout={onLayout}
         >
             <ItemListSkeletonView

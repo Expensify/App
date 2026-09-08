@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
-import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
+import SkeletonTextLine, {BAR_HEIGHT} from '@components/Skeletons/SkeletonTextLine';
 import WidgetContainer from '@components/WidgetContainer';
 
 import useContainerWidth from '@hooks/useContainerWidth';
@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -17,11 +18,11 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import {BAR_HEIGHT, ICON_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from './common/widgetSkeletonRow';
+import {ICON_SLOT_SIZE, useWidgetSkeletonRowGeometry, WidgetSkeletonRowIcon} from './common/widgetSkeletonRow';
 
 // The stacked pair of text lines the two-bar rows stand in for: a merchant line over a muted label line.
-const FIRST_LINE_HEIGHT = variables.fontSizeNormalHeight;
-const SECOND_LINE_HEIGHT = variables.lineHeightNormal;
+const FIRST_LINE_HEIGHT = lineHeightScale.text;
+const SECOND_LINE_HEIGHT = lineHeightScale.label;
 const TITLE_LINE_HEIGHT = variables.widgetHeaderTitleLineHeight;
 const TRAILING_BAR_WIDTH = 68;
 const TRAILING_SUB_BAR_WIDTH = 40;
@@ -31,17 +32,13 @@ const LOWER_BAR_WIDTH = 80;
 // The chart this stands in for holds its own loading spinner at exactly this height.
 const SPINNER_CARD_HEIGHT = CHART_CONTENT_MIN_HEIGHT;
 const ROWS_PER_LIST_CARD = 3;
-const ROWS_PER_TABLE_CARD = 5;
+const ROWS_PER_TABLE_CARD = CONST.HOME.SECTION_VISIBLE_LIMIT;
 
 const CARD_TEST_ID = 'homePageSkeletonCard';
 const SPINNER_TEST_ID = 'homePageSkeletonSpinner';
 
-// Two widths, so stacked rows read as separate rows rather than one block.
+// Two widths alternating down the card, so stacked rows read as separate rows rather than one block.
 const TWO_BAR_ROW_BAR_WIDTHS = [140, 110] as const;
-
-function getAlternatingBarWidth(widths: readonly [number, number], itemIndex: number) {
-    return itemIndex % 2 === 0 ? widths[0] : widths[1];
-}
 
 type SkeletonRowArgs = {
     /** Index of the row inside its card */
@@ -66,7 +63,7 @@ function getStackedBarOffsets(rowHeight: number, textLineGap: number) {
 }
 
 function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextGap, textLineGap}: SkeletonRowArgs) {
-    const textX = horizontalPadding + ICON_SIZE + iconTextGap;
+    const textX = horizontalPadding + ICON_SLOT_SIZE + iconTextGap;
     const {upperBarY, lowerBarY} = getStackedBarOffsets(rowHeight, textLineGap);
 
     return (
@@ -77,7 +74,7 @@ function renderIconTwoBarRow({itemIndex, horizontalPadding, rowHeight, iconTextG
             />
             <SkeletonRect
                 transform={[{translateX: textX}, {translateY: upperBarY}]}
-                width={getAlternatingBarWidth(TWO_BAR_ROW_BAR_WIDTHS, itemIndex)}
+                width={TWO_BAR_ROW_BAR_WIDTHS[itemIndex % TWO_BAR_ROW_BAR_WIDTHS.length]}
                 height={BAR_HEIGHT}
             />
             <SkeletonRect
@@ -111,7 +108,6 @@ function renderIconTwoBarWithTrailingRow(args: SkeletonRowArgs) {
 }
 
 type HomePageSkeletonCardProps = {
-    /** How many skeleton rows the card renders */
     numRows: number;
 
     /** Draws the skeleton shapes for a single row from the geometry measured off the card */

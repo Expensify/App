@@ -1,5 +1,5 @@
-import type {ViewStyle} from 'react-native';
+import type ScrollbarGutterStableStyles from './types';
 
-const scrollbarGutterStable = {scrollbarGutter: 'stable'} as ViewStyle;
+const scrollbarGutterStable: ScrollbarGutterStableStyles = {scrollbarGutter: 'stable'};
 
 export default scrollbarGutterStable;

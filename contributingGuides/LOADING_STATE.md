@@ -47,6 +47,7 @@ Each hook maps to a **group**, which means a set of API commands that count as p
 - `useIsOnlineAppLoadPending()`: the same, except an `OpenApp` still queued from while the device was offline does not count.
 - `useIsReportLoadPending(reportID)`: an `OpenReport` or its deferred updates are pending for that report.
 - `useIsLoadingBarPending()` / `useLoadingBarVisibility()`: a command relevant to the top-of-screen loading bar is active. Persisted requests that started offline are excluded, and the visible bar also requires the app to be online.
+- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. The state also reports why, for tests and diagnostics. Visibility additionally requires `useShouldWaitForAppLoad()`, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
 
 The screen still decides what to render. It can combine the hook result with offline state, cached-data readiness, or first-load state. For example:
 
@@ -65,6 +66,8 @@ const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
 ```
 
 The request remains pending while offline, but a full-page loader cannot finish until the app reconnects. The screen therefore suppresses this loader and shows cached data. Keep this presentation choice at the call site.
+
+When several call sites want the same choice, name it once as a second hook beside the base one rather than folding the condition into the base hook or repeating the expression. `useLoadingBarVisibility` and `useAppLoadSkeletonVisibility` are the two that exist. The base hooks stay exported, so a surface that wants a different presentation still has one.
 
 ## The deferred-update bridge
 
@@ -121,7 +124,7 @@ The `appLoad` group contains `OpenApp` only, **not** `ReconnectApp`. It models t
 
 Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in `src/libs/API/index.ts`). `API.read` and `API.makeRequestWithSideEffects` run straight through the middleware chain and are **never** written to `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` (see [where a request does not hit disk](SEQUENTIAL_QUEUE.md#where-the-request-actually-hits-disk-and-where-it-doesnt)). A hook that watched the queue for a READ or side-effect command would return `false` while the request runs. The skeleton would never show.
 
-The registry encodes this in the type system rather than relying on a comment: each command list is typed `WriteCommand[]`, so a READ command in a group is a compile error. Keep it that way.
+The registry encodes this in the type system rather than relying on a comment: each group's command `Set` is built from an array literal marked `satisfies WriteCommand[]`, so a READ command in a group is a compile error. Keep it that way.
 
 "WRITE" means the API function, not whether the command changes server data. `SIDE_EFFECT_REQUEST_COMMANDS` in `src/libs/API/types.ts` holds mutating commands such as `LockAccount`, `SetVacationDelegate`, and `CompleteGuidedSetup`. They go through `API.makeRequestWithSideEffects` because the caller needs the response, so they never reach the queue and cannot back a queue-derived skeleton. Use the terminal-state pattern for them.
 

@@ -1,7 +1,7 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
-import {useAppLoadSkeletonState, useShouldWaitForAppLoad} from '@hooks/useInFlightRequests';
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -43,8 +43,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
-    const shouldWaitForAppLoad = useShouldWaitForAppLoad();
+    const isInitialLoad = useAppLoadSkeletonVisibility({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -226,10 +225,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     // bottom padding.
     const hasBodyContent = isInitialLoad ? shouldShowSkeletonBody : timeSensitiveItems.length > 0 || visibleForYouRows.length > 0 || showEmptyState;
 
-    // The Concierge copy renders correctly from cache, so it must not stay blanked for as long as the device is
-    // offline. The body shimmer has nothing cached to fall back on.
-    const isConciergeCopyLoading = isInitialLoad && shouldWaitForAppLoad;
-
     // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
@@ -238,7 +233,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
                     setIsMenuVisible={setIsConciergeMenuVisible}
-                    isCopyLoading={isConciergeCopyLoading}
+                    isCopyLoading={isInitialLoad}
                 />
             }
         >

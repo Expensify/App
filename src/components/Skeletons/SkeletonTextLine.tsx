@@ -36,3 +36,4 @@ function SkeletonTextLine({lineHeight, barWidth}: SkeletonTextLineProps) {
 }
 
 export default SkeletonTextLine;
+export {BAR_HEIGHT};

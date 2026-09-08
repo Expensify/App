@@ -55,8 +55,8 @@ type PendingRequestGroupConfig = {
 // would make full-page loaders show during background reconnects (coming back online, update-gap sync), where
 // the old flag stayed false. The top LoadingBar, which does show during reconnects, uses LOADING_BAR_COMMANDS.
 const APP_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP] satisfies WriteCommand[]);
-const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
-const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
+const REPORT_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT] satisfies WriteCommand[]);
+const LOADING_BAR_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION] satisfies WriteCommand[]);
 
 const PENDING_REQUEST_GROUPS = {
     appLoad: {
@@ -68,11 +68,11 @@ const PENDING_REQUEST_GROUPS = {
         ignoreOfflineInitiatedPersisted: true,
     },
     reportLoad: {
-        commands: new Set<string>(REPORT_LOAD_COMMANDS),
+        commands: REPORT_LOAD_COMMANDS,
         getScopeKey: (request) => (typeof request.data?.reportID === 'string' ? request.data.reportID : undefined),
     },
     loadingBar: {
-        commands: new Set<string>(LOADING_BAR_COMMANDS),
+        commands: LOADING_BAR_COMMANDS,
         ignoreOfflineInitiatedPersisted: true,
     },
 } satisfies Record<string, PendingRequestGroupConfig>;
@@ -196,6 +196,16 @@ function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReport
 }
 
 /**
+ * Whether the initial app skeleton should be visible: the app load gate is open and that load can still resolve.
+ */
+function useAppLoadSkeletonVisibility({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}): boolean {
+    const {shouldShowSkeleton} = useAppLoadSkeletonState({isLoadingReportData});
+    const shouldWaitForAppLoad = useShouldWaitForAppLoad();
+
+    return shouldShowSkeleton && shouldWaitForAppLoad;
+}
+
+/**
  * Whether an OpenReport request or its deferred Onyx updates are pending for this report.
  *
  * `undefined` returns false, so callers can pass an optional reportID without a fallback value.
@@ -242,4 +252,13 @@ function useLoadingBarVisibility(): boolean {
     return !isOffline && hasPendingLoadingBarRequest;
 }
 
-export {useIsAppLoadPending, useIsOnlineAppLoadPending, useShouldWaitForAppLoad, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
+export {
+    useIsAppLoadPending,
+    useIsOnlineAppLoadPending,
+    useShouldWaitForAppLoad,
+    useAppLoadSkeletonState,
+    useAppLoadSkeletonVisibility,
+    useIsReportLoadPending,
+    useIsLoadingBarPending,
+    useLoadingBarVisibility,
+};

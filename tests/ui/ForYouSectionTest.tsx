@@ -24,6 +24,7 @@ import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockHasLoadedAppStatus: 'loading' | 'loaded' = 'loaded';
+let mockIsOffline = false;
 
 jest.mock('@hooks/useOnyx', () => {
     const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
@@ -47,9 +48,11 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@hooks/useTodoCounts', () => jest.fn());
 
+// `useNetwork` reads this through `useSyncExternalStore` without a notification, so set it before the render
+// under test rather than after.
 jest.mock('@libs/NetworkState', () => ({
     ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
-    getIsOffline: () => true,
+    getIsOffline: () => mockIsOffline,
 }));
 
 jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
@@ -257,6 +260,7 @@ describe('ForYouSection', () => {
 
     beforeEach(async () => {
         mockHasLoadedAppStatus = 'loaded';
+        mockIsOffline = false;
         mockIsFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
@@ -408,7 +412,8 @@ describe('ForYouSection', () => {
             expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
         });
 
-        it('preserves the cold load skeleton for an OpenApp request initiated offline', async () => {
+        it('drops both skeletons for an OpenApp initiated offline', async () => {
+            mockIsOffline = true;
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
@@ -419,27 +424,28 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
-        });
-
-        it('drops the Concierge copy skeleton, but not the body skeleton, for an OpenApp initiated offline', async () => {
-            await setAppLoadState({
-                hasLoadedApp: false,
-                isLoadingApp: false,
-                isLoadingReportData: false,
-                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
-            });
-
-            renderForYouSection();
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
             expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
         });
 
-        // The counterpart to the case above: this harness runs offline throughout, so without the "did this load
-        // ever reach the network" half of the condition the bars would never show at all.
-        it('keeps the Concierge copy skeleton while an OpenApp queued online is pending', async () => {
+        it('drops both skeletons on an offline restart with a stranded loading flag and no request', async () => {
+            mockIsOffline = true;
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: true,
+                isLoadingReportData: false,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('keeps both skeletons while an OpenApp queued online is pending', async () => {
+            mockIsOffline = true;
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
@@ -450,6 +456,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
             expect(screen.getByTestId('concierge-copy-skeleton')).toBeOnTheScreen();
         });
     });

@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useAppLoadSkeletonState, useShouldWaitForAppLoad} from '@hooks/useInFlightRequests';
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -44,11 +44,7 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
     const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
-    const {shouldShowSkeleton} = useAppLoadSkeletonState();
-    // The skeleton carries the same offline guard through useShouldWaitForAppLoad, which reports false once
-    // the device is offline with no OpenApp that ever reached the network to resolve it.
-    const shouldWaitForAppLoad = useShouldWaitForAppLoad();
-    const shouldShowHomeSkeleton = shouldShowSkeleton && shouldWaitForAppLoad;
+    const shouldShowHomeSkeleton = useAppLoadSkeletonVisibility();
     const receiptDropTargetRef = useRef<View>(null);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that

@@ -6965,7 +6965,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),

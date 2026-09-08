@@ -33,7 +33,6 @@ import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportAc
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
 import {lineHeightScale} from '@styles/typography';
-import variables from '@styles/variables';
 
 import {close} from '@userActions/Modal';
 import {saveConciergePromptDraft} from '@userActions/Report';
@@ -54,13 +53,13 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
 const MAX_INPUT_LINES = 5;
 
-// A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
-const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
-
 const DATE_LINE_HEIGHT = lineHeightScale.label;
 const GREETING_LINE_HEIGHT = lineHeightScale.h1;
 // The scale token carrying the composer's own line height (`textInputCompose`), which is what the bar stands in for.
 const PLACEHOLDER_LINE_HEIGHT = lineHeightScale.pageHeader;
+
+// A single line of placeholder text is one placeholder line height tall. Anything meaningfully taller has wrapped.
+const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = PLACEHOLDER_LINE_HEIGHT * 1.5;
 
 // Bar widths approximating the copy each one stands in for.
 const DATE_BAR_WIDTH = 120;
