@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import memoize, {equivalentArgsComparator} from '@libs/memoize';
@@ -7,7 +8,7 @@ import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -123,6 +124,41 @@ function clearPersonalDetailOptionsCache() {
 // The cached options describe the signed-in account's contacts.
 registerSessionCleanupCallback(clearPersonalDetailOptionsCache);
 
+type BuildOptionsDataParams = {
+    accountID: number;
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    includeLoginsOnly: Set<string> | undefined;
+    reports: OnyxCollection<Report>;
+    reportAttributes: FilteredReportAttributes | undefined;
+    reportNameValuePairs: PrivateIsArchivedMap | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate: LocaleContextProps['translate'];
+    shouldStoreReportErrors: boolean;
+    shouldShowBrickRoadIndicator: boolean;
+};
+
+/** Turns the Onyx values into the options list. */
+function buildOptionsData({
+    accountID,
+    allPersonalDetails,
+    includeLoginsOnly,
+    reports,
+    reportAttributes,
+    reportNameValuePairs,
+    formatPhoneNumber,
+    translate,
+    shouldStoreReportErrors,
+    shouldShowBrickRoadIndicator,
+}: BuildOptionsDataParams) {
+    const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
+    const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
+
+    return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
+        shouldStoreReportErrors,
+        shouldShowBrickRoadIndicator,
+    });
+}
+
 /**
  * Hook that provides options list for personal details.
  *
@@ -158,19 +194,20 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
 
     // The whole derivation chain is skipped while loading (or disabled), so a consumer that only holds the Onyx
     // subscriptions doesn't rebuild these maps on every collection update.
-    const optionsData = (() => {
-        if (isLoading) {
-            return undefined;
-        }
-
-        const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
-        const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
-
-        return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
-            shouldStoreReportErrors,
-            shouldShowBrickRoadIndicator,
-        });
-    })();
+    const optionsData = isLoading
+        ? undefined
+        : buildOptionsData({
+              accountID,
+              allPersonalDetails,
+              includeLoginsOnly,
+              reports,
+              reportAttributes,
+              reportNameValuePairs,
+              formatPhoneNumber,
+              translate,
+              shouldStoreReportErrors,
+              shouldShowBrickRoadIndicator,
+          });
 
     return {
         options: optionsData?.options,
