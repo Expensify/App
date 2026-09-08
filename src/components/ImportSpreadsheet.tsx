@@ -120,12 +120,12 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             })
                             .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
+                    // cellDates is only set on the binary read: it turns date-formatted cells into Date objects instead of Excel serial
+                    // numbers. The text read above keeps raw: true so CSV values are passed through untouched.
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        // cellDates is only set on the binary read: it turns date-formatted cells into Date objects instead of Excel serial
-                        // numbers. The text read above keeps raw: true so CSV values are passed through untouched.
                         .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true, cellDates: true}));
                 };
                 readWorkbook()
