@@ -27,6 +27,7 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
@@ -883,11 +884,22 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
         API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
     });
     NetworkStore.setLastShortAuthToken(authToken);
-    if (exitTo) {
-        // exitTo is a path the navigator produced, so it is always a valid route.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        handleExitToNavigation(exitTo as Route, credentials.login);
+    if (!exitTo) {
+        return;
     }
+
+    const login = credentials.login;
+    waitForUserSignIn().then(() => {
+        // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
+        if (login && deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+            return;
+        }
+        Navigation.waitForProtectedRoutes().then(() => {
+            // Rebuilt like a cold start restore of this path, and the navigator only ever produced valid routes.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
+        });
+    });
 }
 
 /**
@@ -1559,12 +1571,8 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
-function handleExitToNavigation(exitTo: Route, login?: string) {
+function handleExitToNavigation(exitTo: Route) {
     waitForUserSignIn().then(() => {
-        // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
-        if (login && deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
-            return;
-        }
         Navigation.waitForProtectedRoutes().then(() => {
             Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
             Navigation.navigate(exitTo, {waitForTransition: true});

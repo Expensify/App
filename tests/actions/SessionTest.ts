@@ -12,7 +12,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
@@ -902,17 +902,18 @@ describe('Session', () => {
             expect(session?.signedInWithSAML).toBe(false);
         });
 
-        test('signInWithShortLivedAuthToken navigates to exitTo once the same login is signed in', async () => {
+        test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
             await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
-            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
             SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
-            expect(navigateSpy).toHaveBeenCalledWith('/search?q=status:outstanding', {waitForTransition: true});
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            expect(resetRootSpy).toHaveBeenCalledWith(expect.objectContaining({stale: true, routes: expect.any(Array)}));
             jest.restoreAllMocks();
         });
 
@@ -921,12 +922,12 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
-            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
             SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
-            expect(navigateSpy).not.toHaveBeenCalled();
+            expect(resetRootSpy).not.toHaveBeenCalled();
             jest.restoreAllMocks();
         });
     });
