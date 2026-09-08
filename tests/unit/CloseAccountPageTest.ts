@@ -2,8 +2,13 @@ import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneO
 
 import CONST from '@src/CONST';
 import {shouldBlockCloseAccountAction} from '@src/pages/settings/Security/CloseAccount/CloseAccountValidateCodePage';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
+
+import createRandomPolicy from '../utils/collections/policies';
 
 const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string, countryCode?: number) => {
     const errors: {phoneOrEmail?: string} = {};
@@ -32,17 +37,19 @@ describe('CloseAccountPage Validation', () => {
 
     describe('RuleBot guard validation', () => {
         it('Should block closing when the account is still enforcing a workspace RuleBot policy', () => {
-            const policies = {
-                1: {
-                    id: '1',
+            const policy = createRandomPolicy(1);
+            const policies: OnyxCollection<Policy> = {
+                policy1: {
+                    ...policy,
                     ruleBotAccountID: 42,
                     rules: {
+                        ...policy.rules,
                         agentRules: {
-                            rule1: {title: 'RuleBot rule', prompt: 'RuleBot rule'},
+                            rule1: {ruleID: 'rule1', title: 'RuleBot rule', prompt: 'RuleBot rule', created: '2025-01-01 00:00:00'},
                         },
                     },
                 },
-            } as any;
+            };
 
             expect(shouldBlockCloseAccountAction(42, policies, 'Leaving')).toBe(true);
             expect(shouldBlockCloseAccountAction(99, policies, 'Leaving')).toBe(false);
