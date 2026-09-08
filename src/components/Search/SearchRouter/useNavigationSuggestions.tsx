@@ -44,6 +44,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -394,7 +395,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams),
+        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
