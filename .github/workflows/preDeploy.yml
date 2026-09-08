@@ -30,7 +30,7 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true
@@ -49,7 +49,7 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true

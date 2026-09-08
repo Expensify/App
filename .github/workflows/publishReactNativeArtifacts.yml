@@ -51,7 +51,7 @@ jobs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
     steps:
       - name: Checkout
-        # v1
+        # v1.6.0
         uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815
         with:
           allow-inside-container: true

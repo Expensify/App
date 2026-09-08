@@ -22,7 +22,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true
@@ -48,7 +48,7 @@ jobs:
 
       - name: Checkout repository
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true

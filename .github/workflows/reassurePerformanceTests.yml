@@ -12,7 +12,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout baseline branch
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true
@@ -46,7 +46,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true
@@ -75,7 +75,7 @@ jobs:
     needs: [baseline-perf-tests, branch-perf-tests]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true

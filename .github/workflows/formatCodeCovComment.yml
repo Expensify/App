@@ -13,7 +13,7 @@ jobs:
     if: github.event.issue.pull_request && github.event.comment.user.login == 'codecov[bot]'
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
         with:
           allow-inside-container: true
           dissociate: true
