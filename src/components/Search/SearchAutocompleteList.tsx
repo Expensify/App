@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -76,7 +77,6 @@ type SearchAutocompleteListProps = {
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
 
-    /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
@@ -91,7 +91,6 @@ type SearchAutocompleteListProps = {
 
     /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
     autocompleteSubstitutions?: SubstitutionMap;
-    /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 
@@ -180,6 +179,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -255,6 +255,7 @@ function SearchAutocompleteList({
         }
         return getSearchOptions({
             dateFnsLocale,
+            convertToDisplayString,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -296,6 +297,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         dateFnsLocale,
+        convertToDisplayString,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
