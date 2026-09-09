@@ -1422,6 +1422,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 delegateAccountID: DELEGATE_ACCOUNT_ID,
+                conciergeChat: conciergeChatReport,
             });
 
             const commentActions = (result?.optimisticData ?? [])
