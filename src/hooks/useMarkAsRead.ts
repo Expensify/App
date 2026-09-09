@@ -41,6 +41,9 @@ type UseMarkAsReadParams = {
 
     /** Identifies the list surface consuming the hook; concurrent surfaces must use distinct scopes */
     scopeKey?: string;
+
+    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    shouldRequireScreenFocus?: boolean;
 };
 
 type UseMarkAsReadResult = {
@@ -59,6 +62,7 @@ function useMarkAsRead({
     isScrolledToEnd,
     hasNewerActions,
     scopeKey = 'default',
+    shouldRequireScreenFocus = false,
 }: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -120,6 +124,10 @@ function useMarkAsRead({
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportIDByScope.get(scopeKey)) {
+            return;
+        }
+
+        if (shouldRequireScreenFocus && !isFocused) {
             return;
         }
 

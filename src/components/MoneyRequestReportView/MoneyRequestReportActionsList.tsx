@@ -314,6 +314,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
         scopeKey: 'moneyRequestReport',
+        shouldRequireScreenFocus: true,
     });
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
