@@ -76,6 +76,7 @@ const mockReactionListContextValue = {
 };
 const screenWrapperStatusContextValue = {
     didScreenTransitionEnd: true,
+    shouldUseNarrowLayoutOnWideRHP: false,
     isSafeAreaTopPaddingApplied: false,
     isSafeAreaBottomPaddingApplied: false,
 };
