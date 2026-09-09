@@ -21903,11 +21903,12 @@ var require_browser = __commonJS({
 var require_has_flag = __commonJS({
   "node_modules/has-flag/index.js"(exports, module) {
     "use strict";
-    module.exports = (flag, argv = process.argv) => {
+    module.exports = (flag, argv) => {
+      argv = argv || process.argv;
       const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
-      const position = argv.indexOf(prefix + flag);
-      const terminatorPosition = argv.indexOf("--");
-      return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+      const pos = argv.indexOf(prefix + flag);
+      const terminatorPos = argv.indexOf("--");
+      return pos !== -1 && (terminatorPos === -1 ? true : pos < terminatorPos);
     };
   }
 });
@@ -21917,25 +21918,16 @@ var require_supports_color = __commonJS({
   "node_modules/supports-color/index.js"(exports, module) {
     "use strict";
     var os5 = __require("os");
-    var tty = __require("tty");
     var hasFlag = require_has_flag();
-    var { env } = process;
-    var flagForceColor;
-    if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false") || hasFlag("color=never")) {
-      flagForceColor = 0;
+    var env = process.env;
+    var forceColor;
+    if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false")) {
+      forceColor = false;
     } else if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
-      flagForceColor = 1;
+      forceColor = true;
     }
-    function envForceColor() {
-      if ("FORCE_COLOR" in env) {
-        if (env.FORCE_COLOR === "true") {
-          return 1;
-        }
-        if (env.FORCE_COLOR === "false") {
-          return 0;
-        }
-        return env.FORCE_COLOR.length === 0 ? 1 : Math.min(Number.parseInt(env.FORCE_COLOR, 10), 3);
-      }
+    if ("FORCE_COLOR" in env) {
+      forceColor = env.FORCE_COLOR.length === 0 || parseInt(env.FORCE_COLOR, 10) !== 0;
     }
     function translateLevel(level) {
       if (level === 0) {
@@ -21948,39 +21940,29 @@ var require_supports_color = __commonJS({
         has16m: level >= 3
       };
     }
-    function supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
-      const noFlagForceColor = envForceColor();
-      if (noFlagForceColor !== void 0) {
-        flagForceColor = noFlagForceColor;
-      }
-      const forceColor = sniffFlags ? flagForceColor : noFlagForceColor;
-      if (forceColor === 0) {
+    function supportsColor(stream) {
+      if (forceColor === false) {
         return 0;
       }
-      if (sniffFlags) {
-        if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
-          return 3;
-        }
-        if (hasFlag("color=256")) {
-          return 2;
-        }
+      if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
+        return 3;
       }
-      if (haveStream && !streamIsTTY && forceColor === void 0) {
+      if (hasFlag("color=256")) {
+        return 2;
+      }
+      if (stream && !stream.isTTY && forceColor !== true) {
         return 0;
       }
-      const min = forceColor || 0;
-      if (env.TERM === "dumb") {
-        return min;
-      }
+      const min = forceColor ? 1 : 0;
       if (process.platform === "win32") {
         const osRelease = os5.release().split(".");
-        if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
+        if (Number(process.versions.node.split(".")[0]) >= 8 && Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
           return Number(osRelease[2]) >= 14931 ? 3 : 2;
         }
         return 1;
       }
       if ("CI" in env) {
-        if (["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI", "GITHUB_ACTIONS", "BUILDKITE", "DRONE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
+        if (["TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
           return 1;
         }
         return min;
@@ -21992,7 +21974,7 @@ var require_supports_color = __commonJS({
         return 3;
       }
       if ("TERM_PROGRAM" in env) {
-        const version = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
+        const version = parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
         switch (env.TERM_PROGRAM) {
           case "iTerm.app":
             return version >= 3 ? 3 : 2;
@@ -22009,19 +21991,19 @@ var require_supports_color = __commonJS({
       if ("COLORTERM" in env) {
         return 1;
       }
+      if (env.TERM === "dumb") {
+        return min;
+      }
       return min;
     }
-    function getSupportLevel(stream, options = {}) {
-      const level = supportsColor(stream, {
-        streamIsTTY: stream && stream.isTTY,
-        ...options
-      });
+    function getSupportLevel(stream) {
+      const level = supportsColor(stream);
       return translateLevel(level);
     }
     module.exports = {
       supportsColor: getSupportLevel,
-      stdout: getSupportLevel({ isTTY: tty.isatty(1) }),
-      stderr: getSupportLevel({ isTTY: tty.isatty(2) })
+      stdout: getSupportLevel(process.stdout),
+      stderr: getSupportLevel(process.stderr)
     };
   }
 });
@@ -22211,9 +22193,9 @@ var require_src = __commonJS({
   }
 });
 
-// node_modules/gaxios/node_modules/https-proxy-agent/node_modules/agent-base/dist/helpers.js
+// node_modules/gaxios/node_modules/agent-base/dist/helpers.js
 var require_helpers = __commonJS({
-  "node_modules/gaxios/node_modules/https-proxy-agent/node_modules/agent-base/dist/helpers.js"(exports) {
+  "node_modules/gaxios/node_modules/agent-base/dist/helpers.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -22281,9 +22263,9 @@ var require_helpers = __commonJS({
   }
 });
 
-// node_modules/gaxios/node_modules/https-proxy-agent/node_modules/agent-base/dist/index.js
+// node_modules/gaxios/node_modules/agent-base/dist/index.js
 var require_dist2 = __commonJS({
-  "node_modules/gaxios/node_modules/https-proxy-agent/node_modules/agent-base/dist/index.js"(exports) {
+  "node_modules/gaxios/node_modules/agent-base/dist/index.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;
@@ -22727,9 +22709,9 @@ var init_dist = __esm({
   }
 });
 
-// node_modules/fetch-blob/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js
+// node_modules/web-streams-polyfill/dist/ponyfill.es2018.js
 var require_ponyfill_es2018 = __commonJS({
-  "node_modules/fetch-blob/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports, module) {
+  "node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports, module) {
     (function(global2, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.WebStreamsPolyfill = {}));
     })(exports, (function(exports2) {
@@ -32448,9 +32430,9 @@ var require_crypto3 = __commonJS({
   }
 });
 
-// node_modules/ecdsa-sig-formatter/node_modules/safe-buffer/index.js
+// node_modules/safe-buffer/index.js
 var require_safe_buffer = __commonJS({
-  "node_modules/ecdsa-sig-formatter/node_modules/safe-buffer/index.js"(exports, module) {
+  "node_modules/safe-buffer/index.js"(exports, module) {
     var buffer = __require("buffer");
     var Buffer4 = buffer.Buffer;
     function copyProps(src, dst) {
@@ -34080,67 +34062,10 @@ var require_envDetect = __commonJS({
   }
 });
 
-// node_modules/jws/node_modules/safe-buffer/index.js
-var require_safe_buffer2 = __commonJS({
-  "node_modules/jws/node_modules/safe-buffer/index.js"(exports, module) {
-    var buffer = __require("buffer");
-    var Buffer4 = buffer.Buffer;
-    function copyProps(src, dst) {
-      for (var key in src) {
-        dst[key] = src[key];
-      }
-    }
-    if (Buffer4.from && Buffer4.alloc && Buffer4.allocUnsafe && Buffer4.allocUnsafeSlow) {
-      module.exports = buffer;
-    } else {
-      copyProps(buffer, exports);
-      exports.Buffer = SafeBuffer;
-    }
-    function SafeBuffer(arg, encodingOrOffset, length) {
-      return Buffer4(arg, encodingOrOffset, length);
-    }
-    copyProps(Buffer4, SafeBuffer);
-    SafeBuffer.from = function(arg, encodingOrOffset, length) {
-      if (typeof arg === "number") {
-        throw new TypeError("Argument must not be a number");
-      }
-      return Buffer4(arg, encodingOrOffset, length);
-    };
-    SafeBuffer.alloc = function(size, fill, encoding) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      var buf = Buffer4(size);
-      if (fill !== void 0) {
-        if (typeof encoding === "string") {
-          buf.fill(fill, encoding);
-        } else {
-          buf.fill(fill);
-        }
-      } else {
-        buf.fill(0);
-      }
-      return buf;
-    };
-    SafeBuffer.allocUnsafe = function(size) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return Buffer4(size);
-    };
-    SafeBuffer.allocUnsafeSlow = function(size) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return buffer.SlowBuffer(size);
-    };
-  }
-});
-
 // node_modules/jws/lib/data-stream.js
 var require_data_stream = __commonJS({
   "node_modules/jws/lib/data-stream.js"(exports, module) {
-    var Buffer4 = require_safe_buffer2().Buffer;
+    var Buffer4 = require_safe_buffer().Buffer;
     var Stream3 = __require("stream");
     var util = __require("util");
     function DataStream(data) {
@@ -34185,63 +34110,6 @@ var require_data_stream = __commonJS({
   }
 });
 
-// node_modules/jwa/node_modules/safe-buffer/index.js
-var require_safe_buffer3 = __commonJS({
-  "node_modules/jwa/node_modules/safe-buffer/index.js"(exports, module) {
-    var buffer = __require("buffer");
-    var Buffer4 = buffer.Buffer;
-    function copyProps(src, dst) {
-      for (var key in src) {
-        dst[key] = src[key];
-      }
-    }
-    if (Buffer4.from && Buffer4.alloc && Buffer4.allocUnsafe && Buffer4.allocUnsafeSlow) {
-      module.exports = buffer;
-    } else {
-      copyProps(buffer, exports);
-      exports.Buffer = SafeBuffer;
-    }
-    function SafeBuffer(arg, encodingOrOffset, length) {
-      return Buffer4(arg, encodingOrOffset, length);
-    }
-    copyProps(Buffer4, SafeBuffer);
-    SafeBuffer.from = function(arg, encodingOrOffset, length) {
-      if (typeof arg === "number") {
-        throw new TypeError("Argument must not be a number");
-      }
-      return Buffer4(arg, encodingOrOffset, length);
-    };
-    SafeBuffer.alloc = function(size, fill, encoding) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      var buf = Buffer4(size);
-      if (fill !== void 0) {
-        if (typeof encoding === "string") {
-          buf.fill(fill, encoding);
-        } else {
-          buf.fill(fill);
-        }
-      } else {
-        buf.fill(0);
-      }
-      return buf;
-    };
-    SafeBuffer.allocUnsafe = function(size) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return Buffer4(size);
-    };
-    SafeBuffer.allocUnsafeSlow = function(size) {
-      if (typeof size !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return buffer.SlowBuffer(size);
-    };
-  }
-});
-
 // node_modules/buffer-equal-constant-time/index.js
 var require_buffer_equal_constant_time = __commonJS({
   "node_modules/buffer-equal-constant-time/index.js"(exports, module) {
@@ -34279,7 +34147,7 @@ var require_buffer_equal_constant_time = __commonJS({
 // node_modules/jwa/index.js
 var require_jwa = __commonJS({
   "node_modules/jwa/index.js"(exports, module) {
-    var Buffer4 = require_safe_buffer3().Buffer;
+    var Buffer4 = require_safe_buffer().Buffer;
     var crypto3 = __require("crypto");
     var formatEcdsa = require_ecdsa_sig_formatter();
     var util = __require("util");
@@ -34517,7 +34385,7 @@ var require_tostring = __commonJS({
 // node_modules/jws/lib/sign-stream.js
 var require_sign_stream = __commonJS({
   "node_modules/jws/lib/sign-stream.js"(exports, module) {
-    var Buffer4 = require_safe_buffer2().Buffer;
+    var Buffer4 = require_safe_buffer().Buffer;
     var DataStream = require_data_stream();
     var jwa = require_jwa();
     var Stream3 = __require("stream");
@@ -34592,7 +34460,7 @@ var require_sign_stream = __commonJS({
 // node_modules/jws/lib/verify-stream.js
 var require_verify_stream = __commonJS({
   "node_modules/jws/lib/verify-stream.js"(exports, module) {
-    var Buffer4 = require_safe_buffer2().Buffer;
+    var Buffer4 = require_safe_buffer().Buffer;
     var DataStream = require_data_stream();
     var jwa = require_jwa();
     var Stream3 = __require("stream");
@@ -39744,9 +39612,9 @@ var require_object_inspect = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/node_modules/side-channel/node_modules/side-channel-list/index.js
+// node_modules/side-channel-list/index.js
 var require_side_channel_list = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/node_modules/side-channel/node_modules/side-channel-list/index.js"(exports, module) {
+  "node_modules/side-channel-list/index.js"(exports, module) {
     "use strict";
     var inspect = require_object_inspect();
     var $TypeError = require_type();
@@ -40785,9 +40653,9 @@ var require_side_channel_weakmap = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/node_modules/side-channel/index.js
+// node_modules/side-channel/index.js
 var require_side_channel = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/node_modules/side-channel/index.js"(exports, module) {
+  "node_modules/side-channel/index.js"(exports, module) {
     "use strict";
     var $TypeError = require_type();
     var inspect = require_object_inspect();
@@ -40824,9 +40692,9 @@ var require_side_channel = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/lib/formats.js
+// node_modules/qs/lib/formats.js
 var require_formats = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/lib/formats.js"(exports, module) {
+  "node_modules/qs/lib/formats.js"(exports, module) {
     "use strict";
     var replace = String.prototype.replace;
     var percentTwenties = /%20/g;
@@ -40850,9 +40718,9 @@ var require_formats = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/lib/utils.js
+// node_modules/qs/lib/utils.js
 var require_utils2 = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/lib/utils.js"(exports, module) {
+  "node_modules/qs/lib/utils.js"(exports, module) {
     "use strict";
     var formats = require_formats();
     var has = Object.prototype.hasOwnProperty;
@@ -41055,9 +40923,9 @@ var require_utils2 = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/lib/stringify.js
+// node_modules/qs/lib/stringify.js
 var require_stringify2 = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/lib/stringify.js"(exports, module) {
+  "node_modules/qs/lib/stringify.js"(exports, module) {
     "use strict";
     var getSideChannel = require_side_channel();
     var utils = require_utils2();
@@ -41335,9 +41203,9 @@ var require_stringify2 = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/lib/parse.js
+// node_modules/qs/lib/parse.js
 var require_parse3 = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/lib/parse.js"(exports, module) {
+  "node_modules/qs/lib/parse.js"(exports, module) {
     "use strict";
     var utils = require_utils2();
     var has = Object.prototype.hasOwnProperty;
@@ -41562,9 +41430,9 @@ var require_parse3 = __commonJS({
   }
 });
 
-// node_modules/googleapis-common/node_modules/qs/lib/index.js
+// node_modules/qs/lib/index.js
 var require_lib2 = __commonJS({
-  "node_modules/googleapis-common/node_modules/qs/lib/index.js"(exports, module) {
+  "node_modules/qs/lib/index.js"(exports, module) {
     "use strict";
     var stringify = require_stringify2();
     var parse3 = require_parse3();
