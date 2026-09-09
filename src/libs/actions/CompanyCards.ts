@@ -1383,6 +1383,8 @@ function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainI
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
+    // Start from a clean record.
+    clearAssignCardStepAndData();
     setAssignCardStepAndData({
         currentStep,
         isRefreshing: true,

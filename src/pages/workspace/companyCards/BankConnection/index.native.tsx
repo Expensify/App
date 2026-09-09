@@ -224,7 +224,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         containerStyle={styles.h100}
                         shouldShowButton
                         buttonText={translate('common.buttonConfirm')}
-                        onButtonPress={handleBackButtonPress}
+                        onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
                 )}
                 {isNewFeedHasError && (

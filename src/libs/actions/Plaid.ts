@@ -152,6 +152,7 @@ function importPlaidAccounts(
     plaidAccounts: string,
     plaidAccessToken: string | undefined,
     domainAccountID?: number,
+    isRepairingFeed = false,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -179,7 +180,7 @@ function importPlaidAccounts(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isRefreshing: null, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                value: {isRefreshing: null, ...(isRepairingFeed ? {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : {})},
             },
         ],
     };
