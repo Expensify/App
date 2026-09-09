@@ -214,6 +214,13 @@ describe('NumericInput', () => {
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12');
         });
 
+        it('keeps a negative value in the input when negative values are not allowed', () => {
+            renderNumericInput({value: '-12'});
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-12');
+        });
+
         it('preserves the sign when the magnitude is edited', () => {
             renderNumericInput({value: '-12', allowNegative: true});
 

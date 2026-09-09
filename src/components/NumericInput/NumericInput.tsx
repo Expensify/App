@@ -12,7 +12,7 @@ import type {NumericInputActionsContextValue, NumericInputStateContextValue} fro
 import {NumericInputActionsContext, NumericInputStateContext} from './context';
 
 /** The composed input displays the magnitude because the sign is rendered separately. */
-const getMagnitude = (canonicalValue: string) => (canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue);
+const getMagnitude = (canonicalValue: string, allowNegative: boolean) => (allowNegative && canonicalValue.startsWith('-') ? canonicalValue.slice(1) : canonicalValue);
 
 /** Preserves the sign that is rendered outside the text input while the magnitude is edited. Clearing the display text also clears the sign. */
 const getSignedValue = (displayText: string, previousCanonicalValue: string, allowNegative: boolean) => {
@@ -54,7 +54,7 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
         allowNegative,
         decimals,
         maxLength,
-        toDisplayText: getMagnitude,
+        toDisplayText: (canonicalValue) => getMagnitude(canonicalValue, allowNegative),
         toCanonicalValue: (displayText, previousCanonicalValue) => getSignedValue(displayText, previousCanonicalValue, allowNegative),
     });
 
