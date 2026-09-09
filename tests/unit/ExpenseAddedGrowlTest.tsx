@@ -4,7 +4,7 @@ import ExpenseAddedGrowl from '@components/ExpenseAddedGrowl';
 import type GrowlNotificationContent from '@components/GrowlNotification/GrowlNotificationContent';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {navigateToCreatedExpense} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -34,9 +34,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getFocusedReportId: () => mockGetFocusedReportId(),
     getActiveRoute: () => '',
 }));
-jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => ({
-    navigateToCreatedExpense: jest.fn(),
-}));
+jest.mock('@libs/Navigation/helpers/navigateToCreatedExpense', () => jest.fn());
 jest.mock('@libs/actions/Report', () => ({
     createTransactionThreadReport: jest.fn(),
     setOptimisticTransactionThread: jest.fn(),

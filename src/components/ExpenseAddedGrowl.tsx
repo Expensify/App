@@ -6,7 +6,7 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {mergeExpenseAddedGrowlTransactionIDs} from '@libs/actions/Transaction';
 import Log from '@libs/Log';
-import {navigateToCreatedExpense} from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import navigateToCreatedExpense from '@libs/Navigation/helpers/navigateToCreatedExpense';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
