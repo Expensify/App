@@ -8375,6 +8375,7 @@ const CONST = {
         UPDATED_MERCHANT: 'updatedMerchant',
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
+        VENDOR: 'vendor',
     },
 
     IMPORT_SPREADSHEET: {
