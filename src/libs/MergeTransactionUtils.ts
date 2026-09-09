@@ -1,8 +1,6 @@
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import DateUtils from '@libs/DateUtils';
-
 import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -21,6 +19,7 @@ import type {TransactionDetails} from './ReportUtils';
 
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
