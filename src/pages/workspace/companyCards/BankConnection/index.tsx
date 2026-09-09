@@ -18,7 +18,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -130,10 +129,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
                 // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
                 if (!assignCard?.isRefreshing) {
-                    setAssignCardStepAndData({
-                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                        isEditing: false,
-                    });
+                    // The host pages only render the connection steps, so an assign flow that detoured here is not
+                    // resumed: the panel closes and the admin assigns the card again on the reconnected feed.
+                    Navigation.closeRHPFlow();
                     return;
                 }
             }
@@ -183,7 +181,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         feed,
         isFeedExpired,
         isOffline,
-        assignCard?.cardToAssign?.dateOption,
         assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
