@@ -96,9 +96,8 @@ function getCategoryTaxRuleTaxID(expenseRules: ExpenseRule[] | undefined, catego
  * Whether the workspace still has this rate, and so whether a rule holding it can be named at all.
  *
  * A category tax rule stores only an `externalID`, with no label of its own, so once the rate leaves the workspace
- * there is nothing left to resolve it from, whether it was deleted or taxes were turned off and the policy
- * re-fetched. Every surface
- * showing such a rule has to agree on that, or the table names it while the editor it opens reads empty.
+ * there is nothing left to resolve it from, whether it was deleted or taxes were turned off and the policy re-fetched.
+ * Every surface showing such a rule has to agree on that, or the table names it while the editor it opens reads empty.
  */
 function isTaxRateOnPolicy(policy: Policy | undefined, taxID: string | undefined): boolean {
     return !!taxID && !!policy?.taxRates?.taxes?.[taxID];
