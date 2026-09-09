@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -18,7 +18,6 @@ import ReportParticipantsTableRow from './ReportParticipantsTableRow';
 type ReportParticipantsTableColumnKey = 'member' | 'role' | 'actions';
 
 type ReportParticipantRowData = TableData & {
-    /** The accountID of the participant */
     accountID: number;
 
     /** The participant's login (email/phone) */
@@ -46,6 +45,9 @@ type ReportParticipantRowData = TableData & {
 type ReportParticipantsTableProps = {
     ref?: React.Ref<TableHandle<ReportParticipantRowData, ReportParticipantsTableColumnKey, string>>;
 
+    /** Optional page-level content rendered above the table header that scrolls with the rows */
+    headerComponent?: React.ReactElement;
+
     /** The rows to render in the table */
     members: ReportParticipantRowData[];
 
@@ -58,11 +60,10 @@ type ReportParticipantsTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function ReportParticipantsTable({ref, members, isGroupChat, selectionEnabled, selectedKeys, onRowSelectionChange}: ReportParticipantsTableProps) {
+export default function ReportParticipantsTable({ref, headerComponent, members, isGroupChat, selectionEnabled, selectedKeys, onRowSelectionChange}: ReportParticipantsTableProps) {
     const {translate, localeCompare} = useLocalize();
 
     const columns: Array<TableColumn<ReportParticipantsTableColumnKey>> = [
@@ -105,6 +106,8 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
         />
     );
 
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('selectionList.findMember')} />);
+
     return (
         <Table
             ref={ref}
@@ -121,7 +124,7 @@ export default function ReportParticipantsTable({ref, members, isGroupChat, sele
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('selectionList.findMember')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

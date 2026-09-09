@@ -46,16 +46,14 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         hasCompletedGuidedSetupFlow: boolean | undefined;
         betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
+        conciergeChat: OnyxEntry<OnyxReport>;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
 
 type PromotedActionsBarProps = {
-    /** The list of actions to show */
     promotedActions: PromotedAction[];
-
-    /** The style of the container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -81,7 +79,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions}) => ({
+    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, conciergeChat}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -100,6 +98,7 @@ const PromotedActions = {
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     betas,
+                    conciergeChat,
                     shouldDismissModal: false,
                     shouldRevalidateExistingChat: true,
                     hasReportActions,
@@ -115,6 +114,7 @@ const PromotedActions = {
                     hasCompletedGuidedSetupFlow,
                     betas,
                     personalDetails,
+                    conciergeChat,
                     true,
                     hasReportActions,
                 );

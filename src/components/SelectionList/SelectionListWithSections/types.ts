@@ -7,10 +7,7 @@ import type {ReactElement, ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 type Section<TItem extends ListItem> = {
-    /** Title of the section */
     title?: string;
-
-    /** Custom header to display */
     customHeader?: ReactElement;
 
     /** Array of items in the section */
@@ -28,25 +25,15 @@ type Section<TItem extends ListItem> = {
  * Extends BaseSelectionListProps with section-specific features.
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
-    /** Reference to the SelectionList component */
     ref?: React.Ref<SelectionListWithSectionsHandle>;
-
-    /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
     /** Index to scroll to initially (when different from the initially focused item) */
     initialScrollIndex?: number;
 
-    /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
-
-    /** Whether to hide the keyboard when scrolling the list */
     shouldHideKeyboardOnScroll?: boolean;
-
-    /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
-
-    /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */

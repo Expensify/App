@@ -112,7 +112,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
-    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
     const shouldShowCurrency = hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
     const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
     const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
@@ -305,7 +305,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         setCopyPolicySettingsData({parts}).then(() => {
             // Copying Control-only settings onto a Collect (Team) target requires upgrading it first,
             // so insert the upgrade step before Confirm; otherwise skip straight to Confirm.
-            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)
+            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)
                 ? ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID)
                 : ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID);
             Navigation.navigate(nextRoute);

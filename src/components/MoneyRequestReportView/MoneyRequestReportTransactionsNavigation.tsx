@@ -3,9 +3,10 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
-import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -20,26 +21,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
+import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
     isFromReviewDuplicates?: boolean;
-};
-
-const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-    const parentActions = new Map<string, OnyxTypes.ReportAction>();
-    for (const action of Object.values(reportActions ?? {})) {
-        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        if (!transactionID) {
-            continue;
-        }
-        parentActions.set(transactionID, action);
-    }
-    return parentActions;
 };
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
@@ -47,10 +37,17 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
 
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportRHPWidth} = useWideRHPActions();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
+    const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -78,37 +75,41 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: prevNextTransactionsSelector,
     });
 
+    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
+    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            let reportActions = {};
-            for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-                reportActions = {
-                    ...reportActions,
-                    ...allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`],
-                };
+            let prevParentReportAction: OnyxTypes.ReportAction | undefined;
+            let nextParentReportAction: OnyxTypes.ReportAction | undefined;
+            if (!prevTransactionID && !nextTransactionID) {
+                return {prevParentReportAction, nextParentReportAction};
             }
-            return parentReportActionIDsSelector(reportActions);
+            const parentReportIDs = new Set([currentTransaction?.reportID, prevTransaction?.reportID, nextTransaction?.reportID]);
+            for (const parentReportID of parentReportIDs) {
+                for (const action of Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {})) {
+                    const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+                    if (!transactionID) {
+                        continue;
+                    }
+                    if (transactionID === prevTransactionID) {
+                        prevParentReportAction = action;
+                    }
+                    if (transactionID === nextTransactionID) {
+                        nextParentReportAction = action;
+                    }
+                }
+            }
+            return {prevParentReportAction, nextParentReportAction};
         },
-        [currentTransaction, nextTransaction, prevTransaction],
+        [currentTransaction?.reportID, nextTransaction?.reportID, nextTransactionID, prevTransaction?.reportID, prevTransactionID],
     );
 
-    const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+    const [parentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
     });
 
-    const {prevParentReportAction, nextParentReportAction} = useMemo(() => {
-        if (!transactionIDsList || transactionIDsList.length < 2) {
-            return {
-                prevParentReportAction: undefined,
-                nextParentReportAction: undefined,
-            };
-        }
-
-        return {
-            prevParentReportAction: prevTransactionID ? parentReportActions.get(prevTransactionID) : undefined,
-            nextParentReportAction: nextTransactionID ? parentReportActions.get(nextTransactionID) : undefined,
-        };
-    }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
+    const prevParentReportAction = parentReportActions?.prevParentReportAction;
+    const nextParentReportAction = parentReportActions?.nextParentReportAction;
 
     const [prevParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevTransaction?.reportID}`);
     const [nextParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextTransaction?.reportID}`);
@@ -129,9 +130,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    if (transactionIDsList.length < 2) {
-        return;
-    }
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+        // Offline there is no fetch to wait for, so the caller builds the thread optimistically instead.
+        if (!transactionID || !parentReportID || isOffline) {
+            return false;
+        }
+        pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
+        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
+        return true;
+    };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
@@ -152,6 +160,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             requestAnimationFrame(() => {
                 const nextReportID = getReportIDToOpenForExpense(nextDescriptor, {
                     introSelected,
+                    conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     currentUserEmail,
                     currentUserAccountID,
@@ -168,6 +179,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     ),
                 );
             });
+            return;
+        }
+
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!nextParentReportAction && stageSiblingPress(nextTransactionID, nextTransaction?.reportID)) {
             return;
         }
 
@@ -190,6 +206,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             if (!nextThreadReportID) {
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
+                    conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
                     betas,
@@ -221,6 +240,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             requestAnimationFrame(() => {
                 const prevReportID = getReportIDToOpenForExpense(prevDescriptor, {
                     introSelected,
+                    conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     currentUserEmail,
                     currentUserAccountID,
@@ -237,6 +259,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     ),
                 );
             });
+            return;
+        }
+
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!prevParentReportAction && stageSiblingPress(prevTransactionID, prevTransaction?.reportID)) {
             return;
         }
 
@@ -259,6 +286,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             if (!prevThreadReportID) {
                 const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
+                    conciergeChat,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
                     betas,
@@ -273,6 +303,33 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
         });
     };
+
+    // Replays a staged press once its parent action arrives, but only if the user is still where they pressed —
+    // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
+    useEffect(() => {
+        const pending = pendingSiblingRef.current;
+        if (!pending) {
+            return;
+        }
+        if (!isFocused || Navigation.getActiveRoute() !== pending.originRoute) {
+            pendingSiblingRef.current = null;
+            return;
+        }
+        if (pending.transactionID === nextTransactionID && nextParentReportAction) {
+            pendingSiblingRef.current = null;
+            onNext(undefined);
+            return;
+        }
+        if (pending.transactionID === prevTransactionID && prevParentReportAction) {
+            pendingSiblingRef.current = null;
+            onPrevious(undefined);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
+    }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
+
+    if (transactionIDsList.length < 2) {
+        return;
+    }
 
     return (
         <PrevNextButtons

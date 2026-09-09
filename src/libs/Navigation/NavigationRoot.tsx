@@ -54,7 +54,6 @@ type NavigationRootProps = {
     /** Stores path of last visited page */
     lastVisitedPath: Route;
 
-    /** Initial url */
     initialUrl: string | null;
 
     /** Fired when react-navigation is ready */
@@ -268,7 +267,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             // A synthesized reset state can be rejected by RN; fall back to a known-valid
             // TAB_NAVIGATOR (PublicScreens maps "/" → SignInPage) instead of leaving a blank screen.
             Log.alert('[NavigationRoot] Post-logout navigation reset failed', {error: String(error)});
-            navigationRef.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+            Navigation.resetToAppRoot();
         }
     }, [authenticated, previousAuthenticated]);
 
