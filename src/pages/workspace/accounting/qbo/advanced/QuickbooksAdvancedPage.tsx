@@ -15,7 +15,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
-import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -143,16 +142,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
-                const nonReimbursableVendorUpdateValue = isOn
-                    ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
-                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 
                 updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
                         [autoCreateVendorConst]: isOn,
-                        [defaultVendorConst]: nonReimbursableVendorUpdateValue,
+                        [defaultVendorConst]: nonReimbursableVendorCurrentValue,
                     },
                     {
                         [autoCreateVendorConst]: !!qboConfig?.autoCreateVendor,
@@ -228,12 +224,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearQBOErrorField(policyID, item.subscribedSetting)}
                 />
             ))}
-            <TravelBillingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-                isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
-                toggleWrapperStyle={styles.mv3}
-            />
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
