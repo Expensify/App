@@ -37,7 +37,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
         : '';
     const {searchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery} = useSearchTagFilters(policyIDs);
 
-    const hasSearchResults = !!searchResults && Object.keys(searchResults).length > 0;
+    const hasSearchResults = !!searchResults && searchResults.length > 0;
     const shouldUseOfflineFallback = isOffline && !hasSearchResults;
 
     const tagItems: Array<MultiSelectItem<string>> = [];
@@ -64,17 +64,14 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
                 addTagName(tagName);
             }
         }
+        tagItems.sort((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare));
     } else {
-        // Preserve backend order - new items append at end for infinite scroll.
+        // Preserve backend order - backend pre-sorts tags across policies alphabetically.
         // When offline the API is skipped, so cached results are filtered locally by the search query.
-        for (const policyTags of Object.values(searchResults ?? {})) {
-            for (const tag of Object.values(policyTags ?? {})) {
-                addTagName(tag.tagName);
-            }
+        for (const tag of searchResults ?? []) {
+            addTagName(tag.tagName);
         }
     }
-
-    tagItems.sort((a, b) => sortOptionsWithEmptyValue(a.text.toString(), b.text.toString(), localeCompare));
 
     const shouldShowEmptyTagOption = !isSearching && !isInitialLoading && (!searchQuery || emptyTagItem.text.toLowerCase().includes(lowerSearchQuery));
 

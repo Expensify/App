@@ -5,8 +5,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import {useEffect, useRef, useState} from 'react';
 
 import useNetwork from './useNetwork';
@@ -16,8 +14,8 @@ import useOnyx from './useOnyx';
  * Hook for managing paginated tag filter search.
  */
 type UseSearchTagFiltersResult = {
-    /** The paginated tag search results from Onyx, keyed by full Onyx key (searchPolicyTags_<policyID>) */
-    searchResults: OnyxCollection<OnyxTypes.SearchPolicyTags>;
+    /** The paginated tag search results from Onyx */
+    searchResults: OnyxTypes.SearchTagFilterItem[] | null;
 
     /** Whether a new search request is in flight */
     isSearching: boolean;
@@ -57,7 +55,7 @@ function logRequestFailure(message: string, error: Error) {
  */
 function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const {isOffline} = useNetwork();
-    const [searchResults] = useOnyx(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS);
+    const [searchResults] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS);
     const [paginationState] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION);
     const [isSearching, setIsSearching] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -68,7 +66,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const searchQuery = paginationState?.searchQuery ?? '';
 
     // Track if we have cached data to avoid showing loading state on remount
-    const hasCachedData = !!searchResults && Object.keys(searchResults).length > 0;
+    const hasCachedData = !!searchResults && searchResults.length > 0;
     const [prevPolicyIDs, setPrevPolicyIDs] = useState(policyIDs);
     const [isFilteringLocally, setIsFilteringLocally] = useState(false);
 

@@ -1066,9 +1066,9 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, should
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
-                  onyxMethod: Onyx.METHOD.SET_COLLECTION,
-                  key: ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS,
-                  value: {},
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  value: [],
               },
           ]
         : [];
@@ -1099,7 +1099,7 @@ function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, sea
 /** Resets tag filter pagination and cached results when the filter closes. */
 function clearSearchTagFiltersState() {
     setSearchTagFiltersPagination(false, '', '');
-    Onyx.setCollection(ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS, {});
+    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {

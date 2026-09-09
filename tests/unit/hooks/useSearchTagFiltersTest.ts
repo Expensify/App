@@ -44,11 +44,7 @@ function setPartialTagFilterState(searchQuery: string) {
         nextCursor: 'cursor-1',
         searchQuery,
     };
-    onyxData[ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS] = {
-        [`${ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS}${POLICY_ID}`]: {
-            tag1: {tagName: `${searchQuery}-match`},
-        },
-    };
+    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [{tagName: `${searchQuery}-match`, tagListName: 'TagList'}];
 }
 
 function setCompleteTagFilterState(searchQuery: string) {
@@ -57,12 +53,10 @@ function setCompleteTagFilterState(searchQuery: string) {
         nextCursor: '',
         searchQuery,
     };
-    onyxData[ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS] = {
-        [`${ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS}${POLICY_ID}`]: {
-            tag1: {tagName: `${searchQuery}-match`},
-            tag2: {tagName: 'other-tag'},
-        },
-    };
+    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [
+        {tagName: `${searchQuery}-match`, tagListName: 'TagList'},
+        {tagName: 'other-tag', tagListName: 'TagList'},
+    ];
 }
 
 describe('useSearchTagFilters', () => {
@@ -77,7 +71,7 @@ describe('useSearchTagFilters', () => {
             onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {hasMore, nextCursor, searchQuery};
         });
         mockClearSearchTagFiltersState.mockClear().mockImplementation(() => {
-            delete onyxData[ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS];
+            delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS];
             delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION];
         });
     });
@@ -223,12 +217,10 @@ describe('useSearchTagFilters', () => {
             nextCursor: '',
             searchQuery: 'ch',
         };
-        onyxData[ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS] = {
-            [`${ONYXKEYS.COLLECTION.SEARCH_POLICY_TAGS}${POLICY_ID}`]: {
-                tag1: {tagName: 'chicago'},
-                tag2: {tagName: 'charlotte'},
-            },
-        };
+        onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [
+            {tagName: 'chicago', tagListName: 'TagList'},
+            {tagName: 'charlotte', tagListName: 'TagList'},
+        ];
         rerender({});
         mockOpenSearchTagFiltersPage.mockClear();
 

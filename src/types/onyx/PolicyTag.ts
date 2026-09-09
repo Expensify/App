@@ -76,4 +76,13 @@ type SearchPolicyTag = {
 /** Record of search policy tags, indexed by "<tagListIndex>:<tagIndex>" */
 type SearchPolicyTags = Record<string, SearchPolicyTag>;
 
-export type {PolicyTag, PolicyTags, PolicyTagLists, ParticipantsPolicyTags, SearchPolicyTags};
+/** Tag filter result item returned in flat searchTagFiltersResults array */
+type SearchTagFilterItem = {
+    /** Name of the tag */
+    tagName: string;
+
+    /** Name of the tag list */
+    tagListName: string;
+};
+
+export type {PolicyTag, PolicyTags, PolicyTagLists, ParticipantsPolicyTags, SearchPolicyTags, SearchTagFilterItem};
