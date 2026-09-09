@@ -1721,11 +1721,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Όλα έτοιμα!',
         noDuplicatesDescription: 'Δεν υπάρχουν διπλές συναλλαγές για έλεγχο εδώ.',
         confirmApprove: 'Επιβεβαιώστε το ποσό έγκρισης',
-        confirmApprovalAmount: 'Εγκρίνετε μόνο τις σύμφωνες δαπάνες ή εγκρίνετε ολόκληρη την αναφορά.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Αυτή η δαπάνη είναι σε αναμονή. Θέλετε παρ’ όλα αυτά να την εγκρίνετε;',
-            other: 'Αυτές οι δαπάνες έχουν τεθεί σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
-        }),
+        confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
+        confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
@@ -2341,6 +2338,11 @@ const translations: TranslationDeepObject<typeof en> = {
             usingImportedState: 'Χρησιμοποιείτε εισαγόμενη κατάσταση. Πατήστε εδώ για να την καθαρίσετε.',
             debugMode: 'Λειτουργία αποσφαλμάτωσης',
             showBranchNameInTitle: 'Εμφάνιση ονόματος κλάδου στον τίτλο του προγράμματος περιήγησης',
+            betaOverrides: 'Παρακάμψεις beta',
+            betaOverridesDescription:
+                'Οι παρακάμψεις ισχύουν μόνο για αυτή τη συσκευή και επηρεάζουν μόνο τους ελέγχους του frontend. Μια beta διατηρεί μια παράκαμψη μόνο όσο διαφέρει από τις beta του λογαριασμού σας, οπότε αν την αλλάξετε ξανά η παράκαμψη αφαιρείται. Η «Επαναφορά όλων των παρακάμψεων» επαναφέρει τις τιμές του λογαριασμού σας. Ορισμένες beta ελέγχονται και από το backend, οπότε μπορεί να αποτύχουν σε επίπεδο αιτήματος.',
+            resetAllOverrides: 'Επαναφορά όλων των παρακάμψεων',
+            overridden: 'Παρακάμφθηκε',
             invalidFile: 'Μη έγκυρο αρχείο',
             invalidFileDescription: 'Το αρχείο που προσπαθείτε να εισαγάγετε δεν είναι έγκυρο. Παρακαλούμε δοκιμάστε ξανά.',
             invalidateWithDelay: 'Ακύρωση με καθυστέρηση',
@@ -3397,6 +3399,7 @@ ${amount} για ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4693,6 +4696,7 @@ ${amount} για ${merchant} - ${date}`,
             customFieldHint: 'Προσθέστε προσαρμοσμένη κωδικοποίηση που θα εφαρμόζεται σε όλες τις δαπάνες από αυτό το μέλος.',
             reports: 'Αναφορές',
             reportFields: 'Πεδία αναφοράς',
+            invoiceFields: 'Πεδία τιμολογίου',
             reportTitle: 'Τίτλος αναφοράς',
             reportField: 'Πεδίο αναφοράς',
             taxes: 'Φόροι',
@@ -4704,6 +4708,7 @@ ${amount} για ${merchant} - ${date}`,
             rooms: 'Δωμάτια',
             accounting: 'Λογιστική',
             hr: 'HR',
+            recruiting: 'Προσλήψεις',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -6507,6 +6512,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
                         },
+                        setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
+                        feedSelectorIntro:
+                            'Ο οργανισμός σας έχει ήδη ρυθμίσει ροή ενοποιημένης τιμολόγησης ταξιδιών. Επιλέξτε την για να διατηρήσετε τις ταξιδιωτικές δαπάνες αυτού του χώρου εργασίας στον ίδιο μηνιαίο λογαριασμό.',
                     },
                     disableModal: {
                         title: 'Απενεργοποίηση της ενοποιημένης χρέωσης ταξιδιών;',
@@ -6774,6 +6782,29 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             unsupportedFormulaValueError: (value) => `Το πεδίο τύπου ${value} δεν αναγνωρίζεται`,
             reportFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο αναφοράς',
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του πεδίου αναφοράς. Παρακαλούμε δοκιμάστε ξανά.',
+        },
+        invoiceFields: {
+            subtitle: 'Τα πεδία τιμολογίου μπορεί να είναι χρήσιμα όταν θέλετε να συμπεριλάβετε επιπλέον πληροφορίες.',
+            importedFromAccountingSoftware: 'Τα παρακάτω πεδία τιμολογίου εισάγονται από την/τον',
+            disableInvoiceFields: 'Απενεργοποίηση πεδίων τιμολογίου',
+            disableInvoiceFieldsConfirmation: 'Είστε βέβαιοι; Τα πεδία τιμολογίου θα απενεργοποιηθούν στα τιμολόγια.',
+            delete: 'Διαγραφή πεδίου τιμολογίου',
+            deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το πεδίο τιμολογίου;',
+            findInvoiceField: 'Εύρεση πεδίου τιμολογίου',
+            nameInputSubtitle: 'Επιλέξτε ένα όνομα για το πεδίο τιμολογίου.',
+            typeInputSubtitle: 'Επιλέξτε ποιον τύπο πεδίου τιμολογίου θέλετε να χρησιμοποιήσετε.',
+            initialValueInputSubtitle: 'Εισαγάγετε μια αρχική τιμή για εμφάνιση στο πεδίο τιμολογίου.',
+            listValuesInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα επιλογών του πεδίου τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            listInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα πεδίων τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            emptyInvoiceFieldsValues: {
+                title: 'Δεν υπάρχουν ακόμη τιμές λίστας',
+                subtitle: 'Προσθέστε προσαρμοσμένες τιμές για να εμφανίζονται στα τιμολόγια.',
+            },
+            existingInvoiceFieldNameError: 'Υπάρχει ήδη πεδίο τιμολογίου με αυτό το όνομα',
+            invoiceFieldNameRequiredError: 'Παρακαλούμε εισαγάγετε ένα όνομα πεδίου τιμολογίου',
+            invoiceFieldTypeRequiredError: 'Παρακαλούμε επιλέξτε έναν τύπο πεδίου τιμολογίου',
+            invoiceFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο τιμολογίου',
+            addField: 'Προσθήκη πεδίου',
         },
         tags: {
             tagName: 'Όνομα ετικέτας',
@@ -7441,29 +7472,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         },
         hr: {
             title: 'HR',
-            connections: 'Συνδέσεις',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα HR σας για να συγχρονίζετε τα στοιχεία των εργαζομένων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τα έξοδα της ομάδας σας ακριβή χωρίς χειροκίνητη εργασία.',
             subtitle: 'Συνδέστε εργαλεία HR και διατηρήστε τις εγκρίσεις εργαζομένων συγχρονισμένες.',
-            connect: 'Σύνδεση',
-            syncNow: 'Συγχρονισμός τώρα',
-            disconnect: 'Αποσύνδεση',
-            disconnectTitle: (providerName: string) => `Αποσύνδεση ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${providerName};`,
             alreadyConnectedTitle: 'Δεν είναι δυνατή η σύνδεση σε πολλές πλατφόρμες HR',
             alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε την τρέχουσα πλατφόρμα HR προτού συνδέσετε μια άλλη.',
-            lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
-            notSync: 'Δεν έχει γίνει συγχρονισμός',
-            syncError: (providerName: string) => `Δεν είναι δυνατή η σύνδεση με το ${providerName}`,
-            authenticationError: (providerName: string) => `Δεν είναι δυνατή η σύνδεση με το ${providerName} λόγω ληγμένης σύνδεσης.`,
-            reconnect: 'Επανασύνδεση',
-            reconnectLink: 'Επανασυνδεθείτε.',
             connectionDescription: (providerName: string) => `Συνδέστε το ${providerName} για να διατηρείτε τις εγκρίσεις εργαζομένων συγχρονισμένες με τον χώρο εργασίας σας.`,
-            approvalMode: 'Λειτουργία έγκρισης',
             providerApprovalMode: (providerName: string) => `λειτουργία έγκρισης ${providerName}`,
-            finalApprover: 'Τελικός εγκρίνων',
             providerFinalApprover: (providerName: string) => `τελικός εγκριτής ${providerName}`,
-            notSet: 'Δεν έχει οριστεί',
             syncing: 'Γίνεται συγχρονισμός υπαλλήλων',
             syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
             syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
@@ -7472,19 +7488,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
             approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
-            approvalModes: {
-                basic: {
-                    label: 'Βασική έγκριση',
-                    description: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.',
-                },
-                manager: {
-                    label: 'Έγκριση προϊσταμένου',
-                    description: (providerName: string) => `Οι υπάλληλοι υποβάλλουν αναφορές στον άμεσο προϊστάμενό τους που έχει ρυθμιστεί στο ${providerName}.`,
-                },
-                custom: {
-                    label: 'Προσαρμοσμένη έγκριση',
-                    description: 'Θα ρυθμίσω χειροκίνητα ροές έγκρισης στο Expensify.',
-                },
+            approvalModeDescriptions: {
+                basic: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.',
+                manager: (providerName: string) => `Οι υπάλληλοι υποβάλλουν αναφορές στον άμεσο προϊστάμενό τους που έχει ρυθμιστεί στο ${providerName}.`,
+                custom: 'Θα ρυθμίσω χειροκίνητα ροές έγκρισης στο Expensify.',
             },
             syncStageName: (stage) => {
                 switch (stage) {
@@ -7524,18 +7531,53 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             zenefits: {
                 title: 'TriNet',
             },
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκλήρωση ρύθμισης</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υπαλλήλων.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Ολοκληρώστε τη ρύθμιση',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκλήρωση ρύθμισης</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υπαλλήλων.</muted-text-label>`,
                 groups: {
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
                 },
             },
-            findIntegration: 'Βρείτε ενοποίηση',
+        },
+        recruiting: {
+            title: 'Προσλήψεις',
+            connectionsSubtitle:
+                'Συνδεθείτε με το σύστημα προσλήψεών σας για να συγχρονίζετε τα δεδομένα υποψηφίων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τις δαπάνες της ομάδας σας ακριβείς χωρίς χειροκίνητη εργασία.',
+            alreadyConnectedTitle: 'Αδυναμία σύνδεσης σε πολλές πλατφόρμες ATS',
+            alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε το τρέχον ATS σας πριν συνδέσετε κάποιο άλλο.',
+            syncing: 'Γίνεται συγχρονισμός υποψηφίων',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκληρώστε τη ρύθμιση</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υποψηφίων.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
+            importSettings: 'Ρυθμίσεις εισαγωγής',
+            defaultApprover: 'Προεπιλεγμένος εγκρίνων',
+            approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
         },
         merge: {
+            connections: 'Συνδέσεις',
+            connect: 'Σύνδεση',
+            findIntegration: 'Βρείτε ενοποίηση',
+            syncNow: 'Συγχρονισμός τώρα',
+            disconnect: 'Αποσύνδεση',
+            disconnectTitle: (providerName: string) => `Αποσύνδεση ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${providerName};`,
+            lastSync: (relativeDate: string) => `Τελευταίος συγχρονισμός ${relativeDate}`,
+            notSync: 'Δεν έχει γίνει συγχρονισμός',
+            syncError: (providerName: string) => `Δεν είναι δυνατή η σύνδεση με το ${providerName}`,
+            authenticationError: (providerName: string) => `Δεν είναι δυνατή η σύνδεση με το ${providerName} λόγω ληγμένης σύνδεσης.`,
+            reconnect: 'Επανασύνδεση',
+            reconnectLink: 'Επανασυνδεθείτε.',
+            notSet: 'Δεν έχει οριστεί',
+            completeSetup: 'Ολοκληρώστε τη ρύθμιση',
+            approvalMode: 'Λειτουργία έγκρισης',
+            finalApprover: 'Τελικός εγκρίνων',
+            approvalModes: {
+                basic: 'Βασική έγκριση',
+                manager: 'Έγκριση προϊσταμένου',
+                custom: 'Προσαρμοσμένη έγκριση',
+                advanced: 'Προηγμένη έγκριση',
+            },
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
@@ -7810,6 +7852,12 @@ ${reportName}`,
                 description: `Τα πεδία αναφοράς σάς επιτρέπουν να ορίζετε λεπτομέρειες σε επίπεδο κεφαλίδας, διαφορετικές από τις ετικέτες που αφορούν έξοδα σε μεμονωμένες γραμμές. Αυτές οι λεπτομέρειες μπορούν να περιλαμβάνουν συγκεκριμένα ονόματα έργων, πληροφορίες επαγγελματικών ταξιδιών, τοποθεσίες και άλλα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Τα πεδία αναφοράς είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Πεδία τιμολογίου',
+                description: `Τα πεδία τιμολογίου σάς επιτρέπουν να συμπεριλάβετε επιπλέον λεπτομέρειες σε επίπεδο τιμολογίου στα τιμολόγια.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Τα πεδία τιμολογίου είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9722,6 +9770,7 @@ ${reportName}`,
         exportedTo: 'Εξήχθη σε',
         exportAll: {
             selectAllMatchingItems: 'Επιλέξτε όλα τα στοιχεία που ταιριάζουν',
+            allMatchingItemsSelected: 'Έχουν επιλεγεί όλα τα στοιχεία που ταιριάζουν',
             selectAllOnThisPage: 'Επιλέξτε όλα σε αυτή τη σελίδα',
         },
         errors: {
@@ -9824,6 +9873,7 @@ ${reportName}`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `εξήχθη σε ${translatedLabel}`;
@@ -11057,6 +11107,7 @@ ${reportName}`,
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
+        reconciliationAllExpenses: 'Συμφωνία - Όλα τα έξοδα',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',

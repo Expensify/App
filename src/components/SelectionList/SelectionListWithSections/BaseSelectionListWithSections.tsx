@@ -37,6 +37,12 @@ function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTIO
 }
 
 /**
+ * FlashList paints its first frame in batches of `initialDrawBatchSize ** ceil(pass / 5)` rows, re-measuring every
+ * mounted row on each pass. Rows stay at opacity 0 until that ends, so a bigger batch only means fewer passes.
+ */
+const FLASH_LIST_OVERRIDE_PROPS = {initialDrawBatchSize: 8};
+
+/**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
  */
@@ -98,6 +104,10 @@ function BaseSelectionListWithSectionsImpl({
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
+
+    // FlashList treats any defined initialScrollIndex as a scroll target and recomputes every layout on each
+    // progressive pass. `initialFocusedIndex` is -1 when nothing is focused, which is not a scroll target.
+    const targetScrollIndex = initialScrollIndex ?? (initialFocusedIndex < 0 ? undefined : initialFocusedIndex);
     const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
@@ -333,7 +343,8 @@ function BaseSelectionListWithSectionsImpl({
                     ref={listRef}
                     extraData={flattenedData.length}
                     getItemType={getItemType}
-                    initialScrollIndex={initialScrollIndex ?? initialFocusedIndex}
+                    initialScrollIndex={targetScrollIndex}
+                    overrideProps={FLASH_LIST_OVERRIDE_PROPS}
                     keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={onEndReachedThreshold}

@@ -21,7 +21,6 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** List of choices to display via radio buttons */
     items: Choice[];
 
-    /** Default checked value */
     defaultCheckedValue?: string;
 
     /** Callback to fire when selecting a radio button */
@@ -36,7 +35,6 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The checked value, if you're using this component as a controlled input. */
     value?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
