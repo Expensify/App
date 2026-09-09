@@ -525,10 +525,12 @@ function SearchWriteActionsProvider({
     });
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
-        applySelection(
-            (selectedTransactions, {areAllMatchingItemsSelected}) => applyShiftRangeBatchToSelection(batch, selectedTransactions, areAllMatchingItemsSelected, readGroupLookups()),
-            {...commitOptions, data: filteredData},
-        );
+        // Read at the gesture, not in the updater: the batch has to land on the rows the range was computed from.
+        const lookups = readGroupLookups();
+        applySelection((selectedTransactions, {areAllMatchingItemsSelected}) => applyShiftRangeBatchToSelection(batch, selectedTransactions, areAllMatchingItemsSelected, lookups), {
+            ...commitOptions,
+            data: filteredData,
+        });
     };
 
     // The same predicate the checkbox renders from, so a range reaches exactly the rows the user sees checked.
@@ -611,9 +613,10 @@ function SearchWriteActionsProvider({
             if (!item.keyForList || isTransactionPendingDelete(item)) {
                 return;
             }
+            const lookups = readGroupLookups();
             applySelection((selectedTransactions, {areAllMatchingItemsSelected}) => {
                 const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
-                const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList, areAllMatchingItemsSelected, readGroupLookups());
+                const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList, areAllMatchingItemsSelected, lookups);
                 const updatedTransactions = prepareTransactionsList({
                     item,
                     itemTransaction,
