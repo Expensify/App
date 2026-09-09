@@ -11,6 +11,7 @@ import useInvertedThemePreference from '@hooks/useInvertedThemePreference';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -20,6 +21,7 @@ import Accessibility from '@libs/Accessibility';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -42,6 +44,9 @@ type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>
     /** How many actions to give a button of their own. The rest go behind "More". Decided by the fitting pass. */
     inlineActionCount: number;
 
+    /** Shown in place of the actions when the selection has none, explaining why there is nothing to press. */
+    noticeText?: string;
+
     /** Reports the width the bar wants at this action count, so the fitting pass can tell whether it fits. */
     onBarLayout: (width: number) => void;
 };
@@ -50,6 +55,8 @@ function BulkActionBarContent<TValueType>({
     selectedCount,
     isSelectedCountLoading,
     options,
+    noticeText,
+    menuHeaderText,
     onClearSelection,
     onSubItemSelected,
     barRef,
@@ -72,9 +79,12 @@ function BulkActionBarContent<TValueType>({
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
-    // Esc dismisses the selection, as it does for this kind of bulk-select bar elsewhere. It sits below the default
-    // priority so that an open menu's own Esc handling closes the menu first rather than clearing the selection.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {priority: 1});
+    // Esc dismisses the selection, as it does for this kind of bulk-select bar elsewhere, but only while nothing is
+    // open in front of the bar. A modal or popover dismisses itself on the key going back up, and shortcuts run on the
+    // way down, so a menu open over the bar cannot be given the keystroke first by ordering the handlers: Esc would
+    // clear the selection and take the bar away underneath the menu the viewer was backing out of.
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.willAlertModalBecomeVisible});
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
@@ -113,6 +123,7 @@ function BulkActionBarContent<TValueType>({
                     <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
                 )}
             </View>
+            {!!noticeText && <Text style={[styles.textLabel, styles.colorMuted]}>{noticeText}</Text>}
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -139,6 +150,7 @@ function BulkActionBarContent<TValueType>({
                                 anchorRef={moreAnchorRef}
                                 anchorPosition={moreMenuAnchorPosition}
                                 anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
+                                headerText={menuHeaderText}
                                 onClose={() => setIsMoreMenuVisible(false)}
                                 onItemSelected={(selectedItem, index, event) => {
                                     onSubItemSelected?.(selectedItem, index, event);
@@ -183,7 +195,16 @@ function BulkActionBarContent<TValueType>({
  * The bar renders under the inverted theme so that it stands out against the table behind it. That also inverts its
  * "More" menu, which reads the theme itself and could not be inverted through style props alone.
  */
-function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, options, onClearSelection, onSubItemSelected, barRef, style}: BulkActionBarProps<TValueType>) {
+function BulkActionBar<TValueType>({
+    selectedCount,
+    isSelectedCountLoading,
+    options: allOptions,
+    menuHeaderText,
+    onClearSelection,
+    onSubItemSelected,
+    barRef,
+    style,
+}: BulkActionBarProps<TValueType>) {
     const styles = useThemeStyles();
     const invertedTheme = useInvertedThemePreference();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
@@ -195,24 +216,28 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     // wider one first.
     const startingActionCount = isMediumScreenWidth ? CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS_MEDIUM_SCREEN : CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS;
 
+    // A selection with nothing to act on is described by a non-interactive option saying so, which the menus this bar
+    // replaces know to draw as a plain row. A button is not that: it would look pressable and do nothing, and the
+    // fitting pass could hide the one thing explaining the absent actions behind "More". Keep those out of the actions
+    // and let the bar say it plainly instead.
+    const options = allOptions.filter((option) => option.interactive !== false);
+    const noticeText = allOptions.find((option) => option.interactive === false)?.text;
+
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
 
-    // The width the bar took at each action count it has been laid out at. The bar is sized by its contents, so a given
-    // count always comes out the same width whatever the container is doing, which makes these worth keeping. Once a
-    // count has been measured, resizing picks the right one outright instead of laying the bar out to find it again.
-    const [measuredWidths, setMeasuredWidths] = useState<Record<number, number>>({});
-    const [fitKey, setFitKey] = useState<string>();
+    // The width the bar took at each layout it has been through, keyed by the buttons it was showing at the time. The
+    // bar is sized by its contents, so a given set of buttons always comes out the same width whatever the container is
+    // doing. Keeping them all means a layout the bar has already been through is recognized rather than measured again.
+    //
+    // The container's width is deliberately not part of the key: it changes on every frame of a resize, and a key that
+    // moved with it would throw the measurements away that often, which is what made the bar lay itself out at full
+    // width before shedding back down. The action labels are part of it because they decide how wide each button is,
+    // and the selection changes them as often as it changes the actions themselves.
+    const [measuredWidths, setMeasuredWidths] = useState<Record<string, number>>({});
 
-    // The measurements describe one particular set of buttons, so they are dropped when that set changes. The
-    // container's width is deliberately not part of this: it changes on every frame of a resize, and throwing the
-    // measurements away that often is what makes the bar lay itself out wide before shedding back down.
-    const currentFitKey = `${options.map((option) => option.text).join('|')}|${startingActionCount}`;
-
-    if (currentFitKey !== fitKey) {
-        setFitKey(currentFitKey);
-        setMeasuredWidths({});
-    }
+    const actionSetKey = `${options.map((option) => option.text).join('|')}|${startingActionCount}`;
+    const getMeasurementKey = (actionCount: number) => `${actionSetKey}|${actionCount}`;
 
     // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
     const widthBudget = availableWidth === undefined ? undefined : availableWidth - CONST.BULK_ACTION_BAR.EDGE_MARGIN;
@@ -221,18 +246,18 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
     // fit, so a roomy container draws the bar at full width immediately rather than measuring its way up to it. Since
     // dropping an action only ever makes the bar narrower, this walks in one direction and settles.
     let inlineActionCount = startingActionCount;
-    while (inlineActionCount > 0 && widthBudget !== undefined && (measuredWidths[inlineActionCount] ?? 0) > widthBudget) {
+    while (inlineActionCount > 0 && widthBudget !== undefined && (measuredWidths[getMeasurementKey(inlineActionCount)] ?? 0) > widthBudget) {
         inlineActionCount -= 1;
     }
 
-    // Laying out a count for the first time is a guess that may not survive its own measurement, so it is kept hidden
-    // until it lands. Otherwise a bar that turns out to be too wide is briefly on screen at that width. The exception
-    // is the very first layout of all, which shows immediately: there is nothing on screen yet for a correction to
-    // disturb, and waiting for a measurement there is what would make the bar late to appear.
+    // Laying out a set of buttons for the first time is a guess that may not survive its own measurement, so it is kept
+    // hidden until it lands. Otherwise a bar that turns out to be too wide is briefly on screen at that width. The
+    // exception is the very first layout of all, which shows immediately: there is nothing on screen yet for a
+    // correction to disturb, and waiting for a measurement there is what would make the bar late to appear.
     //
     // A hidden layout is always resolved: changing the count changes the bar's width, so its `onLayout` is certain to
     // follow, and every count below one already measured has itself been measured on the way down.
-    const hasSettled = measuredWidths[inlineActionCount] !== undefined || Object.keys(measuredWidths).length === 0;
+    const hasSettled = measuredWidths[getMeasurementKey(inlineActionCount)] !== undefined || Object.keys(measuredWidths).length === 0;
 
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
     // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
@@ -270,11 +295,18 @@ function BulkActionBar<TValueType>({selectedCount, isSelectedCountLoading, optio
                         selectedCount={selectedCount}
                         isSelectedCountLoading={isSelectedCountLoading}
                         options={options}
+                        noticeText={noticeText}
+                        menuHeaderText={menuHeaderText}
                         onClearSelection={onClearSelection}
                         onSubItemSelected={onSubItemSelected}
                         barRef={barRef}
                         inlineActionCount={inlineActionCount}
-                        onBarLayout={(width) => setMeasuredWidths((widths) => (widths[inlineActionCount] === width ? widths : {...widths, [inlineActionCount]: width}))}
+                        onBarLayout={(width) =>
+                            setMeasuredWidths((widths) => {
+                                const measurementKey = getMeasurementKey(inlineActionCount);
+                                return widths[measurementKey] === width ? widths : {...widths, [measurementKey]: width};
+                            })
+                        }
                     />
                 </ThemeStylesProvider>
             </ThemeProvider>

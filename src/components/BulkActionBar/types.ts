@@ -21,6 +21,12 @@ type BulkActionBarProps<TValueType> = {
      */
     isSelectedCountLoading?: boolean;
 
+    /**
+     * A heading for the "More" menu, naming what its items belong to. Set when the options are one action's own
+     * sub-items hoisted to the top level, which leaves them with nothing else saying what they are.
+     */
+    menuHeaderText?: string;
+
     /** Called when the bar's close button is pressed. Expected to clear the selection, which unmounts the bar. */
     onClearSelection: () => void;
 

@@ -260,6 +260,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             selectedCount={selectedBulkActionsCount}
                             isSelectedCountLoading={isAllMatchingItemsCountLoading}
                             options={headerButtonsOptions}
+                            menuHeaderText={bulkActionsMenuHeaderText}
                             // Called with no argument so the whole search selection is reset. Passing the boolean flag
                             // instead only clears `selectedTransactionIDs`, which is the report view's selection, and
                             // would leave this page's `selectedTransactions` in place with the bar still showing.
