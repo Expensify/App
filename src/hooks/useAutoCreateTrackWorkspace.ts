@@ -43,6 +43,7 @@ function useAutoCreateTrackWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
@@ -95,6 +96,7 @@ function useAutoCreateTrackWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
@@ -163,6 +165,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
