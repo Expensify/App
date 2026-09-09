@@ -151,8 +151,6 @@ const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
 
-// ForYouSection now derives its counts/single-IDs from the useTodoCounts hook (which is mocked here) instead of the
-// removed TODOS derived value, so the fixtures only need the report buckets the hook's return is computed from.
 type TodoReport = {reportID: string};
 type TodoFixture = {
     reportsToSubmit: TodoReport[];
@@ -229,22 +227,11 @@ const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest>
     ...extra,
 });
 
-async function setAppLoadState({
-    hasLoadedApp,
-    isLoadingApp,
-    isLoadingReportData,
-    requests = [],
-}: {
-    hasLoadedApp: boolean;
-    isLoadingApp: boolean;
-    isLoadingReportData: boolean;
-    requests?: AnyRequest[];
-}) {
+async function setAppLoadState({hasLoadedApp, isLoadingApp, requests = []}: {hasLoadedApp: boolean; isLoadingApp: boolean; requests?: AnyRequest[]}) {
     await act(async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
             [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: isLoadingReportData,
             [ONYXKEYS.PERSISTED_REQUESTS]: requests,
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
@@ -300,7 +287,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -315,7 +301,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -329,7 +314,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -343,7 +327,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -357,7 +340,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -370,7 +352,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
             });
 
@@ -384,7 +365,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -394,11 +374,10 @@ describe('ForYouSection', () => {
             expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
-        it('preserves IS_LOADING_REPORT_DATA as an initial load gate', async () => {
+        it('ignores IS_LOADING_REPORT_DATA while the app is unloaded', async () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -409,7 +388,7 @@ describe('ForYouSection', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
         it('drops both skeletons for an OpenApp initiated offline', async () => {
@@ -417,7 +396,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
             });
 
@@ -434,7 +412,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -449,7 +426,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -774,7 +750,6 @@ describe('ForYouSection', () => {
                     backTo: ROUTES.HOME,
                 }),
             );
-            // The standard report routes should not be used for the review row anymore.
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 

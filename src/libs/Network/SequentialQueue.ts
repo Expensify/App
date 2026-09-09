@@ -25,14 +25,30 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import hasResponseAlreadyPromptedUser from './hasResponseAlreadyPromptedUser';
+
 let shouldFailAllRequests: boolean;
 const reportsWithProcessedOfflineComments = new Map<string, string>();
 const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
+// Use connectWithoutView since the queue reads this outside of render.
+let hasLoadedApp = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value ?? false;
+    },
+});
+
+function shouldShowOpenAppFailureModal<TKey extends OnyxKey>(command: string, response: Response<TKey> | void): boolean {
+    return command === WRITE_COMMANDS.OPEN_APP && !hasLoadedApp && response?.jsonCode !== CONST.JSON_CODE.SUCCESS && !hasResponseAlreadyPromptedUser(response);
+}
 
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
@@ -454,15 +470,15 @@ function process(): Promise<void> {
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
-            // Only commit queueFlushedData (e.g. HAS_LOADED_APP: true) on success — HttpUtils resolves (not rejects) app-level
-            // failures, so committing on a failed-but-resolved OpenApp/ReconnectApp would wrongly mark the app as loaded and
-            // break self-healing on the next boot.
-            if (requestToProcess.queueFlushedData && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && requestToProcess.queueFlushedData) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
                     command: requestToProcess.command,
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
                 });
                 saveQueueFlushedData(...requestToProcess.queueFlushedData);
+            } else if (shouldShowOpenAppFailureModal(requestToProcess.command, response)) {
+                Log.info('[SequentialQueue] OpenApp resolved with an app-level error, showing the failure modal', false, {jsonCode: response?.jsonCode});
+                setIsOpenAppFailureModalOpen(true);
             }
 
             sequentialQueueRequestThrottle.clear();

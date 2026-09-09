@@ -45,15 +45,6 @@ type PendingRequestGroupConfig = {
     ignoreOfflineInitiatedPersisted?: boolean;
 };
 
-// Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in src/libs/API/index.ts);
-// READ and side-effect commands are processed straight through the middleware and never land in
-// PERSISTED_REQUESTS / PERSISTED_ONGOING_REQUESTS. Groups may therefore only contain WRITE_COMMANDS —
-// a read/side-effect command here would make its hook permanently return false. Typing each command list
-// as `WriteCommand[]` makes the type system enforce that invariant rather than relying on the comment.
-// OpenApp only, deliberately not ReconnectApp: this group replaces the `IS_LOADING_APP` flag, which is set
-// true only for OpenApp (see getOnyxDataForOpenOrReconnect in src/libs/actions/App.ts). Including ReconnectApp
-// would make full-page loaders show during background reconnects (coming back online, update-gap sync), where
-// the old flag stayed false. The top LoadingBar, which does show during reconnects, uses LOADING_BAR_COMMANDS.
 const APP_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP] satisfies WriteCommand[]);
 const REPORT_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT] satisfies WriteCommand[]);
 const LOADING_BAR_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION] satisfies WriteCommand[]);
@@ -173,33 +164,24 @@ function useShouldWaitForAppLoad(): boolean {
 }
 
 /**
- * Whether the initial app skeleton should be visible and why.
- *
- * HAS_LOADED_APP prevents the skeleton from returning after the first OpenApp completes. The legacy
- * IS_LOADING_APP flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
+ * Whether the initial app skeleton should be visible, ignoring whether the load can still resolve.
+ * Use `useAppLoadSkeletonVisibility` unless the caller shows a skeleton while offline.
  */
-function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}) {
+function useAppLoadSkeletonState(): boolean {
     const isAppLoadPending = useIsAppLoadPending();
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const isLoadingHasLoadedApp = isLoadingOnyxValue(hasLoadedAppMetadata);
     const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
-    const shouldShowSkeleton = (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp || isLoadingReportData)) || isColdRestartRecoveryFallback;
 
-    return {
-        shouldShowSkeleton,
-        isAppLoadPending,
-        hasLoadedApp,
-        isLoadingHasLoadedApp,
-        isColdRestartRecoveryFallback,
-    };
+    return (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp)) || isColdRestartRecoveryFallback;
 }
 
 /**
  * Whether the initial app skeleton should be visible: the app load gate is open and that load can still resolve.
  */
-function useAppLoadSkeletonVisibility({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}): boolean {
-    const {shouldShowSkeleton} = useAppLoadSkeletonState({isLoadingReportData});
+function useAppLoadSkeletonVisibility(): boolean {
+    const shouldShowSkeleton = useAppLoadSkeletonState();
     const shouldWaitForAppLoad = useShouldWaitForAppLoad();
 
     return shouldShowSkeleton && shouldWaitForAppLoad;

@@ -47,7 +47,7 @@ Each hook maps to a **group**, which means a set of API commands that count as p
 - `useIsOnlineAppLoadPending()`: the same, except an `OpenApp` still queued from while the device was offline does not count.
 - `useIsReportLoadPending(reportID)`: an `OpenReport` or its deferred updates are pending for that report.
 - `useIsLoadingBarPending()` / `useLoadingBarVisibility()`: a command relevant to the top-of-screen loading bar is active. Persisted requests that started offline are excluded, and the visible bar also requires the app to be online.
-- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. The state also reports why, for tests and diagnostics. Visibility additionally requires `useShouldWaitForAppLoad()`, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
+- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. Visibility additionally requires `useShouldWaitForAppLoad()`, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
 
 The screen still decides what to render. It can combine the hook result with offline state, cached-data readiness, or first-load state. For example:
 
@@ -167,10 +167,13 @@ The remaining initial app skeleton consumers use `HAS_LOADED_APP` to distinguish
 | `HAS_LOADED_APP` is `false` and `OpenApp` is pending | shown |
 | `HAS_LOADED_APP` is `false`, and `OpenApp` left the queue before its deferred clear flushed | shown through the hook bridge |
 | Cold restart, `HAS_LOADED_APP` hydrated to `false`, and `IS_LOADING_APP` is still `true` | shown through the recovery fallback |
+| `HAS_LOADED_APP` is `false` and `OpenApp` resolved with an app-level error | not shown, the failure modal offers the retry |
 | `HAS_LOADED_APP` is `true`, including a warm reconnect or account switch | not shown |
 
-Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the primary signal. The fallback covers a fresh process where no in-memory latch could have observed the earlier `OpenApp`. `ForYouSection` also keeps `IS_LOADING_REPORT_DATA` in its first-load gate.
+Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the primary signal. The fallback covers a fresh process where no in-memory latch could have observed the earlier `OpenApp`.
 
 Report skeleton consumers use `useIsReportLoadPending(reportID)` wherever pending `OpenReport` work is part of the loading decision. They keep existing readiness checks, including `hasOnceLoadedReportActions`, report data completeness, and offline behavior. A stranded `isLoadingInitialReportActions` value without a matching queue request or in-memory latch must not show a skeleton.
+
+When `OpenApp` resolves with an app-level error, `HAS_LOADED_APP` is withheld and `IS_LOADING_APP` is cleared by `finallyData` as the queue drains, so every skeleton gate reads false and the app renders live content while unloaded (see [queueFlushedData](SEQUENTIAL_QUEUE.md#queuedonyxupdates-and-queueflusheddata)). The failure modal is dismissible, so a user who closes it lands back on live content in that unloaded state.
 
 Do not remove the legacy fields as part of this migration. `IS_LOADING_APP` and report loading state still support recovery, report positioning, navigation guards, and the deferred-flush bridge. Skeleton consumers should use the public hooks. Full flag deletion is outside this plan.
