@@ -67,8 +67,8 @@ function DynamicReconciliationFeedSelectorPage({route}: DynamicReconciliationFee
 
     // The choice travels back in the route rather than through the last-selected-feed NVP the Expensify Card pages use:
     // that NVP also decides which feed a new card is issued on, so writing it here would let picking a feed to
-    // reconcile retarget card issuance. compareParams: false makes this go up to the reconciliation page already on the
-    // stack and update its fundID, instead of pushing a second entry for the same page.
+    // reconcile change where new cards are issued. compareParams: false makes this go up to the reconciliation page
+    // already on the stack and update its fundID, instead of pushing a second entry for the same page.
     const selectFeed = (feed: ReconciliationFeedListItem) => {
         Navigation.goBack(appendParam(backPath, 'fundID', feed.value.toString()), {compareParams: false});
     };
