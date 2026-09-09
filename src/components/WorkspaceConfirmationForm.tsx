@@ -3,9 +3,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
+import type {PolicyOwner} from '@libs/actions/Policy/Policy';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -18,6 +20,7 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {accountIDSelector, displayNameSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
@@ -47,7 +50,7 @@ type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
     planType?: PolicyType;
-    owner?: string;
+    owner?: PolicyOwner;
     makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
@@ -129,8 +132,9 @@ function WorkspaceConfirmationForm({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
     const email = policyOwnerEmail || (session?.email ?? '');
-    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
+    const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDisplayName);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -140,6 +144,7 @@ function WorkspaceConfirmationForm({
 
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
+    const ownerAccountID = usePersonalDetailByLogin(userOwner, accountIDSelector);
 
     const [makeMeAdmin, setMakeMeAdmin] = useState(true);
     const currentUserEmail = session?.email ?? '';
@@ -218,7 +223,7 @@ function WorkspaceConfirmationForm({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
                             planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : undefined,
-                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
+                            owner: isApprovedAccountant ? {email: val[INPUT_IDS.OWNER], accountID: ownerAccountID} : undefined,
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,
