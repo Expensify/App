@@ -90,7 +90,7 @@ import {
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
 } from '@libs/ReportActionsUtils';
-import {getPolicyChangeLogCopyMessage, getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
+import {getMemberDisplayNameUpdatedMessage, getPolicyChangeLogCopyMessage, getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -197,6 +197,9 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED]: (translate, action) => getPolicyChangeLogDefaultTitleEnforcedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: (translate, action) => getPolicyChangeLogAddEmployeeMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action) => getPolicyChangeLogUpdateEmployee(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME]: (translate, action) => ({
+        html: `<comment><muted-text>${getMemberDisplayNameUpdatedMessage(translate, action)}</muted-text></comment>`,
+    }),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE]: (translate, action) => getPolicyChangeLogDeleteMemberMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE]: (translate, action) => getAddedApprovalRuleMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE]: (translate, action) => getDeletedApprovalRuleMessage(translate, action),
