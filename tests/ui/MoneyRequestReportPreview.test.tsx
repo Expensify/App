@@ -133,7 +133,7 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
     default: () => mockUseReportTransactionsCollection(),
 }));
 
-type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+type OnHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 
 // Capture onHoldMenuOpen so a held-expense payment can be triggered with a chosen bank account.
 const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
@@ -162,7 +162,9 @@ jest.mock('@components/WideRHPContextProvider', () => ({
     }),
 }));
 
-const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
+const mockHoldMenuPropsHolder: {
+    current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number};
+} = {current: undefined};
 jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     __esModule: true,
     default: (props: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}) => {
@@ -383,33 +385,13 @@ describe('MoneyRequestReportPreview', () => {
         expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
 
         act(() => {
-            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
+            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
         });
         await waitForBatchedUpdatesWithAct();
 
         expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
         expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
         expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
-    });
-
-    it('does not open the hold menu for request types other than pay or approve', async () => {
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-        setCurrentWidth();
-        await act(async () => {
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
-            await waitForBatchedUpdatesWithAct();
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
-
-        act(() => {
-            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockHoldMenuPropsHolder.current).toBeUndefined();
     });
 
     it('renders RBR for every transaction with violations', async () => {
@@ -552,7 +534,11 @@ describe('MoneyRequestReportPreview', () => {
             if (!reportID || !transactionID) {
                 return undefined;
             }
-            return {...mockAction, childReportID: `thread_${transactionID}`, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+            return {
+                ...mockAction,
+                childReportID: `thread_${transactionID}`,
+                originalMessage: {...mockAction, IOUTransactionID: transactionID},
+            };
         };
 
         const renderAndPopulateCarousel = async () => {
@@ -771,7 +757,11 @@ describe('MoneyRequestReportPreview', () => {
                     ONYXKEYS.COLLECTION.TRANSACTION,
                     [
                         {...mockTransaction, transactionThreadReportID: `thread_${mockTransaction.transactionID}`},
-                        {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`},
+                        {
+                            ...mockTransaction,
+                            transactionID: mockSecondTransactionID,
+                            transactionThreadReportID: `thread_${mockSecondTransactionID}`,
+                        },
                     ],
                     (transaction) => transaction.transactionID,
                 ),
@@ -807,7 +797,9 @@ describe('MoneyRequestReportPreview', () => {
             navigateSpy.mockClear();
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [`${mockAction.reportActionID}_late`]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -822,7 +814,14 @@ describe('MoneyRequestReportPreview', () => {
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
-                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, transactionThreadReportID: `thread_${mockSecondTransactionID}`}],
+                    [
+                        mockTransaction,
+                        {
+                            ...mockTransaction,
+                            transactionID: mockSecondTransactionID,
+                            transactionThreadReportID: `thread_${mockSecondTransactionID}`,
+                        },
+                    ],
                     (transaction) => transaction.transactionID,
                 ),
             );
@@ -844,7 +843,9 @@ describe('MoneyRequestReportPreview', () => {
             navigateSpy.mockClear();
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_late`]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [`${mockAction.reportActionID}_late`]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -871,7 +872,14 @@ describe('MoneyRequestReportPreview', () => {
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
-                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    [
+                        mockTransaction,
+                        {
+                            ...mockTransaction,
+                            transactionID: mockSecondTransactionID,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    ],
                     (transaction) => transaction.transactionID,
                 ),
             );
@@ -891,7 +899,14 @@ describe('MoneyRequestReportPreview', () => {
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
-                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    [
+                        mockTransaction,
+                        {
+                            ...mockTransaction,
+                            transactionID: mockSecondTransactionID,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    ],
                     (transaction) => transaction.transactionID,
                 ),
             );
@@ -916,7 +931,14 @@ describe('MoneyRequestReportPreview', () => {
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
-                    [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+                    [
+                        mockTransaction,
+                        {
+                            ...mockTransaction,
+                            transactionID: mockSecondTransactionID,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    ],
                     (transaction) => transaction.transactionID,
                 ),
             );
@@ -970,7 +992,9 @@ describe('MoneyRequestReportPreview', () => {
 
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [`${mockAction.reportActionID}_loaded`]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
             await settleCascade();
@@ -989,11 +1013,15 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalled();
 
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {
+                    isLoadingInitialReportActions: true,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {
+                    isLoadingInitialReportActions: false,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -1008,7 +1036,9 @@ describe('MoneyRequestReportPreview', () => {
 
             await renderAndPopulateCarousel();
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [mockAction.reportActionID]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
             await pressSecondTransaction();
@@ -1018,11 +1048,15 @@ describe('MoneyRequestReportPreview', () => {
 
             // Regression: the drain used to wait for an action-count change that never came, leaving the tap dead.
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {
+                    isLoadingInitialReportActions: true,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: false});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {
+                    isLoadingInitialReportActions: false,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -1037,7 +1071,9 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
             // Partially seeded cache: some actions are present, but not the pressed expense's IOU action.
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [mockAction.reportActionID]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
             await pressSecondTransaction();
@@ -1049,7 +1085,9 @@ describe('MoneyRequestReportPreview', () => {
 
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {
+                    [`${mockAction.reportActionID}_loaded`]: mockAction,
+                });
                 await waitForBatchedUpdatesWithAct();
             });
 
@@ -1064,7 +1102,11 @@ describe('MoneyRequestReportPreview', () => {
                 if (!reportID || !transactionID) {
                     return undefined;
                 }
-                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+                return {
+                    ...mockAction,
+                    childReportID: undefined,
+                    originalMessage: {...mockAction, IOUTransactionID: transactionID},
+                };
             });
 
             await renderAndPopulateCarousel();
@@ -1081,7 +1123,11 @@ describe('MoneyRequestReportPreview', () => {
                 if (!reportID || !transactionID) {
                     return undefined;
                 }
-                return {...mockAction, childReportID: undefined, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
+                return {
+                    ...mockAction,
+                    childReportID: undefined,
+                    originalMessage: {...mockAction, IOUTransactionID: transactionID},
+                };
             });
 
             await renderAndPopulateCarousel();
@@ -1117,8 +1163,18 @@ describe('MoneyRequestReportPreview', () => {
         it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {
             // Supplied newest-first and rendered oldest-first, so the arrows must walk render order, not collection order.
             mockResponsiveLayoutOverride = wideResponsiveLayout;
-            const olderTransaction = {...mockTransaction, transactionID: 'ordering_older', created: '2026-08-01 00:00:00', amount: mockTransaction.amount * 3};
-            const newerTransaction = {...mockTransaction, transactionID: 'ordering_newer', created: '2026-08-20 00:00:00', amount: mockTransaction.amount * 5};
+            const olderTransaction = {
+                ...mockTransaction,
+                transactionID: 'ordering_older',
+                created: '2026-08-01 00:00:00',
+                amount: mockTransaction.amount * 3,
+            };
+            const newerTransaction = {
+                ...mockTransaction,
+                transactionID: 'ordering_newer',
+                created: '2026-08-20 00:00:00',
+                amount: mockTransaction.amount * 5,
+            };
             mockUseReportWithTransactionsAndViolations.mockImplementation(() => [mockIOUReport, [newerTransaction, olderTransaction], {}]);
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [newerTransaction, olderTransaction], (transaction) => transaction.transactionID),

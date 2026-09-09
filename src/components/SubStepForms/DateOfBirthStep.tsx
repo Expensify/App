@@ -20,28 +20,19 @@ import React, {useCallback} from 'react';
 
 type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The ID of the date of birth input */
         dobInputID: string;
 
         /** The default value for the date of birth input */
         dobDefaultValue: string;
 
-        /** Optional footer component */
         footerComponent?: React.ReactNode;
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */

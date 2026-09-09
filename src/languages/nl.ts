@@ -1660,11 +1660,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Keur alleen conforme uitgaven goed, of keur het hele rapport goed.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave is in de wacht gezet. Wil je toch goedkeuren?',
-            other: 'Deze declaraties staan in de wacht. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
@@ -3334,6 +3331,7 @@ ${amount} voor ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -6337,6 +6335,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
                         },
+                        setUpNewFeed: 'Nieuwe reiskoppeling instellen',
+                        feedSelectorIntro:
+                            'Je organisatie heeft al een Consolidated Travel Billing-feed ingesteld. Selecteer die om de reiskosten van deze workspace op dezelfde maandelijkse factuur te houden.',
                     },
                     disableModal: {
                         title: 'Samengevoegde reiskostenfacturatie uitschakelen?',
@@ -9438,6 +9439,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         exportedTo: 'Geëxporteerd naar',
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
+            allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
             selectAllOnThisPage: 'Selecteer alles op deze pagina',
         },
         errors: {
@@ -9562,6 +9564,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `geëxporteerd naar ${translatedLabel}`;
@@ -10797,6 +10800,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         multipleTaxExport: 'Canadese export met meerdere belastingen',
+        reconciliationAllExpenses: 'Afstemming - Alle uitgaven',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',

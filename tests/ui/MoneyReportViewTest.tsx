@@ -32,6 +32,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
     default: () => ({
         didScreenTransitionEnd: true,
+        shouldUseNarrowLayoutOnWideRHP: false,
     }),
 }));
 

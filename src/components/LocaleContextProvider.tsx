@@ -21,7 +21,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import React, {createContext, useEffect, useSyncExternalStore} from 'react';
 
 type LocaleContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 

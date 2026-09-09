@@ -181,7 +181,6 @@ type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
     tripRoomReport: OnyxEntry<Report>;
 
-    /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 
     /** Trip transactions associated with the report */

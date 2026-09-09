@@ -16,13 +16,11 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
-    /** Currently selected value */
     value?: string;
 
     /** Function to call when the user selects a value */
     onInputChange?: (value: string) => void;
 
-    /** Reference to the outer element */
     ref: ForwardedRef<View>;
 };
 

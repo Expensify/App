@@ -26,13 +26,8 @@ import {View} from 'react-native';
 import type {WorkspaceExpensifyCardTableRowData} from '.';
 
 type WorkspaceExpensifyCardsTableRowProps = {
-    /** Data about the Expensify card */
     item: WorkspaceExpensifyCardTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

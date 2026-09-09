@@ -1660,11 +1660,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tudo pronto!',
         noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',
-        confirmApprovalAmount: 'Aprove apenas as despesas em conformidade ou aprove o relatório inteiro.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Esta despesa está em espera. Deseja aprovar mesmo assim?',
-            other: 'Essas despesas estão em espera. Deseja aprovar mesmo assim?',
-        }),
+        confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
+        confirmApprovalAllHoldAmount: 'Todas as despesas estão em espera. Aprovar mesmo assim?',
         confirmPay: 'Confirmar valor do pagamento',
         confirmPayAmount: 'Pague o que não está retido ou pague o relatório inteiro.',
         confirmPayAllHoldAmount: () => ({
@@ -3325,6 +3322,7 @@ ${amount} para ${merchant} - ${date}`,
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
             workAccountClosedSubtitle:
                 'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} é um login controlado por domínio de uma conta existente do Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -6342,6 +6340,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                             sendInvoiceNowCta: 'Enviar fatura agora',
                         },
+                        setUpNewFeed: 'Configurar um novo feed de viagem',
+                        feedSelectorIntro:
+                            'Sua organização já tem um feed de Faturamento Consolidado de Viagens configurado. Selecione-o para manter os gastos de viagem deste workspace na mesma fatura mensal.',
                     },
                     disableModal: {
                         title: 'Desativar Faturamento Consolidado de Viagens?',
@@ -9438,6 +9439,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         exportedTo: 'Exportado para',
         exportAll: {
             selectAllMatchingItems: 'Selecionar todos os itens correspondentes',
+            allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
             selectAllOnThisPage: 'Selecionar tudo nesta página',
         },
         chartTitles: {
@@ -9563,6 +9565,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exportado para ${translatedLabel}`;
@@ -10793,6 +10796,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
         multipleTaxExport: 'Exportação canadense de múltiplos impostos',
+        reconciliationAllExpenses: 'Conciliação - Todas as despesas',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
         currentView: 'Visualização atual',
