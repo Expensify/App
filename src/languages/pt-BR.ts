@@ -3150,6 +3150,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'Não lidas',
         markAllAsRead: 'Marcar tudo como lido',
         markAllAsReadConfirmationPrompt: 'Tem certeza de que deseja marcar todos os chats como lidos?',
+        markAllTodosAsReadConfirmationPrompt: 'Tem certeza de que deseja marcar como lidos todos os chats pendentes?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
