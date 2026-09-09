@@ -1,8 +1,8 @@
 ---
 title: Reimbursement payment methods 
 description: Learn how Workspace Admins reimburse approved expense reports using ACH, global reimbursement or Pay elsewhere, including timelines and supported currencies.
-keywords: [New Expensify, Workspace Admin reimburse, ACH reimbursement, global reimbursement, reimbursement timeline, Pay elsewhere, Rapid Reimbursement, reimburse employees, supported currencies, direct reimbursement]
-internalScope: Audience is Workspace Admins. Covers how Workspace Admins reimburse approved expense reports using ACH, global reimbursement, including timelines and supported currencies. Does not cover bank account setup steps, reimbursement failure troubleshooting, member-level bank account setup, or Expensify Card transactions.
+keywords: [New Expensify, Workspace Admin reimburse, ACH reimbursement, global reimbursement, reimbursement timeline, Pay elsewhere, Mark as paid, Rapid Reimbursement, reimburse employees, supported currencies, direct reimbursement, pay reports in bulk, pay multiple reports, select all matching reports]
+internalScope: Audience is Workspace Admins. Covers how Workspace Admins reimburse approved expense reports using ACH, global reimbursement, or Mark as paid, including single-report payments, bulk payments, paying every report matching a Reports search, timelines, and supported currencies. Does not cover bank account setup steps, reimbursement failure troubleshooting, member-level bank account setup, or Expensify Card transactions.
 ---
 
 Workspace Admins can reimburse approved reports using ACH reimbursement, global reimbursement, or Pay elsewhere. This article explains how each method works, supported currencies, and typical timelines.
@@ -75,18 +75,53 @@ To pay reports in bulk:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
-4. Select **Selected**.
+4. Select the **[number] selected** button that appears in the header.
 5. Choose **Pay**.
 6. Choose a payment method:
    - Select a connected Workspace business bank account to send direct reimbursement.
-   - Select **Pay elsewhere** to mark the report as paid outside Expensify.
+   - Select **Mark as paid** to record the reports as paid outside Expensify. This is the Pay elsewhere method.
 7. Confirm the payment.
 
-**Note:** Only bank accounts that match the report's currency are shown. For example, if the reports are in EUR, only EUR bank accounts appear as payment options. If the selected reports contain more than one currency, direct reimbursement is not available — select **Pay elsewhere** to record the payments, or pay same-currency reports in separate batches.
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the reports are in EUR, only EUR bank accounts appear as payment options. If the selected reports contain more than one currency, direct reimbursement is not available — select **Mark as paid** to record the payments, or pay same-currency reports in separate batches.
 
 Once confirmed, Expensify processes the transfers and the report statuses update to **Paid**.
 
-**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Pay elsewhere** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
+**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Mark as paid** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
+
+---
+
+## How to pay every report matching a search in bulk
+
+Instead of selecting each report individually, Workspace Admins can pay every report that matches the current **Reports** view, including matching reports on pages that have not loaded yet.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
+2. Under **To-do**, select **Pay**, then apply any other filters that narrow the list to the reports you want to pay.
+3. Select the checkbox in the report list header. When more matching reports exist than the page shows, a menu opens — choose **Select all**. To pay only the reports currently listed, choose **Select all on this page** instead.
+4. Select the **[number] selected** button that appears in the header.
+5. Choose **Pay**, then select **Mark as paid**.
+6. Confirm the payment.
+
+Expensify works through every matching report and updates each report status to **Paid**. Large selections are processed in the background, so the report statuses update as each payment is recorded rather than all at once.
+
+**Note:** When **Select all** is used, **Mark as paid** is the only payment option. Direct reimbursement from a business bank account is not offered, because the full set of matching reports can span multiple Workspaces, currencies, and bank accounts. To send direct reimbursement, choose **Select all on this page** or select individual reports that share the same currency.
+
+<!-- SCREENSHOT:
+Suggestion: The Reports view with the report list header checkbox clicked, showing the open menu with the two options "Select all on this page" and "Select all".
+Location: Immediately after step 3 of "How to pay every report matching a search in bulk".
+Purpose: Workspace Admins cannot tell from the header checkbox alone that two different selection scopes exist, and paying "Select all" instead of "Select all on this page" pays reports they never saw on screen.
+-->
+
+---
+
+## What happens when some selected reports cannot be paid
+
+A selection can include reports that are not ready to pay — for example, reports that are still open, awaiting approval, or already paid.
+
+**Pay** remains available as long as at least one selected report can be paid. Expensify pays only the reports that are ready and leaves the rest untouched, so the payment total and the confirmation reflect the payable reports alone.
+
+An expense on hold blocks **Pay** only when that expense belongs to one of the reports being paid. A held expense on a report that is skipped does not hide the **Pay** option.
+
+**Note:** All payable reports in the selection must be the same report type. If the selection mixes report types, **Pay** is not offered — select reports of a single type instead.
 
 ---
 
