@@ -64,7 +64,14 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         const canEnrollNewCardProgram = item.currencyCode === CONST.CURRENCY.USD || isUkEuCurrencySupported;
         if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
             Navigation.navigate(
-                getExpensifyCardEnrollmentRoute(policy.id, item.currencyCode, isUkEuCurrencySupported, bankAccountList, supportedCountriesByCurrency, reimbursementAccount?.achData),
+                getExpensifyCardEnrollmentRoute({
+                    policyID: policy.id,
+                    currencyCode: item.currencyCode,
+                    isUkEuCurrencySupported,
+                    bankAccountsList: bankAccountList,
+                    supportedCountriesByCurrency,
+                    achData: reimbursementAccount?.achData,
+                }),
                 {forceReplace: true},
             );
             return;

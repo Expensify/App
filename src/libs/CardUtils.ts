@@ -594,14 +594,17 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
     );
 }
 
-function getExpensifyCardEnrollmentRoute(
-    policyID: string,
-    currencyCode: string | undefined,
-    isUkEuCurrencySupported: boolean,
-    bankAccountsList: OnyxEntry<BankAccountList>,
-    supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>,
-    achData: ACHDataReimbursementAccount | undefined,
-) {
+type ExpensifyCardEnrollmentRouteParams = {
+    policyID: string;
+    currencyCode: string | undefined;
+    isUkEuCurrencySupported: boolean;
+    bankAccountsList: OnyxEntry<BankAccountList>;
+    supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>;
+    achData: ACHDataReimbursementAccount | undefined;
+};
+
+/** Returns the next enrollment route based on whether the workspace can use an existing bank account or must add one. */
+function getExpensifyCardEnrollmentRoute({policyID, currencyCode, isUkEuCurrencySupported, bankAccountsList, supportedCountriesByCurrency, achData}: ExpensifyCardEnrollmentRouteParams) {
     const eligibleBankAccounts = isUkEuCurrencySupported
         ? getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, currencyCode)
         : getEligibleBankAccountsForCard(bankAccountsList);

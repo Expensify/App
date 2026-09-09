@@ -4659,18 +4659,43 @@ describe('getExpensifyCardEnrollmentRoute', () => {
     };
 
     it('returns the add bank account route when no eligible account exists', () => {
-        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, {}, undefined, undefined)).toBe(addBankAccountRoute);
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: {},
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(addBankAccountRoute);
     });
 
     it('returns the bank account selector route when an eligible account exists', () => {
-        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, eligibleBankAccounts, undefined, undefined)).toBe(
-            ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID),
-        );
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData: undefined,
+            }),
+        ).toBe(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     });
 
     it('returns the add bank account route when setup is in progress', () => {
         const achData = createMock<ACHDataReimbursementAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.SETUP});
-        expect(getExpensifyCardEnrollmentRoute(policyID, CONST.CURRENCY.USD, false, eligibleBankAccounts, undefined, achData)).toBe(addBankAccountRoute);
+        expect(
+            getExpensifyCardEnrollmentRoute({
+                policyID,
+                currencyCode: CONST.CURRENCY.USD,
+                isUkEuCurrencySupported: false,
+                bankAccountsList: eligibleBankAccounts,
+                supportedCountriesByCurrency: undefined,
+                achData,
+            }),
+        ).toBe(addBankAccountRoute);
     });
 });
 

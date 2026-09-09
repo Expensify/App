@@ -155,6 +155,7 @@ describe('WorkspaceOverviewCurrencyPage', () => {
                 policyID: POLICY_ID,
                 backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID),
             }),
+            {forceReplace: true},
         );
     });
 
@@ -166,7 +167,7 @@ describe('WorkspaceOverviewCurrencyPage', () => {
 
         fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.GBP}`));
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(POLICY_ID), {forceReplace: true});
     });
 
     it('does not start enrollment after selecting an unsupported currency', () => {

@@ -101,7 +101,14 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             return;
         }
         Navigation.navigate(
-            getExpensifyCardEnrollmentRoute(policy.id, policy.outputCurrency, isUkEuCurrencySupported, bankAccountList, supportedCountriesByCurrency, reimbursementAccount?.achData),
+            getExpensifyCardEnrollmentRoute({
+                policyID: policy.id,
+                currencyCode: policy.outputCurrency,
+                isUkEuCurrencySupported,
+                bankAccountsList: bankAccountList,
+                supportedCountriesByCurrency,
+                achData: reimbursementAccount?.achData,
+            }),
         );
     };
 
