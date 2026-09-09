@@ -2089,6 +2089,11 @@ function getSubmitToEmail(
         }
     }
 
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal: expenseReport?.total ?? 0}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
 
     // Falls back to the default approver when the manager is unavailable.

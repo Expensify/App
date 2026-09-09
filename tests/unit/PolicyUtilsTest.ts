@@ -1510,6 +1510,11 @@ describe('PolicyUtils', () => {
             const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
             expect(getApprovalChain(policy, report, employeeEmail, rulesCollection)).toEqual([adminEmail, approverEmail]);
         });
+
+        it('getSubmitToEmail keeps the rules approver when that approver has no employeeList entry', () => {
+            const report: Report = {...createRandomReport(0, undefined), policyID, ownerAccountID: employeeAccountID, total: -5000};
+            expect(getSubmitToEmail(policy, report, employeeEmail, rulesCollection, true)).toBe(adminEmail);
+        });
     });
 
     describe('getSubmitReportManagerAccountID', () => {
