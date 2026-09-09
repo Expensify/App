@@ -65,6 +65,8 @@ function IOURequestStepOdometerImage({
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
+    // Ref for double-tap protection
+    const isCapturingPhoto = useRef(false);
     const isTransactionDraft = shouldUseTransactionDraft(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.REQUEST);
 
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -86,6 +88,7 @@ function IOURequestStepOdometerImage({
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({
         onFocusCleanup: () => {
+            isCapturingPhoto.current = false;
             cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
         },
     });
@@ -169,11 +172,11 @@ function IOURequestStepOdometerImage({
             return;
         }
 
-        if (didCapturePhoto) {
+        if (isCapturingPhoto.current) {
             return;
         }
 
-        setDidCapturePhoto(true);
+        isCapturingPhoto.current = true;
 
         startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
@@ -227,18 +230,19 @@ function IOURequestStepOdometerImage({
                                     false,
                                 );
                                 endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
+                                setDidCapturePhoto(true);
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
                                 cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
-                                setDidCapturePhoto(false);
+                                isCapturingPhoto.current = false;
                                 showCameraAlert();
                                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
                             });
                     })
                     .catch((error: unknown) => {
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
-                        setDidCapturePhoto(false);
+                        isCapturingPhoto.current = false;
                         showCameraAlert();
                         const errorMessage = error instanceof Error ? error.message : String(error);
                         Log.warn('Error taking photo', errorMessage);
