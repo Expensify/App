@@ -11,24 +11,29 @@ import {setDraftMerchantRule} from '@libs/actions/User';
 import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Animated, {FadeInDown, FadeInUp, FadeOutDown, FadeOutUp} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import Banner from './Banner';
 import Icon from './Icon';
 import Text from './Text';
 import TextLink from './TextLink';
 import {useWideRHPState} from './WideRHPContextProvider';
+
+/** How far the callout travels on its way in, matching the distance reanimated's FadeInUp and FadeInDown use */
+const CALLOUT_SLIDE_DISTANCE = 25;
 
 type MerchantRuleSuggestionBannerProps = {
     /** The report hosting the expense detail view: a transaction thread, its expense report, or the chat it lives in */
@@ -63,6 +68,31 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
     const isShowing = !!suggestion && !!policyID;
 
+    // Slid in from the edge it is pinned to by a parked view, the way FloatingMessageCounter does it. A reanimated
+    // entering animation looked right when the callout arrived with a fresh page, but a toggle edit leaves the user
+    // on the page it appears in, and there the animation fought the surrounding layout and flickered.
+    const slideOffset = isAnchoredToBottom ? CALLOUT_SLIDE_DISTANCE : -CALLOUT_SLIDE_DISTANCE;
+    const translateY = useSharedValue(slideOffset);
+    const opacity = useSharedValue(0);
+
+    // Held until any navigation transition finishes. Coming back from a field's edit page mounts the callout while the
+    // page is still sliding, and the slide would be over before the page arrived. Nothing is transitioning after a
+    // toggle edit, where the callout appears on the page the user is already on, so there it starts at once.
+    useEffect(() => {
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                translateY.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+                opacity.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+            },
+        });
+        return handle.cancel;
+    }, [translateY, opacity]);
+
+    const slideStyle = useAnimatedStyle(() => ({
+        opacity: opacity.get(),
+        transform: [{translateY: translateY.get()}],
+    }));
+
     // Recorded so leaving the report can retire the offer. The report cannot work this out for itself, because the
     // one showing an expense is not always the one the edit was recorded against.
     useEffect(() => {
@@ -93,18 +123,10 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };
 
-    // Slides out of the edge it is pinned to rather than popping. FloatingMessageCounter springs a parked view
-    // instead, which this cannot do because it unmounts when there is nothing to offer.
-    //
     // The composer check sits inside rather than around this wrapper on purpose. Expanding the composer should take
-    // the callout away at once, and unmounting the wrapper would instead play the exit animation over the composer
-    // as it grows. Emptying it leaves nothing to see while keeping the animation for an actual dismissal.
+    // the callout away at once, and emptying the wrapper does that without disturbing the slide.
     return (
-        <Animated.View
-            style={overlayStyles}
-            entering={isAnchoredToBottom ? FadeInDown : FadeInUp}
-            exiting={isAnchoredToBottom ? FadeOutDown : FadeOutUp}
-        >
+        <Animated.View style={[overlayStyles, slideStyle]}>
             {!isComposerFullSize && (
                 <Banner
                     containerStyles={[styles.merchantRuleCalloutContainer, styles.p4, containerStyles]}
@@ -157,9 +179,14 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
     // and keeps the navigation-state subscription out of the report actions list, which re-renders far more often.
     const isMountForThisLayout = isAnchoredToBottom ? !shouldUseNarrowLayout || isInWideRHP : shouldUseNarrowLayout && !isInWideRHP;
 
+    // The same report can be mounted twice at once, in the central pane and in the RHP over it. Each tree measures its
+    // own layout, so the layout check alone elects a mount in both and the callout appears twice, each fading in on its
+    // own beat. Only the view the user is actually on should offer it.
+    const isFocused = useIsFocused();
+
     // Nothing is stored for most of a session, so skip the inner component and its Onyx subscriptions until there is
     // an edit to offer.
-    if (!isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
+    if (!isFocused || !isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
         return null;
     }
 
