@@ -14,7 +14,6 @@ import {buildOptimisticTransactionAndCreateDraft} from '@userActions/Transaction
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {policyExpenseChatSelector} from '@selectors/Report';
@@ -26,6 +25,10 @@ import useFilesValidation from './useFilesValidation';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useSelfDMReport from './useSelfDMReport';
+
+function areBlobBackedFiles(files: FileObject[]): files is Array<FileObject & Blob> {
+    return files.every((file) => file instanceof Blob);
+}
 
 /**
  * Encapsulates the receipt scan drag-and-drop logic used by SearchPage and HomePage.
@@ -52,6 +55,10 @@ function useReceiptScanDrop() {
     const newReportID = useMemo(() => generateReportID(), []);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        if (!areBlobBackedFiles(files)) {
+            return;
+        }
+
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             isFromFloatingActionButton: true,
@@ -65,15 +72,19 @@ function useReceiptScanDrop() {
             draftTransactionIDs,
         });
 
+        if (!initialTransaction) {
+            return;
+        }
+
         const newReceiptFiles: ReceiptFile[] = [];
 
         for (const [index, file] of files.entries()) {
-            const source = URL.createObjectURL(file as Blob);
+            const source = URL.createObjectURL(file);
             const transaction =
                 index === 0
-                    ? (initialTransaction as Partial<Transaction>)
+                    ? initialTransaction
                     : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          initialTransaction: {...initialTransaction, category: initialTransaction.category ?? undefined},
                           reportID: newReportID,
                       });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
