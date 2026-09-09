@@ -179,7 +179,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
-const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: rowPolicy ?? liveTransactionItem.policy,
         report: liveTransactionItem.report,
         isTrackIntentUser,

@@ -25,9 +25,9 @@ import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, TransactionViolation} from '@src/types/onyx';
+import type {GovernmentMileageRate, Policy, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-import type {CommuterExclusions, CustomUnit, Policy, Rate} from '@src/types/onyx/Policy';
+import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -421,7 +421,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         customUnits: {
             ...policyData.policy?.customUnits,
             [customUnit.customUnitID]: {
-                ...existingCustomUnit,
+                ...customUnit,
                 rates: mergedRates,
             },
         },
