@@ -32,7 +32,6 @@ import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
 type ConnectBankAccountProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
@@ -41,7 +40,6 @@ type ConnectBankAccountProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setUSDBankAccountStep?: (step: string | null) => void;
 
-    /** ID of current policy */
     policyID?: string;
 
     /** Route to return to when navigating back out of the flow */

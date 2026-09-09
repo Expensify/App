@@ -492,6 +492,44 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             // The self-DM is forced as the chat target (route report is cleared) so the action defaults to the self-DM.
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({report: undefined}));
         });
+
+        // A self-DM destination clears the route report, so trackExpense resolves the chat to the self-DM. Reporting
+        // the route report's draft state would make getTrackExpenseInformation build a workspace whose expense chat
+        // overwrites the self-DM's report, so the flag has to follow the chat that is actually used.
+        it('reports isDraftChatReport=false for a self-DM destination even when the route report is a draft', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report);
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        participants: [{accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', selected: true}],
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({report: undefined, isDraftChatReport: false}));
+        });
+
+        it('reports isDraftChatReport=true when the draft route report is the chat the expense is tracked against', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report);
+
+            const {result} = renderHook(() => useExpenseSubmission(buildParams({iouType: CONST.IOU.TYPE.TRACK})));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({isDraftChatReport: true}));
+        });
     });
 
     describe('per diem path', () => {
