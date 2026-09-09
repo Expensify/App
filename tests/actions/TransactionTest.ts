@@ -228,6 +228,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -685,7 +686,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
@@ -868,7 +869,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: RORY_EMAIL,
+                    policyOwner: {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Rory's Workspace",
                     policyID,
@@ -1055,7 +1056,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
@@ -1251,7 +1252,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace for Hold Test",
                     policyID,

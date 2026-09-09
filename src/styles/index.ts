@@ -479,6 +479,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -4692,11 +4696,6 @@ const staticStyles = (theme: ThemeColors) =>
         reportHorizontalRule: {
             borderColor: theme.border,
             ...spacing.mh5,
-        },
-
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {

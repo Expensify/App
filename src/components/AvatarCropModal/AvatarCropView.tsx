@@ -37,7 +37,6 @@ type AvatarCropViewProps = {
     /** Link to image for cropping */
     imageUri?: string;
 
-    /** Name of the image */
     imageName?: string;
 
     /** Type of the image file */
