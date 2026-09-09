@@ -121,7 +121,7 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     approvers: Approver[];
 
     /**
-     * Is this the default workflow for the policy (first approver of this workflow is the same as the policy's default approver)
+     * Is this the default workflow for the policy
      */
     isDefault: boolean;
 }>;
@@ -152,9 +152,6 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     usedApproverEmails: string[];
 
-    /**
-     * Errors for the workflow
-     */
     errors?: Record<string, TranslationPaths>;
 
     /**
