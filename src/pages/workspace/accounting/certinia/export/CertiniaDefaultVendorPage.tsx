@@ -62,7 +62,11 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectVendor = (row: VendorListItem) => {
-        if (row.value !== exportConfig?.vendorAccount && policyID) {
+        const isAlreadySelected = row.value === exportConfig?.vendorAccount || (!row.value && !exportConfig?.vendorAccount);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
         }
         Navigation.goBack(backPath);
