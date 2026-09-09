@@ -58,7 +58,10 @@ function simulatePointer() {
 type HarnessProps = {target: HTMLElement | null; didScreenTransitionEnd: boolean; shouldSkip?: boolean; shouldClaimOnlyForScreenReader?: boolean};
 
 function MountedHarness({target, didScreenTransitionEnd, shouldSkip, shouldClaimOnlyForScreenReader}: HarnessProps) {
-    const contextValue = useMemo(() => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}), [didScreenTransitionEnd]);
+    const contextValue = useMemo(
+        () => ({didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}),
+        [didScreenTransitionEnd],
+    );
     return (
         <ScreenWrapperStatusContext.Provider value={contextValue}>
             <Inner

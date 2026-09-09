@@ -459,7 +459,6 @@ const ONYXKEYS = {
     /** Stores information about the share bank account during setup */
     SHARE_BANK_ACCOUNT: 'shareBankAccount',
 
-    /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
     /** Set when we are loading bank accounts for share page */
@@ -468,10 +467,8 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
-    /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
-    /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
@@ -495,10 +492,8 @@ const ONYXKEYS = {
     /** Set while search filter category data is loading */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
-    /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
-    /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
@@ -624,6 +619,9 @@ const ONYXKEYS = {
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
+    /** Local overrides for beta feature flags, set from the Test Tool Menu on dev/staging. Takes precedence over the server-provided betas */
+    BETA_OVERRIDES: 'betaOverrides',
+
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
@@ -733,7 +731,6 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
-    /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
     /** Whether to kick off the "Concierge is thinking" indicator when AgentZeroStatusGate mounts */
@@ -814,7 +811,6 @@ const ONYXKEYS = {
      */
     SHOULD_BILL_WHEN_DOWNGRADING: 'shouldBillWhenDowngrading',
 
-    /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
     /** Set this gets redirected from global reimbursements flow */
@@ -823,7 +819,6 @@ const ONYXKEYS = {
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
 
-    /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
     /** Stores information for InitiateBankAccountUnlock API call */
@@ -907,6 +902,12 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
+        // Boolean marker (no report data) flagging that report_<id> is a speculative copy of reportDraft_<id>, written by
+        // preMountDraftReport so a pre-mounted destination can render before submit. Must persist (not RAM-only): the
+        // report_<id> row it points at lives in the persisted REPORT collection, and Onyx RAM-only applies per key or whole
+        // collection, not per row, so that row survives an app kill (where no unmount cleanup runs). A RAM-only marker would
+        // vanish while the row stays behind. The next launch uses this marker to find and delete it.
+        REPORT_PRE_MOUNTED_DRAFT: 'reportPreMountedDraft_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
         // Loading flags / pagination cursors / last-visit timestamp live in dedicated
@@ -976,7 +977,6 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
-        /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
         /** Expensify cards bank account for a given workspace */
@@ -1032,7 +1032,6 @@ const ONYXKEYS = {
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
 
-        /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
 
         /** Errors related to a domain */
@@ -1504,6 +1503,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
@@ -1765,6 +1765,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACTIVE_SERVER]: ValueOf<typeof CONST.SERVER>;
     [ONYXKEYS.CLOUDFLARE_SESSION]: OnyxTypes.CloudflareSession;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
+    [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;

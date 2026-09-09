@@ -75,7 +75,6 @@ type UseConfirmationValidationParams = {
     /** Participants selected for this IOU */
     selectedParticipants: Participant[];
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
