@@ -56,7 +56,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {environmentURL} = useEnvironment();
 
     // Continuous Reconciliation is configured per card feed, and this workspace can sit on more than one: its own
-    // workspace-provisioned feed plus any domain or other-workspace feed that lists it as preferred or linked. The
+    // workspace-provisioned feed plus any domain feed it is linked to that no other workspace has claimed. The
     // candidates are the feeds the admin may configure from here; the selected one comes from the route, defaulting to
     // the feed useDefaultFundID resolves.
     const {candidates, fundID: effectiveDomainID} = useReconciliationFundID(policyID);

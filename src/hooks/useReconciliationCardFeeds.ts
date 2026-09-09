@@ -1,37 +1,58 @@
-import {getPreferredPolicyFromExpensifyCardSettings} from '@libs/CardUtils';
+import {getDomainByFundID, getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from '@libs/CardUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useMemo} from 'react';
 
 import useDefaultFundID from './useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from './useExpensifyCardFeedsForFeedSelector';
+import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 /**
  * The card feeds whose Continuous Reconciliation settings this workspace's admin can configure.
  *
- * Continuous Reconciliation is a per-feed setting, and a workspace can sit on more than one feed: its own
- * workspace-provisioned feed, plus any domain or other-workspace feed that lists it as preferred or linked. Those are
- * exactly the feeds `useDefaultFundID` picks between, so this returns the same set with the same feed resolved as
- * selected by default.
+ * Continuous Reconciliation is a per-feed setting, and enabling it claims the feed's export policy for this workspace.
+ * That makes the candidates narrower than the feeds the admin can merely see: this workspace's own feed, plus any domain
+ * feed that is not already claimed by a different workspace. Another workspace's feed is never offered, because its
+ * export policy is not this workspace's to claim.
  */
 function useReconciliationCardFeeds(policyID: string | undefined): {candidates: ExpensifyCardFeedEntry[]; defaultFundID: number} {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const defaultFundID = useDefaultFundID(policyID);
-    const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
 
-    const candidates = useMemo(() => {
-        // `primaryFeeds` are the feeds linked to this policy. A feed that merely names this policy as preferred is not
-        // linked yet, but its reconciliation settings still govern this workspace's cards, so include it too. Feeds
-        // being deleted are dropped: their settings are on the way out and selecting one would configure nothing.
-        const preferredFeeds = otherFeeds.filter(
-            (entry) => getPreferredPolicyFromExpensifyCardSettings(entry.settings)?.toUpperCase() === policyID?.toUpperCase() || entry.fundID === workspaceAccountID,
-        );
+    const candidates = useMemo(
+        () =>
+            allFeeds.filter((entry) => {
+                if (entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return false;
+                }
 
-        return [...primaryFeeds, ...preferredFeeds].filter((entry) => entry.settings.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    }, [primaryFeeds, otherFeeds, policyID, workspaceAccountID]);
+                if (entry.fundID === workspaceAccountID) {
+                    return true;
+                }
+
+                // Only a domain feed can be claimed from here. A feed backed by another workspace's account is that
+                // workspace's to reconcile, however this policy relates to it.
+                if (!getDomainByFundID(domains, entry.fundID)) {
+                    return false;
+                }
+
+                const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
+                if (preferredPolicyID) {
+                    return !!policyID && preferredPolicyID.toUpperCase() === policyID.toUpperCase();
+                }
+
+                // An unclaimed domain feed is only offered once this workspace is linked to it. Without a link there is
+                // no relationship to reconcile, so claiming it here would come out of nowhere.
+                return !!policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
+            }),
+        [allFeeds, domains, policyID, workspaceAccountID],
+    );
 
     return {candidates, defaultFundID};
 }
