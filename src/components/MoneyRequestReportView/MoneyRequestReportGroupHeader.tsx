@@ -22,10 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestReportGroupHeaderProps = {
-    /** The grouped transaction data */
     group: GroupedTransactions;
-
-    /** The group key for toggle callback */
     groupKey: string;
 
     /** Currency code for amount formatting */
@@ -52,7 +49,6 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
 
-    /** Whether to use narrow layout */
     shouldUseNarrowLayout?: boolean;
 };
 
