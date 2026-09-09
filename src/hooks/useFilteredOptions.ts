@@ -105,7 +105,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
     const options: OptionList | null = useMemo(
         () =>
-            enabled && allReports && allPersonalDetails
+            // Gated on the translations rather than keyed on them: a list built during the load window holds raw keys for every translated field.
+            enabled && isCurrentLocaleLoaded && allReports && allPersonalDetails
                 ? createFilteredOptionList(
                       allPersonalDetails,
                       allReports,
@@ -115,7 +116,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       {
                           currentUserAccountID,
                           preferredLocale,
-                          locale: isCurrentLocaleLoaded ? preferredLocale : undefined,
                           convertToDisplayString,
                           conciergeReportID,
                           maxRecentReports: reportsLimit,

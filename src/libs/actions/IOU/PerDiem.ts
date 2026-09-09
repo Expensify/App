@@ -193,8 +193,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    // `attributes.dates` holds space-separated wire timestamps, which Hermes parses as Invalid Date and date-fns `format`
-    // then throws on, aborting the whole submit. The location alone is a better merchant than no expense at all.
+    // Hermes reads the space-separated wire timestamps in `attributes.dates` as Invalid Date, which date-fns throws on, so the location alone beats losing the submit.
     const start = DateUtils.toLocalDate(startDate);
     const end = DateUtils.toLocalDate(endDate);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {

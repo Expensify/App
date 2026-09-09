@@ -1238,6 +1238,25 @@ describe('DateUtils', () => {
             clearIntlFormatterCaches();
         });
 
+        it('re-resolves the device zone when a fast clock is corrected backwards', () => {
+            clearIntlFormatterCaches();
+            jest.useFakeTimers();
+            const instant = new Date('2024-04-10T12:00:00Z');
+            const resolved = new Intl.DateTimeFormat().resolvedOptions();
+            const zoneSpy = jest.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({...resolved, timeZone: 'Europe/Athens'});
+            jest.advanceTimersByTime(60 * 1000);
+            expect(DateUtils.formatToLocalTime(instant, CONST.LOCALES.EN)).toBe('3:00 PM');
+
+            zoneSpy.mockReturnValue({...resolved, timeZone: 'Africa/Cairo'});
+            // Correcting a clock that ran an hour fast moves the reuse window into the future, where elapsed time never grows.
+            jest.setSystemTime(Date.now() - 60 * 60 * 1000);
+            expect(DateUtils.formatToLocalTime(instant, CONST.LOCALES.EN)).toBe('2:00 PM');
+
+            zoneSpy.mockRestore();
+            jest.useRealTimers();
+            clearIntlFormatterCaches();
+        });
+
         it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
             clearIntlFormatterCaches();
             jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {

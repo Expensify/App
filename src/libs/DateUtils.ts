@@ -75,7 +75,8 @@ let deviceTimeZone: string | undefined;
 let deviceTimeZoneResolvedAt = Number.NEGATIVE_INFINITY;
 function getDeviceTimeZone(): string | undefined {
     const now = Date.now();
-    if (now - deviceTimeZoneResolvedAt < DEVICE_TIME_ZONE_TTL_MS) {
+    // Distance, not elapsed time: correcting a fast clock moves `now` backwards, and a signed comparison would pin the stale zone until it caught up.
+    if (Math.abs(now - deviceTimeZoneResolvedAt) < DEVICE_TIME_ZONE_TTL_MS) {
         return deviceTimeZone;
     }
     deviceTimeZoneResolvedAt = now;
@@ -114,8 +115,12 @@ function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, request
     }
     const preset = CONST.DATE.INTL_FORMATS[formatKey];
     const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
-    // Dropping the timezone is never a candidate: it would render another zone's wall clock.
-    const timeZoneCandidates = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
+    // A requested zone is never dropped: it would render another zone's wall clock. The device zone is the one the constructor
+    // already defaults to, so omitting that one renders the same clock and beats returning nothing.
+    const timeZoneCandidates: Array<string | undefined> = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
+    if (requestedTimeZone === undefined && timeZone !== undefined) {
+        timeZoneCandidates.push(undefined);
+    }
     const localeCandidates: Locale[] = locale === CONST.LOCALES.DEFAULT ? [locale] : [locale, CONST.LOCALES.DEFAULT];
     for (const candidateLocale of localeCandidates) {
         for (const candidateTimeZone of timeZoneCandidates) {
@@ -1743,6 +1748,8 @@ registerDerivedIntlCache(() => {
     getMonthNames.cache.clear();
     getLocalizedDatePlaceholder.cache.clear();
     isDayBeforeMonth.cache.clear();
+    deviceTimeZone = undefined;
+    deviceTimeZoneResolvedAt = Number.NEGATIVE_INFINITY;
 });
 
 const DateUtils = {
