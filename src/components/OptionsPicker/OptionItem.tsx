@@ -24,16 +24,12 @@ type OptionItemProps = {
     /** Icon to be displayed above the title */
     icon: IconAsset;
 
-    /** Press handler */
     onPress?: () => void;
 
     /** Indicates whether the option is currently selected (active) */
     isSelected?: boolean;
 
-    /** Indicates whether the option is disabled */
     isDisabled?: boolean;
-
-    /** Optional style prop */
     style?: StyleProp<ViewStyle>;
 };
 

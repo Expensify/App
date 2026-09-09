@@ -7,11 +7,8 @@ import * as ReportNameUtils from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
-
-import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -35,6 +32,7 @@ jest.mock('@libs/ReportNameUtils', () => ({
 const MOVED_TO_REPORT_ID = '1';
 const MOVED_FROM_REPORT_ID = '2';
 const CURRENT_USER_LOGIN = 'test@example.com';
+const CURRENT_USER_ACCOUNT_ID = 12345;
 describe('ModifiedExpenseMessage', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -114,7 +112,7 @@ describe('ModifiedExpenseMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
                 const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
@@ -128,13 +126,13 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_LOGIN, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName);
                 expect(result).toEqual(expectedResult);
             });
@@ -143,7 +141,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policyExpenseReport.policyName);
                 expect(result).toEqual(expectedResult);
             });
@@ -160,7 +158,7 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
@@ -169,7 +167,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -187,29 +185,24 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
                 // even if the report has no reportName, because policyName is sufficient.
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
-            it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', async () => {
-                const mockAccountID = 12345;
+            it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', () => {
                 const dmReportName = 'John Doe';
                 const dmReport = createRandomReport(1, undefined);
 
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                    [mockAccountID]: {accountID: mockAccountID, login: CURRENT_USER_LOGIN},
-                });
-
                 jest.mocked(ReportNameUtils.buildReportNameFromParticipantNames).mockImplementation(({currentUserAccountID}) => {
-                    if (currentUserAccountID === mockAccountID) {
+                    if (currentUserAccountID === CURRENT_USER_ACCOUNT_ID) {
                         return dmReportName;
                     }
                     return '';
                 });
 
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', dmReportName);
                 expect(result).toEqual(expectedResult);
             });
@@ -221,7 +214,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
                 expect(result).toEqual(expectedResult);
             });
@@ -235,7 +228,7 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_LOGIN, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, policy);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
                 expect(result).toEqual(expectedResult);
             });
@@ -245,7 +238,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, undefined),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_LOGIN, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReportNoName');
 
                 expect(result).toEqual(expectedResult);
@@ -253,7 +246,7 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined, CURRENT_USER_LOGIN, undefined);
+            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
             expect(result).toBeUndefined();
         });
     });
@@ -280,6 +273,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -308,6 +302,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -335,6 +330,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -392,6 +388,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -422,6 +419,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -454,6 +452,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -484,6 +483,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -519,6 +519,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -552,6 +553,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -578,6 +580,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -604,6 +607,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -630,6 +634,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -656,6 +661,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -682,6 +688,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -710,6 +717,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -740,6 +748,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -766,6 +775,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -794,6 +804,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -824,6 +835,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -850,6 +862,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -875,6 +888,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -904,6 +918,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
                 expect(result).toEqual(expectedResult);
@@ -932,6 +947,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
                 expect(result).toEqual(expectedResult);
@@ -962,6 +978,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
                 expect(result).toEqual(expectedResult);
@@ -988,6 +1005,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     movedFromReport,
                 });
@@ -1015,6 +1033,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1042,6 +1061,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1069,6 +1089,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1096,6 +1117,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1123,6 +1145,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1151,6 +1174,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: mockPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1181,6 +1205,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1208,6 +1233,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1234,6 +1260,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1261,6 +1288,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1304,6 +1332,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1337,6 +1366,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1363,6 +1393,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1389,6 +1420,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1415,6 +1447,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1442,6 +1475,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1471,6 +1505,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: policyRulesPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1499,6 +1534,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1526,6 +1562,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
@@ -1556,6 +1593,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1578,6 +1616,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1605,6 +1644,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1630,6 +1670,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction: firstEditAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1654,6 +1695,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction: secondEditAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1684,6 +1726,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1710,6 +1753,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1736,6 +1780,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1762,6 +1807,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1784,6 +1830,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1811,6 +1858,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1833,6 +1881,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1860,6 +1909,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1884,6 +1934,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1908,6 +1959,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: mockPolicy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -1940,6 +1992,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
                 expect(result).toEqual(expectedResult);
@@ -1967,6 +2020,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedFromReport,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
                 expect(result).toEqual(expectedResult);
@@ -1999,6 +2053,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedFromReport,
                     policy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', 'Some Report');
@@ -2032,6 +2087,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedToReport,
                     policy,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, policy.name);
@@ -2056,6 +2112,7 @@ describe('ModifiedExpenseMessage', () => {
                     movedToReport,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, movedToReport.policyName);
@@ -2076,6 +2133,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2096,6 +2154,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2119,6 +2178,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2141,6 +2201,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2167,6 +2228,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2189,6 +2251,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2215,6 +2278,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2237,6 +2301,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2260,6 +2325,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2282,6 +2348,7 @@ describe('ModifiedExpenseMessage', () => {
                         outputCurrency: CONST.CURRENCY.USD,
                     },
                     policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
                 });
 
@@ -2309,7 +2376,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
@@ -2331,7 +2399,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('set the attendees to Alice');
@@ -2353,7 +2422,8 @@ describe('ModifiedExpenseMessage', () => {
                     reportAction,
                     policy: undefined,
                     policyTags: undefined,
-                    currentUserLogin: 'test@example.com',
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result).toEqual('removed the attendees (previously Alice)');
@@ -2405,6 +2475,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithVendors,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "Acme"');
@@ -2428,6 +2499,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithVendors,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
@@ -2450,6 +2522,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithVendors,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('removed the vendor (previously "Acme")');
@@ -2472,6 +2545,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithVendors,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
@@ -2494,6 +2568,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithVendors,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the vendor to "Amazon"');
@@ -2538,6 +2613,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithXeroSuppliers,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the supplier to "Acme Xero"');
@@ -2558,6 +2634,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithXeroSuppliers,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
@@ -2577,6 +2654,7 @@ describe('ModifiedExpenseMessage', () => {
                         reportAction,
                         policy: policyWithXeroSuppliers,
                         policyTags: undefined,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
                     });
                     expect(result).toEqual('set the supplier to "xcDeleted"');

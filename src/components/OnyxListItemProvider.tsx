@@ -24,7 +24,6 @@ const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ON
 const [OnboardingValuesProvider, ,] = createOnyxContext(ONYXKEYS.NVP_ONBOARDING);
 
 type OnyxListItemProviderProps = {
-    /** Rendered child component */
     children: React.ReactNode;
 };
 

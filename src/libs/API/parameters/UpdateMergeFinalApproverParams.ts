@@ -1,7 +1,6 @@
 import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 
 type UpdateMergeFinalApproverParams = {
-    /** The ID of the policy to update */
     policyID: string;
 
     /** The Merge connection to update (Merge HR or Merge ATS) */
