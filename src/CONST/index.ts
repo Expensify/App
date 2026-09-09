@@ -5137,6 +5137,15 @@ const CONST = {
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
+
+        /**
+         * How a card's export account is resolved. Most integrations point a card's NVP at one entry in a flat account
+         * list, while Rillet and DualEntry resolve it through a program account that each card feed can override.
+         */
+        EXPORT_RESOLVER: {
+            SINGLE_ACCOUNT: 'singleAccount',
+            PROGRAM_ACCOUNT: 'programAccount',
+        },
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -8750,6 +8759,9 @@ const CONST = {
 
             /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** Export account names are unbounded, so this column truncates rather than widening the table past its container. */
+            MAX_EXPORT_ACCOUNT_COLUMN_WIDTH: 240,
         },
     },
 

@@ -13,16 +13,20 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {getCardExportAccountTitle, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -41,7 +45,10 @@ import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableCont
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
+
+/** Width the member cell's avatar and the space after it take before the name and subtitle start. */
+const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -114,6 +121,8 @@ function WorkspaceCompanyCardsTable({
     // again rather than being suppressed forever.
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
+    const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
@@ -182,28 +191,74 @@ function WorkspaceCompanyCardsTable({
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same
+    // rules as that section rather than introducing a second set of them.
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
+    const cardExportSettings = getPolicyCardExportSettings(connectedIntegration, policyID, translate, policy);
+    const shouldShowExportAccountColumn = !!cardExportSettings?.shouldShowMenuItem;
+
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey, WorkspaceCompanyCardTableItemData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above the card details or login, so whichever renders wider decides
+                // the column's width.
+                getContentToMeasure: (item) => [
+                    {
+                        text: item.isAssigned ? (item.cardholder?.displayName ?? item.cardholder?.login ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                        fontSize: fontScale.text,
+                    },
+                    {text: item.customCardName ?? '', fontSize: fontScale.label},
+                ],
+                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+            },
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
             sortable: true,
+            dynamicSizing: {
+                // Masked card numbers all render at the same length, so this column always fits them in full.
+                getContentToMeasure: (item) => [{text: item.cardName, fontSize: fontScale.text}],
+                shouldFitContent: true,
+            },
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+            },
         },
+        ...(shouldShowExportAccountColumn
+            ? [
+                  {
+                      key: 'exportAccount' as const,
+                      label: translate('workspace.moreFeatures.companyCards.exportAccount'),
+                      sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceCompanyCardTableItemData) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
+                          maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_EXPORT_ACCOUNT_COLUMN_WIDTH,
+                      },
+                  },
+              ]
+            : []),
         {
             key: 'actions',
             label: '',
             sortable: false,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
+            },
+            dynamicSizing: {
+                // Only unassigned rows render the Assign button, so that is the widest content this column ever holds.
+                getContentToMeasure: () => [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}],
+                extraWidth: variables.iconSizeNormal + styles.gap3.gap,
+                shouldFitContent: true,
             },
         },
     ];
@@ -224,6 +279,8 @@ function WorkspaceCompanyCardsTable({
                       isAssigned,
                       assignedCard,
                       cardholder,
+                      // Unassigned cards have no details page and so no Accounting section to match, hence no title.
+                      exportAccountTitle: assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
@@ -262,7 +319,8 @@ function WorkspaceCompanyCardsTable({
             return -1 * orderMultiplier;
         }
 
-        const cardNameSortingResult = localeCompare(a.cardName, b.cardName) * orderMultiplier;
+        const cardNameComparison = localeCompare(a.cardName, b.cardName);
+        const cardNameSortingResult = cardNameComparison * orderMultiplier;
 
         if (!a.isAssigned && !b.isAssigned) {
             return cardNameSortingResult;
@@ -281,6 +339,13 @@ function WorkspaceCompanyCardsTable({
 
         if (activeSorting.columnKey === 'customCardName') {
             return localeCompare(a.customCardName ?? '', b.customCardName ?? '') * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'exportAccount') {
+            const exportAccountComparison = localeCompare(a.exportAccountTitle ?? '', b.exportAccountTitle ?? '');
+
+            // Most cards share the default export account, so ties fall back to the card name for a stable order.
+            return (exportAccountComparison !== 0 ? exportAccountComparison : cardNameComparison) * orderMultiplier;
         }
 
         return 0;
@@ -359,6 +424,7 @@ function WorkspaceCompanyCardsTable({
             isAssigningCardDisabled={isAssigningCardDisabled}
             canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
 
@@ -401,6 +467,7 @@ function WorkspaceCompanyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
+            shouldUseDynamicColumns
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
