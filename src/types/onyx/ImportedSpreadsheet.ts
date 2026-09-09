@@ -32,6 +32,20 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
         /** Quantity the appended message pluralizes on */
         count: number;
     };
+
+    /**
+     * A second appended message, for an importer that can independently skip two different kinds of
+     * values in the same run (e.g. merchant rules skipping both unknown categories and unknown vendors).
+     * Kept separate from `pendingMessageKey` instead of turning that into a list so every existing
+     * single-message importer is unaffected.
+     */
+    secondaryPendingMessageKey?: SpreadsheetTranslationPaths;
+
+    /** Parameters for the second appended message's translation. */
+    secondaryPendingMessageKeyParams?: {
+        /** Quantity the appended message pluralizes on */
+        count: number;
+    };
 };
 
 /**
