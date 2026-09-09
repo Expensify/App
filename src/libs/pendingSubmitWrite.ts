@@ -79,11 +79,20 @@ type PendingSubmitWrite = {
  */
 function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarrier: WriteReadyBarrier): PendingSubmitWrite {
     const clearPendingWrite = markPendingSubmitWriteForReport(reportID);
+    const forGeneration = generation;
     let hasWriteAttached = false;
+
+    // Scoped to this submission so a stale barrier attaching late cannot extend a newer submission's window.
+    const restartSafetyTimeout = () => {
+        if (generation !== forGeneration) {
+            return;
+        }
+        restartPendingSubmitWriteSafetyTimeout(reportID);
+    };
 
     const barrier: WriteReadyBarrier = (abortSignal) => {
         hasWriteAttached = true;
-        restartPendingSubmitWriteSafetyTimeout(reportID);
+        restartSafetyTimeout();
         // writeWhenReady's early-release paths abort without settling the barrier, so listen for that too.
         abortSignal.addEventListener('abort', clearPendingWrite);
         return Promise.resolve(baseBarrier(abortSignal)).finally(clearPendingWrite);
@@ -94,7 +103,7 @@ function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarr
             return;
         }
         if (isWriteStillComing) {
-            restartPendingSubmitWriteSafetyTimeout(reportID);
+            restartSafetyTimeout();
             return;
         }
         clearPendingWrite();

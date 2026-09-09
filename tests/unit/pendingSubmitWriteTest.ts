@@ -218,6 +218,25 @@ describe('pendingSubmitWrite', () => {
             }
         });
 
+        it('does not let a stale barrier extend a newer submission for the same report', () => {
+            jest.useFakeTimers();
+            try {
+                // Given an older submission whose write never attached, replaced by a newer one for the same report
+                const stale = trackPendingSubmitWriteForReport('report-A', () => new Promise<void>(() => {}));
+                trackPendingSubmitWriteForReport('report-A', () => new Promise<void>(() => {}));
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+
+                // When the stale write finally attaches near the end of the newer window
+                stale.barrier(new AbortController().signal);
+                jest.advanceTimersByTime(1);
+
+                // Then the newer submission's safety timeout still fires on schedule, not extended by the stale attach
+                expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         it('does not clear on settle once the write has attached', async () => {
             // Given a write that attached to the barrier and is waiting on it
             let releaseBarrier: () => void = () => {};
