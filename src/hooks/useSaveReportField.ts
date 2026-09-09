@@ -14,9 +14,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -45,7 +45,9 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
 
         const fieldKey = getReportFieldKey(reportField.fieldID);
         const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-        const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
+        const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(
+            ([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy),
+        );
 
         updateReportField({
             report: {...report, reportID: report.reportID},

@@ -72,6 +72,7 @@ const buildTextField = (index: number): OnyxTypes.PolicyReportField => ({
     externalIDs: [],
     disabledOptions: [],
     target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+    isTax: false,
 });
 
 const buildFieldList = (fieldCount: number): Record<string, OnyxTypes.PolicyReportField> => {

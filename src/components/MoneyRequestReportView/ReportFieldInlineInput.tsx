@@ -190,4 +190,3 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
 }
 
 export default ReportFieldInlineInput;
-export type {ReportFieldInlineInputProps};
