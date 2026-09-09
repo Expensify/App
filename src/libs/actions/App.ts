@@ -37,6 +37,8 @@ import {Str} from 'expensify-common';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type {PolicyOwner} from './Policy/Policy';
+
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -155,6 +157,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
@@ -229,10 +232,6 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
-}
-
-function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -594,7 +593,7 @@ type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPO
 type CreateWorkspaceWithPolicyDraftParams = {
     isSelfTourViewed: boolean | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    policyOwnerEmail?: string;
+    policyOwner?: PolicyOwner;
     policyName: string;
     transitionFromOldDot?: boolean;
     makeMeAdmin?: boolean;
@@ -612,6 +611,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
     /** AccountID of the delegate acting on behalf of the current user */
     delegateAccountID: number | undefined;
@@ -623,7 +623,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
 function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
     const {
         introSelected,
-        policyOwnerEmail = '',
+        policyOwner,
         policyName,
         transitionFromOldDot = false,
         makeMeAdmin = false,
@@ -642,6 +642,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription = false,
         delegateAccountID,
     } = params;
@@ -667,7 +668,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         savePolicyDraftByNewWorkspace({
             policyID: policyIDWithDefault,
             policyName,
-            policyOwnerEmail,
+            policyOwner,
             makeMeAdmin,
             currency,
             file,
@@ -683,6 +684,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             isAnnualSubscription,
             delegateAccountID,
         });
@@ -710,7 +712,6 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
 function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
     const {
         introSelected,
-        policyOwnerEmail = '',
         policyName,
         makeMeAdmin = false,
         policyID = '',
@@ -726,6 +727,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         betas,
         hasActiveAdminPolicies,
         delegateAccountID,
+        hasOwnedPaidPolicy,
     } = params;
 
     createDraftInitialWorkspace({
@@ -741,7 +743,6 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
-        policyOwnerEmail,
         makeMeAdmin,
         currency,
         file,
@@ -757,6 +758,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         betas,
         hasActiveAdminPolicies,
         delegateAccountID,
+        hasOwnedPaidPolicy,
     });
 }
 
@@ -764,7 +766,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     isSelfTourViewed: boolean | undefined;
     policyID?: string;
     policyName: string;
-    policyOwnerEmail?: string;
+    policyOwner?: PolicyOwner;
     makeMeAdmin?: boolean;
     currency?: string;
     file?: File;
@@ -779,6 +781,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
     delegateAccountID: number | undefined;
 };
@@ -789,7 +792,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
 function savePolicyDraftByNewWorkspace({
     policyID,
     policyName,
-    policyOwnerEmail = '',
+    policyOwner,
     makeMeAdmin = false,
     currency = '',
     file,
@@ -805,11 +808,12 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
     isAnnualSubscription = false,
     delegateAccountID,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
-        policyOwnerEmail,
+        policyOwner,
         makeMeAdmin,
         policyName,
         policyID,
@@ -828,6 +832,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription,
         delegateAccountID,
     });
@@ -849,27 +854,19 @@ function savePolicyDraftByNewWorkspace({
  * workspace and navigate to it
  */
 type SetUpPoliciesAndNavigateParams = {
-    /** The current session */
     session: OnyxEntry<OnyxTypes.Session>;
-    /** The onboarding intro the user selected */
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    /** Currency to use for a workspace created from the exitTo route */
     currency: string;
-    /** The user's active policy */
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
-    /** Whether the user has already viewed the self-guided tour */
     isSelfTourViewed: boolean | undefined;
-    /** The betas the user has access to */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    /** Whether the user is an admin on any active policy */
     hasActiveAdminPolicies: boolean;
-    /** Number used to generate the default workspace name */
     lastWorkspaceNumber: number | undefined;
-    /** Localized translate function */
     translate: LocalizedTranslate;
-    /** The Concierge DM */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-    /** AccountID of the delegate acting on behalf of the current user */
+    policyOwnerAccountID: number | undefined;
+    policyOwnerDisplayName: string | undefined;
+    hasOwnedPaidPolicy: boolean;
     delegateAccountID: number | undefined;
 };
 
@@ -881,9 +878,12 @@ function setUpPoliciesAndNavigate({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
     lastWorkspaceNumber,
     translate,
     conciergeChat,
+    policyOwnerAccountID,
+    policyOwnerDisplayName,
     delegateAccountID,
 }: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
@@ -909,8 +909,8 @@ function setUpPoliciesAndNavigate({
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
             currency,
-            policyOwnerEmail,
-            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
+            policyOwner: {email: policyOwnerEmail, accountID: policyOwnerAccountID},
+            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate, policyOwnerDisplayName),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,
@@ -921,6 +921,7 @@ function setUpPoliciesAndNavigate({
             betas,
             hasActiveAdminPolicies,
             delegateAccountID,
+            hasOwnedPaidPolicy,
         });
         return;
     }
@@ -1034,7 +1035,6 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openApp,
-    setAppLoading,
     reconnectApp,
     loadPostDataForOpenOrReconnect,
     triggerFullReconnect,

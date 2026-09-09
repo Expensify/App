@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useOnyx from '@hooks/useOnyx';
 
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
@@ -30,6 +31,7 @@ function DynamicWorkspaceConfirmationForTravelPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path);
 
     const goBack = () => {
@@ -61,6 +63,7 @@ function DynamicWorkspaceConfirmationForTravelPage() {
             isSelfTourViewed,
             hasActiveAdminPolicies,
             delegateAccountID,
+            hasOwnedPaidPolicy,
         });
         goBack();
     };

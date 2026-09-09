@@ -4,7 +4,6 @@ type UsePreferredPolicyResult = {
     /** Whether the user is restricted to use only the preferred policy */
     isRestrictedToPreferredPolicy: boolean;
 
-    /** The ID of the preferred policy */
     preferredPolicyID: string | undefined;
 
     /** Whether the user is restricted from creating policies */
