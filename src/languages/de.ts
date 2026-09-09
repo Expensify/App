@@ -465,6 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
+        corpayPayModalTitle: 'Bericht bezahlen',
+        corpayPayModalPrompt:
+            'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
@@ -1656,11 +1659,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles erledigt!',
         noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
-        confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Diese Ausgabe ist zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-            other: 'Diese Ausgaben sind zurückgestellt. Möchtest du sie trotzdem genehmigen?',
-        }),
+        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
@@ -2292,6 +2292,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            betaOverrides: 'Beta-Überschreibungen',
+            betaOverridesDescription:
+                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Eine Beta behält eine Überschreibung nur so lange, wie sie von den Betas Ihres Kontos abweicht; schalten Sie sie zurück, wird die Überschreibung entfernt. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
+            resetAllOverrides: 'Alle Überschreibungen zurücksetzen',
+            overridden: 'Überschrieben',
             qaAuth: 'QA-Authentifizierung (Cloudflare)',
             qaAuthRunProbe: 'Test ausführen',
             qaAuthSession: 'QA-Authentifizierungssitzung',
@@ -3156,6 +3161,7 @@ ${amount} für ${merchant} – ${date}`,
         unread: 'Ungelesen',
         markAllAsRead: 'Alle als gelesen markieren',
         markAllAsReadConfirmationPrompt: 'Möchtest du wirklich alle Chats als gelesen markieren?',
+        markAllTodosAsReadConfirmationPrompt: 'Möchtest du wirklich alle offenen Chats als gelesen markieren?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -3336,6 +3342,7 @@ ${amount} für ${merchant} – ${date}`,
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4615,6 +4622,7 @@ ${amount} für ${merchant} – ${date}`,
             customFieldHint: 'Füge benutzerdefinierte Codierung hinzu, die für alle Ausgaben dieses Mitglieds gilt.',
             reports: 'Berichte',
             reportFields: 'Berichtsfelder',
+            invoiceFields: 'Rechnungsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichts­feld',
             taxes: 'Steuern',
@@ -4748,6 +4756,7 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+            recruiting: 'Personalbeschaffung',
             rooms: 'Räume',
             findDomain: 'Domain finden',
             cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
@@ -6377,6 +6386,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                                 'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die Konsolidierte Reiseabrechnung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                             sendInvoiceNowCta: 'Rechnung jetzt senden',
                         },
+                        setUpNewFeed: 'Neuen Reise-Feed einrichten',
+                        feedSelectorIntro:
+                            'Ihre Organisation hat bereits einen konsolidierten Travel-Billing-Feed eingerichtet. Wählen Sie ihn aus, um die Reisekosten dieses Arbeitsbereichs auf derselben monatlichen Rechnung zu halten.',
                     },
                     disableModal: {
                         title: 'Konsolidierte Reiseabrechnung deaktivieren?',
@@ -6634,6 +6646,29 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             unsupportedFormulaValueError: (value: string) => `Formelfeld ${value} nicht erkannt`,
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        },
+        invoiceFields: {
+            subtitle: 'Rechnungsfelder können hilfreich sein, wenn du zusätzliche Informationen einfügen möchtest.',
+            importedFromAccountingSoftware: 'Die folgenden Rechnungsfelder werden importiert aus Ihrem',
+            disableInvoiceFields: 'Rechnungsfelder deaktivieren',
+            disableInvoiceFieldsConfirmation: 'Sind Sie sicher? Rechnungsfelder werden auf Rechnungen deaktiviert.',
+            delete: 'Rechnungsfeld löschen',
+            deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Rechnungsfeld löschen möchten?',
+            findInvoiceField: 'Rechnungsfeld suchen',
+            nameInputSubtitle: 'Wähle einen Namen für das Rechnungsfeld.',
+            typeInputSubtitle: 'Wähle aus, welcher Rechnungsfeldtyp verwendet werden soll.',
+            initialValueInputSubtitle: 'Gib einen Startwert ein, der im Rechnungsfeld angezeigt werden soll.',
+            listValuesInputSubtitle: 'Diese Werte werden im Dropdown-Menü des Rechnungsfelds angezeigt. Aktivierte Werte können von Mitgliedern ausgewählt werden.',
+            listInputSubtitle: 'Diese Werte werden in der Rechnungsfeldliste angezeigt. Aktivierte Werte können von Mitgliedern ausgewählt werden.',
+            emptyInvoiceFieldsValues: {
+                title: 'Noch keine Listenwerte',
+                subtitle: 'Füge benutzerdefinierte Werte hinzu, die auf Rechnungen angezeigt werden.',
+            },
+            existingInvoiceFieldNameError: 'Ein Rechnungsfeld mit diesem Namen existiert bereits',
+            invoiceFieldNameRequiredError: 'Bitte gib einen Namen für das Rechnungsfeld ein',
+            invoiceFieldTypeRequiredError: 'Bitte wähle einen Rechnungsfeldtyp aus',
+            invoiceFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Rechnungsfeld aus',
+            addField: 'Feld hinzufügen',
         },
         vendors: {
             emptyTitle: 'Noch keine Lieferanten',
@@ -7558,6 +7593,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Berichtsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Rechnungsfelder',
+                description: `Mit Rechnungsfeldern kannst du zusätzliche Details auf Rechnungsebene in Rechnungen aufnehmen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rechnungsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Expensify + NetSuite-Integration. Gewinne detaillierte Finanzanalysen in Echtzeit mit nativer und benutzerdefinierter Segmentunterstützung, einschließlich Projekt- und Kundenzuordnung.`,
@@ -8428,37 +8469,26 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         hr: {
             title: 'Personalwesen',
-            connections: 'Verbindungen',
             connectionsSubtitle:
                 'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
             subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
-            connect: 'Verbinden',
-            syncNow: 'Jetzt synchronisieren',
-            disconnect: 'Trennen',
-            disconnectTitle: (providerName: string) => `${providerName} trennen`,
-            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
             alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren HR-Plattformen hergestellt werden',
             alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
-            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
-            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
-            approvalMode: 'Genehmigungsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-Genehmigungsmodus`,
-            finalApprover: 'Endgültige:r Genehmiger:in',
             providerFinalApprover: (providerName: string) => `${providerName} Endgenehmigende*r`,
-            notSet: 'Nicht festgelegt',
+            syncing: 'Mitarbeitende werden synchronisiert',
+            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
+            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             approvalModeDescription: (providerName: string) => `Mitglieder und Manager sind für die Synchronisation mit ${providerName} eingerichtet.`,
             approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen ${providerName}-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
             approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
-            approvalModes: {
-                basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.'},
-                manager: {
-                    label: 'Manager-Genehmigung',
-                    description: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
-                },
-                custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.'},
+            approvalModeDescriptions: {
+                basic: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.',
+                manager: (providerName: string) => `Mitarbeitende reichen Berichte bei ihrer in ${providerName} hinterlegten direkten Führungskraft ein.`,
+                custom: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8498,22 +8528,50 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
-            syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
-            syncing: 'Mitarbeitende werden synchronisiert',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Einrichtung abschließen',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Mitarbeitenden.</muted-text-label>`,
                 groups: {title: 'Gruppen', description: 'Wählen Sie die Mitarbeitergruppen aus, die Sie mit diesem Workspace synchronisieren möchten'},
             },
+        },
+        recruiting: {
+            title: 'Personalbeschaffung',
+            connectionsSubtitle:
+                'Verbinden Sie Ihr Recruiting-System, um Kandidatendaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuelle Arbeit korrekt zu halten.',
+            alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren ATS-Plattformen hergestellt werden',
+            alreadyConnectedPrompt: 'Sie müssen Ihr aktuelles ATS trennen, bevor Sie ein anderes verbinden.',
+            syncing: 'Kandidaten werden synchronisiert',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Kandidaten.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Sie sehen Ihr ATS hier nicht? <a href="#">Fragen Sie Concierge</a>, und wir können es hinzufügen.</muted-text-label>`,
+            importSettings: 'Import-Einstellungen',
+            defaultApprover: 'Standardgenehmiger',
+            approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+        },
+        merge: {
+            connections: 'Verbindungen',
+            connect: 'Verbinden',
+            findIntegration: 'Integration finden',
+            syncNow: 'Jetzt synchronisieren',
+            disconnect: 'Trennen',
+            disconnectTitle: (providerName: string) => `${providerName} trennen`,
+            disconnectPrompt: (providerName: string) => `Möchten Sie ${providerName} wirklich trennen?`,
+            lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
             notSync: 'Nicht synchronisiert',
+            syncError: (providerName: string) => `Verbindung zu ${providerName} nicht möglich`,
             authenticationError: (providerName: string) => `Verbindung mit ${providerName} aufgrund einer abgelaufenen Verknüpfung nicht möglich.`,
             reconnect: 'Erneut verbinden',
             reconnectLink: 'Erneut verbinden.',
-            findIntegration: 'Integration finden',
-        },
-        merge: {
+            notSet: 'Nicht festgelegt',
+            completeSetup: 'Einrichtung abschließen',
+            approvalMode: 'Genehmigungsmodus',
+            finalApprover: 'Endgültige:r Genehmiger:in',
+            approvalModes: {
+                basic: 'Einfache Genehmigung',
+                manager: 'Manager-Genehmigung',
+                custom: 'Benutzerdefinierte Genehmigung',
+                advanced: 'Erweiterte Genehmigung',
+            },
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
         },
         emptyDomain: {
@@ -9498,6 +9556,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         exportedTo: 'Exportiert nach',
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
+            allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
             selectAllOnThisPage: 'Alle auf dieser Seite auswählen',
         },
         errors: {
@@ -9610,6 +9669,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exportiert nach ${translatedLabel}`;
@@ -10852,6 +10912,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         multipleTaxExport: 'Kanadischer Export mit mehreren Steuern',
+        reconciliationAllExpenses: 'Abstimmung - Alle Ausgaben',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
         currentView: 'Aktuelle Ansicht',
@@ -10883,6 +10944,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
         requestSent: 'Anfrage gesendet',
+        requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10943,13 +11005,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
         },
         accessRestricted: {
-            title: 'Zugriff eingeschränkt',
-            subtitle: (domainName: string) =>
-                `Bitte bestätigen Sie sich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong>, wenn Sie die Kontrolle über Folgendes benötigen:`,
-            companyCardManagement: 'Firmenkartenverwaltung',
-            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
-            workspaceCreation: 'Bereichserstellung',
-            samlSSO: 'SAML-SSO',
+            headerTitle: 'Zugriff eingeschränkt',
+            title: 'Verifizierung erforderlich',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Bitte bestätige dich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong> oder fordere Zugriff von bestehenden Administratoren an.</centered-text></muted-text>`,
+            requestAdminAccess: 'Admin-Zugriff anfordern',
+            verifyYourself: 'Verifiziere dich',
         },
         addDomain: {
             title: 'Domain hinzufügen',
@@ -10963,7 +11024,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Domain bereits eingerichtet. Zugriff anfragen?',
             description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
             requestAccess: 'Admin-Zugriff anfragen',
-            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',

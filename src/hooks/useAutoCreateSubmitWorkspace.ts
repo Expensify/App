@@ -39,6 +39,7 @@ function useAutoCreateSubmitWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
     } = useOnboardingWorkspaceCreationState();
@@ -67,7 +68,7 @@ function useAutoCreateSubmitWorkspace() {
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
                       policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
@@ -85,6 +86,7 @@ function useAutoCreateSubmitWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -145,6 +147,7 @@ function useAutoCreateSubmitWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             conciergeChat,
         ],
     );

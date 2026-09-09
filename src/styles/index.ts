@@ -479,6 +479,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -1141,6 +1145,10 @@ const staticStyles = (theme: ThemeColors) =>
             // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
             // too high. Unsetting it lets the text center on its own font metrics.
             lineHeight: undefined,
+        },
+
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
         },
 
         badgeDefaultText: {
@@ -4694,11 +4702,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.mh5,
         },
 
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
-        },
-
         taskRightIconContainer: {
             width: variables.componentSizeNormal,
             marginLeft: 'auto',
@@ -4930,6 +4933,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
+        },
+
+        reportPreviewActionRow: {
+            height: variables.h40,
         },
 
         reportPreviewBox: {
