@@ -55,12 +55,15 @@ PORT_PLAN = {
         'notes': 'ESLint progress-bar plugin, no behaviour to preserve',
     },
     'react-hooks/config': {
-        'mechanism': 'dropped - validates compiler options, and rc/* passes none from config',
-        'effort': 'none', 'proven': False,
+        'mechanism': 'handled more strictly - a Config diagnostic throws rather than being reported',
+        'effort': 'none', 'proven': True,
         'notes': 'inert in this repo either way: the ESLint plugin only reaches its config validator '
                  'through per-rule options (COMPILER_OPTIONS merged with userOpts, '
                  'eslint-plugin-react-hooks.development.js:51821) and eslint-config-expensify enables it '
-                 'with none (configs/public/react.js:448)',
+                 'with none (configs/public/react.js:448). The oxlint side does not ignore it either: '
+                 'CONFIG_CATEGORY in config/oxlint/reactCompilerRust.mjs throws, because a Config '
+                 'diagnostic means the options that file hands the compiler are wrong, which is a bug '
+                 'there rather than a finding about the file being linted',
     },
     'react-hooks/gating': {
         'mechanism': 'dropped - needs a gating/dynamicGating source in rule options',

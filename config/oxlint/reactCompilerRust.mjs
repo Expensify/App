@@ -23,6 +23,13 @@ const RULE_BY_CATEGORY = {
 // nothing on every file in the repo.
 const CONFIG_CATEGORY = 'Config';
 
+// Deliberately the same set ESLint leaves off. Each entry maps to a rule in eslint-plugin-react-hooks
+// that eslint-config-expensify does not enable, so surfacing it here would be oxlint-only noise
+// rather than parity. Gating is the one exception: ESLint does enable `react-hooks/gating`, but a
+// Gating diagnostic only exists when the compiler is handed a dynamicGating source, which neither
+// tool does, so it reports 0 on both sides and no fixture can prove a rule for it would run. Config
+// is not in this list at all, see CONFIG_CATEGORY above.
+//
 // Ignored because ESLint does not enable the rule each of these corresponds to, so surfacing them
 // would be oxlint-only noise rather than parity. Measured over src/ on 2026-09-09: CapitalizedCalls
 // fires 74 times across 49 files, Todo 21 across 19, EffectDerivationsOfState 12 across 11, and
