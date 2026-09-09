@@ -1,6 +1,6 @@
 # ProposalPolice™
 
-ProposalPolice™ is a GitHub Action that watches comments on `Help Wanted` issues. It keeps proposal threads readable by reminding people to use the proposal template, collapsing job claims that contain no proposal, and withdrawing proposals that duplicate an existing one.
+ProposalPolice™ is a GitHub Action that watches comments on `Help Wanted` issues. It keeps proposal threads readable by reminding people to use the proposal template, collapsing comments that ask for a job without proposing anything, and withdrawing proposals that duplicate an existing one.
 
 It only ever comments, collapses, or edits comments. It never assigns a job, and it never decides whether a proposal is any good — that is still the C+ and internal engineer's call. See [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job) for the proposal process itself.
 
@@ -15,16 +15,16 @@ It runs when a comment is created or edited, and does nothing unless all of thes
 
 ## What it checks
 
-A comment counts as a proposal when it contains the word "Proposal" plus both mandatory headings from the [proposal template](./PROPOSAL_TEMPLATE.md). That is decided in code, not by the model, so the extra `#` levels and emojis people add are fine.
+A comment counts as a proposal when it contains the word "Proposal" plus both mandatory headings from the [proposal template](./PROPOSAL_TEMPLATE.md).
 
 | Comment | What happens |
 |---------|--------------|
 | **Follows the template** | Compared against every earlier proposal on the issue. A close match is withdrawn (see below). |
 | **Does not follow the template, but makes a real technical attempt** | You get a reply pointing you at the template. Your comment is left alone. |
-| **Claims the job with no technical content** — "assign me", "I applied on Upwork" | The comment is collapsed as spam and you get a reply asking for a proposal. |
+| **Asks for the job with no technical content** — "assign me", "I applied on Upwork" | The comment is collapsed as spam and you get a reply asking for a proposal. |
 | **Anything else** — questions, retest results, feedback on someone else's proposal, takeover coordination | Nothing. Ordinary discussion is not touched. |
 
-Members of `expensify-expensify`, `contributor-plus`, or `contributor-plus-backend`, and anyone who says they are from Callstack, Margelo, or Software Mansion, can claim a job without a proposal and won't be flagged as spam.
+Members of `expensify-expensify`, `contributor-plus`, or `contributor-plus-backend`, and anyone who says they are from Callstack, Margelo, or Software Mansion, can offer their services on a job without posting a proposal and won't be flagged as spam.
 
 ## Duplicate proposals
 
@@ -38,7 +38,7 @@ You may also see a short bot comment saying it is tracking duplicate proposals f
 
 ## Edited proposals
 
-When you substantially change the root cause or the solution in a proposal, ProposalPolice prepends a banner with the time of the edit, so reviewers can see the proposal they read has changed. Fixing a typo or rewording a sentence does not trigger it, and a proposal is only ever bannered once.
+When you substantially change the root cause or the solution in a proposal, ProposalPolice prepends a banner with the time of the edit, so reviewers can see the proposal they read has changed. Fixing a typo or rewording a sentence does not trigger it.
 
 ## If it gets something wrong
 
