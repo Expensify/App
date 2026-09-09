@@ -4323,8 +4323,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-// eslint-disable-next-line @typescript-eslint/max-params
-// TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
+// eslint-disable-next-line @typescript-eslint/max-params -- TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
