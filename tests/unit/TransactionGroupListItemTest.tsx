@@ -418,6 +418,29 @@ describe('TransactionGroupListItem', () => {
         expect(screen.getByLabelText('Expand')).toBeTruthy();
     });
 
+    it('should collapse when every loaded transaction is pending delete and the group is not', async () => {
+        const {rerender} = renderTransactionGroupListItem();
+        await waitForBatchedUpdatesWithAct();
+        await expand();
+
+        rerender(
+            <TransactionGroupListItem
+                {...defaultProps}
+                item={{
+                    ...report,
+                    transactions: report.transactions.map((transaction) => ({
+                        ...transaction,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    })),
+                }}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByLabelText('Expand')).toBeTruthy();
+        expect(screen.queryByLabelText('Collapse')).toBeNull();
+    });
+
     it(`should show only ${CONST.TRANSACTION.RESULTS_PAGE_SIZE} transactions when collapsed and expanded again`, async () => {
         renderTransactionGroupListItem();
         await waitForBatchedUpdatesWithAct();

@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -28,6 +29,7 @@ import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
+import shouldCollapseExpandedGroupAfterPendingDelete from './SearchList/ListItem/shouldCollapseExpandedGroupAfterPendingDelete';
 import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupListItem';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
@@ -137,6 +139,32 @@ function ExpenseGroupedSearchView({
             }
             return next;
         });
+
+    if (expandedGroups.size > 0) {
+        const nextExpandedGroups = new Set(expandedGroups);
+        let didCollapseGroup = false;
+        for (const item of data) {
+            if (!isTransactionGroupListItemType(item) || !item.keyForList || !nextExpandedGroups.has(item.keyForList)) {
+                continue;
+            }
+            const remainingChildrenCount = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
+            if (
+                !shouldCollapseExpandedGroupAfterPendingDelete({
+                    isExpanded: true,
+                    groupPendingAction: item.pendingAction,
+                    loadedChildrenCount: item.transactions.length,
+                    remainingChildrenCount,
+                })
+            ) {
+                continue;
+            }
+            nextExpandedGroups.delete(item.keyForList);
+            didCollapseGroup = true;
+        }
+        if (didCollapseGroup) {
+            setExpandedGroups(nextExpandedGroups);
+        }
+    }
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
