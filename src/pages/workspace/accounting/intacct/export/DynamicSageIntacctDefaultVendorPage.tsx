@@ -97,21 +97,18 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
-    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
-    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
-
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value === defaultVendor) {
-                if (canClearByReSelecting) {
-                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
-                }
-            } else {
+            const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+            if (canClear && isAlreadySelected) {
+                return;
+            }
+            if (!isAlreadySelected) {
                 updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
+        [defaultVendor, policyID, settingName, goBack, canClear],
     );
 
     const listEmptyContent = useMemo(
