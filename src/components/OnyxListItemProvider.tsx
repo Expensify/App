@@ -2,6 +2,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
+import ActivePolicyProvider from './ActivePolicyProvider';
 import ComposeProviders from './ComposeProviders';
 import createOnyxContext from './createOnyxContext';
 
@@ -23,7 +24,6 @@ const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ON
 const [OnboardingValuesProvider, ,] = createOnyxContext(ONYXKEYS.NVP_ONBOARDING);
 
 type OnyxListItemProviderProps = {
-    /** Rendered child component */
     children: React.ReactNode;
 };
 
@@ -42,6 +42,7 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 CardListProvider,
                 WorkspaceCardListProvider,
                 OnboardingValuesProvider,
+                ActivePolicyProvider,
             ]}
         >
             {props.children}

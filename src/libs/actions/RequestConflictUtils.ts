@@ -35,6 +35,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
     WRITE_COMMANDS.ENABLE_POLICY_TAXES,
     WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS,
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
@@ -73,6 +74,25 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
             index,
         },
     };
+}
+
+/**
+ * Duplicate resolver for an incoming OpenApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md.
+ *
+ * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
+ * resolver cannot see that, because the in-flight request has already left the persisted queue.
+ */
+function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
+    if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP);
 }
 
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
@@ -146,6 +166,10 @@ function readUpdateIDFrom(params: unknown): number | undefined {
 function reconnectCoverageFrom(request: AnyRequest): number {
     const updateIDFrom = request.data?.updateIDFrom;
     return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+function isFullDownloadRequest(request: AnyRequest): boolean {
+    return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
 }
 
 /**
@@ -254,6 +278,7 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
+    shouldRemoveQueuedAttachment = false,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -267,6 +292,14 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
+
+        // The queued request keeps its own file, so without dropping it the server would re-add an attachment the edit removed.
+        if (shouldRemoveQueuedAttachment) {
+            delete currentAddComment.data.file;
+            delete currentAddComment.data.attachmentID;
+            currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        }
+
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
@@ -350,9 +383,13 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
 
 export {
     resolveDuplicationConflictAction,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    reconnectCoverageFrom,
+    isFullDownloadRequest,
+    isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,

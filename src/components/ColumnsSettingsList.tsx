@@ -6,13 +6,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
+
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -26,10 +28,7 @@ type ColumnItem = {
     /** Display label for the column */
     text: string;
 
-    /** Column identifier value */
     value: SearchCustomColumnIds;
-
-    /** Unique key used for list rendering */
     keyForList: SearchCustomColumnIds;
 
     /** Whether the column is currently enabled/visible */
@@ -46,7 +45,6 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
-    /** All available column IDs that can be displayed */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -221,7 +219,6 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         return (
             <MultiSelectListItem
                 item={item}
-                keyForList={item.keyForList}
                 isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}
@@ -297,12 +294,13 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
-                    large
-                    success
-                    pressOnEnter
-                    text={translate('common.save')}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

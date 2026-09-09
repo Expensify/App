@@ -1,5 +1,7 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
 
+import useCardFeeds from '@hooks/useCardFeeds';
+
 import {clearAssignCardStepAndData} from '@libs/actions/CompanyCards';
 
 import CONST from '@src/CONST';
@@ -85,12 +87,11 @@ jest.mock('@hooks/useLocalize', () => ({
     default: () => ({translate: (key: string) => key}),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const useCardFeeds = require('@hooks/useCardFeeds').default as jest.Mock;
+const mockUseCardFeeds = jest.mocked(useCardFeeds);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const RefreshCardFeedConnectionPage = require('@pages/workspace/companyCards/RefreshCardFeedConnectionPage').default;
 
-const MOCK_FEED = 'oauth.chase_bank_card_99999' as const;
+const MOCK_FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#99999` as const;
 const MOCK_POLICY = {id: 'policy1'};
 const MOCK_ROUTE = {params: {feed: MOCK_FEED}};
 
@@ -107,7 +108,13 @@ describe('RefreshCardFeedConnectionPage', () => {
     });
 
     beforeEach(() => {
-        useCardFeeds.mockReturnValue([{[MOCK_FEED]: {expiration: '2024-01-01'}}, {status: 'loaded'}]);
+        mockUseCardFeeds.mockReturnValue([
+            {[MOCK_FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, accountList: [], credentials: '', expiration: 20240101}},
+            {status: 'loaded'},
+            undefined,
+            {},
+            0,
+        ]);
     });
 
     it('renders NotFoundPage when currentStep is not set', async () => {
@@ -127,7 +134,8 @@ describe('RefreshCardFeedConnectionPage', () => {
 
     it('renders LoadingPage when currentStep is an unrecognized value', async () => {
         await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-            currentStep: 'UNKNOWN_STEP' as typeof CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+            // @ts-expect-error -- deliberately unrecognized runtime step exercises the loading fallback.
+            currentStep: 'UNKNOWN_STEP',
             isRefreshing: true,
         });
 
@@ -226,7 +234,13 @@ describe('RefreshCardFeedConnectionPage', () => {
 
         // Simulate bank re-authentication updating the feed expiration (OAuth path).
         // Re-render is needed to propagate the new mock return value.
-        useCardFeeds.mockReturnValue([{[MOCK_FEED]: {expiration: '2025-01-01'}}, {status: 'loaded'}]);
+        mockUseCardFeeds.mockReturnValue([
+            {[MOCK_FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, accountList: [], credentials: '', expiration: 20250101}},
+            {status: 'loaded'},
+            undefined,
+            {},
+            0,
+        ]);
         rerender(
             <RefreshCardFeedConnectionPage
                 policy={MOCK_POLICY}
@@ -257,15 +271,8 @@ describe('RefreshCardFeedConnectionPage', () => {
 
 describe('Related route getRoute helpers', () => {
     it('WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION encodes feed in URL', () => {
-        const result = ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute('pol1', 'oauth.chase 99999' as never);
+        // @ts-expect-error -- deliberately malformed feed input exercises URL encoding.
+        const result = ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute('pol1', 'oauth.chase 99999');
         expect(result).toBe('workspaces/pol1/company-cards/oauth.chase%2099999/refresh-card-feed-connection');
-    });
-
-    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route without feed when omitted', () => {
-        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1')).toBe('workspaces/pol1/company-cards/verify-account');
-    });
-
-    it('WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT returns route with encoded feed when provided', () => {
-        expect(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute('pol1', 'oauth.amex 1001' as never)).toBe('workspaces/pol1/company-cards/verify-account?feed=oauth.amex%201001');
     });
 });

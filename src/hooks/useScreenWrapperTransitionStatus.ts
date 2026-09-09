@@ -14,5 +14,5 @@ export default function useScreenWrapperTransitionStatus() {
         throw new Error("Couldn't find values for screen ScreenWrapper transition status. Are you inside a screen in ScreenWrapper?");
     }
 
-    return {didScreenTransitionEnd: context.didScreenTransitionEnd};
+    return {didScreenTransitionEnd: context.didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP: context.shouldUseNarrowLayoutOnWideRHP};
 }

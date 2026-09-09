@@ -4,7 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
-import {openPolicyTravelPage} from '@libs/actions/TravelInvoicing';
+import {openPolicyTravelPage} from '@libs/actions/TravelBilling';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +52,6 @@ function WorkspaceTravelPage({
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
     const icons = useMemoizedLazyExpensifyIcons(['Exit']);
-    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -123,7 +122,6 @@ function WorkspaceTravelPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Luggage}
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}

@@ -75,7 +75,7 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
     }
 
     if (err.includes('Invalid validateCode')) {
-        return 'mergeAccountsPage.accountValidate.errors.incorrectMagicCode';
+        return 'mergeAccountsPage.accountValidate.errors.incorrectSecurityCode';
     }
 
     return 'mergeAccountsPage.accountValidate.errors.fallback';
@@ -181,7 +181,7 @@ function AccountValidatePage() {
                                 <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterSecurityCode', email)} />
                             </View>
                         </View>
                     }
@@ -195,7 +195,7 @@ function AccountValidatePage() {
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}
                     validateError={validateCodeError}
-                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
+                    hasValidateCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />

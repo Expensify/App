@@ -12,7 +12,6 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -50,7 +49,6 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Plus']);
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
-    const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
@@ -87,7 +85,6 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
             promptStyles: [styles.mb1],
             shouldShowCancelButton: false,
-            success: false,
             confirmText: translate('common.buttonConfirm'),
             innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
@@ -168,14 +165,7 @@ function SpendRulesSection({policyID, canWriteRules, showReadOnlyModal}: SpendRu
             />
             {isLoadingCardRules ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{
-                            context: 'SpendRulesSection',
-                            isOffline,
-                            hasOnceLoaded: false,
-                        }}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
                 filteredCardRules.map((rule) => (

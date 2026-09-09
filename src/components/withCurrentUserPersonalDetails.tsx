@@ -14,22 +14,33 @@ type HOCProps = {
 
 type WithCurrentUserPersonalDetailsProps = HOCProps;
 
+type WithCurrentUserPersonalDetailsImplProps<TProps extends WithCurrentUserPersonalDetailsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof HOCProps>;
+
+function WithCurrentUserPersonalDetailsImpl<TProps extends WithCurrentUserPersonalDetailsProps>({WrappedComponent, ...props}: WithCurrentUserPersonalDetailsImplProps<TProps>) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            currentUserPersonalDetails={currentUserPersonalDetails}
+        />
+    );
+}
+
 export default function <TProps extends WithCurrentUserPersonalDetailsProps>(WrappedComponent: ComponentType<TProps>): ComponentType<Omit<TProps, keyof HOCProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>) {
-        const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                currentUserPersonalDetails={currentUserPersonalDetails}
+            <WithCurrentUserPersonalDetailsImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-    // OXC's React Compiler does not memoize this component on web, so memoize it explicitly to keep
-    // parent-driven re-renders cheap on both platforms.
-    return React.memo(WithCurrentUserPersonalDetails);
+    return WithCurrentUserPersonalDetails;
 }
 
 export type {WithCurrentUserPersonalDetailsProps};

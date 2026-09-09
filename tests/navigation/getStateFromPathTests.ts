@@ -6,6 +6,8 @@ import type {Route} from '@src/ROUTES';
 
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 
+import createMock from '../utils/createMock';
+
 jest.mock('@react-navigation/native', () => ({
     getStateFromPath: jest.fn(),
 }));
@@ -25,8 +27,8 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     dynamicTabPatternToTabPaths: new Map(),
 }));
 
-jest.mock('@src/ROUTES', () => ({
-    DYNAMIC_ROUTES: {
+function mockDynamicRoutes() {
+    return {
         SUFFIX_A: {
             path: 'suffix-a',
             entryScreens: ['BaseScreen'],
@@ -59,15 +61,34 @@ jest.mock('@src/ROUTES', () => ({
             path: 'tag-settings/:orderWeight/:tagName',
             entryScreens: ['TagsRootScreen'],
         },
-    },
+    };
+}
+
+jest.mock('@src/ROUTES', () => ({
+    DYNAMIC_ROUTES: mockDynamicRoutes(),
 }));
 
 jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 
+function getStateFromSyntheticPath(path: string): ReturnType<typeof getStateFromPath> {
+    // These paths are synthetic fixtures for the mocked route configuration, not entries in the production Route union.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Deliberately pass synthetic route paths through the production parser.
+    return getStateFromPath(path as Route);
+}
+
+type DynamicRoutePath = Parameters<typeof getStateForDynamicRoute>[0];
+type DynamicRouteKey = Parameters<typeof getStateForDynamicRoute>[1];
+type DynamicRouteState = ReturnType<typeof getStateForDynamicRoute>;
+type SyntheticDynamicRouteKey = keyof ReturnType<typeof mockDynamicRoutes>;
+
+function isSyntheticDynamicRouteKey(key: string): key is SyntheticDynamicRouteKey {
+    return Object.hasOwn(mockDynamicRoutes(), key);
+}
+
 describe('getStateFromPath', () => {
-    const mockRNGetStateFromPath = RNGetStateFromPath as jest.Mock;
-    const mockGetStateForDynamicRoute = getStateForDynamicRoute as jest.Mock;
+    const mockRNGetStateFromPath = jest.mocked(RNGetStateFromPath);
+    const mockGetStateForDynamicRoute = jest.mocked(getStateForDynamicRoute);
     const mockLogWarn = jest.spyOn(Log, 'warn');
 
     const focusedRouteParams = {baseParam: '123'};
@@ -77,28 +98,42 @@ describe('getStateFromPath', () => {
     const dynamicMultiSegState = {routes: [{name: 'DynamicMultiSegScreen', params: focusedRouteParams}]};
     const dynamicMultiSegLayerState = {routes: [{name: 'DynamicMultiSegLayerScreen'}]};
     const dynamicWildcardState = {routes: [{name: 'DynamicWildcardScreen'}]};
+    const unknownDynamicRouteState = createMock<DynamicRouteState>({routes: [{name: 'UnknownDynamic'}]});
+
+    function getSyntheticDynamicRouteState(dynamicRouteKey: string): DynamicRouteState {
+        if (!isSyntheticDynamicRouteKey(dynamicRouteKey)) {
+            throw new Error(`Unexpected production dynamic route key in synthetic mock: ${dynamicRouteKey}`);
+        }
+
+        switch (dynamicRouteKey) {
+            case 'SUFFIX_A':
+                return createMock<DynamicRouteState>(dynamicSuffixAState);
+            case 'SUFFIX_B':
+                return createMock<DynamicRouteState>(dynamicSuffixBState);
+            case 'MULTI_SEG':
+                return createMock<DynamicRouteState>(dynamicMultiSegState);
+            case 'MULTI_SEG_LAYER':
+                return createMock<DynamicRouteState>(dynamicMultiSegLayerState);
+            case 'WILDCARD_SUFFIX':
+                return createMock<DynamicRouteState>(dynamicWildcardState);
+            case 'SUFFIX_B_UNAUTHORIZED':
+            case 'AMBIGUOUS_STATIC':
+            case 'TAG_SETTINGS_PARAM':
+                return unknownDynamicRouteState;
+            default: {
+                const exhaustiveDynamicRouteKey: never = dynamicRouteKey;
+                String(exhaustiveDynamicRouteKey);
+                throw new Error('Missing synthetic mock implementation for dynamic route key');
+            }
+        }
+    }
+
+    const defaultDynamicRouteImplementation = (_path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => getSyntheticDynamicRouteState(String(dynamicRouteKey));
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockRNGetStateFromPath.mockReturnValue(baseRouteState);
-        mockGetStateForDynamicRoute.mockImplementation((_path: string, dynamicRouteKey: string) => {
-            if (dynamicRouteKey === 'SUFFIX_A') {
-                return dynamicSuffixAState;
-            }
-            if (dynamicRouteKey === 'SUFFIX_B') {
-                return dynamicSuffixBState;
-            }
-            if (dynamicRouteKey === 'MULTI_SEG') {
-                return dynamicMultiSegState;
-            }
-            if (dynamicRouteKey === 'MULTI_SEG_LAYER') {
-                return dynamicMultiSegLayerState;
-            }
-            if (dynamicRouteKey === 'WILDCARD_SUFFIX') {
-                return dynamicWildcardState;
-            }
-            return {routes: [{name: 'UnknownDynamic'}]};
-        });
+        mockGetStateForDynamicRoute.mockImplementation(defaultDynamicRouteImplementation);
     });
 
     it('should delegate to RN getStateFromPath for standard routes (non-dynamic)', () => {
@@ -106,7 +141,7 @@ describe('getStateFromPath', () => {
         const expectedState = {routes: [{name: 'BaseProfile'}]};
         mockRNGetStateFromPath.mockReturnValue(expectedState);
 
-        const result = getStateFromPath(path as unknown as Route);
+        const result = getStateFromSyntheticPath(path);
 
         expect(result).toBe(expectedState);
     });
@@ -114,7 +149,7 @@ describe('getStateFromPath', () => {
     it('should generate dynamic state when authorized screen is focused', () => {
         const fullPath = '/base/suffix-a';
 
-        const result = getStateFromPath(fullPath as unknown as Route);
+        const result = getStateFromSyntheticPath(fullPath);
 
         expect(result).toBe(dynamicSuffixAState);
         expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'SUFFIX_A', focusedRouteParams, undefined);
@@ -125,7 +160,7 @@ describe('getStateFromPath', () => {
         const standardState = {routes: [{name: 'FallbackRoute'}]};
         mockRNGetStateFromPath.mockReturnValue(standardState);
 
-        const result = getStateFromPath(fullPath as unknown as Route);
+        const result = getStateFromSyntheticPath(fullPath);
 
         expect(result).toBe(standardState);
         expect(mockLogWarn).toHaveBeenCalledWith(expect.stringContaining('None of the'));
@@ -135,7 +170,7 @@ describe('getStateFromPath', () => {
         it('should authorize a layered suffix when the inner dynamic screen is listed in entryScreens', () => {
             const fullPath = '/base/suffix-a/suffix-b';
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(dynamicSuffixBState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/suffix-a', 'SUFFIX_A', focusedRouteParams, undefined);
@@ -152,7 +187,7 @@ describe('getStateFromPath', () => {
                 return baseRouteState;
             });
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(standardState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/suffix-a', 'SUFFIX_A', focusedRouteParams, undefined);
@@ -162,7 +197,7 @@ describe('getStateFromPath', () => {
         it('should pass the full layered path including query params to the outer dynamic route builder', () => {
             const fullPath = '/base/suffix-a/suffix-b?param=val';
 
-            getStateFromPath(fullPath as unknown as Route);
+            getStateFromSyntheticPath(fullPath);
 
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'SUFFIX_B', focusedRouteParams, undefined);
         });
@@ -170,7 +205,7 @@ describe('getStateFromPath', () => {
         it('should support a multi-segment inner suffix inside the layered path', () => {
             const fullPath = '/base/deep/suffix-a/suffix-b-from-multi';
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(dynamicMultiSegLayerState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/deep/suffix-a', 'MULTI_SEG', focusedRouteParams, undefined);
@@ -182,7 +217,7 @@ describe('getStateFromPath', () => {
         it('should authorize any focused screen when entryScreens contains wildcard', () => {
             const fullPath = '/base/wildcard-suffix';
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(dynamicWildcardState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'WILDCARD_SUFFIX', focusedRouteParams, undefined);
@@ -192,7 +227,7 @@ describe('getStateFromPath', () => {
         it('should authorize wildcard in a layered scenario where the inner screen is not explicitly listed', () => {
             const fullPath = '/base/suffix-a/wildcard-suffix';
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(dynamicWildcardState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith('/base/suffix-a', 'SUFFIX_A', focusedRouteParams, undefined);
@@ -210,15 +245,20 @@ describe('getStateFromPath', () => {
         const ambiguousStaticState = {routes: [{name: 'AmbiguousStaticScreen'}]};
 
         beforeEach(() => {
-            const baseImpl = mockGetStateForDynamicRoute.getMockImplementation();
-            mockGetStateForDynamicRoute.mockImplementation((path: string, dynamicRouteKey: string) => {
-                if (dynamicRouteKey === 'AMBIGUOUS_STATIC') {
-                    return ambiguousStaticState;
+            mockGetStateForDynamicRoute.mockImplementation((path: DynamicRoutePath, dynamicRouteKey: DynamicRouteKey): DynamicRouteState => {
+                const syntheticDynamicRouteKey = String(dynamicRouteKey);
+                if (!isSyntheticDynamicRouteKey(syntheticDynamicRouteKey)) {
+                    return defaultDynamicRouteImplementation(path, dynamicRouteKey);
                 }
-                if (dynamicRouteKey === 'TAG_SETTINGS_PARAM') {
-                    return tagSettingsParamState;
+
+                switch (syntheticDynamicRouteKey) {
+                    case 'AMBIGUOUS_STATIC':
+                        return createMock<DynamicRouteState>(ambiguousStaticState);
+                    case 'TAG_SETTINGS_PARAM':
+                        return createMock<DynamicRouteState>(tagSettingsParamState);
+                    default:
+                        return defaultDynamicRouteImplementation(path, dynamicRouteKey);
                 }
-                return baseImpl?.(path, dynamicRouteKey) as unknown;
             });
         });
 
@@ -233,7 +273,7 @@ describe('getStateFromPath', () => {
                 return unknownState;
             });
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(fallbackState);
             expect(mockLogWarn).toHaveBeenCalledWith(expect.stringContaining('None of the'));
@@ -244,7 +284,7 @@ describe('getStateFromPath', () => {
             const fullPath = '/tags-root/tag-settings/0/gl-code';
             mockRNGetStateFromPath.mockReturnValue(tagsRootState);
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(tagSettingsParamState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'TAG_SETTINGS_PARAM', expect.objectContaining({orderWeight: '0', tagName: 'gl-code'}), undefined);
@@ -255,7 +295,7 @@ describe('getStateFromPath', () => {
             const fullPath = '/category-settings/gl-code';
             mockRNGetStateFromPath.mockReturnValue(categorySettingsState);
 
-            const result = getStateFromPath(fullPath as unknown as Route);
+            const result = getStateFromSyntheticPath(fullPath);
 
             expect(result).toBe(ambiguousStaticState);
             expect(mockGetStateForDynamicRoute).toHaveBeenCalledWith(fullPath, 'AMBIGUOUS_STATIC', expect.objectContaining(categorySettingsParams), undefined);

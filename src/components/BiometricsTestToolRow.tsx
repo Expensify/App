@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import TestToolRow from './TestToolRow';
 
@@ -36,9 +36,8 @@ function BiometricsTestToolRow() {
         <TestToolRow title={biometricsTitle}>
             <View style={[styles.flexRow, styles.gap2]}>
                 <Button
-                    small
+                    size={CONST.BUTTON_SIZE.SMALL}
                     isDisabled={isOffline}
-                    text={translate('multifactorAuthentication.biometricsTest.test')}
                     onPress={() => {
                         // When launched from the hidden Test Tools modal (4-finger tap), dismiss that modal so the MFA
                         // overlay isn't hidden behind it on iOS. When rendered inline on the Troubleshoot page there is no
@@ -48,20 +47,23 @@ function BiometricsTestToolRow() {
                         }
                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
                     }}
-                />
+                >
+                    <Button.Text>{translate('multifactorAuthentication.biometricsTest.test')}</Button.Text>
+                </Button>
                 {isCurrentDeviceRegistered && !!localCredentialID && (
                     <Button
-                        danger
+                        variant={CONST.BUTTON_VARIANT.DANGER}
                         isDisabled={isOffline}
                         isLoading={isMFARevokeLoading}
-                        small
-                        text={translate('multifactorAuthentication.revoke.revoke')}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={async () => {
                             setIsMFARevokeLoading(true);
                             await revokeMultifactorAuthenticationCredentials({onlyKeyID: localCredentialID});
                             setIsMFARevokeLoading(false);
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
+                    </Button>
                 )}
             </View>
         </TestToolRow>

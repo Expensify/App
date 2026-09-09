@@ -1,27 +1,29 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
 import type {ReportFieldHandle} from '@components/Search/FilterComponents/ReportField';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useRef, useState} from 'react';
 
 type ReportFieldFilterContentProps = {
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     selectedField: PolicyReportField | null;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function ReportFieldFilterContent({values, selectedField, largeButton, style, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
+function ReportFieldFilterContent({values, selectedField, size, style, onFieldSelected, onChange}: ReportFieldFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const reportFieldRef = useRef<ReportFieldHandle>(null);
@@ -42,10 +44,8 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
             {!!selectedField && (
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
-                    success
-                    large={largeButton}
-                    text={translate('common.apply')}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={size}
                     onPress={() => {
                         if (error) {
                             return;
@@ -58,7 +58,10 @@ function ReportFieldFilterContent({values, selectedField, largeButton, style, on
 
                         onChange(value);
                     }}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.apply')}</Button.Text>
+                </Button>
             )}
         </>
     );

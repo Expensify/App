@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
+import type IconSize from '@components/Icon/types';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -13,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import HapticFeedback from '@libs/HapticFeedback';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {ButtonSizeValue} from '@styles/utils/types';
 
@@ -26,7 +26,7 @@ import type {ForwardedRef} from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import {getButtonRole} from './utils';
@@ -100,7 +100,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** A function that is called when the button is released */
         onPressOut?: (event: GestureResponderEvent) => void;
 
-        /** Callback that is called when mousedown is triggered. */
         onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
         /** Call the onPress function when Enter key is pressed */
@@ -112,25 +111,18 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Additional styles to add after local styles. Applied to Pressable portion of button */
         style?: StyleProp<ViewStyle>;
 
-        /** Additional styles to add to the component when it's disabled */
         disabledStyle?: StyleProp<ViewStyle>;
 
         /** Additional button styles. Specific to the OpacityView of the button */
         innerStyles?: StyleProp<ViewStyle>;
 
-        /** Additional text styles */
         textStyles?: StyleProp<TextStyle>;
 
         /** Additional text styles when the button is hovered */
         textHoverStyles?: StyleProp<TextStyle>;
 
-        /** The number of lines to display for the primary text */
         primaryTextNumberOfLines?: number;
-
-        /** Whether we should use the default hover style */
         shouldUseDefaultHover?: boolean;
-
-        /** Additional hover styles */
         hoverStyles?: StyleProp<ViewStyle>;
 
         /** Whether we should use the success theme color */
@@ -148,16 +140,12 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Should we remove the left border radius top + bottom? */
         shouldRemoveLeftBorderRadius?: boolean;
 
-        /** Should enable the haptic feedback? */
         shouldEnableHapticFeedback?: boolean;
-
-        /** Should disable the long press? */
         isLongPressDisabled?: boolean;
 
         /** Id to use for this button */
         id?: string;
 
-        /** Accessibility label for the component */
         accessibilityLabel?: string;
 
         /** Accessibility state to pass to the pressable */
@@ -166,7 +154,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** The text for the button label */
         text?: string;
 
-        /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
 
         /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
@@ -187,9 +174,6 @@ type ButtonProps = Partial<ChildrenProps> &
          */
         shouldBlendOpacity?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: ForwardedRef<View>;
 
         /**
@@ -214,32 +198,39 @@ function KeyboardShortcutComponent({
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION;
 
-    const keyboardShortcutCallback = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-                return;
-            }
-            onPress();
-        },
-        [isDisabled, isLoading, onPress],
-    );
+    const keyboardShortcutCallback = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+            return;
+        }
+        onPress();
+    };
 
-    const config = useMemo(
-        () => ({
-            isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
-            shouldBubble: allowBubble,
-            priority: enterKeyEventListenerPriority,
-            shouldPreventDefault: false,
-        }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [shouldDisableEnterShortcut, isFocused],
-    );
+    const config = {
+        isActive: pressOnEnter && !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 
     return null;
+}
+
+/** Maps the button's size booleans to the matching `Icon` preset size. */
+function getIconSize({extraSmall, small, large}: {extraSmall: boolean; small: boolean; large: boolean}): IconSize {
+    if (extraSmall) {
+        return CONST.ICON_SIZE.EXTRA_SMALL;
+    }
+    if (small) {
+        return CONST.ICON_SIZE.SMALL;
+    }
+    if (large) {
+        return CONST.ICON_SIZE.LARGE;
+    }
+    return CONST.ICON_SIZE.MEDIUM;
 }
 
 function Button({
@@ -313,9 +304,7 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
-    const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'Button',
-    };
+    const iconSize = getIconSize({extraSmall, small, large});
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -389,14 +378,7 @@ function Button({
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                    extraSmall={extraSmall}
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                    small={small}
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                    medium={medium}
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                    large={large}
+                                    size={iconSize}
                                     isButtonIcon
                                     accessibilityLabel={iconAccessibilityLabel}
                                 />
@@ -409,14 +391,7 @@ function Button({
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
                                 fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                extraSmall={extraSmall}
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                small={small}
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                medium={medium}
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated -- legacy icon sizing
-                                large={large}
+                                size={iconSize}
                                 isButtonIcon
                             />
                         </View>
@@ -439,55 +414,33 @@ function Button({
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     }
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
-            styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
-            success ? styles.buttonSuccess : undefined,
-            danger ? styles.buttonDanger : undefined,
-            isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
-            shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-            shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-            text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-            innerStyles,
-            link && styles.bgTransparent,
-        ],
-        [
-            StyleUtils,
-            danger,
-            icon,
-            innerStyles,
-            isDisabled,
-            buttonSize,
-            link,
-            shouldRemoveLeftBorderRadius,
-            shouldRemoveRightBorderRadius,
-            shouldShowRightIcon,
-            styles,
-            success,
-            text,
-            shouldStayNormalOnDisable,
-        ],
-    );
+    const buttonStyles: StyleProp<ViewStyle> = [
+        styles.button,
+        StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+        success ? styles.buttonSuccess : undefined,
+        danger ? styles.buttonDanger : undefined,
+        isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
+        isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
+        shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+        shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+        text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+        innerStyles,
+        link && styles.bgTransparent,
+    ];
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
-        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
-    );
+    const buttonContainerStyles: StyleProp<ViewStyle> = [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer];
 
-    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!shouldBlendOpacity) {
-            return undefined;
-        }
-
+    let buttonBlendForegroundStyle: StyleProp<ViewStyle>;
+    if (!shouldBlendOpacity) {
+        buttonBlendForegroundStyle = undefined;
+    } else {
         const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
 
-        return {
+        buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, shouldBlendOpacity]);
+    }
 
     let loadingIndicatorColor = theme.text;
     if (danger) {
@@ -581,7 +534,6 @@ function Button({
                         color={loadingIndicatorColor}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={extraSmall ? 12 : undefined}
-                        reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}
             </PressableWithFeedback>
@@ -589,8 +541,6 @@ function Button({
     );
 }
 
-// OXC's React Compiler bails on this file (missing memoization dependencies), so Button is not
-// memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
-export default withNavigationFallback(React.memo(Button));
+export default withNavigationFallback(Button);
 
 export type {ButtonProps};

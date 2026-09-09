@@ -46,10 +46,7 @@ type AmountFormProps = {
     /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 
-    /** Number of decimals to display */
     decimals?: number;
-
-    /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
     /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
@@ -64,13 +61,11 @@ type AmountFormProps = {
     /** Whether the input should be disabled */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference to the number form for imperative updates */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
 
     /** Callback when the input is focused */

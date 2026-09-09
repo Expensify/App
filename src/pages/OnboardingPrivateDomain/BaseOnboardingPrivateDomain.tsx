@@ -1,19 +1,16 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -23,15 +20,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
-    const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
+    const [hasValidateCodeBeenSent, setHasValidateCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -42,15 +39,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             isFromPublicDomain: acc?.isFromPublicDomain,
         }),
     });
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026);
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -65,7 +58,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!email) {
             return;
         }
-        resendValidateCode(email);
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, email);
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
@@ -136,12 +129,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -160,15 +150,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
                             getAccessiblePolicies(code);
-                            setHasMagicCodeBeenSent(false);
+                            setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {
                             sendValidateCode();
-                            setHasMagicCodeBeenSent(true);
+                            setHasValidateCodeBeenSent(true);
                         }}
                         clearError={() => clearGetAccessiblePoliciesErrors()}
                         validateError={getAccessiblePoliciesAction?.errors}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}

@@ -4,14 +4,19 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PartialDeep} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -95,24 +100,21 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyRequestView
                 transactionThreadReport={threadReport}
                 parentReportID={expenseReportID}
-                expensePolicy={
-                    {
-                        id: policyID,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        name: 'Test Policy',
-                        owner: currentUserEmail,
-                        outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
-                        ...policy,
-                    } as never
-                }
+                expensePolicy={createMock<Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    name: 'Test Policy',
+                    owner: currentUserEmail,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    ...policy,
+                })}
                 shouldShowAnimatedBackground={false}
             />
         </ComposeProviders>,
@@ -124,6 +126,7 @@ describe('MoneyRequestView edit fields', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     afterEach(async () => {
@@ -169,7 +172,6 @@ describe('MoneyRequestView edit fields', () => {
                 name: 'Test Policy',
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
                 reportID: expenseReportID,
@@ -309,6 +311,82 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+        });
+    });
+
+    it('should show amount as editable for the submitter when a submitted report has not been forwarded', async () => {
+        const approverAccountID = 999;
+        const approverEmail = 'approver@test.com';
+        const corporatePolicy = {
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}},
+        };
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[approverAccountID]: {accountID: approverAccountID, login: approverEmail, displayName: 'Approver'}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, corporatePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                submitted: {...LHNTestUtils.getFakeReportAction(), reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, corporatePolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+        });
+    });
+
+    it('should show amount as readonly for the submitter after the report was forwarded since the last submit', async () => {
+        const approverAccountID = 999;
+        const approverEmail = 'approver@test.com';
+        const corporatePolicy = {
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}},
+        };
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[approverAccountID]: {accountID: approverAccountID, login: approverEmail, displayName: 'Approver'}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, corporatePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                managerID: approverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            // The report was forwarded after the last submit, so the submitter loses edit access
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                submitted: {...LHNTestUtils.getFakeReportAction(), reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'},
+                forwarded: {...LHNTestUtils.getFakeReportAction(), reportActionID: 'forwarded', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, corporatePolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
         });
     });
 
@@ -517,6 +595,69 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the vendor row on QBO without the vendorMatching beta because QBO (R1) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'v-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: CONST.CURRENCY.USD, email: 'acme@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Co');
+        });
+    });
+
+    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'xc1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                    config: {isConfigured: true},
+                    data: {contacts: {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('menu-item-common.supplier')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+        });
+    });
+
     it('falls back to the vendor externalID when the assigned vendor is missing from every connection', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -529,7 +670,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -551,6 +692,43 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the persisted vendor name over the externalID when the vendor is missing from every connection', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                // The vendor is gone from every synced list (e.g. it went inactive in Intacct), but its
+                // display name was persisted on the transaction at match/assign time, so the title must
+                // render the name — not the raw externalID.
+                comment: {vendor: {externalID: 'stale-vendor-id', name: 'Amazon', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
+            expect(vendorTitle).toHaveTextContent('Amazon');
+            expect(vendorTitle).not.toHaveTextContent('stale-vendor-id');
+        });
+    });
+
     it('falls back to the vendor externalID before the synced vendor list has loaded', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -563,7 +741,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'still-valid-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'still-valid-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -596,7 +774,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
                 reimbursable: false,
-                comment: {vendor: {externalID: 'stale-vendor-id', isManuallySet: false}},
+                comment: {vendor: {externalID: 'stale-vendor-id', wasManuallySet: false}},
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -618,6 +796,130 @@ describe('MoneyRequestView edit fields', () => {
             const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
             expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
             expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+        });
+    });
+
+    describe('commuter exclusion in the Distance field', () => {
+        const selfDMReportID = 'self_dm_mrv_123';
+        // `translate` is mocked to return the key, so the commuter description is the plain distance label plus the "Original" key
+        const commuterDistanceDescription = `common.distance ${CONST.DOT_SEPARATOR} distance.commuterExclusion.original`;
+        const distanceTransactionUpdate = {
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            merchant: '3.00 mi @ $0.67 / mi',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    quantity: 4,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 3,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        it('shows the original distance and removed commuter miles on a workspace expense', async () => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, distanceTransactionUpdate);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderMoneyRequestView(threadReport);
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId(`menu-item-${commuterDistanceDescription}`)).toBeOnTheScreen();
+            });
+        });
+
+        it('does not show the commuter exclusion on a self-DM expense that carries the fields', async () => {
+            const customUnitRateID = 'self-dm-distance-rate';
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: selfDMReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                // The expense lives in the self-DM, so it has no workspace report backing it
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                    reportID: selfDMReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    ownerAccountID: currentUserAccountID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                    [parentReportActionID]: {
+                        ...LHNTestUtils.getFakeReportAction(),
+                        reportActionID: parentReportActionID,
+                        reportID: selfDMReportID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: currentUserAccountID,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                            IOUTransactionID: transactionID,
+                            amount: 5000,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {
+                                [customUnitRateID]: {
+                                    customUnitRateID,
+                                    currency: CONST.CURRENCY.USD,
+                                    rate: 67,
+                                },
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    ...distanceTransactionUpdate,
+                    amount: 201,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {
+                        ...distanceTransactionUpdate.comment,
+                        customUnit: {
+                            ...distanceTransactionUpdate.comment.customUnit,
+                            customUnitRateID,
+                        },
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider]}>
+                    <MoneyRequestView
+                        transactionThreadReport={threadReport}
+                        parentReportID={selfDMReportID}
+                        expensePolicy={undefined}
+                        shouldShowAnimatedBackground={false}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
+            });
+            expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
         });
     });
 });

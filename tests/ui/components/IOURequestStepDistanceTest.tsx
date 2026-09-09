@@ -6,11 +6,10 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 
-import IOURequestStepDistanceWithFullTransactionOrNotFound from '@pages/iou/request/step/IOURequestStepDistance';
+import DynamicIOURequestStepDistanceWithFullTransactionOrNotFound from '@pages/iou/request/step/DynamicIOURequestStepDistance';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 import React from 'react';
@@ -29,6 +28,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');
@@ -80,16 +80,18 @@ jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Distance',
+        name: 'Dynamic_Money_Request_Step_Distance',
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    isReady: jest.fn(() => false),
+    addListener: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockRef = {
         getCurrentRoute: jest.fn(() => ({
-            name: 'Money_Request_Step_Distance',
+            name: 'Dynamic_Money_Request_Step_Distance',
             params: {},
         })),
         getState: jest.fn(() => ({})),
@@ -107,12 +109,13 @@ jest.mock('@libs/Navigation/Navigation', () => {
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
         getCurrentRoute: jest.fn(() => ({
-            name: 'Money_Request_Step_Distance',
+            name: 'Dynamic_Money_Request_Step_Distance',
             params: {},
         })),
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
@@ -192,16 +195,15 @@ describe('IOURequestStepDistance', () => {
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
                     <LocaleContextProvider>
-                        <IOURequestStepDistanceWithFullTransactionOrNotFound
+                        <DynamicIOURequestStepDistanceWithFullTransactionOrNotFound
                             route={{
-                                key: 'Money_Request_Step_Distance',
-                                name: 'Money_Request_Step_Distance',
+                                key: 'Dynamic_Money_Request_Step_Distance',
+                                name: 'Dynamic_Money_Request_Step_Distance',
                                 params: {
                                     action: CONST.IOU.ACTION.CREATE,
                                     iouType: CONST.IOU.TYPE.SUBMIT,
                                     reportID: REPORT_ID,
                                     transactionID: TRANSACTION_ID,
-                                    backTo: ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
                                 },
                             }}
                             // @ts-expect-error we don't need navigation param here
@@ -215,6 +217,6 @@ describe('IOURequestStepDistance', () => {
         await waitForBatchedUpdatesWithAct();
 
         // The component renders successfully with the isSelfTourViewed useOnyx hook
-        expect(screen.getByTestId('IOURequestStepDistance')).toBeTruthy();
+        expect(screen.getByTestId('DynamicIOURequestStepDistance')).toBeTruthy();
     });
 });

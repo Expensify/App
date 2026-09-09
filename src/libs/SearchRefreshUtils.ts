@@ -21,7 +21,6 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
         shouldCalculateTotals,
         offset: 0,
         queryJSON: currentSearchQueryJSON,
-        isOffline,
         isLoading,
     });
 }

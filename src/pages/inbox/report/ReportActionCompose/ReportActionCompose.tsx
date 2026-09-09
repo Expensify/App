@@ -23,7 +23,6 @@ import ComposerSendButton from './ComposerSendButton';
 import ComposerTypingIndicator from './ComposerTypingIndicator';
 
 type ReportActionComposeProps = {
-    /** Report ID */
     reportID: string;
 
     /** The native ID for this component */

@@ -1,4 +1,4 @@
-import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {calculateDiffAmount, getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../../unit/currencyList.json';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -274,6 +275,65 @@ describe('actions/IOU', () => {
             };
 
             expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
+        });
+    });
+
+    describe('getReportPreviewReportAction', () => {
+        const chatReportID = 'chatReport1';
+        const iouReportID = 'iouReport1';
+
+        const createReportPreviewAction = (linkedReportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> => ({
+            reportActionID: 'previewAction1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            created: '2024-01-01 12:00:00',
+            originalMessage: {linkedReportID},
+            message: [{type: 'COMMENT', text: ''}],
+        });
+
+        it('returns the REPORT_PREVIEW action whose linkedReportID matches iouReportID', () => {
+            const previewAction = createReportPreviewAction(iouReportID);
+            const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
+
+            expect(getReportPreviewReportAction(chatReportID, iouReportID, chatReportActions)).toEqual(previewAction);
+        });
+
+        it('returns null when no action matches the given iouReportID', () => {
+            const previewAction = createReportPreviewAction('someOtherIOUReport');
+            const chatReportActions: ReportActions = {[previewAction.reportActionID]: previewAction};
+
+            expect(getReportPreviewReportAction(chatReportID, iouReportID, chatReportActions)).toBeNull();
+        });
+
+        it('returns null when the matching action is not a REPORT_PREVIEW action', () => {
+            const nonPreviewAction = createMock<ReportAction>({
+                reportActionID: 'commentAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01 12:00:00',
+                originalMessage: {linkedReportID: iouReportID},
+                message: [{type: 'COMMENT', text: ''}],
+            });
+            const chatReportActions: ReportActions = {[nonPreviewAction.reportActionID]: nonPreviewAction};
+
+            expect(getReportPreviewReportAction(chatReportID, iouReportID, chatReportActions)).toBeNull();
+        });
+
+        it('returns null when chatReportActions is an empty object', () => {
+            expect(getReportPreviewReportAction(chatReportID, iouReportID, {})).toBeNull();
+        });
+
+        it('returns null when chatReportActions is undefined and nothing is cached in Onyx for the chat report', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, null);
+            await waitForBatchedUpdates();
+
+            expect(getReportPreviewReportAction(chatReportID, iouReportID)).toBeNull();
+        });
+
+        it('falls back to the cached Onyx report actions when chatReportActions is not provided', async () => {
+            const previewAction = createReportPreviewAction(iouReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[previewAction.reportActionID]: previewAction});
+            await waitForBatchedUpdates();
+
+            expect(getReportPreviewReportAction(chatReportID, iouReportID)).toEqual(previewAction);
         });
     });
 });

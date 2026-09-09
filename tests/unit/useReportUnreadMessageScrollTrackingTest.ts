@@ -35,13 +35,7 @@ function createMockSharedValue<T>(initial: T): MockSharedValue<T> {
 
 jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...require('react-native-reanimated/mock'),
-        useAnimatedReaction: (prepare: () => unknown, react: (a: unknown, b: unknown) => void) => {
-            const prepared = prepare();
-            react(prepared, prepared);
-        },
-    };
+    return require('react-native-reanimated/mock');
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -113,7 +107,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             // Given
             const offsetY = createMockSharedValue(0);
             const keyboardHeight = createMockSharedValue(0);
-            const {result, rerender} = renderHook(() =>
+            const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
                     keyboardHeight,
@@ -128,9 +122,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
             // When
             act(() => {
                 offsetY.set(CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD + 100);
+                result.current.updatePillVisibility();
             });
-
-            rerender({});
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
@@ -265,8 +258,6 @@ describe('useReportUnreadMessageScrollTracking', () => {
     });
 
     describe('action badge above viewport tracking', () => {
-        const onTrackScrollingMockFn = jest.fn();
-
         it('returns isActionBadgeAboveViewport as false initially', () => {
             const offsetY = createMockSharedValue(0);
             const keyboardHeight = createMockSharedValue(0);

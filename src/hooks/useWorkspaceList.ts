@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isArchivedPolicy, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -25,6 +25,7 @@ type UseWorkspaceListParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
     shouldSortSelectedToTop?: boolean;
+    includeArchivedPolicy?: boolean;
 };
 
 function useWorkspaceList({
@@ -36,6 +37,7 @@ function useWorkspaceList({
     localeCompare,
     additionalFilter,
     shouldSortSelectedToTop = true,
+    includeArchivedPolicy = false,
 }: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const usersWorkspaces = useMemo(() => {
@@ -45,7 +47,12 @@ function useWorkspaceList({
 
         const result = [];
         for (const policy of Object.values(policies)) {
-            if (!policy || policy.isJoinRequestPending || !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) || (additionalFilter && !additionalFilter(policy))) {
+            if (
+                !policy ||
+                policy.isJoinRequestPending ||
+                !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin, includeArchivedPolicy) ||
+                (additionalFilter && !additionalFilter(policy))
+            ) {
                 continue;
             }
 
@@ -63,11 +70,12 @@ function useWorkspaceList({
                 ],
                 keyForList: `${policy.id}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
+                isArchived: isArchivedPolicy(policy),
                 isSelected: policy.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             });
         }
         return result;
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs, includeArchivedPolicy]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>

@@ -20,8 +20,8 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 describe('Push fullscreen from RHP', () => {
     beforeEach(() => {

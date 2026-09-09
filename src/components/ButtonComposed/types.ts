@@ -1,12 +1,12 @@
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ForwardedRef} from 'react';
 import type React from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-
-import type {ButtonVariant} from './context';
 
 type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */
@@ -21,11 +21,16 @@ type ButtonEventsProps = {
     /** A function that is called when the button is released */
     onPressOut?: (event: GestureResponderEvent) => void;
 
-    /** Callback that is called when mousedown is triggered. */
     onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** A function that is called when the button receives focus */
+    onFocus?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
+
+    /** A function that is called when the button loses focus */
+    onBlur?: (event: NativeSyntheticEvent<TargetedEvent>) => void;
 };
 
 type ButtonBehaviorProps = {
@@ -35,10 +40,7 @@ type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
 
-    /** Should enable the haptic feedback? */
     enableHapticFeedback?: boolean;
-
-    /** Should disable the long press? */
     isLongPressDisabled?: boolean;
 
     /**
@@ -78,16 +80,12 @@ type ButtonStyleProps = {
     /** Any additional styles to pass to the content container wrapping all children (icons + text). */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Additional hover styles applied on top of theme-derived hovers (default/success/danger). */
     hoverStyles?: StyleProp<ViewStyle>;
 
-    /** Should we remove the border radius on a specific side? */
     removeBorderRadius?: ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>;
-
-    /** The size of the button */
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** The visual variant of the button, which controls its color scheme */
@@ -104,15 +102,11 @@ type BaseButtonProps = WithSentryLabel &
         /** The testID of the button. Used to locate this view in end-to-end tests. */
         testID?: string;
 
-        /** Accessibility label for the component */
         accessibilityLabel?: string;
 
         /** Accessibility state to pass to the pressable */
         accessibilityState?: AccessibilityState;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: ForwardedRef<View>;
     };
 

@@ -101,6 +101,7 @@ function ExpenseFlatSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={shouldApplyAnimation}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isDisabled}
             >
                 <TransactionListItem
                     showTooltip
@@ -119,7 +120,6 @@ function ExpenseFlatSearchView({
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onFocus={onFocus}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />

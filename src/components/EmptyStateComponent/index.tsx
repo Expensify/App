@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
@@ -71,7 +71,7 @@ function EmptyStateComponent({
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
+                                {buttons?.map(({buttonText, buttonAction, buttonVariant, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
                                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -86,15 +86,16 @@ function EmptyStateComponent({
                                     ) : (
                                         <Button
                                             key={buttonText}
-                                            success={success}
+                                            variant={buttonVariant}
                                             onPress={buttonAction}
-                                            text={buttonText}
-                                            icon={icon}
                                             isDisabled={isDisabled}
                                             style={style}
                                             innerStyles={innerStyles}
                                             hoverStyles={hoverStyles}
-                                        />
+                                        >
+                                            {!!icon && <Button.Icon src={icon} />}
+                                            {!!buttonText && <Button.Text>{buttonText}</Button.Text>}
+                                        </Button>
                                     ),
                                 )}
                             </View>

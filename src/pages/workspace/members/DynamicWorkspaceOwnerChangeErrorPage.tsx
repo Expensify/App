@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -51,6 +51,7 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!shouldShowRef.current}
+            canBeAccessedIfArchived
         >
             <ScreenWrapper
                 testID="DynamicWorkspaceOwnerChangeErrorPage"
@@ -75,13 +76,14 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
-                        success
-                        large
-                        text={translate('common.buttonConfirm')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.mt6}
-                        pressOnEnter
                         onPress={closePage}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

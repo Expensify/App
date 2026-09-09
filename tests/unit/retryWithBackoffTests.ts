@@ -47,21 +47,21 @@ describe('retryWithBackoff', () => {
     it('uses exponential backoff', async () => {
         const fn = jest.fn().mockRejectedValueOnce(new Error('Fail 1')).mockRejectedValueOnce(new Error('Fail 2')).mockResolvedValue('Done');
 
-        const delays: number[] = [];
-        jest.spyOn(global, 'setTimeout').mockImplementation((cb, ms) => {
-            delays.push(ms ?? 0);
-            cb();
-            return 0 as unknown as NodeJS.Timeout;
-        });
+        jest.useFakeTimers();
+        try {
+            const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+            const promise = retryWithBackoff(fn, {
+                maxRetries: 5,
+                initialDelayMs: 100,
+                factor: 3,
+            });
 
-        const promise = retryWithBackoff(fn, {
-            maxRetries: 5,
-            initialDelayMs: 100,
-            factor: 3,
-        });
-
-        await expect(promise).resolves.toBe('Done');
-        expect(fn).toHaveBeenCalledTimes(3);
-        expect(delays).toEqual([100, 300]); // 100 -> 300
+            await jest.runAllTimersAsync();
+            await expect(promise).resolves.toBe('Done');
+            expect(fn).toHaveBeenCalledTimes(3);
+            expect(setTimeoutSpy.mock.calls.map(([, delay]) => delay)).toEqual([100, 300]);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 });

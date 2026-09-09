@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,8 @@ type ModifiedExpenseContentProps = {
 
 function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpenseContentProps) {
     const {translate} = useLocalize();
-    const {email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
@@ -39,12 +41,14 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
 
     const modifiedExpenseMessage = getForReportAction({
         translate,
+        convertToDisplayString,
         reportAction: action,
         policy,
         movedFromReport,
         movedToReport,
         policyTags: policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST,
         policyCategories,
+        currentUserAccountID,
         currentUserLogin: currentUserEmail ?? '',
     });
 

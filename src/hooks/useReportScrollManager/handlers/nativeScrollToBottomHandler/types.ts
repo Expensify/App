@@ -1,8 +1,7 @@
-import type {FlashListRefType} from '@components/FlashList/types';
-import type FlatListRefType from '@components/FlashList/types';
+import type {ActionListRefType} from '@components/FlashList/types';
 
 type NativeScrollToBottomHandlerParams = {
-    listRef: FlatListRefType | FlashListRefType;
+    listRef: ActionListRefType;
     isKeyboardActive: boolean;
     keyboardHeight: number;
 };

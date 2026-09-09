@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -15,13 +15,13 @@ import useWebCamera from '@hooks/useWebCamera';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import variables from '@styles/variables';
 
@@ -53,6 +53,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
     const onUnmount = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
     };
 
     const {
@@ -91,14 +92,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
             });
         }
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB},
         });
 
         const imageBase64 = cameraRef.current.getScreenshot();
@@ -129,6 +130,9 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayoutRef.current?.width, viewfinderLayoutRef.current?.height, shouldAlignTop).then(({file, source}) => {
             endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            if (!isMultiScanEnabled) {
+                startReceiptPrepareSpan(CONST.TELEMETRY.SPAN_PLATFORM.WEB);
+            }
             onCapture(file, source);
         });
     };
@@ -149,13 +153,6 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={
-                                {
-                                    context: 'CameraCapture',
-                                    cameraPermissionState,
-                                    isQueriedPermissionState,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
                         />
                     )}
                     {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
@@ -175,13 +172,14 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
                             )}
                             <Button
-                                success
-                                text={translate('common.continue')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_BUTTON}
+                            >
+                                <Button.Text>{translate('common.continue')}</Button.Text>
+                            </Button>
                         </View>
                     )}
                     {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (

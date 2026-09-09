@@ -1,4 +1,3 @@
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -20,6 +19,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
+import WorkspaceInvoiceFieldsSection from './WorkspaceInvoiceFieldsSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
@@ -30,7 +30,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     return (
@@ -46,7 +45,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={!canWriteMoreFeatures}
                 route={route}
-                icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
                 policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             >
@@ -66,6 +64,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                                 canWriteMoreFeatures={canWriteMoreFeatures}
                             />
                         )}
+                        {!!policyID && <WorkspaceInvoiceFieldsSection policyID={policyID} />}
                     </View>
                 )}
             </WorkspacePageWithSections>

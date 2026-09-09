@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
@@ -74,7 +74,6 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 <View style={[styles.pAbsolute, styles.b2, styles.r2]}>
                                     <Button
                                         innerStyles={styles.arrowIcon}
-                                        icon={expensifyIcons.Zoom}
                                         onPress={() => {
                                             Navigation.navigate(
                                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
@@ -84,7 +83,9 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                                 ),
                                             );
                                         }}
-                                    />
+                                    >
+                                        <Button.Icon src={expensifyIcons.Zoom} />
+                                    </Button>
                                 </View>
                             </View>
                         </PressableWithFeedback>

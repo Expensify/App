@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import type FlatListRefType from '@components/FlashList/types';
+import type {ActionListRefType} from '@components/FlashList/types';
 
 import {ActionListContextProvider, useActionListContext} from '@pages/inbox/ActionListContext';
 
@@ -18,7 +18,7 @@ describe('ActionListContextProvider', () => {
 
     it('getListRef() returns the same ref object after registerListRef(ref)', () => {
         const {result} = renderHook(() => useActionListContext(), {wrapper: ActionListContextProvider});
-        const listRef: FlatListRefType = {current: null};
+        const listRef: ActionListRefType = {current: null};
 
         act(() => {
             result.current.registerListRef(listRef);
@@ -29,7 +29,7 @@ describe('ActionListContextProvider', () => {
 
     it('getListRef() returns null again after registerListRef(null) (unmount path)', () => {
         const {result} = renderHook(() => useActionListContext(), {wrapper: ActionListContextProvider});
-        const listRef: FlatListRefType = {current: null};
+        const listRef: ActionListRefType = {current: null};
 
         act(() => {
             result.current.registerListRef(listRef);

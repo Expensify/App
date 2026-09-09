@@ -1,4 +1,4 @@
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import CONST from '@src/CONST';
 
 import type React from 'react';
 
@@ -13,13 +13,10 @@ type UseScrollToEndOnPaginationMergeParams = {
     lastActionID?: string;
     /** The length of the visible report actions. */
     visibleActionsLength: number;
-    /** The length of the report actions. */
     reportActionsLength?: number;
     /** Whether the newest report action is the last visible report action. */
     hasNewestReportAction: boolean;
-    /** The function to set the floating message counter visible. */
     setIsFloatingMessageCounterVisible: (isVisible: boolean) => void;
-    /** The function to scroll to the end. */
     scrollToEnd: () => void;
     /**
      * Inbox uses `previousLength !== currentLength` to detect pagination merges.
@@ -66,7 +63,7 @@ function useScrollToEndOnNewMessageReceived({
         const didListSizeChange = sizeChangeType === 'grewFromReportActions' ? reportActionSize.current > (reportActionsLength ?? 0) : reportActionSize.current !== visibleActionsLength;
 
         if (
-            scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionID &&
             didListSizeChange &&
             hasNewestReportAction &&

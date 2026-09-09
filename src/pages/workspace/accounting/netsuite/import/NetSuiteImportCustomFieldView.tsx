@@ -1,5 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -37,7 +37,6 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
             /** Whether the record is of type custom segment or list */
             importCustomField: ImportCustomFieldsKeys;
 
-            /** Index of the current record */
             valueIndex: number;
         };
     };
@@ -142,17 +141,17 @@ function NetSuiteImportCustomFieldView({
                             />
                         );
                     })}
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.pendingFields?.[importCustomField]}
+                        isDisabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => {
                             showConfirmModal({
                                 title: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`),
                                 prompt: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`),
                                 confirmText: translate('common.remove'),
                                 cancelText: translate('common.cancel'),
-                                danger: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             }).then((result) => {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;

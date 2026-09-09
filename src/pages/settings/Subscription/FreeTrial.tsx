@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText} from '@libs/SubscriptionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -49,12 +50,13 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const freeTrial = pressable ? (
         <Button
-            icon={icons.Star}
-            success={success}
-            text={freeTrialText}
-            iconWrapperStyles={[styles.mw100]}
+            variant={success ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+            contentContainerStyle={[styles.mw100]}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
-        />
+        >
+            <Button.Icon src={icons.Star} />
+            <Button.Text>{freeTrialText}</Button.Text>
+        </Button>
     ) : (
         <Badge
             success={success}

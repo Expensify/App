@@ -11,6 +11,8 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData} from '@userActions/Session';
 
+import ROUTES from '@src/ROUTES';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -31,14 +33,14 @@ function SessionExpiredPage() {
                         src={illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
+                <Text style={[styles.textHeadline]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
                     <Text style={styles.textAlignCenter}>
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
                                 clearSignInData();
-                                Navigation.goBack();
+                                Navigation.goBack(ROUTES.HOME);
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

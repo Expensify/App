@@ -8,6 +8,14 @@ type FlatListRefType<T = unknown> = RefObject<FlatList<T> | null> | null;
 /** Ref to the underlying list instance attached via `ref={}`. */
 type FlashListRefType<T = unknown> = RefObject<FlashListRef<T> | null> | null;
 
+/** Ref shape shared by report lists and the report scroll manager. */
+type ActionListRefType = RefObject<{
+    getNativeScrollRef?: () => unknown;
+    scrollToEnd: (params?: {animated?: boolean}) => void;
+    scrollToIndex: (params: {animated?: boolean; index: number; viewOffset?: number; viewPosition?: number}) => void;
+    scrollToOffset: (params: {animated?: boolean; offset: number}) => void;
+} | null> | null;
+
 type CustomFlashListProps<T> = Omit<FlashListProps<T>, 'CellRendererComponent'> & {
     /** Ref to the underlying list instance. */
     ref?: FlashListRefType<T>;
@@ -30,4 +38,4 @@ type CustomFlashListProps<T> = Omit<FlashListProps<T>, 'CellRendererComponent'> 
     keyExtractor: (item: T, index: number) => string;
 };
 export default FlatListRefType;
-export type {FlashListRefType, CustomFlashListProps};
+export type {ActionListRefType, FlashListRefType, CustomFlashListProps};

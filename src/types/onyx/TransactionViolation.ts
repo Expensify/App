@@ -33,7 +33,6 @@ type TransactionViolationData = {
     /** Limit that the transaction violated */
     formattedLimit?: string;
 
-    /** Currency of the transaction */
     currency?: string;
 
     /** Limit amount that the transaction violated */
@@ -93,7 +92,6 @@ type TransactionViolationData = {
     /** List of duplicate transactions */
     duplicates?: string[];
 
-    /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 
     /** A generic message to display to the user */
@@ -117,6 +115,9 @@ type TransactionViolationData = {
     /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
     missingFields?: string[];
 
+    /** True when the violation should render Xero "Supplier" wording instead of the default "Vendor" copy */
+    isSupplierViolation?: boolean;
+
     /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
     startDate?: string;
 
@@ -126,10 +127,7 @@ type TransactionViolationData = {
 
 /** Model of a transaction violation */
 type TransactionViolation = {
-    /** Type of transaction violation */
     type: ValueOf<typeof CONST.VIOLATION_TYPES>;
-
-    /** Name of the transaction violation */
     name: ViolationName;
 
     /** Additional violation information to provide the user */

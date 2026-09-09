@@ -1,4 +1,4 @@
-import {DialogLabelProvider} from '@components/DialogLabelContext';
+import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {
     animatedWideRHPWidth,
@@ -7,7 +7,6 @@ import {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
     thirdOverlayProgress,
-    useWideRHPActions,
     useWideRHPState,
 } from '@components/WideRHPContextProvider';
 
@@ -24,7 +23,6 @@ import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStack
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,9 +42,9 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {View} from 'react-native';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
 
@@ -117,14 +115,57 @@ const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pag
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
+type RightModalDialogFrameProps = {
+    /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
+    hasDialogSemantics: boolean;
+
+    /** Animated style applied to the RHP container. */
+    style: React.ComponentProps<typeof Animated.View>['style'];
+
+    /** Callback ref for the container node so the provider can observe node identity changes. */
+    onContainerRef: (node: View | null) => void;
+
+    /** RHP stack navigator rendered inside the dialog frame. */
+    children: React.ReactNode;
+};
+
+/**
+ * Applies dialog naming as React props on the RHP container.
+ * Imperative setAttribute('aria-label') is invisible to JAWS's virtual buffer; declarative props are not.
+ *
+ * Wide RHPs always keep role=dialog + aria-modal (including untitled routes like SEARCH_REPORT).
+ * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
+ * Header also announces "{title}, dialog" via a polite live region when the title is ready.
+ */
+function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
+    const {dialogAriaLabel} = useDialogLabelData();
+    const hasName = !!dialogAriaLabel;
+
+    return (
+        <Animated.View
+            ref={onContainerRef}
+            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={hasDialogSemantics || undefined}
+            aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
+            // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
+            tabIndex={hasDialogSemantics ? -1 : undefined}
+            style={style}
+        >
+            {children}
+        </Animated.View>
+    );
+}
+
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerRef = useRef(null);
+    const [containerNode, setContainerNode] = useState<View | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
+        setContainerNode(node);
+    });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
-    const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
@@ -150,10 +191,21 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
-    const animatedWidth = expandedRHPProgress.interpolate({
-        inputRange: [0, 1, 2],
-        outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
-    });
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
+    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
+    // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
+    // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
+    // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
+    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
+
+    const animatedWidth = Animated.subtract(
+        expandedRHPProgress.interpolate({
+            inputRange: [0, 1, 2],
+            outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+        }),
+        superWideRHPSidePanelOffset,
+    );
 
     const animatedWidthStyle = useMemo(() => {
         return {
@@ -201,26 +253,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }
     }, [navigation]);
 
-    const clearWideRHPKeysAfterTabChanged = useCallback(() => {
-        const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
-        const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
-        const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
-        if (!hasTabChanged) {
-            return;
-        }
-        clearWideRHPKeys();
-    }, [clearWideRHPKeys, route.key]);
-
-    useFocusEffect(
-        useCallback(() => {
-            // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
-            syncRHPKeys();
-
-            // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
-            return () => clearWideRHPKeysAfterTabChanged();
-        }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
-    );
-
     return (
         <NarrowPaneContextProvider>
             <NoDropZone>
@@ -232,13 +264,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View
-                    ref={containerRef}
-                    role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
-                    aria-modal={isSmallScreenWidth ? undefined : true}
-                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                <DialogLabelProvider
+                    containerNode={containerNode}
+                    hasDialogSemantics={!isSmallScreenWidth}
                 >
-                    <DialogLabelProvider containerRef={containerRef}>
+                    <RightModalDialogFrame
+                        hasDialogSemantics={!isSmallScreenWidth}
+                        onContainerRef={setContainerNodeFromRef}
+                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    >
                         <Stack.Navigator
                             parentRoute={route}
                             screenOptions={screenOptions}
@@ -418,6 +452,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
+                                options={modalStackScreenOptions}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
@@ -456,6 +491,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 }}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AGENT_REPORT}
+                                getComponent={loadRHPReportScreen}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
                                 getComponent={loadSearchMoneyRequestReportPage}
                                 options={(props) => {
@@ -476,8 +519,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
                         </Stack.Navigator>
-                    </DialogLabelProvider>
-                </Animated.View>
+                    </RightModalDialogFrame>
+                </DialogLabelProvider>
                 {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
                 {/* Clicking on these overlays redirects you to the RHP screen below them. */}
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}

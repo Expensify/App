@@ -14,7 +14,6 @@ let allPolicies: OnyxCollection<Policy>;
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicies = value;
     },
@@ -25,7 +24,6 @@ let allPolicyTags: OnyxCollection<PolicyTagLists>;
 // see https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allPolicyTags = value;
     },
@@ -39,7 +37,16 @@ function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, currentUserLogin, reportAttributes}: LocalNotificationModifiedExpenseParams) {
+function showModifiedExpenseNotification({
+    report,
+    reportAction,
+    movedFromReport,
+    movedToReport,
+    onClick,
+    currentUserAccountID,
+    currentUserLogin,
+    reportAttributes,
+}: LocalNotificationModifiedExpenseParams) {
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
     const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
@@ -52,6 +59,7 @@ function showModifiedExpenseNotification({report, reportAction, movedFromReport,
         usesIcon: true,
         policyTags,
         policy,
+        currentUserAccountID,
         currentUserLogin,
         reportAttributes,
     });

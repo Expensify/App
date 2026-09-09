@@ -72,15 +72,19 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
     const lazyLoadLHNTestUtils = () => require<LazyLoadLHNTestUtils>('../utils/LHNTestUtils');
 
-    return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
-        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
+    return <TOuterProps,>(Component: ComponentType<TOuterProps & WithCurrentUserPersonalDetailsProps>): ComponentType<TOuterProps> => {
+        function WrappedComponent(props: TOuterProps) {
             const currentUserAccountID = 1;
             const LHNTestUtilsMock = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
+            const currentUserPersonalDetails = LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID];
+            if (!currentUserPersonalDetails) {
+                throw new Error('Expected current user personal details fixture');
+            }
 
             return (
                 <Component
-                    {...(props as TProps)}
-                    currentUserPersonalDetails={LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID]}
+                    {...props}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
                 />
             );
         }
@@ -611,6 +615,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReportR14932.reportID,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: 100,
                 total: 122,
@@ -625,6 +630,7 @@ describe('SidebarLinksData', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',

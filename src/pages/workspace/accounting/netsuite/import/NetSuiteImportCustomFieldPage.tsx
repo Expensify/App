@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -47,10 +47,7 @@ type HelpLinkComponentProps = {
     /** Callback to localize content */
     translate: LocaleContextProps['translate'];
 
-    /** Theme styles to apply to the component */
     styles: ThemeStyles;
-
-    /** Text alignment style for the Text component   */
     alignmentStyle: StyleProp<TextStyle>;
 };
 
@@ -148,8 +145,8 @@ function NetSuiteImportCustomFieldPage({
 
             <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={!!config?.pendingFields?.[importCustomField]}
                     onPress={() => {
                         if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS) {
@@ -158,8 +155,9 @@ function NetSuiteImportCustomFieldPage({
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(policyID));
                         }
                     }}
-                    text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}
-                />
+                >
+                    <Button.Text>{translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

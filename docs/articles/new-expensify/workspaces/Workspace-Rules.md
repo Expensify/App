@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -34,11 +34,12 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
 - **Max expense amount** – Set a per-expense spending cap (supports decimals).
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
-- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
+- **Cash expense default** - Choose how cash expenses are created. A cash expense is any expense that isn't an imported company card transaction, including manually created expenses, receipts, per diem, distance, and time expenses. Select **Reimbursable** or **Non-reimbursable** to set a starting value that members can change on each expense, or select **Always reimbursable** or **Always non-reimbursable** to fix the value for every cash expense. When you select an **Always** option, the **Reimbursable** toggle is hidden on the expense and on every split created from it. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
 - **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
+- **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
 ![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
@@ -211,6 +212,10 @@ The **Spend** section only appears after the Expensify Card is enabled for the w
 ## What happens if I disable eReceipts?
 
 Disabling eReceipts hides any previously generated eReceipts. Re-enabling the feature will restore those receipts.
+
+## Who can view receipts when Public receipt visibility is enabled?
+
+When **Public receipt visibility** is enabled, receipts are viewable by anyone with the URL, and access to the report containing the receipt is not required. This is useful when you want to share receipt links with people outside your workspace, such as a client or external accountant. When it's disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
 ## Will disabling rules affect submitted or approved expenses?
 

@@ -14,6 +14,7 @@ type TrackExpenseTransactionParams = {
     merchant?: string;
     comment?: string;
     distance?: number;
+    modifiedDistance?: number;
     receipt?: Receipt;
     category?: string;
     tag?: string;
@@ -35,6 +36,9 @@ type TrackExpenseTransactionParams = {
     isFromGlobalCreate?: boolean;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 export type {TrackExpenseTransactionParams, GPSPoint};

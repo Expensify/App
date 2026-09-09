@@ -203,7 +203,7 @@ function MultifactorAuthenticationModalNavigator() {
                                     }}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE}
+                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE}
                                     getComponent={loadValidateCodePage}
                                 />
                                 <Stack.Screen

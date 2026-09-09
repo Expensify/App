@@ -35,6 +35,7 @@ const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeT
 const localeEmojis: LocaleEmojis = {
     en: undefined,
     es: undefined,
+    fr: undefined,
 };
 
 const importEmojiLocale = (locale: FullySupportedLocale) => {

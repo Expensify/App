@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -68,19 +68,21 @@ function GenericErrorPage({error}: {error?: Error}) {
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     <Button
-                                        success
-                                        text={translate('genericErrorPage.refresh')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         style={styles.mr3}
                                         onPress={() => refreshPage(chunkLoadError)}
-                                    />
+                                    >
+                                        <Button.Text>{translate('genericErrorPage.refresh')}</Button.Text>
+                                    </Button>
                                     {isAuthenticated && (
                                         <Button
-                                            text={translate('initialSettingsPage.signOut')}
                                             onPress={() => {
                                                 signOutAndRedirectToSignIn();
                                                 refreshPage();
                                             }}
-                                        />
+                                        >
+                                            <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                        </Button>
                                     )}
                                 </View>
                             </View>

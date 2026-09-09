@@ -4,8 +4,8 @@ import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import SidePanelActions from '@libs/actions/SidePanel';
-import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
@@ -102,7 +102,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         if (shouldHideSidePanel) {
             setSessionStartTime(null);
         } else if (!sessionStartTime) {
-            setSessionStartTime(DateUtils.getDBTime());
+            setSessionStartTime(getServerAnchoredDBTime());
         }
     }
 
@@ -142,14 +142,14 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
         onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.dismissSidePanel();
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
     const openSidePanel = (options?: {forceConcierge?: boolean}) => {
-        setSessionStartTime(DateUtils.getDBTime());
+        setSessionStartTime(getServerAnchoredDBTime());
         SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge);
     };
 

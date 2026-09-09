@@ -11,14 +11,17 @@ import {createNavigatorFactory} from '@react-navigation/native';
 
 import RightModalRouter from './RightModalRouter';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+function RightModalNavigatorEffects(props: CustomEffectsHookProps) {
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
 const RightModalNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
     createRouter: RightModalRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomEffects,
+    Effects: RightModalNavigatorEffects,
 });
 
 function createRightModalNavigator<

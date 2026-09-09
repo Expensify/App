@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -40,6 +41,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -54,6 +56,9 @@ type SpendRulePageBaseProps = {
     ruleID?: string;
     titleKey: TranslationPaths;
     testID: string;
+
+    /** Where the Control upgrade page should return to. Defaults to the workspace Rules page. */
+    upgradeBackTo?: Route;
 };
 
 function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, translate: (path: TranslationPaths) => string) {
@@ -69,15 +74,16 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
     return '';
 }
 
-function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
+function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: SpendRulePageBaseProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
 
     const {showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const canWriteSpendRules = useCanWriteCardSpendRules(policyID);
+    useControlOnlyRuleUpgradeRedirect(policyID, upgradeBackTo);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'MoneyCircle', 'CoinsButton', 'Basket']);
@@ -166,7 +172,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                     return id;
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[accountID], defaultValue: '', shouldFallbackToHidden: false, translate});
+                const displayName = temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: personalDetails?.[accountID],
+                    defaultValue: '',
+                    shouldFallbackToHidden: false,
+                    translate,
+                    formatPhoneNumber,
+                });
                 return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
@@ -247,7 +259,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
             prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -415,11 +427,11 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         <>
             <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                 <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.spendRules.restrictCardSpendSubtitle')}</Text>
-                <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
+                <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
             </View>
             {cardsMenuItem}
             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
+            <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
             {currenciesMenuItem}
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>
@@ -517,12 +529,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         footerContent={
                             isEditingRule ? (
                                 <Button
-                                    text={translate('workspace.rules.spendRules.deleteRule')}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     onPress={deleteRule}
                                     style={[styles.mb4]}
-                                    large
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                />
+                                >
+                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
+                                </Button>
                             ) : undefined
                         }
                     />

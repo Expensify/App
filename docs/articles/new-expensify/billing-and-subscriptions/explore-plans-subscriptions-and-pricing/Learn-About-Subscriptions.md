@@ -25,6 +25,9 @@ Because a single subscription covers all workspaces owned by the same Workspace 
 
 For more details, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
 
+
+![Account settings menu with the Subscription option highlighted, alongside the opened Subscription page showing the subscription details]({{site.url}}/assets/images/ExpensiHelp-Learn-About-Subscriptions.png){:width="100%"}
+
 ---
 
 ## What subscriptions are available

@@ -1,14 +1,39 @@
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 
-import {updateGpsPoints} from '@libs/actions/GPSDraftDetails';
+import {updateGpsPoints, updateTrimmedEndPoint} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {useEffect, useRef} from 'react';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    // Mirror the latest gpsDraftDetails into a ref so the async onReconnect handler can read the newest value
+    // after awaiting reverse geocoding, instead of the stale value captured when the callback started.
+    const latestGpsDraftDetailsRef = useRef(gpsDraftDetails);
+    useEffect(() => {
+        latestGpsDraftDetailsRef.current = gpsDraftDetails;
+    }, [gpsDraftDetails]);
+
+    // The trimmed end point is chosen in the Edit Stop screen. When trimmed while offline, its address is stored as
+    // stringified coordinates, so on reconnect we fetch the human readable address to replace it.
+    const updateTrimmedEndPointAddress = async (trimmedEndPoint: TrimmedGPSPoint | undefined) => {
+        // If the address is already human readable, we don't need to update it
+        if (!trimmedEndPoint || trimmedEndPoint.address?.type === 'address') {
+            return;
+        }
+
+        const address = await addressFromGpsPoint(trimmedEndPoint);
+        if (address == null) {
+            return;
+        }
+
+        updateTrimmedEndPoint({...trimmedEndPoint, address: {value: address, type: 'address'}});
+    };
+
     const updateAddressesToHumanReadable = async () => {
         const waypointUpdates: Array<Promise<{point: GPSPoint; segmentIndex: number; type: 'start' | 'end'}>> = [];
 
@@ -41,9 +66,8 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
 
         const waypointAddresses = (await Promise.all(waypointUpdates)).filter((waypoints) => !!waypoints.point.address);
 
-        // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const gpsDraftDetailsPromiseResult = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined);
-        const latestGpsDraftDetails = gpsDraftDetailsPromiseResult;
+        // To avoid race conditions, we need the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
+        const latestGpsDraftDetails = latestGpsDraftDetailsRef.current;
 
         const latestGpsPoints = getGpsPoints(latestGpsDraftDetails) ?? gpsPoints;
         const newGpsPoints = [...latestGpsPoints];
@@ -64,6 +88,8 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
         }
 
         updateGpsPoints(newGpsPoints);
+
+        await updateTrimmedEndPointAddress(latestGpsDraftDetails?.trimmedEndPoint);
     };
 
     // This is intentional to use async/await pattern for better readability

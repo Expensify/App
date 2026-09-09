@@ -84,10 +84,15 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                     />
-                    <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.flex1]}
+                    >
+                        {translate(labelKey)}
+                    </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />

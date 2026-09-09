@@ -33,6 +33,7 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             return [typedKey, enableGlobalReimbursementsDraft?.[typedKey] ?? false];
         }),
     ) as Record<keyof typeof inputIDs, boolean>;
+    const bankStatementDefaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT] ?? [];
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM));
@@ -53,6 +54,8 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             currency={currency}
             startStepIndex={1}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_INDEX_LIST}
+            bankStatementInputID={INPUT_IDS.BANK_STATEMENT}
+            bankStatementDefaultValue={bankStatementDefaultValue}
         />
     );
 }

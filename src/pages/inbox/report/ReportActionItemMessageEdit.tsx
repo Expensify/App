@@ -64,7 +64,6 @@ import useDebouncedSaveDraft from './useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
-    /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
     /** ReportID that holds the comment we're editing */
@@ -76,7 +75,6 @@ type ReportActionItemMessageEditProps = {
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
-    /** Reference to the outer element */
     ref?: React.Ref<ComposerRef | undefined>;
 };
 
@@ -91,6 +89,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const index = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(originalReportID)}`);
     const blockedFromConcierge = useBlockedFromConcierge();
@@ -245,9 +244,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
             setEditingMessage(newDraft);
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            saveDraft(reportID, action, newDraft);
+            saveDraft(reportID, action, reportActions, newDraft);
         },
-        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, selection.end, setEditingMessage, setSelection, saveDraft],
+        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft],
     );
 
     useEffect(() => {
@@ -415,9 +414,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                     <MessageEditCancelButton
                         testID={CONST.COMPOSER.TEST_ID.MESSAGE_EDIT_CANCEL_INLINE}
                         onCancel={deleteDraft}
-                        style={[styles.justifyContentEnd, styles.mb1]}
+                        style={styles.messageEditCancelButtonWrapper}
                     />
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+                    <View style={StyleUtils.getContainerComposeStyles()}>
                         <Composer
                             multiline
                             ref={(el) => {

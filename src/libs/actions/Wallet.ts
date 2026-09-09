@@ -3,7 +3,7 @@ import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePers
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 
@@ -293,6 +293,16 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
+/**
+ * Clears wallet additional-details errors, preserving a pending SSN errorCode across navigation.
+ */
+function clearWalletAdditionalDetailsErrors(currentErrorCode?: string | null) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {
+        errors: null,
+        errorCode: currentErrorCode === CONST.WALLET.ERROR.SSN ? currentErrorCode : null,
+    });
+}
+
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
@@ -379,6 +389,7 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     resetWalletAdditionalDetailsDraft,
+    clearWalletAdditionalDetailsErrors,
     issuerEncryptPayloadCallback,
     createDigitalGoogleWallet,
 };

@@ -1,7 +1,7 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {hasDomainErrors} from '@libs/DomainUtils';
-import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/HRUtils';
+import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
@@ -20,10 +20,7 @@ import useOnyx from './useOnyx';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
-    /** The policy error indicator status. */
     policyErrorStatus: IndicatorStatus | undefined;
-
-    /** The policy info indicator status. */
     policyInfoStatus: IndicatorStatus | undefined;
 
     /** The domain error indicator status. */

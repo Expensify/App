@@ -45,6 +45,7 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             shouldBeBlocked={!shouldShowRef.current}
+            canBeAccessedIfArchived
         >
             <ScreenWrapper testID="DynamicWorkspaceOwnerChangeSuccessPage">
                 <HeaderWithBackButton

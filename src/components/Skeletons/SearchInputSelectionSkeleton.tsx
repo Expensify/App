@@ -4,22 +4,14 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type SearchInputSelectionSkeletonProps = {
-    reasonAttributes: SkeletonSpanReasonAttributes;
-};
-
-function SearchInputSelectionSkeleton({reasonAttributes}: SearchInputSelectionSkeletonProps) {
+function SearchInputSelectionSkeleton() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    useSkeletonSpan('SearchInputSelectionSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.searchInputSkeleton]}>

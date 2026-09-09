@@ -52,7 +52,7 @@ describe('ConnectToQuickbooksOnlineFlow (web)', () => {
         render(<ConnectToQuickbooksOnlineFlow policyID={POLICY_ID} />);
 
         expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false);
-        expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID);
+        expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID, undefined, false);
         expect(mockedOpenLink).toHaveBeenCalledWith(`https://qbo-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
     });
 

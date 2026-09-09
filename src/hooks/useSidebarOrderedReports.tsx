@@ -8,22 +8,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
+import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
-import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
-
-type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
 type SidebarOrderedReportsContextProviderProps = {
     children: React.ReactNode;
@@ -47,7 +44,14 @@ type SidebarOrderedReportsActionsContextValue = {
     setStickyReportID: (reportID: string) => void;
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean; isUnreadReport?: boolean}>;
+type ReportsToDisplayInLHN = Record<
+    string,
+    OnyxTypes.Report & {
+        hasErrorsOtherThanFailedReceipt?: boolean;
+        requiresAttention?: boolean;
+        isUnreadReport?: boolean;
+    }
+>;
 
 const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     filteredReports: [],
@@ -67,14 +71,6 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     setStickyReportID: () => {},
 });
 
-const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
-    (policy && {
-        type: policy.type,
-        name: policy.name,
-        avatarURL: policy.avatarURL,
-        employeeList: policy.employeeList,
-    }) as PartialPolicyForSidebar;
-
 // This file does not compile with React Compiler (render-time ref cache below keeps referential
 // stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
@@ -93,13 +89,23 @@ function SidebarOrderedReportsContextProvider({
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportUpdates = useCollectionDelta(chatReports);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const policiesUpdates = useCollectionDelta(allPolicies);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const transactionsUpdates = useCollectionDelta(transactions);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    // useOnyx only gives us a new reference when the guide set actually differs, so comparing references
+    // below is enough to detect late guide hydration.
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
@@ -207,7 +213,14 @@ function SidebarOrderedReportsContextProvider({
         // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
         // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
         // reports, recheck only the already-displayed reports with the new reportAttributes.
-        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+
+        // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
+        // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
+        // filtered out can appear in the LHN.
+        if (hasCachedReports && prevGuideAccountIDs !== undefined && guideAccountIDs !== prevGuideAccountIDs) {
+            effectiveUpdatedReports = Object.keys(chatReports ?? {});
+        }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
         if (shouldDoIncrementalUpdate) {
@@ -227,6 +240,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
                 conciergeReportID,
+                guideAccountIDs,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -244,6 +258,7 @@ function SidebarOrderedReportsContextProvider({
                 reportNameValuePairs,
                 reportAttributes,
                 conciergeReportID,
+                guideAccountIDs,
             });
         }
 
@@ -265,6 +280,8 @@ function SidebarOrderedReportsContextProvider({
         currentUserLogin,
         accountID,
         conciergeReportID,
+        guideAccountIDs,
+        prevGuideAccountIDs,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

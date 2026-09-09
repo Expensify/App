@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +20,7 @@ import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -59,7 +59,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
+            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
             Navigation.goBack();
             return;
         }
@@ -107,12 +107,13 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
                         isDisabled={isOffline}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={submit}
-                        text={buttonTranslation}
-                    />
+                    >
+                        <Button.Text>{buttonTranslation}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

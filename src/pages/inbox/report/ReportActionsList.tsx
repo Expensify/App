@@ -75,9 +75,11 @@ import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
 const ON_SCROLL_TO_LIMITS_THRESHOLD = 0.75;
 
-type ReportActionsListProps = {
+type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
+
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The current composer height */
     composerHeight?: number;
@@ -85,6 +87,8 @@ type ReportActionsListProps = {
     /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
+
+type ReportActionsListProps = ReportActionsListContentProps;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -105,7 +109,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: ReportActionsListProps) {
+function ReportActionsListContent({reportID, conciergeChat, composerHeight = 0, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -174,9 +178,9 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
     const linkedReportActionID = reportActionIDFromRoute;
 
     const {getScrollOffset} = useActionListContext();
-    const listRef = useActionListRef();
+    const listRef = useActionListRef<OnyxTypes.ReportAction>();
 
-    const {draftReportAction, hasActiveDraft, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -277,6 +281,7 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
         onLoad,
     } = useReportActionsScroll({
         reportID,
+        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,
@@ -327,7 +332,6 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        actionBadge: reportAttributes?.actionBadge,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,
     });
@@ -357,7 +361,7 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
             <ReportActionIndexContext.Provider value={index}>
@@ -396,12 +400,18 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportActionID, draftMessageHTML];
+    const extraData = [
+        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        isArchivedNonExpenseReport(report, isReportArchived),
+        draftReportActionID,
+        draftMessageHTML,
+        isDraftPendingCompletion,
+    ];
 
     const listHeaderComponent = (
         <ReportActionsListHeader
             reportID={reportID}
-            hasActiveDraft={hasActiveDraft}
+            isDraftPendingCompletion={isDraftPendingCompletion}
         />
     );
 
@@ -409,7 +419,7 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
 
     const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -426,9 +436,7 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
 
         didLayout.current = true;
 
-        if (report) {
-            markOpenReportEnd(report, {warm: true});
-        }
+        markOpenReportEnd(reportID, report, {warm: true});
     };
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
@@ -447,7 +455,7 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}
@@ -502,12 +510,13 @@ function ReportActionsListContent({reportID, composerHeight = 0, onLayout}: Repo
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, onLayout, composerHeight}: ReportActionsListProps) {
+function ReportActionsList({reportID, conciergeChat, onLayout, composerHeight}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
                 composerHeight={composerHeight}
+                conciergeChat={conciergeChat}
                 onLayout={onLayout}
             />
         </ReportActionsSkeletonGuard>

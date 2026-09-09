@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -56,7 +57,7 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, translate, newGroupDraft?.participants);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
@@ -82,12 +83,22 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
+    const groupAvatarSource = stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current);
+    const groupAvatar = groupAvatarSource ? (
+        <UserAvatar
+            source={groupAvatarSource}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={CONST.DEFAULT_NUMBER_ID}
+        />
+    ) : null;
+
     return (
         <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
+                    source={groupAvatarSource}
+                    avatar={groupAvatar}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -96,8 +107,6 @@ function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAn
                         setAvatarFile(undefined);
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={styles.avatarXLarge}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}
@@ -124,7 +133,8 @@ function NewChatConfirmPage() {
     const personalData = useCurrentUserPersonalDetails();
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
@@ -190,9 +200,9 @@ function NewChatConfirmPage() {
             currentUserLogin: personalData.login ?? '',
             optimisticReportID: optimisticReportID.current,
             introSelected,
-            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
+            isSelfTourViewed: !!guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: !!guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            conciergeChat,
             currentUserAccountID: personalData.accountID,
             avatarUri: newGroupDraft.avatarUri ?? '',
             avatarFile,

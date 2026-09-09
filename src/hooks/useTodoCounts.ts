@@ -36,7 +36,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -65,6 +65,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
     });
 
     const counts: TodoCounts = {
@@ -88,9 +89,12 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
     if (hasChanged) {
         setFrozen(value);
+        return value;
     }
 
-    return value;
+    // Nothing changed — return the previously stored object so consumers keep a stable reference and
+    // memoized children don't re-render on unrelated Onyx writes to the subscribed collections.
+    return frozen;
 }
 
 export default useTodoCounts;

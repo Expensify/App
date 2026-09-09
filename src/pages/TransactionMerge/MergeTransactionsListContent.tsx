@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getReportOrDraftReport, getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
 
@@ -48,10 +47,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
@@ -135,6 +135,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const transactionDisplayName = targetTransaction
         ? getTransactionReportName({
               translate,
+              convertToDisplayString,
+              getCurrencySymbol,
               reportAction: undefined,
               linkedTransaction: targetTransaction,
               report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
@@ -163,10 +165,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        ]);
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction, sourceTransaction],
+            localeCompare,
+            getCurrencyDecimals,
+            reports,
+            true,
+            undefined,
+            [targetTransactionPolicy, sourceTransactionPolicy],
+            session?.accountID,
+            personalDetails,
+        );
     };
 
     const confirmButtonOptions = {
@@ -180,11 +190,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const filteredTransactions = eligibleTransactions?.filter((transaction) => {
         return !isIOUReport(transaction?.reportID);
     });
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MergeTransactionsListContent',
-        isEligibleTransactionsLoaded: eligibleTransactions !== undefined,
-    };
 
     if (filteredTransactions?.length === 0) {
         return (
@@ -209,12 +214,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             ListItem={MergeTransactionItem}
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
-            customLoadingPlaceholder={
-                <MergeExpensesSkeleton
-                    fixedNumItems={3}
-                    reasonAttributes={reasonAttributes}
-                />
-            }
+            customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
             shouldShowLoadingPlaceholder={!eligibleTransactions}
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}

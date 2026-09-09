@@ -21,7 +21,7 @@ const canceledTabNavigationFilter: TelemetryBeforeSend = (event) => {
     }
 
     // Tab-navigation spans are usually root transactions, but without forceTransaction they can be adopted
-    // as child spans of an active transaction, so filter those the same way (mirrors minDurationFilter).
+    // as child spans of an active transaction, so filter those the same way.
     if (!event.spans) {
         return event;
     }

@@ -110,6 +110,7 @@ function ReportActionsListWrapper() {
                     <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList
                             reportID={REPORT_ID}
+                            conciergeChat={undefined}
                             onLayout={mockOnLayout}
                             composerHeight={CONST.CHAT_FOOTER_MIN_HEIGHT}
                         />

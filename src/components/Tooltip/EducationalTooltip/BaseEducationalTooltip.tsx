@@ -68,7 +68,10 @@ function BaseEducationalTooltip({
             const top = y - (insets.top || 0);
             const bottom = y + height + insets.bottom || 0;
             const left = x - (insets.left || 0);
-            const right = x + elementWidth + (insets.right || 0);
+            // dimensions already excludes the horizontal safe-area insets, so anchoring the right edge to
+            // the inset-adjusted left keeps both on the same origin. Adding the right inset back counted it
+            // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
+            const right = left + elementWidth;
             // Calculate the available space at the top, considering the header height and offset
             const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
 
@@ -86,7 +89,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [insets.top, insets.bottom, insets.left, insets.right, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
@@ -151,6 +154,9 @@ function BaseEducationalTooltip({
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
             show.current?.();
+            // Mark the first display as done only once it has actually happened, so paths that re-measure
+            // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
+            hasDisplayedTooltipRef.current = true;
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
@@ -167,7 +173,6 @@ function BaseEducationalTooltip({
         if (hasDisplayedTooltipRef.current) {
             renderTooltip();
         }
-        hasDisplayedTooltipRef.current = true;
     }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
 
     useEffect(() => {
@@ -202,6 +207,12 @@ function BaseEducationalTooltip({
                         const target = e.target || e.nativeEvent.target;
                         tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
+
+                        // The wrapped component just moved (e.g. the device rotated). measure() only reports the
+                        // new position once the native layout has landed, so this is the earliest we can trust it.
+                        if (hasDisplayedTooltipRef.current) {
+                            renderTooltip();
+                        }
                     },
                 });
             }}

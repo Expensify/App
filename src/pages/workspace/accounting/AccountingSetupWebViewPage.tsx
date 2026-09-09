@@ -15,6 +15,7 @@ import {getShortLivedAuthTokenURL} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -27,14 +28,15 @@ type AccountingSetupWebViewPageProps = {
     /** testID for the screen, used by automated tests */
     testID: string;
 
-    /** Context label reported by the loading indicator for telemetry */
-    context: string;
-
     /** Whether to append a short-lived auth token to the setup link before loading it, so the incognito WebView opens an authenticated URL instead of the raw command URL */
     shouldAppendShortLivedAuthToken?: boolean;
+
+    /** Route to return to when the back button is pressed. Pass this when the setup screen is pushed on top of other
+     * screens that shouldn't be revisited after the handoff, so back skips past them instead of popping into them. */
+    backTo?: Route;
 };
 
-function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLivedAuthToken = false}: AccountingSetupWebViewPageProps) {
+function AccountingSetupWebViewPage({uri, testID, shouldAppendShortLivedAuthToken = false, backTo}: AccountingSetupWebViewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -77,10 +79,7 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context}}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -96,7 +95,7 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
         >
             <HeaderWithBackButton
                 title={translate('workspace.accounting.title')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
                 shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>

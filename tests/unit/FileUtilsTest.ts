@@ -8,6 +8,7 @@ import {
     getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isHighResolutionImage,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
 
@@ -15,6 +16,8 @@ import CONST from '@src/CONST';
 
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
+
+import createMock from '../utils/createMock';
 
 jest.useFakeTimers();
 jest.mock('react-native-image-size');
@@ -117,54 +120,69 @@ describe('FileUtils', () => {
     });
 
     describe('canvasFallback', () => {
-        const mockCreateImageBitmap = jest.fn();
-        const mockCanvas = {
+        const mockCloseImageBitmap = jest.fn<ReturnType<ImageBitmap['close']>, Parameters<ImageBitmap['close']>>();
+        const mockCtx = createMock<CanvasRenderingContext2D>({
+            drawImage: jest.fn(),
+        });
+        let mockCanvas2DContext: CanvasRenderingContext2D | null;
+        function mockCanvasGetContext(contextId: '2d', options?: CanvasRenderingContext2DSettings): CanvasRenderingContext2D | null;
+        function mockCanvasGetContext(contextId: 'bitmaprenderer', options?: ImageBitmapRenderingContextSettings): ImageBitmapRenderingContext | null;
+        function mockCanvasGetContext(contextId: 'webgl', options?: WebGLContextAttributes): WebGLRenderingContext | null;
+        function mockCanvasGetContext(contextId: 'webgl2', options?: WebGLContextAttributes): WebGL2RenderingContext | null;
+        function mockCanvasGetContext(contextId: Parameters<HTMLCanvasElement['getContext']>[0]): GPUCanvasContext | null;
+        function mockCanvasGetContext(contextId: string, options?: unknown): RenderingContext | null;
+        function mockCanvasGetContext(contextId: string): RenderingContext | GPUCanvasContext | null {
+            return contextId === '2d' ? mockCanvas2DContext : null;
+        }
+        const productionGetContext: HTMLCanvasElement['getContext'] = mockCanvasGetContext;
+        const mockCanvas = createMock<HTMLCanvasElement>({
             width: 0,
             height: 0,
-            getContext: jest.fn(),
-            toBlob: jest.fn(),
-        };
-        const mockCtx = {
-            drawImage: jest.fn(),
-        };
-        const mockCreateElement = jest.fn();
-        const mockURL = {
-            createObjectURL: jest.fn(() => 'blob:mock-url'),
-        };
+            getContext: productionGetContext,
+            toBlob: () => undefined,
+        });
+        let mockImageBitmap: ImageBitmap;
+        let mockToBlob: jest.SpiedFunction<HTMLCanvasElement['toBlob']>;
+        let mockCreateElement: jest.SpiedFunction<Document['createElement']>;
+        let restoreCreateObjectURL: () => void;
+        const mockCreateImageBitmap: typeof globalThis.createImageBitmap = () => Promise.resolve(mockImageBitmap);
 
         beforeEach(() => {
             jest.clearAllMocks();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            (global as any).createImageBitmap = mockCreateImageBitmap;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            (global as any).document = {
-                createElement: mockCreateElement,
-            };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            (global as any).URL = mockURL;
-
-            mockCreateElement.mockReturnValue(mockCanvas);
-            mockCanvas.getContext.mockReturnValue(mockCtx);
-            mockCreateImageBitmap.mockResolvedValue({
+            mockCanvas.width = 0;
+            mockCanvas.height = 0;
+            mockCanvas2DContext = mockCtx;
+            mockImageBitmap = createMock<ImageBitmap>({
                 width: 1000,
                 height: 800,
-                close: jest.fn(),
+                close: mockCloseImageBitmap,
             });
+
+            if (typeof globalThis.URL.createObjectURL === 'function') {
+                const mockCreateObjectURL = jest.spyOn(globalThis.URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+                restoreCreateObjectURL = () => mockCreateObjectURL.mockRestore();
+            } else {
+                globalThis.URL.createObjectURL = jest.fn<ReturnType<typeof URL.createObjectURL>, Parameters<typeof URL.createObjectURL>>().mockReturnValue('blob:mock-url');
+                restoreCreateObjectURL = () => {
+                    Reflect.deleteProperty(globalThis.URL, 'createObjectURL');
+                };
+            }
+
+            mockToBlob = jest.spyOn(mockCanvas, 'toBlob');
+            mockCreateElement = jest.spyOn(document, 'createElement').mockReturnValue(mockCanvas);
+            globalThis.createImageBitmap = mockCreateImageBitmap;
         });
 
         afterEach(() => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            delete (global as any).createImageBitmap;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            delete (global as any).document;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            delete (global as any).URL;
+            mockToBlob.mockRestore();
+            mockCreateElement.mockRestore();
+            restoreCreateObjectURL();
+            Reflect.deleteProperty(globalThis, 'createImageBitmap');
         });
 
         it('should reject when createImageBitmap is undefined', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            delete (global as any).createImageBitmap;
+            Reflect.deleteProperty(globalThis, 'createImageBitmap');
 
             const blob = new Blob(['test'], {type: 'image/heic'});
 
@@ -174,24 +192,22 @@ describe('FileUtils', () => {
         it('should successfully convert HEIC to JPEG', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});
-            mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
+            mockToBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
 
             const result = await canvasFallback(blob, 'expense.heic');
 
             expect(result).toBeInstanceOf(File);
             expect(result.type).toBe(CONST.IMAGE_FILE_FORMAT.JPEG);
             expect(result.name).toBe('expense.jpg');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            expect((result as any).uri).toBe('blob:mock-url');
+            expect(result).toHaveProperty('uri', 'blob:mock-url');
         });
 
         it('should scale down large images', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            const mockImageBitmap = {width: 8192, height: 4000, close: jest.fn()};
-            mockCreateImageBitmap.mockResolvedValue(mockImageBitmap);
+            mockImageBitmap = createMock<ImageBitmap>({width: 8192, height: 4000, close: mockCloseImageBitmap});
 
             const mockBlob = new Blob(['converted'], {type: 'image/jpeg'});
-            mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
+            mockToBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(mockBlob));
 
             await canvasFallback(blob, 'test.heic');
 
@@ -201,14 +217,14 @@ describe('FileUtils', () => {
 
         it('should reject when canvas context is null', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            mockCanvas.getContext.mockReturnValue(null);
+            mockCanvas2DContext = null;
 
             await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Could not get canvas context');
         });
 
         it('should reject when toBlob returns null', async () => {
             const blob = new Blob(['test'], {type: 'image/heic'});
-            mockCanvas.toBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(null));
+            mockToBlob.mockImplementation((callback: (blob: Blob | null) => void) => callback(null));
 
             await expect(canvasFallback(blob, 'test.heic')).rejects.toThrow('Canvas conversion failed - returned null blob');
         });
@@ -221,7 +237,7 @@ describe('FileUtils', () => {
 
         describe('with file:// URLs (native)', () => {
             it('should return scaled dimensions for normal-sized images', async () => {
-                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 4000, height: 3000});
+                jest.mocked(ImageSize.getSize).mockResolvedValue({width: 4000, height: 3000});
 
                 const file = {uri: 'file://test.jpg', name: 'test.jpg', type: 'image/jpeg'};
                 const result = await getImageDimensionsAfterResize(file);
@@ -232,7 +248,7 @@ describe('FileUtils', () => {
 
             it('should throw IMAGE_DIMENSIONS_TOO_LARGE error when image exceeds maximum pixel count', async () => {
                 // 10000 x 6000 = 60 million pixels, which exceeds MAX_IMAGE_PIXEL_COUNT (50 million)
-                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 6000});
+                jest.mocked(ImageSize.getSize).mockResolvedValue({width: 10000, height: 6000});
 
                 const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
 
@@ -241,7 +257,7 @@ describe('FileUtils', () => {
 
             it('should not throw for images at exactly the maximum pixel count', async () => {
                 // Exactly 50 million pixels (e.g., 10000 x 5000)
-                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 5000});
+                jest.mocked(ImageSize.getSize).mockResolvedValue({width: 10000, height: 5000});
 
                 const file = {uri: 'file://max-size.jpg', name: 'max-size.jpg', type: 'image/jpeg'};
 
@@ -408,7 +424,7 @@ describe('FileUtils', () => {
                 // Create an invalid/unrecognized blob (not JPEG or PNG)
                 const invalidBlob = new Blob([new Uint8Array([0x00, 0x00, 0x00, 0x00])], {type: 'image/webp'});
                 mockFetchWithBlob(invalidBlob);
-                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 800, height: 600});
+                jest.mocked(ImageSize.getSize).mockResolvedValue({width: 800, height: 600});
 
                 const file = {uri: 'blob:http://localhost/unknown-format', name: 'test.webp', type: 'image/webp'};
                 const result = await getImageDimensionsAfterResize(file);
@@ -479,8 +495,29 @@ describe('FileUtils', () => {
         /* eslint-enable no-bitwise */
     });
 
+    describe('isHighResolutionImage', () => {
+        it('should return false when resolution is null', () => {
+            expect(isHighResolutionImage(null)).toBe(false);
+        });
+
+        it('should not treat narrow tall images under the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 864, height: 24174})).toBe(false);
+        });
+
+        it('should not treat images at exactly the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5000})).toBe(false);
+        });
+
+        it('should treat images above the safe pixel count as high resolution', () => {
+            expect(isHighResolutionImage({width: 10000, height: 5001})).toBe(true);
+        });
+    });
+
     describe('getFileValidationErrorText', () => {
-        const mockTranslate = ((path: string) => path) as LocaleContextProps['translate'];
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => {
+            parameters.some(() => false);
+            return path;
+        };
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
             const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE});

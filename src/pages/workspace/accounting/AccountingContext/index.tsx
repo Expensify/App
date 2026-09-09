@@ -1,5 +1,7 @@
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,14 +21,12 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 
-import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
+import type {ActiveIntegration, ActiveIntegrationState} from './types';
 
-import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
-
-const AccountingStateContext = createContext<AccountingStateContextType>(defaultAccountingStateContextValue);
-const AccountingActionsContext = createContext<AccountingActionsContextType>(defaultAccountingActionsContextValue);
+import {AccountingActionsContext, AccountingStateContext, useAccountingActions, useAccountingState} from './contexts';
+import {popoverAnchorRefsInitialValue} from './default';
 
 type AccountingContextProviderProps = ChildrenProps & {
     policy: OnyxEntry<Policy>;
@@ -37,11 +37,24 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+    ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -62,6 +75,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     qbd: hasReusablePoliciesConnectedToQBD,
                     certinia: hasReusablePoliciesConnectedToCertinia,
                     rillet: hasReusablePoliciesConnectedToRillet,
+                    dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 },
                 undefined,
                 undefined,
@@ -69,6 +83,9 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
                 accountingIcons,
+                cardFeeds,
+                cardLists,
+                newActiveIntegration.isIntuitEnterpriseSuite,
             );
 
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
@@ -91,7 +108,10 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToQBD,
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
+            hasReusablePoliciesConnectedToDualEntry,
             accountingIcons,
+            cardFeeds,
+            cardLists,
         ],
     );
 
@@ -137,6 +157,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 qbd: hasReusablePoliciesConnectedToQBD,
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
+                dualEntry: hasReusablePoliciesConnectedToDualEntry,
             },
             policy,
             activeIntegration.key,
@@ -144,6 +165,9 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             undefined,
             undefined,
             accountingIcons,
+            cardFeeds,
+            cardLists,
+            activeIntegration.isIntuitEnterpriseSuite,
         )?.setupConnectionFlow;
     };
 
@@ -163,7 +187,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                             removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
                             closeConfirmationModal();
                         }}
-                        integrationToConnect={activeIntegration?.name}
+                        integrationToConnect={activeIntegration.name}
+                        integrationDisplayName={activeIntegration.isIntuitEnterpriseSuite ? translate('workspace.accounting.intuitEnterpriseSuite') : undefined}
                         onCancel={() => {
                             setActiveIntegration(undefined);
                         }}
@@ -172,14 +197,6 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             </AccountingActionsContext.Provider>
         </AccountingStateContext.Provider>
     );
-}
-
-function useAccountingState(): AccountingStateContextType {
-    return useContext(AccountingStateContext);
-}
-
-function useAccountingActions(): AccountingActionsContextType {
-    return useContext(AccountingActionsContext);
 }
 
 export {AccountingContextProvider, useAccountingState, useAccountingActions};

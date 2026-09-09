@@ -1,4 +1,5 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -34,6 +35,9 @@ import type {TextInputKeyPressEvent} from 'react-native';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import useAgentPromptInputStyles from './useAgentPromptInputStyles';
+import useShouldUseExpandedRevampFormLayout from './useShouldUseExpandedRevampFormLayout';
+
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
 
@@ -44,19 +48,24 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const shouldUseExpandedRevampFormLayout = useShouldUseExpandedRevampFormLayout();
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
+    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
-    const handleKeyPress = (e: TextInputKeyPressEvent | KeyboardEvent) => {
-        if (!('key' in e)) {
+    const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
+        if (!('key' in event)) {
             return;
         }
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -73,7 +82,7 @@ function EditAgentRulePage({
         const newPrompt = values[INPUT_IDS.PROMPT];
         const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
-            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt);
+            updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
         }
         Navigation.goBack();
     };
@@ -88,7 +97,7 @@ function EditAgentRulePage({
             prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -99,6 +108,8 @@ function EditAgentRulePage({
         });
     };
 
+    const inputWrapperStyles = useAgentPromptInputStyles();
+
     if (!agentRule) {
         return <NotFoundPage />;
     }
@@ -108,15 +119,17 @@ function EditAgentRulePage({
             policyID={policyID}
             shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
             <ScreenWrapper
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout}
+                shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
                     formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
@@ -124,39 +137,43 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseScrollableLayout}
-                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldUseScrollView={false}
+                    submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                     shouldRenderFooterAboveSubmit
+                    submitButtonAndFooterContainerStyles={isInLandscapeMode ? [styles.flexRow, styles.gap3] : undefined}
+                    submitButtonInnerStyles={isInLandscapeMode ? styles.flex1 : undefined}
                     footerContent={
                         <Button
-                            text={translate('workspace.rules.agentRules.deleteRule')}
                             onPress={handleDelete}
-                            style={[styles.mb4]}
-                            large
+                            style={[isInLandscapeMode ? styles.flex1 : styles.mb4]}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        />
+                        >
+                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
+                        </Button>
                     }
                 >
-                    <View style={styles.flex1}>
-                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                    <View style={styles.flexGrow1}>
+                        <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.PROMPT}
-                                label={translate('workspace.rules.agentRules.describeRuleTitle')}
-                                accessibilityLabel={translate('workspace.rules.agentRules.describeRuleTitle')}
+                                label={describeRuleLabel}
+                                accessibilityLabel={describeRuleLabel}
                                 role={CONST.ROLE.PRESENTATION}
-                                onKeyPress={handleKeyPress}
+                                type="markdown"
+                                excludedMarkdownStyles={['mentionReport']}
+                                onKeyPress={submitFormOnModEnter}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
-                                containerStyles={[styles.flex1]}
+                                containerStyles={[styles.h100]}
                                 touchableInputWrapperStyle={[styles.flex1]}
-                                textInputContainerStyles={[styles.flex1]}
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>

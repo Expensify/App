@@ -18,9 +18,7 @@ import {View} from 'react-native';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListPaddingViewProps = ChildrenProps & {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
-    /** Whether the report is archived */
     isReportArchived: boolean;
 
     composerHeight?: number;
@@ -39,12 +37,19 @@ function ReportActionsListPaddingView({report, isReportArchived, composerHeight 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
 
-    const reportPaddingBottom = StyleUtils.getReportPaddingBottom({composerHeight, isKeyboardActive, safePaddingBottom: unmodifiedPaddings.bottom ?? 0, isComposerFullSize});
+    const reportPaddingBottom = StyleUtils.getReportPaddingBottom({
+        composerHeight: hideComposer ? 0 : composerHeight,
+        isKeyboardActive,
+        safePaddingBottom: unmodifiedPaddings.bottom ?? 0,
+        isComposerFullSize,
+    });
+    const composerGap = !canShowRecipientLocalTime && !hideComposer ? styles.pb4.paddingBottom : 0;
+    const bottomPaddingStyle = reportPaddingBottom > 0 || composerGap > 0 ? {paddingBottom: reportPaddingBottom + composerGap} : {};
 
     return (
         <View
             // TODO: review these styles
-            style={[styles.flex1, {paddingBottom: reportPaddingBottom}]}
+            style={[styles.flex1, bottomPaddingStyle]}
             fsClass={reportActionsListFSClass}
         >
             {children}

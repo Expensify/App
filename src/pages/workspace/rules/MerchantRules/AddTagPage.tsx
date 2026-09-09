@@ -6,7 +6,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagLists, matchesParentTagPath} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -32,19 +32,22 @@ function AddTagPage({route}: AddTagPageProps) {
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const formTag = formTags.at(orderWeight);
+    const parentTagPath = formTags.slice(0, orderWeight).join(':');
 
     const tagItems = useMemo(() => {
         const tags: Array<{name: string; value: string}> = [];
-
         for (const tag of Object.values(tagList?.tags ?? {})) {
             if (tag.name !== formTag && !tag.enabled) {
+                continue;
+            }
+            if (!matchesParentTagPath(tag, parentTagPath)) {
                 continue;
             }
             tags.push({name: getCleanedTagName(tag.name), value: tag.name});
         }
 
         return tags;
-    }, [tagList?.tags, formTag]);
+    }, [tagList?.tags, formTag, parentTagPath]);
 
     const selectedTagItem = tagItems.find(({value}) => value === formTag);
 
@@ -65,15 +68,16 @@ function AddTagPage({route}: AddTagPageProps) {
             titleKey="common.tag"
             title={tagList?.name}
             testID="AddTagPage"
-            selectedItem={selectedTagItem}
-            items={tagItems}
-            onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
-        />
+        >
+            <RuleSelectionBase.Picker
+                selectedItem={selectedTagItem}
+                items={tagItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+            />
+        </RuleSelectionBase>
     );
 }
-
-AddTagPage.displayName = 'AddTagPage';
 
 export default AddTagPage;

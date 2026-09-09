@@ -1,22 +1,20 @@
-import {handleReplaceFullscreenUnderRHP} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
-import type {ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import getPlatform from '@libs/getPlatform';
+import {
+    clearPreInsertedOriginalTabRoute,
+    handleRemoveFullscreenUnderRHP,
+    handleReplaceFullscreenUnderRHP,
+} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import type {RemoveFullscreenUnderRHPActionType, ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import type {NavigationPartialRoute, NavigationStateRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {
-    CommonActions,
-    NavigationRoute,
-    NavigationState,
-    ParamListBase,
-    PartialState,
-    Router,
-    RouterConfigOptions,
-    StackActionType,
-    StackNavigationState,
-} from '@react-navigation/native';
+import type {CommonActions, NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+
+import createMock from '../../../utils/createMock';
 
 // Stub the linking parser so the test does not depend on the production linking config.
 // Each test sets the parsed state (what getStateFromPath returns for the incoming route).
@@ -25,11 +23,14 @@ jest.mock('@libs/Navigation/helpers/getStateFromPath', () => ({
     __esModule: true,
     default: jest.fn(() => mockStubbedParsedState),
 }));
+jest.mock('@libs/getPlatform', () => jest.fn());
 
-type TestRoute = NavigationRoute<ParamListBase, string>;
+const mockGetPlatform = jest.mocked(getPlatform);
+
+type TestRoute = NavigationPartialRoute & Pick<NavigationStateRoute, 'key'>;
 
 function makeRoute(name: string, params?: Record<string, unknown>, state?: PartialState<NavigationState>, key?: string): TestRoute {
-    return {key: key ?? `${name}-key`, name, params, state} as TestRoute;
+    return createMock<TestRoute>({key: key ?? `${name}-key`, name, params, state});
 }
 
 function makeStackState(routes: TestRoute[]): StackNavigationState<ParamListBase> {
@@ -39,7 +40,7 @@ function makeStackState(routes: TestRoute[]): StackNavigationState<ParamListBase
         routeNames: routes.map((r) => r.name),
         routes,
         type: 'stack',
-        stale: false as const,
+        stale: false,
         preloadedRoutes: [],
     };
 }
@@ -52,9 +53,14 @@ const CONFIG_OPTIONS: RouterConfigOptions = {
 
 // Identity rehydration: we only assert on the routes/index the handler computed before passing
 // them to the router; the router's own rehydration is exercised by other tests.
-const stackRouter = {
-    getRehydratedState: (partial: PartialState<NavigationState>) => partial as unknown as StackNavigationState<ParamListBase>,
-} as unknown as Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>;
+const stackRouter = createMock<Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>>({
+    getRehydratedState: (partialState) => {
+        if (partialState.stale !== false) {
+            throw new Error('Expected the test router to receive a rehydrated navigation state.');
+        }
+        return partialState;
+    },
+});
 
 /** Builds the state returned by the stubbed getStateFromPath: a TAB_NAVIGATOR focused on WORKSPACE_NAVIGATOR with the given nested routes. */
 function makeParsedState(workspaceNavNestedRoutes: PartialState<NavigationState>['routes']): PartialState<NavigationState> {
@@ -76,8 +82,8 @@ function makeParsedState(workspaceNavNestedRoutes: PartialState<NavigationState>
     };
 }
 
-const INCOMING_SPLIT_ONLY = [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] as PartialState<NavigationState>['routes'];
-const INCOMING_WITH_LIST = [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] as PartialState<NavigationState>['routes'];
+const INCOMING_SPLIT_ONLY = [{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] satisfies PartialState<NavigationState>['routes'];
+const INCOMING_WITH_LIST = [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'NEW'}}] satisfies PartialState<NavigationState>['routes'];
 
 function makeRHPRoute(): TestRoute {
     return makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key');
@@ -88,28 +94,87 @@ function makeRHPRoute(): TestRoute {
  * Pass `undefined` for workspaceNavNestedRoutes to model a WORKSPACE_NAVIGATOR that was never
  * mounted (no nested state) — e.g. a workspace created from Inbox.
  */
-function makeExistingState(workspaceNavNestedRoutes: TestRoute[] | undefined, workspaceNavIndex = 0): StackNavigationState<ParamListBase> {
+function makeExistingState(
+    workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined,
+    workspaceNavIndex = 0,
+    tabParams?: Record<string, unknown>,
+): StackNavigationState<ParamListBase> {
     const workspaceNavRoute = {
         key: 'workspace-nav-key',
         name: NAVIGATORS.WORKSPACE_NAVIGATOR,
-        ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes as unknown as PartialState<NavigationState>['routes']}} : {}),
+        ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes}} : {}),
     };
-    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
+    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, tabParams, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
     return makeStackState([tabNavRoute, makeRHPRoute()]);
 }
 
 function makeAction(): ReplaceFullscreenUnderRHPActionType {
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route: '/workspaces/NEW' as Route},
+        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW')},
     };
+}
+
+function makeReportsParsedState(reportID: string): PartialState<NavigationState> {
+    return {
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [
+                        {
+                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            state: {index: 0, routes: [{name: SCREENS.REPORT, params: {reportID}}]},
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+}
+
+function makeReportsAction(reportID: string): ReplaceFullscreenUnderRHPActionType {
+    return {
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route: ROUTES.REPORT_WITH_ID.getRoute(reportID)},
+    };
+}
+
+function makeRemoveAction(): RemoveFullscreenUnderRHPActionType {
+    return {
+        type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+        payload: {expectedRouteName: NAVIGATORS.TAB_NAVIGATOR},
+    };
+}
+
+function makeExistingReportsState(reportRoutes: TestRoute[], reportIndex: number, isReportsTabFocused = true, rootRoutesBeforeTab: TestRoute[] = []): StackNavigationState<ParamListBase> {
+    const reportsTabRoute = makeRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, undefined, {index: reportIndex, routes: reportRoutes}, 'reports-split-key');
+    const searchTabRoute = makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-tab-key');
+    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: isReportsTabFocused ? 0 : 1, routes: [reportsTabRoute, searchTabRoute]}, 'tab-nav-key');
+
+    return makeStackState([...rootRoutesBeforeTab, tabNavRoute, makeRHPRoute()]);
+}
+
+function getReportsSplitState(result: StackNavigationState<ParamListBase> | null) {
+    const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    const reportsSplitRoute = tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    return reportsSplitRoute?.state;
+}
+
+function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
+    return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
+}
+
+function getReportIDs(result: StackNavigationState<ParamListBase> | null) {
+    return getReportsSplitState(result)?.routes.map((route) => (hasReportParams(route.params) ? route.params.reportID : undefined));
 }
 
 function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> | null) {
     const tabRoute = result?.routes.find((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = tabRoute?.state as NavigationState | undefined;
+    const tabState = tabRoute?.state;
     const workspaceNav = tabState?.routes.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
-    const workspaceNavState = workspaceNav?.state as NavigationState | undefined;
+    const workspaceNavState = workspaceNav?.state;
     const list = workspaceNavState?.routes?.find((r) => r.name === SCREENS.WORKSPACES_LIST);
     return {
         names: workspaceNavState?.routes?.map((r) => r.name),
@@ -117,8 +182,163 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
         listKey: list?.key,
         listParams: list?.params,
         navigatorKey: workspaceNav?.key,
+        splitParams: workspaceNavState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)?.params,
+        tabParams: tabRoute?.params,
     };
 }
+
+const staleDistanceRatesDeepLinkParams = {
+    screen: NAVIGATORS.WORKSPACE_NAVIGATOR,
+    params: {
+        screen: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+        params: {
+            screen: SCREENS.WORKSPACE.DISTANCE_RATES,
+            params: {policyID: 'OLD'},
+        },
+    },
+};
+
+const staleLongFormDeepLinkParams = {
+    state: {
+        index: 0,
+        routes: [{name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+    },
+};
+
+beforeEach(() => {
+    clearPreInsertedOriginalTabRoute();
+    mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+});
+
+describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation', () => {
+    it('preserves Inbox and the focused report without its key, then appends the destination report', () => {
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        const reportsState = getReportsSplitState(result);
+        const routes = reportsState?.routes;
+        expect(routes?.map((route) => route.name)).toEqual([SCREENS.INBOX, SCREENS.REPORT, SCREENS.REPORT]);
+        expect(getReportIDs(result)).toEqual([undefined, 'A', 'B']);
+        expect(reportsState?.index).toBe(2);
+        expect(routes?.at(0)?.key).toBe('inbox-key');
+        expect(routes?.at(1)?.key).toBeUndefined();
+    });
+
+    it('handles the no-sidebar shape when the focused report is at index zero', () => {
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const earlierTabRoute = makeRoute(
+            NAVIGATORS.TAB_NAVIGATOR,
+            undefined,
+            {index: 0, routes: [makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'earlier-search-key')]},
+            'earlier-tab-key',
+        );
+        const originalState = makeExistingReportsState([makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 0, true, [earlierTabRoute]);
+        const result = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+
+        const reportsState = getReportsSplitState(result);
+        const routes = reportsState?.routes;
+        expect(result?.routes.filter((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)).toHaveLength(2);
+        expect(result?.routes.at(0)).toEqual(earlierTabRoute);
+        expect(getReportIDs(result)).toEqual(['A', 'B']);
+        expect(reportsState?.index).toBe(1);
+        expect(routes?.at(0)?.key).toBeUndefined();
+
+        if (!result) {
+            throw new Error('Expected the report pre-insert to return a navigation state');
+        }
+        const restoredState = handleRemoveFullscreenUnderRHP(result, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+        expect(restoredState?.routes.at(0)).toEqual(earlierTabRoute);
+        expect(getReportIDs(restoredState)).toEqual(['A']);
+        expect(getReportsSplitState(restoredState)?.routes.at(0)?.key).toBe('report-a-key');
+    });
+
+    it('drops forward history above the focused report', () => {
+        mockStubbedParsedState = makeReportsParsedState('C');
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState(
+                [
+                    makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                    makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+                    makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, 'report-b-key'),
+                ],
+                1,
+            ),
+            makeReportsAction('C'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        expect(getReportIDs(result)).toEqual([undefined, 'A', 'C']);
+    });
+
+    it('preserves history when skip-confirmation pre-inserts the already focused report without duplicating it', () => {
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState(
+                [
+                    makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                    makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+                    makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, 'report-b-key'),
+                ],
+                2,
+            ),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        const reportIDs = getReportIDs(result);
+        expect(reportIDs).toEqual([undefined, 'A', 'B']);
+        expect(reportIDs?.filter((reportID) => reportID === 'B')).toHaveLength(1);
+    });
+
+    it('does not preserve the Reports stack when another tab is focused', () => {
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1, false),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
+    });
+
+    it('keeps web behavior unchanged', () => {
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
+    });
+
+    it('restores the untouched original Reports stack when the user cancels', () => {
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const originalState = makeExistingReportsState(
+            [makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')],
+            1,
+        );
+        const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+        if (!preInsertedState) {
+            throw new Error('Expected the report pre-insert to return a navigation state');
+        }
+        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+        const routes = getReportsSplitState(restoredState)?.routes;
+        expect(getReportIDs(restoredState)).toEqual([undefined, 'A']);
+        expect(routes?.at(0)?.key).toBe('inbox-key');
+        expect(routes?.at(1)?.key).toBe('report-a-key');
+    });
+});
 
 describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () => {
     it('seeds [WORKSPACES_LIST, split] when the workspace tab was never mounted (guards iOS swipe-back regression #93003)', () => {
@@ -180,6 +400,50 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         expect(index).toBe(1);
         // The stale split between the list and the new split is dropped, and the list is reseeded keyless.
         expect(listKey).toBeUndefined();
+    });
+
+    it('removes stale distance-settings deep-link hints when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('removes a stale long-form deep-link hint when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleLongFormDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('does not replay stale distance-settings hints across repeated workspace creation', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const firstResult = handleReplaceFullscreenUnderRHP(
+            makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams),
+            makeAction(),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+        expect(getWorkspaceNavInnerRoutes(firstResult).tabParams).toBeUndefined();
+
+        const stateBeforeSecondCreate = makeExistingState(
+            [makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'NEW'})],
+            1,
+            staleDistanceRatesDeepLinkParams,
+        );
+        mockStubbedParsedState = makeParsedState([{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'SECOND'}}]);
+
+        const secondResult = handleReplaceFullscreenUnderRHP(stateBeforeSecondCreate, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(secondResult);
+        expect(splitParams).toEqual({policyID: 'SECOND'});
+        expect(tabParams).toBeUndefined();
     });
 
     it('preserves the existing WORKSPACES_LIST params (e.g. backTo) on the freshly seeded sidebar', () => {

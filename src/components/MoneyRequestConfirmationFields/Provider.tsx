@@ -43,6 +43,9 @@ type ProviderProps = {
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
+    /** Whether the active transaction is a scan request */
+    isScanRequest?: boolean;
+
     /** Whether the active transaction is a distance request */
     isDistanceRequest?: boolean;
 
@@ -70,6 +73,9 @@ type ProviderProps = {
     /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
 
+    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
+    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -86,6 +92,7 @@ function Provider({
     isEditingSplitBill = false,
     isNewManualExpenseFlowEnabled = false,
     isPolicyExpenseChat = false,
+    isScanRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
     isTimeRequest = false,
@@ -95,6 +102,7 @@ function Provider({
     isGPSDistanceRequest = false,
     scrollFocusedInputIntoView,
     onSubmitForm,
+    onTaxAmountEmptyChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -109,6 +117,7 @@ function Provider({
         isEditingSplitBill,
         isNewManualExpenseFlowEnabled,
         isPolicyExpenseChat,
+        isScanRequest,
         isDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
@@ -118,6 +127,7 @@ function Provider({
         isGPSDistanceRequest,
         scrollFocusedInputIntoView,
         onSubmitForm,
+        onTaxAmountEmptyChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

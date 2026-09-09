@@ -3,6 +3,7 @@ import type ReportAction from '../../../src/types/onyx/ReportAction';
 import CONST from '../../../src/CONST';
 import {getTaskTitle, isTaskCompleted} from '../../../src/libs/TaskUtils';
 import {createRegularTaskReport} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 
 jest.mock('../../../src/libs/Localize');
 
@@ -34,28 +35,28 @@ describe('TaskUtils', () => {
 
     describe('isTaskCompleted', () => {
         it('should return true when both childStateNum and childStatusNum indicate completion', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            } as ReportAction;
+            });
 
             expect(isTaskCompleted(reportAction)).toBe(true);
         });
 
         it('should return false when childStateNum is not APPROVED', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            } as ReportAction;
+            });
 
             expect(isTaskCompleted(reportAction)).toBe(false);
         });
 
         it('should return false when childStatusNum is not APPROVED', () => {
-            const reportAction = {
+            const reportAction = createMock<ReportAction>({
                 childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as ReportAction;
+            });
 
             expect(isTaskCompleted(reportAction)).toBe(false);
         });

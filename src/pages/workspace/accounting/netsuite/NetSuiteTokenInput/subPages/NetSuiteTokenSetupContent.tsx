@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -34,12 +34,13 @@ function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageToken
             </View>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.next')}
-                />
+                >
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
             </FixedFooter>
         </View>
     );

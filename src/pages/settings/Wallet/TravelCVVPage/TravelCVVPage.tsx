@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +16,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -62,16 +63,16 @@ function TravelCVVPage() {
     const isLoadingLockAccountDetails = isLoadingOnyxValue(lockAccountDetailsMetadata);
     const isVerifyAccountInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT));
 
-    // Auto-navigate to the magic code screen on first mount so the user
+    // Auto-navigate to the validateCode screen on first mount so the user
     // doesn't have to click "Reveal Details" manually.
     const hasAutoNavigatedRef = useRef(false);
     useEffect(() => {
         if (hasAutoNavigatedRef.current) {
             return;
         }
-        // If the verify-account (magic code) screen is already in the navigation
+        // If the verify-account (validateCode) screen is already in the navigation
         // stack, the user has previously visited it during this mount cycle (e.g.
-        // they completed or cancelled the magic code flow and returned here).
+        // they completed or cancelled the validateCode flow and returned here).
         // Skip auto-navigation so we don't push a duplicate screen. This check
         // runs before the loading guards because it doesn't depend on Onyx data.
         if (isVerifyAccountInStack) {
@@ -82,7 +83,7 @@ function TravelCVVPage() {
             return;
         }
         // Permanent conditions — set the ref so we never retry auto-navigation.
-        // If CVV is already revealed there's no reason to navigate to the magic
+        // If CVV is already revealed there's no reason to navigate to the validate
         // code screen, and delegates are not allowed to request one. Unlike the
         // transient guards below (offline / locked), these won't change during
         // this mount, so we mark the ref to stop future effect re-runs.
@@ -116,24 +117,26 @@ function TravelCVVPage() {
     if (hasRevealedCVV) {
         actionButton = (
             <Button
-                icon={isCopyButtonActive ? icons.Copy : icons.Checkmark}
-                text={isCopyButtonActive ? translate('cardPage.cardDetails.copyCvv') : translate('common.copied')}
                 onPress={() => {
                     Clipboard.setString(cvv);
                     setCopyButtonInactive();
                 }}
                 style={[styles.mt10, styles.alignSelfCenter]}
-            />
+            >
+                <Button.Icon src={isCopyButtonActive ? icons.Copy : icons.Checkmark} />
+                <Button.Text>{isCopyButtonActive ? translate('cardPage.cardDetails.copyCvv') : translate('common.copied')}</Button.Text>
+            </Button>
         );
     } else if (!cvv && !isSignedInAsDelegate) {
         actionButton = (
             <Button
-                text={translate('cardPage.cardDetails.revealDetails')}
                 onPress={handleRevealDetailsPress}
                 isDisabled={isOffline}
                 style={[styles.mt10, styles.alignSelfCenter]}
-                success
-            />
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+            >
+                <Button.Text>{translate('cardPage.cardDetails.revealDetails')}</Button.Text>
+            </Button>
         );
     }
 

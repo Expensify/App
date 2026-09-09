@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -71,7 +71,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
         setSelectedGroupId(item.value);
     };
 
-    const handleSave = () => {
+    const moveSelectedMembersToGroup = () => {
         if (!selectedGroupId || !selectedMemberAccountIDs?.length || !domainName) {
             return;
         }
@@ -121,13 +121,14 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 />
                 <FixedFooter>
                     <Button
-                        success
-                        large
-                        pressOnEnter
-                        text={translate('common.save')}
-                        onPress={handleSave}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={moveSelectedMembersToGroup}
                         isDisabled={!selectedGroupId}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

@@ -1,5 +1,5 @@
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,11 +20,13 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
+import useSelectedExpenseReports from '@hooks/useSelectedExpenseReports';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -31,7 +34,7 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {isInvoiceRoom} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -42,11 +45,13 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
@@ -57,6 +62,10 @@ import ParticipantSelectorFooter from './ParticipantSelectorFooter';
 
 const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUType) => ({
     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
+    // A report-less Contacts option carries an empty-string reportID. Normalize it to undefined so downstream
+    // readers that rely on `!== undefined`/`??` (e.g. initiallySelectedReportID guard, useParticipantSubmission ref)
+    // don't treat the empty string as a real reportID, which would produce a spurious checkmark and an invalid route.
+    reportID: option.reportID ? option.reportID : undefined,
     selected: true,
     iouType,
 });
@@ -68,10 +77,7 @@ type ParticipantSearchResultsProps = {
     /** The IOU action (create, submit, share, categorize, etc.) */
     action: IOUAction;
 
-    /** Selected participants */
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
-
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
 
     /** Whether this is a per diem expense request */
@@ -83,7 +89,6 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -92,14 +97,13 @@ type ParticipantSearchResultsProps = {
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
-    /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
     /** Setter to toggle textInputAutoFocus from the contact permission flow */
     setTextInputAutoFocus: (value: boolean) => void;
 
-    /** Callback to propagate selected participants to the parent flow */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to propagate selected participants to the parent flow. selectedPolicy is the chosen workspace's policy. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Callback to advance the parent flow */
     onFinish: (value?: string, participants?: Participant[]) => void;
@@ -110,11 +114,16 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
     onCloseParticipantPicker?: () => void;
+
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 };
 
 function ParticipantSearchResults({
@@ -136,6 +145,7 @@ function ParticipantSearchResults({
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
+    shouldBlockParticipantSelection,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -148,7 +158,8 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.SUBMIT &&
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -172,6 +183,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -219,7 +231,10 @@ function ParticipantSearchResults({
             });
         }
 
-        onParticipantsAdded(newParticipants);
+        // Resolve the chosen workspace's policy and pass it up so the confirmation step can reset the rate and category
+        // without subscribing to every policy. allPolicies is already loaded on this screen, so this adds no new subscription.
+        const selectedPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        onParticipantsAdded(newParticipants, selectedPolicy);
 
         if (!option.isSelfDM) {
             onFinish(undefined, newParticipants);
@@ -300,14 +315,19 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
+            dateFnsLocale,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
+            getReportByID,
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
+            (option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)) && !isTeachersUnitePolicyID(option.policyID),
+        );
         if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
@@ -366,7 +386,16 @@ function ParticipantSearchResults({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteExpenseReportPolicy,
+                              {translate, dateFnsLocale, convertToDisplayString},
+                              currentUserAccountID,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails, translate);
                 }),
                 sectionIndex: 5,
@@ -456,15 +485,20 @@ function ParticipantSearchResults({
         );
 
     const onSelectRow = (option: Participant) => {
-        const optionPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport(option.reportID)?.policyID : undefined);
+        if (shouldBlockParticipantSelection?.(optionPolicyID)) {
+            return;
+        }
+
+        const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
         if (
             option.isPolicyExpenseChat &&
-            option.policyID &&
+            optionPolicyID &&
             optionPolicy &&
             shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
         ) {
             onRestrictedParticipantSelected?.();
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
             return;
         }
 
@@ -478,11 +512,10 @@ function ParticipantSearchResults({
 
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
-        <MenuItem
+        <MenuItemNavigation
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
             onPress={goToSettings}
-            shouldShowRightIcon
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
         />
     ) : null;

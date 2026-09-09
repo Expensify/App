@@ -23,9 +23,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getTagGLCode} from '@libs/PolicyUtils';
+import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
     getConvertedAmount,
@@ -37,9 +39,11 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isPerDiemRequest,
     isScanning,
     isTimeRequest,
 } from '@libs/TransactionUtils';
+import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
 
 import variables from '@styles/variables';
 
@@ -48,7 +52,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionItemRowProps, TransactionItemRowWideComputedData} from './types';
+import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
 import CategoryCell from './DataCells/CategoryCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
@@ -60,12 +64,17 @@ import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
-type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
-    TransactionItemRowWideComputedData;
+type TransactionItemRowWideProps = Omit<
+    TransactionItemRowProps,
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
+> &
+    TransactionItemRowWideComputedData &
+    TransactionItemRowRBRDeferControlProps;
 
 function TransactionItemRowWide({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -90,6 +99,7 @@ function TransactionItemRowWide({
     shouldStopRadioButtonMouseDownPropagation = false,
     radioButtonContainerStyle,
     shouldShowErrors = true,
+    shouldDeferRBR = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
     violations,
@@ -100,6 +110,7 @@ function TransactionItemRowWide({
     checkboxSentryLabel,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    shouldUseFullHeightEditableCellHoverTarget = false,
     onEditDate,
     onEditMerchant,
     onEditDescription,
@@ -123,7 +134,7 @@ function TransactionItemRowWide({
     totalPerAttendee,
     transactionThreadReportID,
     createdAt,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: TransactionItemRowWideProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,8 +143,8 @@ function TransactionItemRowWide({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
-    const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
+    const reportPolicyID = [report?.policyID, transactionItem.report?.policyID, transactionItem.policyID, transactionItem.policy?.id].find((policyID): policyID is string => !!policyID);
+    const effectivePolicyID = reportPolicyID ?? (isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : undefined);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -146,8 +157,14 @@ function TransactionItemRowWide({
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
+    const hasValidationMessage = shouldShowErrors && (!!missingFieldError || !!violations?.length);
+    let fullHeightMainRowStyle;
+    if (shouldUseFullHeightEditableCellHoverTarget) {
+        fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
+    }
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
+        const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
         switch (column) {
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 return (
@@ -179,7 +196,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG), styles.editableCellColumn]}
                     >
                         <TagCell
                             transactionItem={transactionItem}
@@ -188,7 +205,17 @@ function TransactionItemRowWide({
                             canEdit={canEditTag}
                             onSave={onEditTag}
                             policyID={effectivePolicyID}
+                            policy={policy}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
+                    >
+                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -204,7 +231,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide}), styles.editableCellColumn]}
                     >
                         <DateCell
                             canEdit={canEditDate}
@@ -222,9 +249,10 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.submitted ?? ''}
+                            date={transactionItem.submitted ?? report?.submitted ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
@@ -235,9 +263,10 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.approved ?? ''}
+                            date={transactionItem.approved ?? report?.approved ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
@@ -248,7 +277,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
                     >
                         <DateCell
-                            date={transactionItem.posted ?? ''}
+                            date={getFormattedPostedDate(transactionItem.posted)}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                         />
@@ -264,6 +293,7 @@ function TransactionItemRowWide({
                             date={transactionItem.exported ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
+                            shouldUseLocalTimeZone
                         />
                     </View>
                 );
@@ -271,7 +301,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY), styles.editableCellColumn]}
                     >
                         <CategoryCell
                             transactionItem={transactionItem}
@@ -327,8 +357,9 @@ function TransactionItemRowWide({
                                 policyID={report?.policyID}
                                 hash={transactionItem?.hash}
                                 amount={getReimbursableTotal(report)}
+                                chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
-                                isMarkAsDone={isMarkAsDone}
+                                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                             />
                         )}
                     </View>
@@ -337,7 +368,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT), styles.editableCellColumn]}
                     >
                         <MerchantOrDescriptionCell
                             merchantOrDescription={merchant ?? ''}
@@ -352,7 +383,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION), styles.editableCellColumn]}
                     >
                         <MerchantOrDescriptionCell
                             merchantOrDescription={description}
@@ -445,7 +476,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex}), styles.editableCellColumn]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -509,7 +540,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -518,7 +549,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (transactionItem.taxCode ?? '')} />
+                        <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -536,7 +567,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
-                        {isTimeRequest(transactionItem) ? null : (
+                        {shouldHideTaxValueByRequestType ? null : (
                             <TaxCell
                                 transactionItem={transactionItem}
                                 shouldShowTooltip={shouldShowTooltip}
@@ -656,15 +687,23 @@ function TransactionItemRowWide({
     return (
         <>
             <View
-                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}
+                style={[
+                    styles.expenseWidgetRadius,
+                    styles.flex1,
+                    !(shouldUseFullHeightEditableCellHoverTarget && hasValidationMessage) && styles.gap2,
+                    styles.alignSelfStretch,
+                    bgActiveStyles,
+                    styles.mw100,
+                    style,
+                ]}
                 testID="transaction-item-row"
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
                     {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
-                            onPress={() => {
-                                onCheckboxPress(transactionItem.transactionID);
+                            onPress={(event) => {
+                                onCheckboxPress(transactionItem.transactionID, getShiftKeyFromEvent(event));
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
@@ -708,11 +747,13 @@ function TransactionItemRowWide({
                 </View>
                 {shouldShowErrors && (
                     <DeferredTransactionItemRowRBR
+                        shouldDefer={shouldDeferRBR}
                         transaction={transactionItem}
                         violations={violations}
                         report={report}
                         missingFieldError={missingFieldError}
                         transactionThreadReportID={transactionThreadReportID}
+                        containerStyles={shouldUseFullHeightEditableCellHoverTarget ? [styles.pb2] : undefined}
                     />
                 )}
             </View>

@@ -35,6 +35,10 @@ Before you begin:
 
 When the transfer is complete, you'll see a confirmation message that you're now the Workspace owner.
 
+![The Workspace Members page with the Owner highlighted]({{site.url}}/assets/images/ExpensiHelp-Transfer-Workspace-Ownership-1.png){:width="100%"}
+
+![The member detail panel for the current Workspace owner (opened from Workspaces > [workspace name] > Members) with the "Transfer owner" button visible]({{site.url}}/assets/images/ExpensiHelp-Transfer-Workspace-Ownership-2.png){:width="100%"}
+
 ---
 
 ## What happens after you transfer Workspace ownership
@@ -91,3 +95,7 @@ You can take over an Annual subscription only if you're a Workspace Admin on eve
 Billing history only includes subscription charges made while you're the Workspace owner. Charges paid by the previous Workspace owner won't appear in your billing history.
 
 If you need to review previous subscription charges, ask the previous Workspace owner to follow the steps to [make billing receipts visible to other Workspace Admins](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Find-Your-Expensify-Billing-Receipt#how-can-i-make-billing-receipts-visible-to-other-workspace-admins). 
+
+## How can I confirm the workspace ownership transfer worked?
+
+Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Workspaces**. In the **Owner** column, verify that your name appears as the owner of the workspace.

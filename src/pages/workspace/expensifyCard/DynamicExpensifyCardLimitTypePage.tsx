@@ -4,8 +4,10 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
@@ -15,9 +17,12 @@ import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
@@ -25,7 +30,7 @@ import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,12 +40,13 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import {format, toZonedTime} from 'date-fns-tz';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -52,10 +58,14 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {environmentURL} = useEnvironment();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     const card = cardsList?.[cardID];
     // Keep the latest card snapshot so a confirmation that resolves after the card refreshes (e.g. while the
@@ -137,7 +147,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                 prompt: translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimitType'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
@@ -162,17 +172,30 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         }
     }
 
+    // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
+    // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
+    const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}` : undefined;
+
     const data = [];
 
-    if (areApprovalsConfigured) {
-        data.push({
-            value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-            label: translate('workspace.card.issueNewCard.smartLimit'),
-            description: translate('workspace.card.issueNewCard.smartLimitDescription'),
-            keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-            isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-        });
-    }
+    data.push({
+        value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+        label: translate('workspace.card.issueNewCard.smartLimit'),
+        description: areApprovalsConfigured ? translate('workspace.card.issueNewCard.smartLimitDescription') : undefined,
+        alternateTextComponent: areApprovalsConfigured ? undefined : <RenderHTML html={translate('workspace.card.issueNewCard.smartLimitDisabledDescription', workspaceWorkflowsPageURL)} />,
+        rightElement: areApprovalsConfigured ? undefined : (
+            <Icon
+                src={expensifyIcons.Lock}
+                fill={theme.icon}
+            />
+        ),
+        shouldHideSelectionButton: !areApprovalsConfigured,
+        keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+        isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+        isDisabled: !areApprovalsConfigured,
+        titleStyles: areApprovalsConfigured ? undefined : {color: theme.heading},
+    });
 
     data.push({
         value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,

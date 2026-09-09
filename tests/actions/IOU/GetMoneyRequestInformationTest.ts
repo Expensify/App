@@ -2,10 +2,11 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -18,6 +19,7 @@ const CHAT_REPORT_ID = 'report-chat-1';
 const PAYEE_ACCOUNT_ID = 100;
 const PAYER_ACCOUNT_ID = 200;
 const TAG_LIST = 'Department';
+const EMPTY_TAG_LIST = '';
 const TAG_NAME = 'Engineering';
 
 const parentChatReport: Report = {
@@ -70,6 +72,7 @@ const baseParams = {
     personalDetails: {},
     delegateAccountID: undefined,
     isTrackIntentUser: false,
+    formatPhoneNumber,
 } as const;
 
 describe('getMoneyRequestInformation', () => {
@@ -86,6 +89,7 @@ describe('getMoneyRequestInformation', () => {
     describe('optimistic recently used tags', () => {
         it('should store recently used tags at the correct policy key when policyTagList and tag are provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -105,6 +109,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should not store recently used tags when tag is not provided', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: policyTagListA,
@@ -119,6 +124,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should store tags under empty-string list key when policyTagList has no named tag lists', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 policyParams: {
                     policyTagList: {},
@@ -133,13 +139,13 @@ describe('getMoneyRequestInformation', () => {
             const tagEntry = result.onyxData.optimisticData?.find((entry) => entry.key === expectedKey);
 
             expect(tagEntry).toBeDefined();
-            const value = tagEntry?.value as Record<string, string[]>;
-            expect(value['']).toEqual([TAG_NAME]);
+            expect(tagEntry?.value).toEqual({[EMPTY_TAG_LIST]: [TAG_NAME]});
         });
 
         it('should use parentChatReport.policyID for the recently used tags key', () => {
             const otherPolicyID = 'policy-other';
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 parentChatReport: {
                     ...parentChatReport,
@@ -177,6 +183,7 @@ describe('getMoneyRequestInformation', () => {
             await waitForBatchedUpdates();
 
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID,
                 policyParams: {
@@ -197,6 +204,7 @@ describe('getMoneyRequestInformation', () => {
 
         it('should fall back to parentChatReport.policyID when moneyRequestReportID is empty string', () => {
             const result = getMoneyRequestInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
                 moneyRequestReportID: '',
                 policyParams: {
@@ -217,15 +225,187 @@ describe('getMoneyRequestInformation', () => {
     });
 
     describe('pendingNewTransactionIDs metadata rail', () => {
-        // Only the 0→1 negative is testable here (the resolved report has no existing txs); the >= 1 positive path lives in the useNewTransactions consumer tests.
+        const FLAGGED_AT = 1700000000000;
+        let dateNowSpy: jest.SpyInstance;
+        beforeEach(async () => {
+            dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(FLAGGED_AT);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
+            await waitForBatchedUpdates();
+        });
+        afterEach(() => {
+            dateNowSpy.mockRestore();
+        });
+
+        const buildExistingIOUReport = (reportID: string, transactionCount?: number): Report => ({
+            reportID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: PAYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            currency: 'USD',
+            total: 0,
+            ...(transactionCount !== undefined && {transactionCount}),
+        });
+
+        const setReportTransaction = (transactionID: string, reportID: string, pendingAction?: Transaction['pendingAction']) =>
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                reportID,
+                amount: 500,
+                created: '2024-01-01',
+                currency: 'USD',
+                merchant: 'Existing Merchant',
+                ...(pendingAction && {pendingAction}),
+            });
+
         it('does NOT flag the first transaction of a report (no stale flag to re-highlight the original on a later add)', () => {
-            const result = getMoneyRequestInformation(baseParams);
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
             const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.iouReport.reportID}`;
             const newTxID = result.transaction.transactionID;
 
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
-                expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
             );
         });
+
+        it('flags the transaction when the target report already holds a transaction', () => {
+            const moneyRequestReportID = 'iou-report-rail-1';
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+            expect(result.onyxData.failureData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: null})})}),
+                ]),
+            );
+        });
+
+        it('does not flag a transaction that is already on the target report', async () => {
+            const moneyRequestReportID = 'iou-report-rail-3';
+            const existingTransactionID = 'edit-tx-1';
+            await setReportTransaction(existingTransactionID, moneyRequestReportID);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 2);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID, existingTransactionID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+
+            expect(result.transaction.transactionID).toBe(existingTransactionID);
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: expectedKey,
+                        value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${existingTransactionID}:${FLAGGED_AT}`]: true})}),
+                    }),
+                ]),
+            );
+        });
+
+        it('flags the transaction even when the target report has no transaction count', async () => {
+            const moneyRequestReportID = 'iou-report-rail-2';
+            await setReportTransaction('existing-tx-1', moneyRequestReportID);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
+        it('flags the transaction when the cache holds only part of a report whose one cached transaction is pending deletion', async () => {
+            const moneyRequestReportID = 'iou-report-rail-5';
+            await setReportTransaction('partially-cached-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 10);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+
+        it('does not flag when the only existing transaction is pending deletion, even though the transaction count still includes it', async () => {
+            const moneyRequestReportID = 'iou-report-rail-4';
+            await setReportTransaction('deleted-tx-1', moneyRequestReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            await waitForBatchedUpdates();
+            const existingIOUReport = buildExistingIOUReport(moneyRequestReportID, 1);
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, existingIOUReport, moneyRequestReportID});
+            const expectedKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReportID}`;
+            const newTxID = result.transaction.transactionID;
+
+            expect(result.onyxData.optimisticData ?? []).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[`${newTxID}:${FLAGGED_AT}`]: true})})}),
+                ]),
+            );
+        });
+    });
+
+    it('does not copy commuter exclusion data to an optimistic split', () => {
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID: 'distance-unit',
+            customUnitRateID: 'rate-123',
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            quantity: 2.24,
+        } as const;
+        const existingTransaction: Transaction = {
+            transactionID: 'original-transaction',
+            reportID: 'expense-report',
+            amount: -280,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '4.48 mi @ $0.625 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {
+                customUnit: {
+                    ...customUnit,
+                    quantity: 6.48,
+                    commuterExclusion: 2,
+                    reimbursableDistance: 4.48,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            },
+        };
+
+        const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            ...baseParams,
+            existingTransaction,
+            isSplitExpense: true,
+            transactionParams: {
+                ...baseParams.transactionParams,
+                amount: 140,
+                modifiedAmount: 140,
+                originalTransactionID: existingTransaction.transactionID,
+                customUnit,
+            },
+        });
+
+        expect(result.transaction.comment?.customUnit).toEqual(customUnit);
     });
 });

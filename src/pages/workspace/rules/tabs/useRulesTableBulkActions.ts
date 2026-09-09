@@ -16,9 +16,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
+import {deletePolicyCategoryTaxes, openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deletePolicyCodingRule} from '@libs/actions/Policy/Rules';
+import {getCategoryNameFromTaxRuleKey, isCategoryTaxRuleKey} from '@libs/CategoryTaxRulesUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,7 +39,7 @@ const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
 
 type RulesTab = ValueOf<typeof RULES_TAB>;
-type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL>;
+type TableSelectionTab = Exclude<RulesTab, typeof RULES_TAB.GENERAL | typeof RULES_TAB.AGENTS>;
 
 type UseRulesTableBulkActionsParams = {
     policyID: string;
@@ -49,7 +50,7 @@ type UseRulesTableBulkActionsParams = {
 };
 
 function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
-    return tab !== RULES_TAB.GENERAL;
+    return tab !== RULES_TAB.GENERAL && tab !== RULES_TAB.AGENTS;
 }
 
 function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, canWriteRules, clearTableSelection}: UseRulesTableBulkActionsParams) {
@@ -112,7 +113,6 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
             promptStyles: [styles.mb1],
             shouldShowCancelButton: false,
-            success: false,
             confirmText: translate('common.buttonConfirm'),
             innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
@@ -152,6 +152,8 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const expenseDefaultsTableData: ExpenseDefaultTableItem[] = getExpenseDefaultsTableData({
         policy,
         policyID,
+        // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
+        policyCategories: policyCategoriesOnyx,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
@@ -245,12 +247,25 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             return;
         }
 
+        // Category tax defaults live in `expenseRules`, a plain array, so they delete together in one pass that threads
+        // the array through rather than one independent write each.
+        const selectedCategoryNames: string[] = [];
+
         for (const ruleID of filteredSelectedExpenseDefaultKeys) {
             if (isMerchantTypeRuleKey(ruleID)) {
                 continue;
             }
 
+            if (isCategoryTaxRuleKey(ruleID)) {
+                selectedCategoryNames.push(getCategoryNameFromTaxRuleKey(ruleID));
+                continue;
+            }
+
             deletePolicyCodingRule(policy, ruleID);
+        }
+
+        if (selectedCategoryNames.length > 0) {
+            deletePolicyCategoryTaxes(policy, selectedCategoryNames);
         }
         clearTableSelection();
     }, [
@@ -274,4 +289,6 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     };
 }
 
+export {isTableSelectionTab};
+export type {RulesTab, TableSelectionTab};
 export default useRulesTableBulkActions;

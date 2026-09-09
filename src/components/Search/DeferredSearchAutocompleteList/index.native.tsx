@@ -3,10 +3,8 @@ import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocom
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
-import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -32,23 +30,19 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
         setHasLayout(true);
     };
 
-    // Wait for the slide-in animation to finish before rendering the list. With startTransition, a competing update
-    // interrupted and discarded the (expensive) first mount render before it could commit, forcing React to redo
-    // that same render a second time. useRunAfterTransitions fires a plain, synchronous update instead, so the first render always completes in a single pass.
-    const shouldRender = useRunAfterTransitions(hasLayout);
-
-    if (!shouldRender || !isFocusedUntilTransitionEnd) {
+    // Mount the real list as soon as the skeleton has laid out, overlapping its render with the
+    // native-stack push animation instead of waiting for the transition to end. The push runs on the
+    // UI thread, so rendering the list on the JS thread during it does not stutter the slide, and the
+    // list's onLayout (which ends the ManualOpenSearchRouter span) now fires while the animation is
+    // still finishing rather than ~150ms after it. Affordable because the option-list build is cheap
+    // after the caching/deferral in #95378 and #95683.
+    if (!hasLayout || !isFocusedUntilTransitionEnd) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
                 onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={
-                    {
-                        context: 'DeferredSearchAutocompleteList',
-                    } satisfies SkeletonSpanReasonAttributes
-                }
             />
         );
     }

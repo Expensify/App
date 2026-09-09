@@ -1,6 +1,6 @@
 import type {ResultMetadata} from 'react-native-onyx';
 
-function isLoadingOnyxValue(...results: Array<ResultMetadata<unknown>>): boolean {
+function isLoadingOnyxValue(...results: ResultMetadata[]): boolean {
     return results.some((result) => result.status === 'loading');
 }
 

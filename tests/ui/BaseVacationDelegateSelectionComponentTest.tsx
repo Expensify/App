@@ -78,9 +78,26 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        formatPhoneNumber: (value: string) => value,
     })),
 );
-jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
+jest.mock('@hooks/useOnyx', () =>
+    jest.fn((key: string) => {
+        if (key === 'countryCode') {
+            return ['US'];
+        }
+        return [false];
+    }),
+);
+jest.mock('@hooks/usePersonalDetailByLogin', () =>
+    jest.fn((login?: string) => {
+        const personalDetailsByLogin: Record<string, unknown> = {
+            [mockDelegateDetails.login]: mockDelegateDetails,
+            [mockContactDetails.login]: mockContactDetails,
+        };
+        return login ? personalDetailsByLogin[login] : undefined;
+    }),
+);
 jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
     jest.fn((config: SearchSelectorConfig) => {
         mockSearchSelectorConfig = config;
@@ -97,9 +114,6 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 jest.mock('@libs/actions/Report', () => ({
     searchUserInServer: jest.fn(),
-}));
-jest.mock('@libs/LocalePhoneNumber', () => ({
-    formatPhoneNumber: jest.fn((value: string) => value),
 }));
 jest.mock('@libs/OptionsListUtils', () => {
     const actualOptionsListUtils: typeof OptionsListUtils = jest.requireActual('@libs/OptionsListUtils');

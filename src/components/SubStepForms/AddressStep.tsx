@@ -4,11 +4,10 @@ import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import genericMemo from '@libs/genericMemo';
 import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -48,12 +47,9 @@ function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values:
     return typeof value === 'string' ? value : '';
 }
 
-type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** The disclaimer informing that PO box is not allowed */
@@ -62,53 +58,32 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The IDs of the input fields */
         inputFieldsIDs: AddressInputIDs;
-
-        /** The default values for the form */
         defaultValues: AddressValues;
-
-        /** Should show help links */
         shouldShowHelpLinks?: boolean;
-
-        /** Indicates if country selector should be displayed */
         shouldDisplayCountrySelector?: boolean;
-
-        /** Indicates if state selector should be displayed */
         shouldDisplayStateSelector?: boolean;
-
-        /** Label for the state selector */
         stateSelectorLabel?: string;
-
-        /** The title of the state selector modal */
         stateSelectorModalHeaderTitle?: string;
-
-        /** The title of the state selector search input */
         stateSelectorSearchInputTitle?: string;
-
-        /** Callback to be called when the country is changed */
         onCountryChange?: (country: unknown) => void;
-
-        /** Translation key of street field */
         streetTranslationKey?: TranslationPaths;
-
-        /** Indicates if country can be changed by user */
         shouldAllowCountryChange?: boolean;
-
-        /** Indicates if zip code format should be validated */
         shouldValidateZipCodeFormat?: boolean;
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
     };
 
-function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
+type AddressStepPropsWidened = Omit<AddressStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function AddressStepImpl({
     formID,
     formTitle,
     formPOBoxDisclaimer,
@@ -130,7 +105,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldValidateZipCodeFormat = true,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
-}: AddressStepProps<TFormID>) {
+}: AddressStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -151,7 +126,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const street = getStringFormValue(values, inputFieldsIDs.street);
@@ -217,4 +192,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-export default genericMemo(AddressStep);
+function AddressStep<TFormID extends keyof OnyxFormValuesMapping>(props: AddressStepProps<TFormID>) {
+    return <AddressStepImpl {...(props as unknown as AddressStepPropsWidened)} />;
+}
+
+export default AddressStep;

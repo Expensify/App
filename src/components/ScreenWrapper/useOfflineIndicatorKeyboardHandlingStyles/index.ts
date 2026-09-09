@@ -1,5 +1,3 @@
-import type UseOfflineIndicatorKeyboardHandlingStyles from './types';
-
-const useOfflineIndicatorKeyboardHandlingStyles: UseOfflineIndicatorKeyboardHandlingStyles = () => ({});
+const useOfflineIndicatorKeyboardHandlingStyles = () => ({});
 
 export default useOfflineIndicatorKeyboardHandlingStyles;

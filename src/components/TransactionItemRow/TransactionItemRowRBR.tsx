@@ -18,6 +18,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
@@ -26,19 +27,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ViewStyle} from 'react-native';
 
+import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
-const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
-
 type TransactionItemRowRBRInnerProps = {
-    /** Transaction item */
     transaction: Transaction;
-
-    /** Transaction violations */
     violations?: TransactionViolation[];
-
-    /** Report item */
     report?: Report;
 
     /** Styles for the RBR messages container */
@@ -58,7 +53,7 @@ type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
 
 function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError, shouldUseNarrowLayout}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -73,10 +68,12 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const transactionThreadId = iouAction?.childReportID;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
-    const canEdit = wasActionTakenByCurrentUser(iouAction);
+    const canEdit = wasActionTakenByCurrentUser(iouAction, currentUserAccountID);
     const RBRMessages = ViolationsUtils.getRBRMessages({
+        dateFnsLocale,
         transaction,
         transactionViolations: isSettled(report) ? [] : (violations ?? []),
         translate,
@@ -89,7 +86,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         isMarkAsCash: isMarkAsCash || undefined,
         canEdit,
     });
-    const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
+    const hasHTMLTags = CONST.HTML_TAG_REGEX.test(RBRMessages);
 
     return (
         RBRMessages.length > 0 && (

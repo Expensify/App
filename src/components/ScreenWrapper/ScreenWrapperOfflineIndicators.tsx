@@ -18,22 +18,17 @@ import Animated from 'react-native-reanimated';
 import useOfflineIndicatorKeyboardHandlingStyles from './useOfflineIndicatorKeyboardHandlingStyles';
 
 type ScreenWrapperOfflineIndicatorsProps = {
-    /** Styles for the offline indicator */
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
 
     /** Whether to show offline indicator on small screens */
     shouldShowOfflineIndicator?: boolean;
 
-    /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 
     /** Whether to use a sticky small screen offline indicator. */
     shouldMobileOfflineIndicatorStickToBottom?: boolean;
 
-    /** Whether the offline indicator should be translucent. */
     isOfflineIndicatorTranslucent?: boolean;
-
-    /** The extra content to display. */
     extraContent?: ReactNode;
 
     /** Whether to add bottom safe area padding to the small screen offline indicator. */

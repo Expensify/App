@@ -46,8 +46,6 @@ jobs:
   build:
     needs: [prep, resolveRefs]
     runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +59,8 @@ jobs:
             is_hybrid_build: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.resolveRefs.outputs.APP_REF }}
           submodules: ${{ matrix.is_hybrid_build || false }}
@@ -74,6 +73,9 @@ jobs:
           git fetch origin ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           git checkout ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }}
           echo "Checked out Mobile-Expensify PR #${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }} (${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF }})"
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

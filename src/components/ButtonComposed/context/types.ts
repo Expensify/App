@@ -26,4 +26,4 @@ type ButtonContextValue = {
     isLoading: boolean;
 };
 
-export type {ButtonContextValue, ButtonVariant};
+export default ButtonContextValue;

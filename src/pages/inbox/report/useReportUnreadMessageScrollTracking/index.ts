@@ -11,7 +11,6 @@ import {scheduleOnRN} from 'react-native-worklets';
 import getPillVisibilityOffsetY from './getPillVisibilityOffsetY';
 
 type Args = {
-    /** The report ID */
     reportID: string;
 
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
@@ -20,7 +19,6 @@ type Args = {
     /** Called when the unread-marker action is within the viewport, on every viewability change */
     onUnreadActionVisible: () => void;
 
-    /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */

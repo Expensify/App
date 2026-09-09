@@ -152,6 +152,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                         case 'accordion':
                             return (
                                 <Accordion
+                                    key="accordion"
                                     isExpanded={item.shouldExpand}
                                     isToggleTriggered={shouldAnimateAccordionSection}
                                 >

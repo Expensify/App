@@ -10,6 +10,7 @@ import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRest
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
@@ -39,17 +40,15 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
-    /* The policy that the card will be issued under */
+    /** The ID of the policy that the card will be issued under */
     policyID: string;
 
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Array of step names */
     stepNames: readonly string[];
 };
 
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();

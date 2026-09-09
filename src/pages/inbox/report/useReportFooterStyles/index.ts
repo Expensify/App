@@ -1,8 +1,8 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {UseReportFooterStyles} from './types';
+import type UseReportFooterStylesParams from './types';
 
-const useReportFooterStyles: UseReportFooterStyles = ({isComposerFullSize}) => {
+const useReportFooterStyles = ({isComposerFullSize}: UseReportFooterStylesParams) => {
     const styles = useThemeStyles();
 
     return [

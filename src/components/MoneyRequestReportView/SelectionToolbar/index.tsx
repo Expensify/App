@@ -9,7 +9,6 @@ import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useExportDownloadStatusModal from '@hooks/useExportDownloadStatusModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -47,7 +46,6 @@ import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
-    /** The reportID of the report */
     reportID: string;
 
     /** Filtered transactions for this report */
@@ -82,7 +80,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -100,7 +97,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
+        queueExportSearchWithTemplate(
             {
                 templateName,
                 templateType,
@@ -112,7 +109,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             },
             true,
         );
-        trackExport(exportID);
+
+        // Clear the selection now that the export has started; the app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
     };
 
     const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
@@ -125,7 +124,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldEnableNewFocusManagement: true,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
@@ -165,7 +164,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         hasPayInSelectionMode,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
-        shouldBlockAction,
+        handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
         isHoldMenuVisible,
@@ -238,7 +237,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     return (
         <>
-            {exportDownloadStatusModal}
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
@@ -261,12 +259,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 report={report}
                                 onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                                 selectionModeKYCSuccess={selectionModeKYCSuccess}
-                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                                    if (shouldBlockAction(undefined, true)) {
-                                        return;
-                                    }
-                                    triggerKYCFlow({policy: selectedPolicy});
-                                }}
+                                onWorkspacePolicySelect={handleWorkspaceSelected}
                                 primaryAction={primaryAction}
                                 selectedTransactionsOptions={selectedTransactionsOptions}
                                 selectedTransactionIDs={selectedTransactionIDs}
@@ -312,7 +305,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={handleHoldMenuClose}
                     isVisible={isHoldMenuVisible}

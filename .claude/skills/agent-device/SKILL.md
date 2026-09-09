@@ -10,7 +10,7 @@ allowed-tools: Bash(agent-device *) Bash(npm root *) Bash(scripts/is-hybrid-app.
 
 These checks evaluate at skill load. If any line shows `FAIL`, stop and surface the fix before running any device command.
 
-`agent-device` version: !`R=0.13.0; V=$(agent-device --version 2>/dev/null); [ -n "$V" ] && [ "$(printf '%s\n%s\n' "$R" "$V" | sort -V | head -1)" = "$R" ] && echo "OK ($V)" || echo "FAIL (need v$R+, got: ${V:-not installed}). Fix: npm install -g agent-device@latest"`
+`agent-device` version: !`R=0.20.0; V=$(agent-device --version 2>/dev/null); [ -n "$V" ] && [ "$(printf '%s\n%s\n' "$R" "$V" | sort -V | head -1)" = "$R" ] && echo "OK ($V)" || echo "FAIL (need v$R+, got: ${V:-not installed}). Fix: npm install -g agent-device@latest"`
 
 Bundled CLI skills dir: !`D="$(npm root -g)/agent-device/skills/agent-device"; test -s "$D/SKILL.md" && echo "OK ($D)" || echo "FAIL (missing $D/SKILL.md). Fix: npm install -g agent-device@latest"`
 
@@ -28,18 +28,18 @@ If the user prompt names `ios` or `android` explicitly, use it. Otherwise ask. O
 
 HybridApp dev builds only (the pre-flight gate enforces this).
 
-| Platform  | Bundle ID                       | Build script      |
-| --------- | ------------------------------- | ----------------- |
-| `ios`     | `com.expensify.expensifylite`   | `npm run ios`     |
-| `android` | `org.me.mobiexpensifyg.dev`     | `npm run android` |
+| Platform  | Bundle ID                       | Build command from App root |
+| --------- | ------------------------------- | --------------------------- |
+| `ios`     | `com.expensify.expensifylite`   | `npm run ios`               |
+| `android` | `org.me.mobiexpensifyg.dev`     | `npm run android`           |
 
 ### 3. Confirm dev build is installed
 
 ```bash
-agent-device apps --user-installed --platform <p> --json
+agent-device apps --platform <p> --json
 ```
 
-If the resolved bundle ID is missing from the list, **STOP** and instruct the developer to run the matching build script from the table. HybridApp mobile builds **must** be initiated from `Mobile-Expensify/` (per project CLAUDE.md).
+If the resolved bundle ID is missing from the list, **STOP** and instruct the developer to run the matching build command from the App repository root. The build script detects HybridApp mode and builds the native app from `Mobile-Expensify/`.
 
 ### 4. Metro
 
@@ -89,10 +89,38 @@ agent-device snapshot -i
 
 Confirm the app rendered. From here, follow the [Agent decision loop](flows/README.md) for repeatable flows or drive interactively.
 
+### 9. Interaction safety
+
+After opening or relaunching the App, inspect `agent-device snapshot -i` for React Native development overlays before interacting.
+
+If the snapshot reports a LogBox warning, run:
+
+```bash
+agent-device react-native dismiss-overlay
+agent-device snapshot -i
+```
+
+Continue only when the fresh snapshot no longer reports the overlay. Multiple LogBox banners can require repeated `dismiss-overlay` and fresh `snapshot -i` calls. If the snapshot reports a RedBox fatal error, stop and surface the error instead of dismissing it.
+
+Before pressing an action that may be covered by an overlay or system UI:
+
+```bash
+agent-device snapshot -i
+agent-device screenshot --overlay-refs
+```
+
+Use a stable selector or a fresh `@eN` reference. Confirm the target is reported as hittable. Never use coordinates to bypass `interactionBlocked: "covered"`, `reason: "offscreen_ref"`, or `targetHittable: false`.
+
+When a target is rejected, capture `agent-device screenshot --overlay-refs`. Dismiss a recoverable LogBox overlay when present, capture a fresh `snapshot -i`, and retry only through a selector or fresh reference. Otherwise stop and report the blocker.
+
+After pressing the action, verify the expected destination or control state with `wait`, `is`, `find`, or a fresh snapshot.
+
 ### Canonical skill references
 
 Read these files directly for device automation guidance (bootstrap, exploration, verification, debugging): !`echo "$(npm root -g)/agent-device/skills/agent-device"`
 
 ## Flows
 
-Repeatable steps (sign-in, onboarding, etc.) are captured as composable `.ad` snippets under [`flows/`](flows/README.md). For interactive usage, propose and run only `flows/macros/` helpers. `flows/tests/` belongs to a separate QA workflow and must not be proposed by this skill; QA/perf runs execute them via `agent-device test <path>`.
+This skill owns interactive automation only: reusable setup and navigation macros under [`flows/macros/`](flows/README.md), with platform overrides under `flows/macros/<platform>/`. Propose and run macros through the [Agent decision loop](flows/README.md). `flows/README.md` is also the reference for the `.ad` metadata spec, selector rules, and recording workflow, so read it before authoring any `.ad` file in this repository.
+
+Measurement flows live in the [`measure-telemetry-span`](../measure-telemetry-span/SKILL.md) skill, which owns its own `flows/` and runner. Do not add measurement flows here.

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
@@ -155,8 +155,6 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
                         </PressableWithoutFeedback>
                         {!!action && (
                             <Button
-                                medium
-                                text={action.label}
                                 accessibilityLabel={action.label}
                                 sentryLabel="GrowlNotification-Action"
                                 onPress={() => {
@@ -168,10 +166,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, nonce, onDi
                                     action.onPress();
                                 }}
                                 innerStyles={styles.bgTransparent}
-                                textStyles={styles.growlNotificationActionText}
-                                shouldUseDefaultHover={false}
                                 hoverStyles={styles.growlNotificationActionHovered}
-                            />
+                            >
+                                <Button.Text style={styles.growlNotificationActionText}>{action.label}</Button.Text>
+                            </Button>
                         )}
                     </View>
                 </GestureDetector>

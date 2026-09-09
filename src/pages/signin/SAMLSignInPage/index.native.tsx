@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
+import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
@@ -22,6 +22,8 @@ import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+
+import handleSAMLLoginError from './handleSAMLLoginError';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -105,6 +107,11 @@ function SAMLSignInPage() {
         openAuthSessionAsync(SAMLUrl, CONST.SAML_REDIRECT_URL)
             .then((response: WebBrowserAuthSessionResult) => {
                 if (response.type !== 'success') {
+                    // The auth session closed without handing a callback URL back to the app (e.g. the in-app browser
+                    // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
+                    // we can distinguish "browser never returned a success result" from "returned but had no token"
+                    // (which is already logged in handleNavigationStateChange) when debugging SAML sign-in loops.
+                    Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {type: response.type});
                     handleExitSAMLFlow();
                     return;
                 }
