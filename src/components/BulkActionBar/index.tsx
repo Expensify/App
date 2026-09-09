@@ -59,7 +59,7 @@ function BulkActionBarContent<TValueType>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'ThreeDots', 'UpArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const moreAnchorRef = useRef<View | null>(null);
@@ -129,10 +129,6 @@ function BulkActionBarContent<TValueType>({
                         accessibilityLabel={translate('common.more')}
                         sentryLabel={CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE}
                     >
-                        <Button.Icon
-                            src={icons.ThreeDots}
-                            hoverFill={theme.iconMenuHovered}
-                        />
                         <Button.Text>{translate('common.more')}</Button.Text>
                         <Button.Icon src={isMoreMenuVisible ? icons.UpArrow : icons.DownArrow} />
                     </Button>
