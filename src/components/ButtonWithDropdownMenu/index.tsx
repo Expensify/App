@@ -70,6 +70,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         disabledStyle,
         size = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
+        shouldSwitchPositionIfOverflow = false,
         buttonRef,
         onPress,
         options,
@@ -90,9 +91,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        headerTextStyles,
         stayNormalOnDisable = false,
         brickRoadIndicator,
         sentryLabel,
+        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
@@ -337,11 +340,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
+                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pt4}
                     anchorAlignment={anchorAlignment}
+                    shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     enableEdgeToEdgeBottomSafeAreaPadding
                     headerText={menuHeaderText}
@@ -381,6 +386,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             shouldCallAfterModalHide: true,
                         })),
                     }))}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>
