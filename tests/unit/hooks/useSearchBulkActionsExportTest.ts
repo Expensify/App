@@ -377,6 +377,19 @@ function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POL
     };
 }
 
+/** A query scoped to the given workspaces, as "Select all matching" would export it. */
+function policyScopedQueryJSON(policyIDs: string[]): SearchQueryJSON {
+    return {
+        ...expenseReportQueryJSON,
+        flatFilters: [
+            {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                filters: policyIDs.map((policyID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID})),
+            },
+        ],
+    } as SearchQueryJSON;
+}
+
 /** A P2P (IOU) report from the search API. Personal expenses are reported under the user's personal policy, not a workspace. */
 function makeIOUSnapshotReport(): Report {
     return {
@@ -1507,19 +1520,6 @@ describe('useSearchBulkActions - export options', () => {
             expect(getIncludeMultipleTaxExportArgument()).toBe(false);
         });
 
-        /** A query scoped to the given workspaces, as "Select all matching" would export it. */
-        function policyScopedQueryJSON(policyIDs: string[]): SearchQueryJSON {
-            return {
-                ...expenseReportQueryJSON,
-                flatFilters: [
-                    {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                        filters: policyIDs.map((policyID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID})),
-                    },
-                ],
-            } as SearchQueryJSON;
-        }
-
         it('offers the template under select all when the query is scoped to CAD workspaces only', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {id: SECOND_POLICY_ID, outputCurrency: CONST.CURRENCY.CAD});
             mockAreAllMatchingItemsSelected = true;
@@ -1681,6 +1681,38 @@ describe('useSearchBulkActions - export options', () => {
                 expect(mockGetExportTemplates).toHaveBeenCalled();
             });
             expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template under select all when the query is not scoped to any workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            mockAreAllMatchingItemsSelected = true;
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            // Every loaded row is a workspace expense, but an unscoped query can still match a P2P expense further down the results
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('offers the template under select all when the query is scoped to workspaces', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            mockAreAllMatchingItemsSelected = true;
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: policyScopedQueryJSON([POLICY_ID])}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
         });
 
         it('offers the template when the user is a card-enabled workspace admin of any workspace, even if the selected rows belong to a workspace they are only a member of', async () => {

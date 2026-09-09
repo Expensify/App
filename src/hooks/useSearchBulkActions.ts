@@ -425,6 +425,14 @@ function shouldShowBulkDuplicateOption({
     });
 }
 
+/**
+ * Resolves the report a selection entry belongs to. An entry built from a search row carries that row's report, which is the only
+ * copy available when the report is in the search snapshot but not in live Onyx, so it is preferred over the Onyx lookup.
+ */
+function getSelectionItemReport(item: SelectedReports | SelectedTransactions[string], allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
+    return ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+}
+
 function getChatReportForBulkPay(
     iouReport: Report,
     chatReportID: string | undefined,
@@ -627,9 +635,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         return selectedItems.every((item) => {
             // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived
-            // fields on this selection entry. A selection entry built from a search row carries that row's report, which is the
-            // only copy available when the report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
-            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            // fields on this selection entry.
+            const report = getSelectionItemReport(item, allReports);
             const policyID = item.policyID ?? report?.policyID;
             if (!policyID) {
                 return false;
@@ -648,12 +655,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
+        // Only the loaded page is in the selection under select all, so the query's own workspace scope is what rules P2P expenses out.
+        if (areAllMatchingItemsSelected) {
+            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+            return !!policyIDFilter.value?.length && !policyIDFilter.isNegated;
+        }
+
         return [...selectedReports, ...Object.values(selectedTransactions)].every((item) => {
-            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-            const reportType = ('type' in item ? item.type : undefined) ?? report?.type;
+            const reportType = ('type' in item ? item.type : undefined) ?? getSelectionItemReport(item, allReports)?.type;
             return reportType !== CONST.REPORT.TYPE.IOU;
         });
-    }, [policies, allReports, selectedReports, selectedTransactions]);
+    }, [areAllMatchingItemsSelected, queryJSON, policies, allReports, selectedReports, selectedTransactions]);
 
     const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
