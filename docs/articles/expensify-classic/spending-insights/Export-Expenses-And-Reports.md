@@ -94,10 +94,10 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:type} | Would output "Expense Report" assuming that is the report's type.|
 | Reimbursable Total | Is the total amount that is reimbursable on the report.|
 | {report:reimbursable} | Would output $143.43 assuming the report's reimbursable total was 143.43 US Dollars.|
-| Debited Amount | Amount taken from the company bank account when the report was reimbursed across currencies. Empty if the report is not a cross-border reimbursement.|
+| Debited Amount | The amount taken from the company bank account when a report is reimbursed across currencies. It is empty until the report is reimbursed, and it stays empty when the reimbursement does not convert currencies. Use this formula in export templates. In a report title or a report field it always outputs nothing, because titles and fields lock in when a report is approved, before it is reimbursed.|
 | {report:debitedAmount} | Would output $82.50 assuming that is what the company was debited.|
-| Credited Amount | Amount deposited to the employee bank account when the report was reimbursed across currencies. Empty if the report is not a cross-border reimbursement.|
-| {report:creditedAmount} | Would output C$110.00 assuming that is what the employee received.|
+| Credited Amount | The amount deposited into the member's bank account when a report is reimbursed across currencies. It is empty until the report is reimbursed, and it stays empty when the reimbursement does not convert currencies. Use this formula in export templates. In a report title or a report field it always outputs nothing, because titles and fields lock in when a report is approved, before it is reimbursed.|
+| {report:creditedAmount} | Would output C$110.00 assuming that is what the member received.|
 | Currency | Is the currency to which all expenses on the report are being converted.|
 | {report:currency}  | Would output USD  assuming that the report total was calculated in US dollars.|
 || Note - Currency accepts an optional three character currency code or NONE. If you want to do any math operations on the report total, you should use {report:total:nosymbol} to avoid an error. Please see Expense:Amount for more information on currencies.|
