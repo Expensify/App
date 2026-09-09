@@ -8,7 +8,6 @@ import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useCompanyCardInlineEdit from '@hooks/useCompanyCardInlineEdit';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -133,7 +133,6 @@ function WorkspaceCompanyCardsTable({
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
-    const {canEditName, renameCard} = useCompanyCardInlineEdit({domainOrWorkspaceAccountID, bankName, canWriteCompanyCards});
 
     const hasOnceLoadedPage = !!companyCardsLoadingState?.hasOnceLoadedPage;
     const hasOnceLoadedSelectedFeed = !!bankName && !!companyCardsLoadingState?.feeds?.[bankName]?.hasOnceLoaded;
@@ -229,11 +228,13 @@ function WorkspaceCompanyCardsTable({
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
                   const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                  const customCardName = getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? '');
+                  const cardID = assignedCard?.cardID;
+                  const customCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? '');
+                  const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
 
                   return {
                       cardName,
-                      keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                      keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                       encryptedCardNumber,
                       customCardName,
                       isCardDeleted,
@@ -243,8 +244,9 @@ function WorkspaceCompanyCardsTable({
                       cardholder,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
-                      canEditName: canEditName && isAssigned && !isCardDeleted && !isSelectionModeActive,
-                      onRenameName: assignedCard?.cardID !== undefined ? (newName: string) => renameCard(String(assignedCard.cardID), customCardName, newName) : undefined,
+                      canEditName,
+                      onRenameName: (newName: string) =>
+                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName as NonNullable<typeof bankName>, customCardName),
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
               })
