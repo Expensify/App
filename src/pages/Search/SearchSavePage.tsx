@@ -43,7 +43,6 @@ type FilterValueProps = {
 };
 
 type ArrayFilterValueProps = {
-    /** The array-valued search filter displayed by this component. */
     value: Extract<SearchFilter['value'], string[]>;
 };
 

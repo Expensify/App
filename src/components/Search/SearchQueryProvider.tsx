@@ -18,7 +18,7 @@ import {defaultExpensifyCardSelector} from '@src/selectors/Card';
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue} from './types';
 
@@ -59,9 +59,8 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
-    // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
-    const {topSpendersPolicyIDs, shouldShowExpensifyCard} = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined), [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
+    const {shouldShowExpensifyCard} = getSuggestedSearchesVisibility(email, {}, policies, undefined);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, shouldShowExpensifyCard, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
