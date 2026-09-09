@@ -4,7 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {fileURLToPath} from 'node:url';
 
-import {IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../config/oxlint/reactCompilerRust.mjs';
+import {CONFIG_CATEGORY, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics} from '../config/oxlint/reactCompilerRust.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE_DIR = path.join(repoRoot, 'oxlint-migration/port-probe/fixtures');
@@ -89,7 +89,8 @@ check(
 console.log('\n2. the category tables cover the whole ErrorCategory enum in eslint-plugin-react-hooks');
 const bundle = fs.readFileSync(PLUGIN_BUNDLE, 'utf8');
 const enumCategories = [...bundle.matchAll(/ErrorCategory\["(\w+)"] = "\1"/g)].map((match) => match[1]);
-const known = new Set([...Object.keys(RULE_BY_CATEGORY), ...IGNORED_CATEGORIES]);
+// Config is in neither table on purpose: it is thrown on rather than mapped or ignored.
+const known = new Set([...Object.keys(RULE_BY_CATEGORY), ...IGNORED_CATEGORIES, CONFIG_CATEGORY]);
 const unmapped = enumCategories.filter((category) => !known.has(category));
 const phantom = [...known].filter((category) => !enumCategories.includes(category));
 check(enumCategories.length > 0, 'ErrorCategory enum found in the plugin bundle', `${enumCategories.length} categories`);

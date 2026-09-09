@@ -16,9 +16,26 @@ const RULE_BY_CATEGORY = {
     UnsupportedSyntax: 'unsupported-syntax',
 };
 
+// Upstream makes a Config diagnostic fatal regardless of `panicThreshold` (`should_panic` tests for it
+// before consulting the threshold) because it means the options handed to the compiler are wrong,
+// which is a bug in this file rather than a finding about the file being linted. It is therefore not
+// ignorable: ignoring it would turn a broken ENVIRONMENT into twelve rules that silently report
+// nothing on every file in the repo.
+const CONFIG_CATEGORY = 'Config';
+
+// Ignored because ESLint does not enable the rule each of these corresponds to, so surfacing them
+// would be oxlint-only noise rather than parity. Measured over src/ on 2026-09-09: CapitalizedCalls
+// fires 74 times across 49 files, Todo 21 across 19, EffectDerivationsOfState 12 across 11, and
+// Invariant 2 across 2, while ESLint reports 0 for capitalized-calls, todo,
+// no-deriving-state-in-effects and invariant because none of those four rules is switched on. Mapping
+// them to rc/* rules would add 109 findings ESLint does not have.
+//
+// They are not inert, though. Under `panicThreshold: 'all_errors'` any one of them aborts the
+// compile, and the abort is what carries the non-fatal categories out of the compiler at all. That is
+// why set-state-in-effect surfaces in some files and not others: CapitalizedCalls, at 49 files, is
+// the most common reason it escapes.
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',
-    'Config',
     'EffectDependencies',
     'EffectDerivationsOfState',
     'EffectExhaustiveDependencies',
@@ -128,7 +145,15 @@ function analyze(filename, sourceText) {
                 environment: ENVIRONMENT,
             },
         });
-    } catch {
+    } catch (error) {
+        // Malformed options are rejected at the binding rather than reported as a diagnostic, and the
+        // message is identical for every file, so swallowing it would make one bad edit to ENVIRONMENT
+        // look like a clean repo. Anything file-specific still yields [] and lets oxlint's own parser
+        // report the syntax error.
+        const message = error instanceof Error ? error.message : String(error);
+        if (/is none of these types|ReactCompilerOptions/.test(message)) {
+            throw new Error(`oxc-transform-react rejected this module's React Compiler options: ${message}`);
+        }
         return [];
     }
 
@@ -155,6 +180,11 @@ function analyze(filename, sourceText) {
             throw new Error(`React Compiler diagnostic with no category in its codeframe (${filename}): ${error.message ?? ''}`);
         }
         const category = match[1];
+        if (category === CONFIG_CATEGORY) {
+            throw new Error(
+                `oxc-transform-react rejected this module's React Compiler options while linting ${filename}: ${error.message ?? ''}. Fix ENVIRONMENT or the reactCompiler options in config/oxlint/reactCompilerRust.mjs.`,
+            );
+        }
         if (IGNORED_CATEGORIES.has(category)) {
             continue;
         }
@@ -184,4 +214,4 @@ function reactCompilerDiagnostics(filename, sourceText) {
     return cache.get(filename);
 }
 
-export {IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
+export {CONFIG_CATEGORY, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
