@@ -25,7 +25,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}]));
-jest.mock('@hooks/usePersonalPolicy', () => jest.fn(() => ({outputCurrency: undefined})));
+jest.mock('@hooks/usePersonalPolicy', () => jest.fn(() => ({outputCurrency: 'USD'})));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         mt5: {},
@@ -81,7 +81,7 @@ describe('BankAccountPurpose CountrySelection', () => {
         });
     });
 
-    it('preserves a compatible business draft and reuses its backend identity', async () => {
+    it('preselects a compatible business draft country and reuses its backend identity', async () => {
         mockedUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
                 return [{achData: {policyID: 'policy-1', bankAccountID: 123}}, {status: 'loaded'}];
@@ -103,9 +103,8 @@ describe('BankAccountPurpose CountrySelection', () => {
             </NavigationContainer>,
         );
 
-        act(() => {
-            mockedCountrySelectionList.mock.lastCall?.[0]?.onCountrySelected('LT');
-        });
+        expect(mockedCountrySelectionList.mock.lastCall?.[0]?.selectedCountry).toBe('LT');
+
         await act(async () => {
             mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm();
             jest.runOnlyPendingTimers();

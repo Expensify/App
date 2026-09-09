@@ -30,6 +30,14 @@ function CountrySelection() {
     const styles = useThemeStyles();
 
     const initialCountry = useMemo(() => {
+        const draftCountry = reimbursementAccountDraft?.country;
+        const isCompatibleDraftCountry =
+            !!draftCountry && CONST.BBA_SUPPORTED_COUNTRIES.includes(draftCountry) && reimbursementAccountDraft?.currency === CONST.BBA_COUNTRY_CURRENCY_MAP[draftCountry];
+
+        if (isCompatibleDraftCountry) {
+            return draftCountry;
+        }
+
         const outputCurrency = personalPolicy?.outputCurrency;
 
         if (!outputCurrency) {
@@ -58,11 +66,12 @@ function CountrySelection() {
         const isSupportedCountry = !!country && !!CONST.BBA_COUNTRY_CURRENCY_MAP[country];
 
         return isSupportedCountry ? country : '';
-    }, [personalPolicy?.outputCurrency, country]);
+    }, [reimbursementAccountDraft?.country, reimbursementAccountDraft?.currency, personalPolicy?.outputCurrency, country]);
 
-    const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
+    const [selectedCountry, setSelectedCountry] = useState<string>();
     const [shouldShowError, setShouldShowError] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
+    const resolvedSelectedCountry = selectedCountry ?? initialCountry;
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -70,13 +79,13 @@ function CountrySelection() {
     };
 
     const onConfirm = () => {
-        if (!selectedCountry) {
+        if (!resolvedSelectedCountry) {
             setShouldShowError(true);
             return;
         }
         startWithLoading(() => {
-            const selectedCurrency = CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry];
-            const shouldResume = reimbursementAccountDraft?.country === selectedCountry && reimbursementAccountDraft?.currency === selectedCurrency;
+            const selectedCurrency = CONST.BBA_COUNTRY_CURRENCY_MAP[resolvedSelectedCountry];
+            const shouldResume = reimbursementAccountDraft?.country === resolvedSelectedCountry && reimbursementAccountDraft?.currency === selectedCurrency;
 
             clearPersonalBankAccount();
             clearInternationalBankAccount();
@@ -84,7 +93,7 @@ function CountrySelection() {
             if (!shouldResume) {
                 clearReimbursementAccount();
                 clearReimbursementAccountDraft();
-                updateReimbursementAccountDraft({country: selectedCountry as Country, currency: selectedCurrency});
+                updateReimbursementAccountDraft({country: resolvedSelectedCountry as Country, currency: selectedCurrency});
             }
 
             const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;
@@ -103,7 +112,7 @@ function CountrySelection() {
 
     return (
         <CountrySelectionList
-            selectedCountry={selectedCountry}
+            selectedCountry={resolvedSelectedCountry}
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
             onConfirm={onConfirm}
