@@ -1,8 +1,9 @@
 import {render, screen} from '@testing-library/react-native';
 
 import ReportActionsPaginationLoadingIndicator, {
+    PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING,
     PAGINATION_LOADING_INDICATOR_HEIGHT,
-    PAGINATION_LOADING_INDICATOR_VERTICAL_PADDING,
+    PAGINATION_LOADING_INDICATOR_TOP_PADDING,
 } from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
 
 import type {ComponentType} from 'react';
@@ -31,9 +32,11 @@ describe('ReportActionsPaginationLoadingIndicator', () => {
                 alignItems: 'center',
                 height: PAGINATION_LOADING_INDICATOR_HEIGHT,
                 justifyContent: 'center',
-                paddingVertical: PAGINATION_LOADING_INDICATOR_VERTICAL_PADDING,
+                paddingBottom: PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING,
+                paddingTop: PAGINATION_LOADING_INDICATOR_TOP_PADDING,
             }),
         );
+        expect(PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING).toBe(PAGINATION_LOADING_INDICATOR_TOP_PADDING / 2);
         expect(screen.getByTestId(`${OLDER_TEST_ID}-spinner`, {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.queryByTestId(`${OLDER_TEST_ID}-skeleton`, {includeHiddenElements: true})).toBeNull();
 

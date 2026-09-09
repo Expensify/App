@@ -11,15 +11,17 @@ type ReportActionsPaginationLoadingIndicatorProps = {
     direction: PaginationDirection;
 };
 
-const PAGINATION_LOADING_INDICATOR_HEIGHT = 128;
-const PAGINATION_LOADING_INDICATOR_VERTICAL_PADDING = 48;
+const PAGINATION_LOADING_INDICATOR_HEIGHT = 96;
+const PAGINATION_LOADING_INDICATOR_TOP_PADDING = 48;
+const PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING = 24;
 
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
         height: PAGINATION_LOADING_INDICATOR_HEIGHT,
         justifyContent: 'center',
-        paddingVertical: PAGINATION_LOADING_INDICATOR_VERTICAL_PADDING,
+        paddingBottom: PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING,
+        paddingTop: PAGINATION_LOADING_INDICATOR_TOP_PADDING,
     },
 });
 
@@ -43,5 +45,5 @@ function ReportActionsPaginationLoadingIndicator({direction}: ReportActionsPagin
 }
 
 export default ReportActionsPaginationLoadingIndicator;
-export {PAGINATION_LOADING_INDICATOR_HEIGHT, PAGINATION_LOADING_INDICATOR_VERTICAL_PADDING};
+export {PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING, PAGINATION_LOADING_INDICATOR_HEIGHT, PAGINATION_LOADING_INDICATOR_TOP_PADDING};
 export type {PaginationDirection, ReportActionsPaginationLoadingIndicatorProps};
