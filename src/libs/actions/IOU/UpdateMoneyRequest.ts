@@ -363,7 +363,7 @@ function addMerchantRuleSuggestionRollback(
     if (!rollback) {
         return;
     }
-    onyxData.failureData = [...(onyxData.failureData ?? []), rollback];
+    onyxData.failureData?.push(rollback);
 }
 
 /** Updates the billable field of an expense */
