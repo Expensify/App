@@ -24,12 +24,17 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
     const {cardID} = route.params ?? {};
     const backTo = cardID ? undefined : ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS;
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
+    // A card imported from a spreadsheet is stored under the name the person gave it rather than an
+    // account number, and UploadOFX rejects a statement for one of those.
+    const isSpreadsheetCard = !!cardID && !!savedColumnLayouts?.[String(cardID)];
+
     const uploadStatement = async (file: FileObject) => {
-        const importFinalModal = await uploadOFXStatement(file, importedSpreadsheet?.importTransactionSettings ?? {}, accountID);
+        const importFinalModal = await uploadOFXStatement(file, importedSpreadsheet?.importTransactionSettings ?? {}, accountID, cardID ? Number(cardID) : undefined);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             return;
@@ -38,11 +43,10 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
         Navigation.dismissModal();
     };
 
-    // A card imported from a spreadsheet is stored under the name the person gave it rather than an
-    // account number, and UploadOFX rejects a statement for one of those.
     return (
         <ImportSpreadsheet
-            onStatementPicked={cardID ? undefined : uploadStatement}
+            shouldAllowBankStatements={!isSpreadsheetCard}
+            onStatementPicked={uploadStatement}
             backTo={backTo}
             goTo={ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.getRoute(cardID ? Number(cardID) : undefined)}
         />

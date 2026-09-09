@@ -10,7 +10,6 @@ import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Pol
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOFXStatement} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -47,11 +46,14 @@ type ImportSpreadsheetProps = {
     /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 
-    /** Uploads an OFX/QFX bank statement. Passing it is also what makes those files selectable. */
+    /** Whether an OFX/QFX bank statement can be picked alongside a spreadsheet */
+    shouldAllowBankStatements?: boolean;
+
+    /** Uploads a picked OFX/QFX bank statement */
     onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, onStatementPicked}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, shouldAllowBankStatements, onStatementPicked}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -84,7 +86,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         if (isImportingMultiLevelTags) {
             return CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS;
         }
-        if (onStatementPicked) {
+        if (shouldAllowBankStatements) {
             return [...CONST.ALLOWED_SPREADSHEET_EXTENSIONS, ...CONST.OFX_STATEMENT_EXTENSIONS];
         }
         return CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
@@ -111,6 +113,18 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             return;
         }
 
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+        const statementExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
+
+        // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
+        if (onStatementPicked && statementExtensions.includes(fileExtension.toLowerCase())) {
+            setIsReadingFile(true);
+            onStatementPicked(file).finally(() => {
+                setIsReadingFile(false);
+            });
+            return;
+        }
+
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
@@ -118,22 +132,9 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         if (Platform.OS === 'ios') {
             fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
 
         setIsReadingFile(true);
-
-        // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
-        if (onStatementPicked && isOFXStatement(file.name ?? '')) {
-            onStatementPicked(file)
-                .catch(() => {
-                    showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.importFailedDescription');
-                })
-                .finally(() => {
-                    setIsReadingFile(false);
-                });
-            return;
-        }
 
         import('xlsx')
             .then((XLSX) => {
@@ -199,7 +200,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         let text = '';
         if (isImportingMultiLevelTags) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetMultiLevelTag') : translate('spreadsheet.dragAndDropMultiLevelTag');
-        } else if (onStatementPicked) {
+        } else if (shouldAllowBankStatements) {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheetTransactions') : translate('spreadsheet.dragAndDropTransactions');
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
