@@ -19,5 +19,4 @@ function LegendList<TItem = unknown>({maintainVisibleContentPosition = false, re
     );
 }
 
-export type {LegendListProps, LegendListRef, LegendListRenderItem, LegendListRenderItemProps, ViewToken} from './types';
 export default LegendList;

@@ -2,8 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import LegendList from '@components/LegendList';
 import AnimatedLegendList from '@components/LegendList/AnimatedLegendList';
-
-import type {LegendListRef} from '@legendapp/list/react-native';
+import type {LegendListRef, LegendListRenderItem, LegendListRenderItemProps, ViewToken} from '@components/LegendList/types';
 
 import {LegendList as LibraryLegendList} from '@legendapp/list/react-native';
 import {createRef} from 'react';
@@ -11,15 +10,17 @@ import {View} from 'react-native';
 
 const DATA = ['first', 'second', 'third'];
 
-function renderItem({item}: {item: string}) {
+const renderItem: LegendListRenderItem<string> = ({item}: LegendListRenderItemProps<string>) => {
     return <View testID={item} />;
-}
+};
 
 describe('LegendList', () => {
     it('disables recycling and visible-position maintenance by default', () => {
+        const onViewableItemsChanged = jest.fn((info: {viewableItems: ViewToken[]}) => info.viewableItems);
         render(
             <LegendList
                 data={DATA}
+                onViewableItemsChanged={onViewableItemsChanged}
                 renderItem={renderItem}
                 testID="legend-list"
             />,
@@ -27,6 +28,7 @@ describe('LegendList', () => {
         const props = jest.mocked(LibraryLegendList).mock.lastCall?.[0];
 
         expect(props?.maintainVisibleContentPosition).toBe(false);
+        expect(props?.onViewableItemsChanged).toBe(onViewableItemsChanged);
         expect(props?.recycleItems).toBe(false);
     });
 
