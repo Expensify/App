@@ -20,13 +20,8 @@ import {View} from 'react-native';
 import type {WorkspaceMemberRowData} from '.';
 
 type WorkspaceMembersTableRowProps = {
-    /** The member item for the row */
     item: WorkspaceMemberRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the custom field 1 column is visible on web screens or not */

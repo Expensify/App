@@ -41,7 +41,6 @@ let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T>;
 
 type MultifactorAuthenticationContextValue = {
-    /** Execute a multifactor authentication scenario */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
 
     /**
