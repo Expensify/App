@@ -1204,7 +1204,11 @@ function getSuggestedSearchesVisibility(
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean} {
+): {
+    visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>;
+    hasEligibleGroupPolicies: boolean;
+    shouldShowExpensifyCard: boolean;
+} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -5518,6 +5522,11 @@ type GetHasOptionsConfig = {
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
+    /**
+     * Keep these values in the picker even when their workspace feature is off.
+     * Needed so a saved/query selection like has:tag is not cleared when toggling another option.
+     */
+    selectedValues?: readonly string[];
 };
 
 /**
@@ -5552,19 +5561,23 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
  * Options for the `has:` filter / autocomplete. Tag, Category, and Submitted violation are omitted when
  * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
+ * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyCategories, shouldShowAllOptions = false} = config;
+    const {policies, policyCategories, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
-            const {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation} = shouldShowAllOptions
+            const availability = shouldShowAllOptions
                 ? {
                       shouldShowTag: true,
                       shouldShowCategory: true,
                       shouldShowSubmittedViolation: true,
                   }
                 : getHasOptionAvailability(policies, policyCategories);
+            const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
             return [
                 {
                     text: translate('common.receipt'),

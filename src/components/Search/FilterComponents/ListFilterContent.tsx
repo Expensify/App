@@ -90,11 +90,15 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const selectedValues = value as string[];
+    // Include already-selected values even when the matching workspace feature is off, otherwise
+    // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
         policyCategories,
+        selectedValues,
     });
-    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
+    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
     return (
         <MultiSelect

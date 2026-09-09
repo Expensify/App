@@ -13840,6 +13840,25 @@ describe('SearchUIUtils', () => {
             expect(result).toEqual([receipt, attachment, submittedViolation]);
         });
 
+        test('keeps already-selected Tag/Category/Submitted violation when those workspace features are off', () => {
+            const {receipt, attachment, tag, category, submittedViolation} = getExpenseHasOptions();
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                    areRulesEnabled: false,
+                },
+            };
+
+            const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {
+                policies,
+                selectedValues: [CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.CATEGORY, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+            });
+
+            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation]);
+        });
+
         test('returns chat has options without submitted violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
 
