@@ -47,8 +47,6 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
         return null;
     }
 
-    console.log({bottomPadding});
-
     return (
         <Portal hostName="suggestions">
             {/* Zero-cost probe filling the portal host, so the host's position in the window is known before positioning the suggestions. */}

@@ -193,8 +193,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         return null;
     }
 
-    console.log({isMenuAbove: containerState.isMenuAbove});
-
     return (
         <AutoCompleteSuggestionsPortal
             {...props}
