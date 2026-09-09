@@ -1,4 +1,3 @@
-import SidePanelActions from '@libs/actions/SidePanel';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -61,7 +60,7 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
 /**
  * Handles navigation for RHP experiment variants (B/C/D):
  * Variants B and C navigate to the workspace overview, Variant D navigates to home.
- * All variants open the side panel without overlay.
+ * The side panel stays closed. The variant still picks the destination, and what the panel shows once the user opens it.
  * The control variant is handled separately in navigateAfterOnboarding.
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride, navigationOptions) => {
@@ -71,7 +70,6 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
         if (!shouldPreserveRevealedReport) {
             Navigation.navigate(ROUTES.HOME, navigationOptions);
         }
-        SidePanelActions.openSidePanel(true);
         return;
     }
 
@@ -85,7 +83,6 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
     } else {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID), navigationOptions);
     }
-    SidePanelActions.openSidePanel(true);
 };
 
 export {shouldOpenRHPVariant, handleRHPVariantNavigation};

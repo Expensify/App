@@ -68,29 +68,39 @@ describe('handleRHPVariantNavigation', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
     it('navigates home for the rhpHomePage variant when no report is topmost', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
-    it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
+    it.each([CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM])(
+        'navigates to the workspace overview for the %s variant without opening the side panel',
+        (variant) => {
+            handleRHPVariantNavigation('policyID', variant);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute('policyID'), undefined);
+            expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
+        },
+    );
+
+    it('preserves the topmost report for the trackExpensesWithConcierge variant without opening the side panel', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
 
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
     it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 });

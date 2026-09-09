@@ -209,6 +209,7 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
+import SidePanelActions from '@userActions/SidePanel';
 import {getChangeTransactionsReportOnyxData} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -5966,6 +5967,13 @@ async function completeOnboarding({
     }
 
     const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, optimisticConciergeReportActionID} = onboardingData;
+
+    // Close the side panel before onboarding is marked complete, so a state saved open by an earlier session on this device
+    // is not shown while the request is pending. The onboarding exits no longer open it. The invite-link payment flow
+    // (completePaymentOnboarding) also comes through here but does not mark onboarding complete, so it keeps the panel as is.
+    if (!wasInvited) {
+        SidePanelActions.dismissSidePanel();
+    }
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,

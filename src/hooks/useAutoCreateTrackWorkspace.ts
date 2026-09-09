@@ -120,7 +120,7 @@ function useAutoCreateTrackWorkspace() {
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
-                    // Every Track onboarding choice should land in the Concierge RHP, but the backend
+                    // Every Track onboarding choice should use the Concierge variant, but the backend
                     // doesn't reliably return trackExpensesWithConcierge for all of them, so fall back to it
                     // whenever the response omits a variant.
                     if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
