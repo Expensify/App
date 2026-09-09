@@ -18,7 +18,6 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     findVendorByID,
@@ -156,7 +155,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
 function getForExpenseMovedFromSelfDM(
     translate: LocalizedTranslate,
     destinationReport: OnyxEntry<Report>,
-    currentUserLogin: string,
+    currentUserAccountID: number | undefined,
     policy: OnyxEntry<Policy>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
@@ -168,7 +167,6 @@ function getForExpenseMovedFromSelfDM(
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport, translate})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate, formatPhoneNumber});
@@ -194,12 +192,12 @@ function getMovedFromOrToReportMessage(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
-    currentUserLogin: string,
+    currentUserAccountID: number | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy, formatPhoneNumber);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserAccountID, policy, formatPhoneNumber);
     }
 
     if (movedFromReport) {
@@ -283,6 +281,7 @@ function getForReportAction({
     movedToReport,
     policyTags,
     policyCategories,
+    currentUserAccountID,
     currentUserLogin,
     reportAttributes,
     formatPhoneNumber,
@@ -298,6 +297,7 @@ function getForReportAction({
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
     policyCategories?: OnyxEntry<PolicyCategories>;
+    currentUserAccountID: number | undefined;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -306,7 +306,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, formatPhoneNumber, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, formatPhoneNumber, movedFromReport, movedToReport, currentUserAccountID, policy, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

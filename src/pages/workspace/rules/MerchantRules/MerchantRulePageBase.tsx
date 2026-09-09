@@ -33,12 +33,13 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -438,36 +439,31 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         startWithLoading(() => saveRule());
     };
 
-    const handleDelete = () => {
-        if (!canWriteRules) {
-            return;
-        }
+    const deleteRule = () => {
         if (!policy) {
-            return;
+            return false;
         }
-        if (!ruleID && !editCategoryTaxRuleFor) {
-            return;
+        setIsClosing(true);
+        if (editCategoryTaxRuleFor) {
+            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
+        } else if (ruleID) {
+            deletePolicyCodingRule(policy, ruleID);
         }
-
-        showConfirmModal({
-            title: translate('workspace.rules.merchantRules.deleteRule'),
-            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            setIsClosing(true);
-            if (editCategoryTaxRuleFor) {
-                deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
-            } else if (ruleID) {
-                deletePolicyCodingRule(policy, ruleID);
-            }
-            Navigation.goBack();
-        });
+        return true;
     };
+
+    // A category tax rule is its category, so it carries no pending state of its own. Only a merchant rule can
+    // already be on its way out. Declared above the not-found returns below, since a hook can't run conditionally.
+    const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const canDeleteRule = canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule);
+
+    // This page is reachable without the revamp beta, from the classic rules page, so the trashcan is gated the way
+    // the reset button beside it already is. Without the beta the labelled footer button below stays instead.
+    const {deleteHeaderProps, confirmDelete} = useRuleDeleteHeaderProps({
+        canDelete: canDeleteRule && isRulesRevampEnabled,
+        onDelete: deleteRule,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE,
+    });
 
     const sections: SectionType[] = [
         {
@@ -518,12 +514,14 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                 ...(hasTags()
                     ? policyTags
                           .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
-                          .map(({name, orderWeight}) => {
+                          .map(({name, orderWeight, tags}) => {
                               const formTag = formTags.at(orderWeight);
+                              const matchedTag = formTag ? findPolicyTagAtLevel(tags, formTag, formTags.slice(0, orderWeight).join(':')) : undefined;
+                              const isTagAvailable = !!matchedTag && matchedTag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                               return {
                                   key: `tag-${name}-${orderWeight}`,
                                   description: name,
-                                  title: formTag ? getCleanedTagName(formTag) : undefined,
+                                  title: isTagAvailable && formTag ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
                                   icon: getItemIcon(icons.Tag),
                               };
@@ -644,10 +642,12 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
                         </Button>
                     )}
-                    {(isEditing || canDeleteCategoryTaxRule) && (
+                    {/* Pre-revamp this delete was a labelled button here rather than the header trashcan, and this page
+                        is still reachable without the beta, so that is what those admins keep seeing. */}
+                    {canDeleteRule && !isRulesRevampEnabled && (
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={handleDelete}
+                            onPress={confirmDelete}
                             style={[styles.mb4]}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
                         >
@@ -714,7 +714,10 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}>
+                <HeaderWithBackButton
+                    title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)}
+                    {...deleteHeaderProps}
+                >
                     {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
                         switch condition type, which the two storage shapes can't express as one edit. */}
                     {canWriteRules && isRulesRevampEnabled && !isEditingSavedRule && (hasMerchantCondition || hasCategoryCondition) && (

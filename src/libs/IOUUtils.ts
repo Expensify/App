@@ -507,11 +507,20 @@ function getInitialPerDiemTargetReport(
 /**
  * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
  */
-function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>, optimisticChatReportID?: string) {
     const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
-    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
-    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
-    return {optimisticChatReportID, chatReportID};
+    if (existingChat?.reportID) {
+        return {optimisticChatReportID: undefined, chatReportID: existingChat.reportID};
+    }
+
+    const chatReportID = optimisticChatReportID ?? generateReportID();
+    return {optimisticChatReportID: chatReportID, chatReportID};
+}
+
+/** Returns `transactionReportID` if the participant isn't a workspace and has no existing chat, so the ID can be reused for their new chat report; otherwise undefined. */
+function getReusableP2PReportID(participant: Participant, transactionReportID: string | undefined): string | undefined {
+    const isBrandNewP2PRecipient = !participant.isPolicyExpenseChat && !participant.reportID;
+    return isBrandNewP2PRecipient && !!transactionReportID && transactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transactionReportID : undefined;
 }
 
 /**
@@ -672,6 +681,7 @@ export {
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
+    getReusableP2PReportID,
     isParticipantP2P,
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,

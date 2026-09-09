@@ -25,6 +25,7 @@ type LocalNotificationModifiedExpenseParams = {
     onClick: LocalNotificationClickHandler;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    currentUserAccountID: number | undefined;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
