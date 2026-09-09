@@ -20,10 +20,6 @@ jest.mock('@components/RenderHTML', () => ({
     },
 }));
 
-jest.mock('@components/EnvironmentContextProvider', () => ({
-    useEnvironmentActions: () => ({adjustExpensifyLinksForEnv: (html: string) => html}),
-}));
-
 jest.mock('@components/ReportActionItem/ActionableItemButtons', () => () => null);
 jest.mock('@components/ButtonComposed', () => {
     function MockButton() {
