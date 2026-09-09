@@ -28,8 +28,6 @@ import {renamePolicyCategory} from './Category';
 import {updateWorkspaceMembersRole} from './Member';
 import {renamePolicyTag} from './Tag';
 
-// #region Categories
-
 /**
  * Renames a category from an inline table edit. Sanitizes the input and delegates to the canonical
  * rename action. Silently no-ops when the name is unchanged or fails validation (matching the Spend
@@ -44,10 +42,6 @@ function renameCategoryInline(policyData: PolicyData, currentName: string, newNa
 
     renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized});
 }
-
-// #endregion Categories
-
-// #region Tags
 
 /**
  * Renames a single-level tag from an inline table edit. `oldName` is the raw (escaped) tag name used as
@@ -67,10 +61,6 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
     renamePolicyTag(policyData, {oldName, newName: sanitized}, 0);
 }
 
-// #endregion Tags
-
-// #region Company Cards
-
 /**
  * Renames a company card from an inline table edit. Sanitizes the input and delegates to the canonical
  * rename action. Silently no-ops when the name is unchanged or fails validation (matching the Spend
@@ -86,10 +76,6 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, currentName);
 }
 
-// #endregion Company Cards
-
-// #region Expensify Cards
-
 /**
  * Renames an Expensify card from an inline table edit. Delegates to the canonical rename action
  * without extra sanitization, matching the RHP edit form. Silently no-ops when the name is
@@ -103,10 +89,6 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
 
     updateExpensifyCardTitle(workspaceAccountID, cardID, newName, currentName);
 }
-
-// #endregion Expensify Cards
-
-// #region Members
 
 function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
     switch (role) {
@@ -136,7 +118,5 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
-
-// #endregion Members
 
 export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, updateMemberRoleInline};
