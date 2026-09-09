@@ -2,7 +2,8 @@
  * Renders the natural-language ("Describe your search") input that parses a plain-English
  * query into a structured search URL and navigates the user to the results.
  */
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import Button from '@components/ButtonComposed';
+import FormHelpMessage from '@components/FormHelpMessage';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -89,15 +90,22 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 />
             </View>
-            <FormAlertWithSubmitButton
-                buttonText={translate('search.filters.describeSearch.buttonText')}
-                containerStyles={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}
-                isLoading={isLoading}
-                isAlertVisible={!!errorMessage}
-                message={errorMessage}
-                onSubmit={handleSubmit}
-                isDisabled={!nlQuery.trim() || isLoading}
-            />
+            <View style={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}>
+                <FormHelpMessage
+                    isError
+                    message={errorMessage}
+                />
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    isLoading={isLoading}
+                    isDisabled={!nlQuery.trim() || isLoading}
+                    onPress={handleSubmit}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('search.filters.describeSearch.buttonText')}</Button.Text>
+                </Button>
+            </View>
         </View>
     );
 }
