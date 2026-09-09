@@ -29,13 +29,8 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Style applied to the avatar. Defaults to centering it within the parent. */
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Executed on click */
     onPress: () => void;
-
-    /** Ref of the anchor */
     anchorRef?: RefObject<View | HTMLDivElement | null>;
-
-    /** The avatar to display. */
     avatar: React.ReactNode;
 
     /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */
@@ -44,7 +39,6 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
-    /** Additional style props for the edit icon */
     editIconStyle?: StyleProp<ViewStyle>;
 
     /** The type of action that's pending  */
