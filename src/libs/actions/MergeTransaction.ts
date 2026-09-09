@@ -420,6 +420,9 @@ type MergeTransactionRequestParams = {
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    sourceIOUActionThreadReport: OnyxEntry<Report>;
+    sourceActionIOUReport: OnyxEntry<Report>;
+    sourceActionChatReport: OnyxEntry<Report>;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -454,6 +457,9 @@ function mergeTransactionRequest({
     sourceIOUAction,
     getCurrencyDecimals,
     getCurrencySymbol,
+    sourceIOUActionThreadReport,
+    sourceActionIOUReport,
+    sourceActionChatReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -625,6 +631,9 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                iouReport: sourceActionIOUReport,
+                chatReport: sourceActionChatReport,
+                transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
@@ -656,6 +665,7 @@ function mergeTransactionRequest({
                 actionableWhisperReportActionID,
                 resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                 shouldRemoveIOUTransaction: false,
+                transactionThread: sourceIOUActionThreadReport,
             });
 
             sourceTransactionOptimisticData.push(...optimisticData);

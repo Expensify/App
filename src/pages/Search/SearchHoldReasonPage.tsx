@@ -9,6 +9,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
@@ -24,6 +25,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
@@ -44,9 +48,23 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
     const [selectedTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(relevantTransactionIDs)});
+    // selectedTransactionIDs can be different from selectedtransactions so we need to use data from onyx
+    const [selectedTransactionsOnyx] = useTransactionsByID(selectedTransactionIDs);
+    const selectedTransactionReports = selectedTransactionsOnyx?.reduce(
+        (reportCollection, selectedTransaction) => {
+            if (!selectedTransaction.transactionID) {
+                return reportCollection;
+            }
+            // eslint-disable-next-line no-param-reassign
+            reportCollection[selectedTransaction.transactionID] = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedTransaction?.reportID}`];
+            return reportCollection;
+        },
+        {} as Record<string, OnyxEntry<Report>>,
+    );
     const {isOffline} = useNetwork();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -65,36 +83,41 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (isBulkHold) {
-                putTransactionsOnHold(
-                    selectedTransactionIDs,
+                putTransactionsOnHold({
+                    transactionsID: selectedTransactionIDs,
+                    allReports,
+                    transactionReports: selectedTransactionReports,
                     comment,
                     reportID,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
-                    selectedTransactionViolations,
+                    allTransactionViolations: selectedTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     ancestors,
-                );
+                });
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                    const transactionReportID = selectedTransactions[transactionID].transaction?.reportID;
                     const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putOnHold(
+                    putOnHold({
                         transactionID,
                         comment,
-                        transactionThreadReportID,
+                        initialReportID: transactionThreadReportID,
+                        initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
+                        transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`],
                         isOffline,
-                        currentUserLogin ?? '',
+                        currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         ancestors,
-                    );
+                    });
                 }
                 clearSelectedTransactions();
             }
@@ -116,6 +139,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactionViolations,
             isTrackIntentUser,
             delegateAccountID,
+            allReports,
+            selectedTransactionReports,
         ],
     );
 

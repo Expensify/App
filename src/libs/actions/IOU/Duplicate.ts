@@ -63,7 +63,7 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
+import {getAllTransactions, getCurrentUserAccountIDFromSession} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
@@ -179,6 +179,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesParams & {
     taxValue?: string;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
+    allReportsList: OnyxCollection<OnyxTypes.Report>;
 };
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
@@ -190,11 +191,11 @@ function mergeDuplicates({
     taxValue,
     allTransactionViolations,
     allReportActionsList,
+    allReportsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData = buildOptimisticTransactionData({
@@ -246,7 +247,7 @@ function mergeDuplicates({
         };
     });
 
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const expenseReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
 
     // Group each discarded duplicate's IOU action and amount by its own source report so the
     // soft-delete MERGE and total decrement target the correct keys when duplicates span reports.
@@ -273,7 +274,7 @@ function mergeDuplicates({
     const cleanUpTransactionThreadReportsSuccessData = [];
     const cleanUpTransactionThreadReportsFailureData = [];
     for (const [sourceReportID, {amount, reimbursableAmount, actions}] of sources) {
-        const sourceReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
+        const sourceReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
         const sourceReimbursableTotal = getReimbursableTotal(sourceReport);
         expenseReportOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -301,6 +302,10 @@ function mergeDuplicates({
         let updatedReportPreviewAction;
         for (const [index, iouAction] of actions.entries()) {
             const transactionThreadID = iouAction.childReportID;
+            const transactionThread = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
+            const iouReportID = isMoneyRequestAction(iouAction) ? iouAction?.reportID : undefined;
+            const iouReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+            const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
             const cleanUp = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID,
                 shouldDeleteTransactionThread: !!transactionThreadID,
@@ -308,6 +313,9 @@ function mergeDuplicates({
                 updatedReportPreviewAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: index === actions.length - 1,
                 currentUserAccountID,
+                transactionThread,
+                iouReport,
+                chatReport,
                 transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);

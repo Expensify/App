@@ -45,6 +45,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${holdReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
@@ -77,18 +78,20 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
             return;
         }
 
-        putOnHold(
+        putOnHold({
             transactionID,
-            values.comment,
-            holdReportID,
+            comment: values.comment,
+            initialReportID: holdReportID,
+            initialReport: report,
+            transactionReport,
             isOffline,
-            currentUserLogin ?? '',
+            currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             transactionViolations,
             isTrackIntentUser,
             delegateAccountID,
             ancestors,
-        );
+        });
         Navigation.goBack(backPath);
     };
 

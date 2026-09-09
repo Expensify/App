@@ -49,20 +49,34 @@ import {getAllReports, getAllTransactions} from '.';
 /**
  * Put expense on HOLD
  */
-function putOnHold(
-    transactionID: string,
-    comment: string,
-    initialReportID: string | undefined,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    ancestors: Ancestor[] = [],
-) {
+function putOnHold({
+    transactionID,
+    comment,
+    initialReportID,
+    initialReport,
+    transactionReport,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    ancestors = [],
+}: {
+    transactionID: string;
+    comment: string;
+    initialReportID: string | undefined;
+    initialReport: OnyxEntry<OnyxTypes.Report>;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    ancestors?: Ancestor[];
+}) {
     const allTransactions = getAllTransactions();
-    const allReports = getAllReports();
 
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
@@ -71,14 +85,14 @@ function putOnHold(
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const updatedViolations = [...(transactionViolations ?? []), newViolation];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const iouReport = transactionReport;
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
     let transactionThreadReport: OnyxTypes.Report;
 
     // If there is no existing transaction thread report, we should create one
     // This way we ensure every held request has a dedicated thread for comments
     if (initialReportID) {
-        transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${initialReportID}`] ?? ({} as OnyxTypes.Report);
+        transactionThreadReport = initialReport ?? ({} as OnyxTypes.Report);
     } else {
         const moneyRequestReport = getReportOrDraftReport(transaction?.reportID);
         transactionThreadReport = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
@@ -341,22 +355,50 @@ function putOnHold(
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(
-    transactionsID: string[],
-    comment: string,
-    reportID: string,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    ancestors: Ancestor[] = [],
-) {
+function putTransactionsOnHold({
+    transactionsID,
+    allReports,
+    transactionReports,
+    comment,
+    reportID,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    allTransactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    ancestors = [],
+}: {
+    transactionsID: string[];
+    allReports: OnyxCollection<OnyxTypes.Report>;
+    transactionReports: Record<string, OnyxEntry<OnyxTypes.Report>>;
+    comment: string;
+    reportID: string;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    ancestors?: Ancestor[];
+}) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
+        putOnHold({
+            transactionID,
+            comment,
+            initialReportID: childReportID,
+            initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
+            transactionReport: transactionReports[transactionID],
+            isOffline,
+            currentUserLogin,
+            currentUserAccountID,
+            transactionViolations,
+            isTrackIntentUser,
+            delegateAccountID,
+            ancestors,
+        });
     }
 }
 
