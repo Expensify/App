@@ -55,7 +55,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
         card: Card;
-        value: string;
     };
 
 type SpendRuleCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
@@ -134,7 +133,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
-    const fullListData: ExpensifyCardListItem[] = sortCards(eligibleCards).map((card) => {
+    const sortedCards = sortCards(eligibleCards).map((card) => ({...card, value: String(card.cardID)}));
+    const orderedCards = moveInitialSelectionToTop(sortedCards, initialSelectedCardIDs);
+
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const [inputValue, setInputValue, filteredCards] = useSearchResults(orderedCards, filterCard);
+
+    const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const cardOwnerPersonalDetails = personalDetails?.[accountID] ?? undefined;
         const cardName = card.nameValuePairs?.cardTitle;
@@ -147,7 +152,6 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         });
         return {
             keyForList: String(card.cardID),
-            value: String(card.cardID),
             text: displayName !== '' ? displayName : (cardName ?? ''),
             accountID,
             card,
@@ -160,13 +164,6 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             },
         };
     });
-
-    // Pin the frozen initial selection to the top of the full list before searching, so pre-selected cards stay pinned.
-    const orderedFullListData = moveInitialSelectionToTop(fullListData, initialSelectedCardIDs);
-
-    // Filter the already-pinned list on search (identity sort keeps the pinned order intact).
-    const filterCard = (item: ExpensifyCardListItem, searchInput: string) => filterCardsByPersonalDetails(item.card, searchInput, personalDetails);
-    const [inputValue, setInputValue, listData] = useSearchResults(orderedFullListData, filterCard);
 
     useEffect(() => {
         if (expensifyCardSettings) {

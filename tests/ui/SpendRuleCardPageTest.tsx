@@ -136,9 +136,9 @@ describe('SpendRuleCardPage', () => {
         renderPage();
 
         const props = getSelectionListProps();
-        expect(props?.data.slice(0, 2).map((card) => card.value)).toEqual(['5', '9']);
+        expect(props?.data.slice(0, 2).map((card) => card.keyForList)).toEqual(['5', '9']);
         // Card 1 would be first if nothing were pinned.
-        expect(props?.data.at(0)?.value).not.toBe('1');
+        expect(props?.data.at(0)?.keyForList).not.toBe('1');
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
     });
@@ -153,7 +153,7 @@ describe('SpendRuleCardPage', () => {
         });
 
         const props = getSelectionListProps();
-        expect(props?.data.map((card) => card.value)).toEqual(['12', '2']);
+        expect(props?.data.map((card) => card.keyForList)).toEqual(['12', '2']);
     });
 
     it('does not reorder when the card list is under the item-limit threshold', () => {
@@ -164,6 +164,6 @@ describe('SpendRuleCardPage', () => {
 
         const props = getSelectionListProps();
         // Below the threshold moveInitialSelectionToTop is a no-op, so the natural order is preserved.
-        expect(props?.data.at(0)?.value).toBe('1');
+        expect(props?.data.at(0)?.keyForList).toBe('1');
     });
 });
