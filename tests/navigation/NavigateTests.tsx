@@ -609,4 +609,52 @@ describe('Navigate', () => {
             expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('on the wide layout', () => {
+        beforeEach(() => {
+            mockedGetIsNarrowLayout.mockReturnValue(false);
+            mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+        });
+
+        it('keeps the Workspace sidebar while removing the internal sidebar marker', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [{name: SCREENS.WORKSPACES_LIST}],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+            expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
+            expect(workspaceSplitState?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
+        });
+    });
 });
