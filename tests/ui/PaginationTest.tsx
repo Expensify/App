@@ -85,7 +85,18 @@ function triggerListLayout(reportID?: string) {
         persist: () => {},
     });
 
-    fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
+    fireEvent(within(report).getByTestId('report-actions-list-viewport'), 'onLayout', {
+        nativeEvent: {
+            layout: {
+                x: 0,
+                y: 0,
+                ...LIST_SIZE,
+            },
+        },
+    });
+
+    const reportActionsList = within(report).getByTestId('report-actions-list');
+    fireEvent(reportActionsList, 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
 }
 
 function getReportActions(reportID?: string) {
@@ -173,26 +184,31 @@ function mockGetOlderActions(messageCount: number) {
                           },
                       ]
                     : [],
-            hasOlderActions: comments['1'] != null,
+            hasOlderActions: !comments['1'],
         };
     });
 }
 
-function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
-        onyxData:
-            reportID === REPORT_ID
-                ? [
-                      {
-                          onyxMethod: 'merge',
-                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                          // The API also returns the action that was requested with the reportActionID.
-                          value: buildReportComments(messageCount + 1, reportActionID, true),
-                      },
-                  ]
-                : [],
-        hasNewerActions: messageCount > 0,
-    }));
+function mockGetNewerActions(...messageCounts: number[]) {
+    let callIndex = 0;
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => {
+        const messageCount = messageCounts[Math.min(callIndex, messageCounts.length - 1)];
+        callIndex += 1;
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              // The API also returns the action that was requested with the reportActionID.
+                              value: buildReportComments(messageCount + 1, reportActionID, true),
+                          },
+                      ]
+                    : [],
+            hasNewerActions: messageCount > 0,
+        };
+    });
 }
 
 async function fastSignInWithTestUser() {
@@ -360,7 +376,7 @@ describe('Pagination', () => {
 
     it('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
-        mockGetNewerActions(5);
+        mockGetNewerActions(5, 0);
 
         await signInAndGetApp();
         await navigateToSidebarOption(COMMENT_LINKING_REPORT_ID);
@@ -370,24 +386,18 @@ describe('Pagination', () => {
         await waitFor(() => {
             jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd();
         });
-        // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
-        // we need to scroll too to trigger `onEndReached` which triggers other updates
-        scrollToOffset(LIST_END_OFFSET);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
+        scrollToOffset(LIST_END_OFFSET);
+        await waitForNetworkPromises();
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2));
         await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
-        // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
+        // The first newer page advances the cursor while the viewport remains at the boundary, so pagination
+        // requests the next page and stops when the backend reports that there are no more newer actions.
         expect(getReportActions()).toHaveLength(10);
-
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
-
-        // There is 1 extra call here because of the comment linking report.
-
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
