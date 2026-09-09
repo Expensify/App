@@ -3740,10 +3740,10 @@ ${amount} voor ${merchant} - ${date}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantieplaatsvervanger voor ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> is geen lid van deze werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> is geen lid van deze werkruimtes. Wil je diegene nu uitnodigen?`,
+                `<strong>${email}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> is geen lid van de onderstaande werkruimtes. Wil je diegene nu uitnodigen?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> is geen lid van deze werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen. Wil je diegene nu uitnodigen voor de werkruimtes waar je beheerder van bent?`,
+                `<strong>${email}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen. Wil je diegene nu uitnodigen voor de werkruimtes waar je beheerder van bent?`,
             youAreAMemberOf: 'Je bent lid van deze werkruimtes:',
             youAreAnAdminOf: 'Je bent beheerder van deze werkruimtes:',
         },

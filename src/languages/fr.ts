@@ -3764,10 +3764,10 @@ ${amount} pour ${merchant} - ${date}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `à ${submittedToName} en tant que délégué de congés pour ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Voulez-vous l'inviter maintenant ?`,
+                `<strong>${email}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> n'est pas membre des espaces de travail ci-dessous. Voulez-vous l'inviter maintenant ?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> n'est pas membre de ces espaces de travail. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
+                `<strong>${email}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
             youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
             youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
         },

@@ -3729,10 +3729,10 @@ ${amount} para ${merchant} - ${date}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `para ${submittedToName} como delegado(a) de férias de ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> não é membro desses workspaces. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a).`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> não é membro desses workspaces. Deseja convidá-lo(a) agora?`,
+                `<strong>${email}</strong> não é membro dos workspaces abaixo. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a).`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> não é membro dos workspaces abaixo. Deseja convidá-lo(a) agora?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> não é membro desses workspaces. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a). Deseja convidá-lo(a) agora para os workspaces em que você é admin?`,
+                `<strong>${email}</strong> não é membro dos workspaces abaixo. Os admins dos workspaces que você não gerencia serão solicitados a adicioná-lo(a). Deseja convidá-lo(a) agora para os workspaces em que você é admin?`,
             youAreAMemberOf: 'Você é membro destes workspaces:',
             youAreAnAdminOf: 'Você é admin destes workspaces:',
         },

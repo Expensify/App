@@ -42,6 +42,10 @@ const MEMBER_POLICY_ID = 'memberPolicy';
 const ADMIN_POLICY_ID = 'adminPolicy';
 const SECOND_ADMIN_POLICY_ID = 'secondAdminPolicy';
 
+const DELEGATE_ACCOUNT_ID = 2;
+const EXISTING_CHAT_REPORT_ID = 'existingExpenseChat';
+const ARCHIVED_EXPENSE_REPORT_ID = 'archivedExpenseReport';
+
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 let mockPreventRemoveCallback: Parameters<typeof ReactNavigation.usePreventRemove>[1] | undefined;
 
@@ -95,6 +99,32 @@ function getInviteOnyxData(calls: ApiWriteCall[]): InviteOnyxData[] {
 
 function hasPersonalDetailsUpdate(updates: Array<{key: string}> | undefined) {
     return !!updates?.some((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+}
+
+/**
+ * Seeds a policy expense chat the delegate already owns in ADMIN_POLICY_ID, holding a report preview of an
+ * archived expense report. Re-inviting them has to un-archive that preview's child report, which is only
+ * reachable through the report actions the page hands to addMembersToWorkspace.
+ */
+async function seedExistingDelegateExpenseChat() {
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_CHAT_REPORT_ID}`, {
+            reportID: EXISTING_CHAT_REPORT_ID,
+            policyID: ADMIN_POLICY_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            ownerAccountID: DELEGATE_ACCOUNT_ID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXISTING_CHAT_REPORT_ID}`, {
+            previewAction: {
+                reportActionID: 'previewAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: ARCHIVED_EXPENSE_REPORT_ID,
+                created: '2024-01-01 00:00:00.000',
+            },
+        });
+    });
+    await waitForBatchedUpdatesWithAct();
 }
 
 function VacationDelegateSelectionPage() {
@@ -278,6 +308,29 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
             expect.objectContaining({employees: expect.stringContaining(DELEGATE_EMAIL), reportCreationData: expect.stringContaining(DELEGATE_EMAIL)}),
             expect.anything(),
         );
+    });
+
+    it('reuses the expense chat the delegate already owns and un-archives its report previews', async () => {
+        await seedExistingDelegateExpenseChat();
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // The existing chat is reused rather than recreated...
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE,
+            // require('@libs/API') is untyped (any), which taints the inferred type of these matchers; the assertion itself is fine.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect.objectContaining({reportCreationData: expect.stringContaining(EXISTING_CHAT_REPORT_ID)}),
+            expect.anything(),
+        );
+
+        // ...and its preview's expense report is un-archived, which only happens when that chat's report actions reach the invite.
+        const [inviteOnyxData] = getInviteOnyxData(apiWriteSpy.mock.calls);
+        expect(inviteOnyxData.optimisticData?.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ARCHIVED_EXPENSE_REPORT_ID}`)).toBe(true);
     });
 
     it('lets only the last queued invite clean up the delegate optimistic personal details', async () => {

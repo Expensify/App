@@ -3741,10 +3741,10 @@ ${amount} per ${merchant} - ${date}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> non è membro di questi spazi di lavoro. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> non è membro di questi spazi di lavoro. Vuoi invitarlo ora?`,
+                `<strong>${email}</strong> non è membro degli spazi di lavoro elencati di seguito. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> non è membro degli spazi di lavoro elencati di seguito. Vuoi invitarlo ora?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> non è membro di questi spazi di lavoro. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo. Vuoi invitarlo ora in quelli di cui sei amministratore?`,
+                `<strong>${email}</strong> non è membro degli spazi di lavoro elencati di seguito. Agli amministratori degli spazi di lavoro che non gestisci verrà chiesto di aggiungerlo. Vuoi invitarlo ora in quelli di cui sei amministratore?`,
             youAreAMemberOf: 'Sei membro di questi spazi di lavoro:',
             youAreAnAdminOf: 'Sei amministratore di questi spazi di lavoro:',
         },

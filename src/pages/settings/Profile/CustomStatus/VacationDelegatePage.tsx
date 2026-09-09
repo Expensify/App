@@ -76,7 +76,14 @@ function VacationDelegatePage() {
 
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             })
-            .catch(() => showErrorModal(currentDelegate))
+            .catch(() => {
+                if (!navigation.isFocused()) {
+                    clearVacationDelegateError(currentDelegate);
+                    return;
+                }
+
+                showErrorModal(currentDelegate);
+            })
             .finally(() => {
                 isSelectingRef.current = false;
             });

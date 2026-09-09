@@ -1,17 +1,28 @@
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
-import {waitForWrites} from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getKnownAccountIDByLogin, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getAllReportActions} from '@libs/ReportActionsUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {VacationDelegate} from '@src/types/onyx';
+import type {Policy, ReportActions, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+import type {CurrentUser} from './Policy/Policy';
+
+import {addMembersToWorkspace} from './Policy/Member';
 
 type SetVacationDelegateOptions = {
     creator: string;
@@ -77,7 +88,8 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
     // A SetVacationDelegate write from the invite step, and the workspace invitations queued with it, can still be in flight.
     // Its success data clears policyDiff and previousDelegate on this same NVP, so letting it settle first keeps it from
     // overwriting the optimistic delegate and the policy diff this request is about to capture.
-    await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE);
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
+    await API.waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE);
 
     // We need to read the API response for capturing a policy diff warning. This is the other half of the branch above, not a chained call.
     // No failureData: the API layer treats the 305 policy diff warning as a failure, so attaching it would light up a red brick road on the
@@ -87,12 +99,12 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
 
     if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING && response.data?.policyDiff) {
         // Keep the optimistic delegate so the flow can continue into the missing workspaces step.
-        await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+        Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
             policyDiff: response.data.policyDiff,
             pendingAction: null,
         });
     } else if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-        await Onyx.update(failureData);
+        Onyx.update(failureData);
     }
 
     return response;
@@ -154,4 +166,59 @@ function clearVacationDelegateError(previousDelegate?: string) {
     });
 }
 
-export {setVacationDelegate, deleteVacationDelegate, clearVacationDelegateError};
+type InviteVacationDelegateToWorkspacesOptions = {
+    /** Login of the delegate to invite */
+    delegate: string;
+
+    /** Workspaces to invite the delegate into. These have to be loaded, since an unavailable workspace cannot be invited into. */
+    policies: Policy[];
+
+    /** The current user, on whose behalf the invitations are sent */
+    inviter: CurrentUser;
+
+    translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+/**
+ * Adds a vacation delegate as a member of every given workspace, one invitation per workspace. Workspaces the
+ * current user does not administer are untouched here and are left for the backend to email their admins about.
+ */
+function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
+    // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
+    const knownDelegateAccountID = getKnownAccountIDByLogin(delegate);
+    const delegateAccountID = knownDelegateAccountID ?? generateAccountID(delegate);
+    const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
+    const isNewDelegate = knownDelegateAccountID === undefined;
+    const personalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers(
+        isNewDelegate ? [addSMSDomainIfPhoneNumber(delegate)] : [],
+        isNewDelegate ? [delegateAccountID] : [],
+        formatPhoneNumber,
+    );
+
+    const policyExpenseChatReportActions: Record<string, ReportActions> = {};
+    for (const policy of policies) {
+        const existingChatReportID = getPolicyExpenseChat(delegateAccountID, policy.id)?.reportID;
+        if (!existingChatReportID) {
+            continue;
+        }
+        policyExpenseChatReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${existingChatReportID}`] = getAllReportActions(existingChatReportID);
+    }
+
+    for (const [index, policy] of policies.entries()) {
+        const isLastInvite = index === policies.length - 1;
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDs,
+            // Writes resolve in queue order, so only the last invitation may clean the optimistic delegate up from under the ones still in flight.
+            isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
+            `# ${inviter.displayName ?? ''} invited you to ${policy.name}\n\n${translate('workspace.common.welcomeNote')}`,
+            policy,
+            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false)),
+            CONST.POLICY.ROLE.USER,
+            inviter,
+            policyExpenseChatReportActions,
+        );
+    }
+}
+
+export {setVacationDelegate, deleteVacationDelegate, clearVacationDelegateError, inviteVacationDelegateToWorkspaces};

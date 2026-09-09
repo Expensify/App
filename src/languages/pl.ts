@@ -3767,10 +3767,10 @@ ${amount} dla ${merchant} - ${date}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `do ${submittedToName} jako zastępca urlopowy dla ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Czy chcesz zaprosić tę osobę teraz?`,
+                `<strong>${email}</strong> nie jest członkiem poniższych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> nie jest członkiem poniższych przestrzeni roboczych. Czy chcesz zaprosić tę osobę teraz?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> nie jest członkiem tych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby. Czy chcesz zaprosić tę osobę do przestrzeni, w których jesteś administratorem?`,
+                `<strong>${email}</strong> nie jest członkiem poniższych przestrzeni roboczych. Administratorzy przestrzeni roboczych, którymi nie zarządzasz, zostaną poproszeni o dodanie tej osoby. Czy chcesz zaprosić tę osobę do przestrzeni, w których jesteś administratorem?`,
             youAreAMemberOf: 'Jesteś członkiem tych przestrzeni roboczych:',
             youAreAnAdminOf: 'Jesteś administratorem tych przestrzeni roboczych:',
         },

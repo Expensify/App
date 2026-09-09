@@ -3861,10 +3861,10 @@ const translations = {
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
         vacationDelegate: {
             notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> is not a member of these workspaces. Admins of the workspaces you don't manage will be asked to add them.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> is not a member of these workspaces. Do you want to invite them now?`,
+                `<strong>${email}</strong> is not a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them.`,
+            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> is not a member of the workspaces below. Do you want to invite them now?`,
             notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> isn't a member of these workspaces. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
+                `<strong>${email}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
             youAreAMemberOf: 'You are a member of these workspaces:',
             youAreAnAdminOf: 'You are an admin of these workspaces:',
         },
