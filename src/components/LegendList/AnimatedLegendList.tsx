@@ -6,18 +6,12 @@ import {AnimatedLegendList as BaseAnimatedLegendList} from '@legendapp/list/rean
 import type {LegendListRef} from './types';
 
 type Props<TItem> = AnimatedLegendListProps<TItem> & {
+    /** Ref forwarded to the underlying animated LegendList. */
     ref?: Ref<LegendListRef>;
 };
 
-function AnimatedLegendList<TItem = unknown>({maintainVisibleContentPosition = false, recycleItems = false, ref, ...rest}: Props<TItem>) {
-    return (
-        <BaseAnimatedLegendList<TItem>
-            ref={ref}
-            maintainVisibleContentPosition={maintainVisibleContentPosition}
-            recycleItems={recycleItems}
-            {...rest}
-        />
-    );
+function AnimatedLegendList<TItem = unknown>(props: Props<TItem>) {
+    return <BaseAnimatedLegendList<TItem> {...props} />;
 }
 
 export default AnimatedLegendList;

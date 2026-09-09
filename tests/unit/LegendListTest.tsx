@@ -15,7 +15,7 @@ const renderItem: LegendListRenderItem<string> = ({item}: LegendListRenderItemPr
 };
 
 describe('LegendList', () => {
-    it('disables recycling and visible-position maintenance by default', () => {
+    it('preserves library defaults when behavior settings are omitted', () => {
         const onViewableItemsChanged = jest.fn((info: {viewableItems: ViewToken[]}) => info.viewableItems);
         render(
             <LegendList
@@ -27,28 +27,28 @@ describe('LegendList', () => {
         );
         const props = jest.mocked(LibraryLegendList).mock.lastCall?.[0];
 
-        expect(props?.maintainVisibleContentPosition).toBe(false);
+        expect(props).not.toHaveProperty('maintainVisibleContentPosition');
         expect(props?.onViewableItemsChanged).toBe(onViewableItemsChanged);
-        expect(props?.recycleItems).toBe(false);
+        expect(props).not.toHaveProperty('recycleItems');
     });
 
-    it('preserves explicit list behavior settings', () => {
+    it.each([true, false])('preserves explicit list behavior settings set to %s', (enabled) => {
         render(
             <LegendList
                 data={DATA}
-                maintainVisibleContentPosition
-                recycleItems
+                maintainVisibleContentPosition={enabled}
+                recycleItems={enabled}
                 renderItem={renderItem}
                 testID="legend-list"
             />,
         );
         const props = jest.mocked(LibraryLegendList).mock.lastCall?.[0];
 
-        expect(props?.maintainVisibleContentPosition).toBe(true);
-        expect(props?.recycleItems).toBe(true);
+        expect(props?.maintainVisibleContentPosition).toBe(enabled);
+        expect(props?.recycleItems).toBe(enabled);
     });
 
-    it('uses the same safe defaults in the Reanimated wrapper', () => {
+    it('preserves library defaults in the Reanimated wrapper', () => {
         render(
             <AnimatedLegendList
                 data={DATA}
@@ -58,8 +58,8 @@ describe('LegendList', () => {
         );
         const props = jest.mocked(LibraryLegendList).mock.lastCall?.[0];
 
-        expect(props?.maintainVisibleContentPosition).toBe(false);
-        expect(props?.recycleItems).toBe(false);
+        expect(props).not.toHaveProperty('maintainVisibleContentPosition');
+        expect(props).not.toHaveProperty('recycleItems');
     });
 });
 
