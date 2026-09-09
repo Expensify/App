@@ -1,15 +1,23 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import {navigationRef} from '@libs/Navigation/Navigation';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import EditMerchantRulePage from '@pages/workspace/rules/MerchantRules/EditMerchantRulePage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Policy, Rule} from '@src/types/onyx';
 
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -24,6 +32,8 @@ const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
 
 const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
+
+const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 /** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
 function toIndexMap<T>(values: T[]): Record<string, T> {
@@ -62,14 +72,21 @@ async function seedOnyx(rule: Rule) {
     });
 }
 
+/** The page reads its params off the navigator, and `usePressLoading` needs a real navigation context. */
 function renderEditMerchantRulePage() {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <EditMerchantRulePage
-                route={{key: 'test-route', name: 'Rules_Merchant_Edit', params: {policyID: POLICY_ID, ruleID: RULE_ID}}}
-                // @ts-expect-error - the page only reads route.params, so the navigator prop is not built here
-                navigation={undefined}
-            />
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
+            <PortalProvider>
+                <NavigationContainer ref={navigationRef}>
+                    <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.RULES_MERCHANT_EDIT}>
+                        <Stack.Screen
+                            name={SCREENS.WORKSPACE.RULES_MERCHANT_EDIT}
+                            component={EditMerchantRulePage}
+                            initialParams={{policyID: POLICY_ID, ruleID: RULE_ID}}
+                        />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
         </ComposeProviders>,
     );
 }
