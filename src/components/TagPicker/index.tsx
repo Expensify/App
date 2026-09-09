@@ -37,16 +37,12 @@ type TagPickerProps = {
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
-    /** Callback to submit the selected tag */
     onSubmit: (selectedTag: Partial<OptionData>) => void;
-
-    /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
     /** Whether the list should be sorted by tag name. default is false */
     shouldOrderListByTagName?: boolean;
 
-    /** Indicates which tag list index was selected */
     tagListIndex: number;
 
     /**
