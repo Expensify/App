@@ -305,7 +305,8 @@ function shouldCombineKeywordSegments(segment: string, nextSegment: string | und
         return false;
     }
 
-    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegment.toLowerCase()));
+    const nextSegmentValue = isCompleteQuotedValue(nextSegment) ? nextSegment.slice(1, -1) : nextSegment;
+    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegmentValue.toLowerCase()));
 }
 
 function sanitizeIncompleteQuotedValue(str: string) {
