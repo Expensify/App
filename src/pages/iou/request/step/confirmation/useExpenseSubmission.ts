@@ -79,7 +79,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -118,6 +118,8 @@ type UseExpenseSubmissionParams = {
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
+    /** Draft reports, needed to resolve chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) */
+    reportDrafts: OnyxCollection<Report>;
 
     // Policy data
     policy: OnyxEntry<Policy>;
@@ -177,6 +179,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         receiptFiles,
         report,
         reportID,
+        reportDrafts,
         policy,
         policyCategories,
         isDraftPolicy,
@@ -240,7 +243,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport
+        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        : report;
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
     const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
@@ -647,9 +652,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
             let existingChatReport = report;
             if (isExpenseReport) {
-                existingChatReport = getReportOrDraftReport(report?.chatReportID);
+                existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
-                existingChatReport = getReportOrDraftReport(participant.reportID);
+                existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
             }
             const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
                 [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
