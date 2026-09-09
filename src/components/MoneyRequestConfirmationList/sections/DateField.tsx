@@ -25,7 +25,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 
 import {format} from 'date-fns';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
@@ -69,6 +69,12 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // A draft is seeded with today's date, but in the Scan flow the date belongs to the receipt, not to today, so the
     // picker stays empty until the user picks one — the same way the amount field starts empty.
     const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
+
+    // Opening the calendar blurs the input, so the open picker — not focus — is this field's "the user is on it"
+    // signal, and it is what draws the focused border. The hint follows it so it can't sit next to an open calendar
+    // promising to fill in the date the user is picking. It stays tied to the empty value beyond that.
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen;
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
@@ -133,7 +139,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear — which it can't without a value to clear.
                     shouldHideClearButton={shouldShowEmptyDate}
-                    rightHandSideComponent={shouldShowEmptyDate ? <AutomaticFieldHint /> : undefined}
+                    rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                    onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>
         );

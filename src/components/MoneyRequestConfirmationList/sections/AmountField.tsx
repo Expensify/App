@@ -85,6 +85,7 @@ function AmountField({
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
@@ -112,7 +113,9 @@ function AmountField({
     const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && (transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
-    const shouldShowAutomaticHint = canEnterScanFieldsManually && !transactionSlice?.isAmountSet;
+    // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
+    // the first keystroke — it would otherwise sit next to the caret promising to fill in what is being typed.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !transactionSlice?.isAmountSet;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
@@ -319,6 +322,12 @@ function AmountField({
                         shouldShowCurrencyButton
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
+                        onFocus={() => {
+                            setIsAmountInputFocused(true);
+                        }}
+                        onBlur={() => {
+                            setIsAmountInputFocused(false);
+                        }}
                         leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                         disabled={isAmountFieldDisabled}
                     />

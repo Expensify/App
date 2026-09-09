@@ -44,8 +44,6 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
-    // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
-    const shouldShowAutomaticHint = canEnterScanFieldsManually && !displayMerchantValue;
 
     // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
     // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
@@ -53,6 +51,11 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
     const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
     const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
+
+    // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
+    // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
+    // the first keystroke — it would otherwise sit next to the caret promising to fill in what is being typed.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !displayMerchantValue;
 
     // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
     // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.

@@ -527,6 +527,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 2);
         });
 
+        it('drops the "Automatic" label while a field is focused, and brings it back if the field is left empty', async () => {
+            await renderScanConfirmation();
+
+            const automaticLabelCount = screen.getAllByText(translateLocal('common.automatic')).length;
+
+            // Focusing is the user taking the field over, so the label goes before the first keystroke.
+            fireEvent(screen.getByLabelText(translateLocal('iou.amount')), 'focus');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 1);
+
+            // Leaving it without entering anything hands the field back to SmartScan.
+            fireEvent(screen.getByLabelText(translateLocal('iou.amount')), 'blur');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount);
+
+            fireEvent(screen.getByLabelText(translateLocal('common.merchant')), 'focus');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 1);
+        });
+
         it('hands a cleared date back to SmartScan instead of emptying it', async () => {
             await renderScanConfirmation();
 
