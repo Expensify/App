@@ -31,7 +31,6 @@ type ReceiptSectionProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    /** Whether the receipt should be displayed */
     shouldDisplayReceipt: boolean;
 
     /** Whether the receipt is currently being stitched */

@@ -85,10 +85,7 @@ type MoneyRequestConfirmationListProps = {
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
-    /** IOU type */
     iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
@@ -100,19 +97,13 @@ type MoneyRequestConfirmationListProps = {
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
-    /** Number of expenses to be created */
     expensesNumber?: number;
-
-    /** The policyID of the request */
     policyID?: string;
-
-    /** The reportID of the request */
     reportID?: string;
 
     /** File path of the receipt */
     receiptPath?: string | number;
 
-    /** File name of the receipt */
     receiptFilename?: string;
 
     /** Transaction that represents the expense */
@@ -145,13 +136,8 @@ type MoneyRequestConfirmationListProps = {
     /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
-    /** Whether smart scan failed */
     hasSmartScanFailed?: boolean;
-
-    /** The ID of the report action */
     reportActionID?: string;
-
-    /** The action to take */
     action?: IOUAction;
 
     /** Whether the expense is confirmed or not */
@@ -163,16 +149,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    /** The PDF load error callback */
     onPDFLoadError?: () => void;
-
-    /** The PDF password callback */
     onPDFPassword?: () => void;
-
-    /** Function to toggle reimbursable */
     onToggleReimbursable?: (isOn: boolean) => void;
-
-    /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 
     /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */
@@ -351,6 +330,9 @@ function MoneyRequestConfirmationList({
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const shouldShowReadOnlySplits = isPolicyExpenseChat || isReadOnly || isScanRequest;
+    // Both the validation gate and the clear gate below key off this, so it is computed once here rather than
+    // being re-derived per hook, where the two could be updated independently.
+    const shouldShowDate = shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest);
 
     const {formError, setFormError, clearFormErrors, shouldDisplayFieldError, isMerchantEmpty, isMerchantFieldValid, isMerchantRequired, errorMessage} = useFormErrorManagement({
         transaction,
@@ -373,6 +355,8 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         isNewManualExpenseFlowEnabled,
         isDistanceRequest,
+        isReadOnly,
+        shouldShowDate,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -498,7 +482,7 @@ function MoneyRequestConfirmationList({
         routeError,
         isNewManualExpenseFlowEnabled,
         isReadOnly,
-        shouldShowDate: shouldShowConfirmationDate(shouldShowSmartScanFields, isDistanceRequest),
+        shouldShowDate,
         isTaxAmountEmpty,
     });
 

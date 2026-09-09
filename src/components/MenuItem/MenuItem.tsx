@@ -90,13 +90,8 @@ type NoIcon = {
 type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
-        /** Reference to the outer element */
         ref?: PressableRef | Ref<View>;
-
-        /** Function to fire when component is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
-
-        /** Whether the menu item should be interactive at all */
         interactive?: boolean;
 
         /** Text to be shown as badge near the right end. */
@@ -105,7 +100,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Icon to display on the left side of the badge */
         badgeIcon?: IconAsset;
 
-        /** Whether the badge should be shown as success */
         isBadgeSuccess?: boolean;
 
         /** Whether the badge should use strong (filled) variant */
@@ -114,37 +108,25 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should use condensed (smaller) sizing */
         isBadgeCondensed?: boolean;
 
-        /** Whether the badge should be shown as error */
         isBadgeError?: boolean;
-
-        /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
 
-        /** Outer wrapper styles */
         outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
-        /** Any additional styles to apply */
         wrapperStyle?: StyleProp<ViewStyle>;
-
-        /** Styles to apply on the title wrapper */
         titleWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Styles to apply on the inner row containing the icon and text content */
         innerContainerStyle?: StyleProp<ViewStyle>;
 
-        /** Any additional styles to apply on the outer element */
         containerStyle?: StyleProp<ViewStyle>;
 
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
 
-        /** Any additional styles to apply on the badge element */
         badgeStyle?: StyleProp<ViewStyle>;
-
-        /** Any additional styles to apply to the label */
         labelStyle?: StyleProp<ViewStyle>;
 
         /** Additional styles to style the description text below the title */
@@ -159,13 +141,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The fill color to pass into the secondary icon. */
         secondaryIconFill?: string;
 
-        /** Whether the secondary icon should have hover style */
         isSecondaryIconHoverable?: boolean;
-
-        /** Icon Width */
         iconWidth?: number;
-
-        /** Icon Height */
         iconHeight?: number;
 
         /** Any additional styles to pass to the icon container. */
@@ -186,19 +163,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Icon to display at right side of title */
         titleIcon?: IconAsset;
 
-        /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
 
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
-        /** Should render component on the right */
         shouldShowRightComponent?: boolean;
-
-        /** Component to be displayed on the right */
         rightComponent?: ReactNode;
-
-        /** Component to be displayed on the left */
         leftComponent?: ReactNode;
 
         /** A description text to show under the title */
@@ -210,7 +181,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
-        /** Any additional styles to pass to helper text. */
         helperTextStyle?: StyleProp<TextStyle>;
 
         /** Should the description be shown above the title (instead of the other way around) */
@@ -219,7 +189,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Error to display at the bottom of the component */
         errorText?: string | ReactNode;
 
-        /** Any additional styles to pass to error text. */
         errorTextStyle?: StyleProp<ViewStyle>;
 
         /** Hint to display at the bottom of the component */
@@ -244,41 +213,29 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         characterLimit?: number;
 
         isLabelHoverable?: boolean;
-
-        /** Label to be displayed on the right */
         rightLabel?: string;
-
-        /** Icon to be displayed next to the right label */
         rightLabelIcon?: IconAsset;
 
         /** Text to display for the item */
         title?: string;
 
-        /** Accessibility label for the menu item */
         accessibilityLabel?: string;
 
         /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
-        /** Component to display as the title */
         titleComponent?: ReactElement;
-
-        /** Any additional styles to apply to the container for title components */
         titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
 
-        /** Any additional styles to apply to the subtitle */
         subtitleStyle?: StyleProp<ViewStyle>;
 
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
 
-        /** Should we truncate the title */
         shouldTruncateTitle?: boolean;
-
-        /** Whether this item is selected */
         isSelected?: boolean;
 
         /** Prop to represent the size of the avatar images to be shown */
@@ -296,16 +253,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /**  Whether we should use small avatar subscript sizing the for menu item */
         isSmallAvatarSubscriptMenu?: boolean;
 
-        /** The type of brick road indicator to show. */
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
         /** Should render the content in HTML format. A title without HTML content is rendered as plain text even when this is set. */
         shouldRenderAsHTML?: boolean;
 
-        /** Whether or not the text should be escaped */
         shouldEscapeText?: boolean;
-
-        /** Should we grey out the menu item when it is disabled? */
         shouldGreyOutWhenDisabled?: boolean;
 
         /** Should we remove the background color of the menu item */
@@ -317,8 +270,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
-
-        /** Should we use default cursor for disabled content */
         shouldUseDefaultCursorWhenDisabled?: boolean;
 
         /** The action accept for anonymous user or not */
@@ -351,7 +302,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The maximum number of lines for further details text */
         furtherDetailsNumberOfLines?: number;
 
-        /** The further details additional style */
         furtherDetailsStyle?: StyleProp<TextStyle>;
 
         /** Render custom content under the main item */
@@ -372,7 +322,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Determines how the icon should be resized to fit its container */
         contentFit?: ImageContentFit;
 
-        /** Is this in the Pane */
         isPaneMenu?: boolean;
 
         /** Adds padding to the left of the text when there is no icon. */
@@ -381,7 +330,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether to apply icon left padding to HTML-rendered titles. */
         shouldApplyIconPaddingToHTMLTitle?: boolean;
 
-        /** Handles what to do when the item is focused */
         onFocus?: () => void;
 
         /** Handles what to do when the item loose focus */
@@ -390,16 +338,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Optional account id if it's user avatar or policy id if it's workspace avatar */
         avatarID?: number | string;
 
-        /** Whether to show the tooltip */
         shouldRenderTooltip?: boolean;
 
         /** Whether the tooltip content should be visible. When omitted, matches shouldRenderTooltip. */
         shouldDisplayEducationalTooltip?: boolean;
 
-        /** Anchor alignment of the tooltip */
         tooltipAnchorAlignment?: TooltipAnchorAlignment;
-
-        /** Additional styles for tooltip wrapper */
         tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Any additional amount to manually adjust the horizontal position of the tooltip */
@@ -408,18 +352,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Any additional amount to manually adjust the vertical position of the tooltip */
         tooltipShiftVertical?: number;
 
-        /** Render custom content inside the tooltip. */
         renderTooltipContent?: () => ReactNode;
-
-        /** Callback to fire when the education tooltip is pressed */
         onEducationTooltipPress?: () => void;
 
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
         shouldShowLoadingSpinnerIcon?: boolean;
-
-        /** Whether to show a radio button on each item to indicate which one is currently selected */
         shouldShowRadioButton?: boolean;
 
         /** Should use auto width for the icon container. */
@@ -431,7 +370,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Pressable component Test ID. Used to locate the component in tests. */
         pressableTestID?: string;
 
-        /** Whether to teleport the portal to the modal layer */
         shouldTeleportPortalToModalLayer?: boolean;
 
         /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
@@ -455,25 +393,21 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        /** Additional styles for the root wrapper View */
         rootWrapperStyle?: StyleProp<ViewStyle>;
 
         /** The accessibility role to use for this menu item */
         role?: Role;
 
-        /** Whether to show the badge in a separate row */
         shouldShowBadgeInSeparateRow?: boolean;
 
         /** Whether to show the badge below the title */
         shouldShowBadgeBelow?: boolean;
 
-        /** Whether item should be accessible */
         shouldBeAccessible?: boolean;
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
 
-        /** Additional styles for the right icon wrapper */
         rightIconWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Whether to ignore compact popover menu styling for this item */
