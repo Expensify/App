@@ -1,5 +1,5 @@
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -19,7 +19,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomRowData = TableData & {
-    /** The room reportID */
     reportID: string;
 
     /** The room display name */
@@ -33,13 +32,8 @@ type WorkspaceRoomRowData = TableData & {
 };
 
 type WorkspaceRoomsTableRowProps = {
-    /** The room data */
     item: WorkspaceRoomRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 
@@ -64,9 +58,9 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                 <>
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                            <ReportActionAvatars
+                            <ReportAvatar
                                 noRightMarginOnSubscriptContainer
-                                singleAvatarContainerStyle={[styles.mr0]}
+                                singleAvatarContainerStyle={styles.mr0}
                                 subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 reportID={item.reportID}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
@@ -100,9 +94,9 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                                 {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                             >
-                                <ReportActionAvatars
+                                <ReportAvatar
                                     noRightMarginOnSubscriptContainer
-                                    singleAvatarContainerStyle={[styles.mr0]}
+                                    singleAvatarContainerStyle={styles.mr0}
                                     subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                     reportID={item.reportID}
                                     size={CONST.AVATAR_SIZE.SMALL}

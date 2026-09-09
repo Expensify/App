@@ -2,7 +2,7 @@ import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceReque
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -59,7 +59,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceMapProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -78,7 +77,7 @@ function IOURequestStepDistanceMap({
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({policyID: policy?.id, isDistanceRequest: true});
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({policyID: policy?.id, isDistanceRequest: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();

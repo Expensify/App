@@ -269,6 +269,15 @@ function getCompanyCardColumnMappings(spreadsheetData: string[][], savedColumnMa
         if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role) || usedRoles.has(role)) {
             continue;
         }
+
+        // A saved externalID index is ambiguous: the company cards import appends a synthetic externalID column when
+        // the user maps no Unique ID, and that index is indistinguishable from a Unique ID the user mapped to the last
+        // column. Restoring it could point Unique ID at an unrelated column of the new file, whose repeated values
+        // would make the backend dedupe valid transactions, so leave it for the user to map. A header that names the
+        // column outright is unambiguous, so the detection pass above can still claim it.
+        if (role === CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID) {
+            continue;
+        }
         const index = Number(indexValue);
         if (!Number.isInteger(index) || index < 0 || index >= numColumns || columns[index] !== CONST.CSV_IMPORT_COLUMNS.IGNORE) {
             continue;

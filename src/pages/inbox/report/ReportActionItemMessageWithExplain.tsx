@@ -27,13 +27,8 @@ import React from 'react';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemMessageWithExplainProps = {
-    /** The message to display */
     message: string;
-
-    /** All the data of the action item */
     action: OnyxEntry<ReportAction>;
-
-    /** The child report of the action item */
     childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */
@@ -52,6 +47,8 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
@@ -62,19 +59,20 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
             const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
-            explain(
+            explain({
                 childReport,
                 originalReport,
-                action,
+                reportAction: action,
                 translate,
-                personalDetail.accountID,
+                currentUserAccountID: personalDetail.accountID,
                 introSelected,
                 betas,
+                conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,
                 participantsPersonalDetails,
-                personalDetail?.timezone,
-            );
+                timezone: personalDetail?.timezone,
+            });
             return;
         }
 

@@ -334,7 +334,6 @@ describe('ReportActionCompose Integration Tests', () => {
                     name: 'Test Policy',
                     owner: 'test@test.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                 });
                 // Parent expense report (the IOUReportID in the action's originalMessage)
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {

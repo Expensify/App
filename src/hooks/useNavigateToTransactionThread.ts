@@ -2,7 +2,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
-import {setActiveTransactionIDs, shouldPreserveActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
@@ -11,6 +11,8 @@ import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -30,9 +32,6 @@ type NavigateToTransactionThreadParams = {
 
     /** Ordered list of sibling transaction IDs used to drive the prev/next carousel in the thread RHP */
     siblingTransactionIDs: string[];
-
-    /** When true, keep an already-active broader carousel (e.g. the Spend page's list) instead of re-seeding it with just this report's siblings */
-    shouldPreserveBroaderCarousel?: boolean;
 
     /** Route to return to when navigating back; defaults to the current active route */
     backTo?: string;
@@ -55,10 +54,12 @@ function useNavigateToTransactionThread() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
-    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, shouldPreserveBroaderCarousel = false, backTo}: NavigateToTransactionThreadParams) => {
+    return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-        const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
+        const routeAtPress = Navigation.getActiveRoute();
+        const resolvedBackTo = backTo ?? routeAtPress;
         let reportIDToNavigate = iouAction?.childReportID;
 
         const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
@@ -70,6 +71,8 @@ function useNavigateToTransactionThread() {
             const transactionThreadReport = createTransactionThreadReport({
                 introSelected,
                 conciergeChat,
+                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 currentUserLogin: currentUserDetails.email ?? '',
                 currentUserAccountID: currentUserDetails.accountID,
                 betas,
@@ -87,12 +90,12 @@ function useNavigateToTransactionThread() {
         }
 
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
-        // display prev/next arrows for navigation between expenses. A broader carousel the user drilled in from is
-        // left untouched, so its list (and the snapshot hash backing prev/next) survive navigating back out to it.
-        const seedCarousel =
-            shouldPreserveBroaderCarousel && shouldPreserveActiveTransactionIDs(siblingTransactionIDs, transactionID) ? Promise.resolve() : setActiveTransactionIDs(siblingTransactionIDs);
-
-        seedCarousel.then(() => {
+        // display prev/next arrows for navigation between expenses.
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            // A second press made before this resolves would stack its expense on top of the first.
+            if (Navigation.getActiveRoute() !== routeAtPress) {
+                return;
+            }
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }
