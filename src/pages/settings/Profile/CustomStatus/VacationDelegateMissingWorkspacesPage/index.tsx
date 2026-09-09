@@ -2,7 +2,6 @@
  * RHP step shown when a vacation delegate is missing from workspaces: lets the user invite them into the
  * workspaces they admin, skip, or just confirm the delegate.
  */
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -129,34 +128,32 @@ function VacationDelegateMissingWorkspacesPage() {
                 title={translate('common.vacationDelegate')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE)}
             />
-            <FullPageOfflineBlockingView>
-                <ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={styles.ph5}
-                >
-                    <MissingWorkspacesIntro
-                        delegate={delegate}
-                        hasAdminWorkspaces={canInvite}
-                        hasNonAdminWorkspaces={nonAdminPolicies.length > 0}
-                    />
-                    <WorkspaceSection
-                        title={translate('statusPage.vacationDelegate.youAreAMemberOf')}
-                        policyIDs={nonAdminPolicies}
-                        policies={policies}
-                    />
-                    <WorkspaceSection
-                        title={translate('statusPage.vacationDelegate.youAreAnAdminOf')}
-                        policyIDs={adminPolicies}
-                        policies={policies}
-                    />
-                </ScrollView>
-                <MissingWorkspacesFooter
-                    canInvite={canInvite}
-                    isInviteDisabled={hasUnresolvedAdminPolicy}
-                    onInvite={invite}
-                    onSkip={submitOnce}
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={styles.ph5}
+            >
+                <MissingWorkspacesIntro
+                    delegate={delegate}
+                    hasAdminWorkspaces={canInvite}
+                    hasNonAdminWorkspaces={nonAdminPolicies.length > 0}
                 />
-            </FullPageOfflineBlockingView>
+                <WorkspaceSection
+                    title={translate('statusPage.vacationDelegate.youAreAMemberOf')}
+                    policyIDs={nonAdminPolicies}
+                    policies={policies}
+                />
+                <WorkspaceSection
+                    title={translate('statusPage.vacationDelegate.youAreAnAdminOf')}
+                    policyIDs={adminPolicies}
+                    policies={policies}
+                />
+            </ScrollView>
+            <MissingWorkspacesFooter
+                canInvite={canInvite}
+                isInviteDisabled={hasUnresolvedAdminPolicy}
+                onInvite={invite}
+                onSkip={submitOnce}
+            />
         </ScreenWrapper>
     );
 }

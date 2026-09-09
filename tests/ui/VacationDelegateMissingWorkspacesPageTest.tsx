@@ -292,6 +292,26 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         expect(apiSideEffectSpy).not.toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, expect.anything(), expect.anything());
     });
 
+    it('stays usable offline instead of blocking the step, since every button it offers is a persisted write', async () => {
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // The delegate is already optimistically set at this point, so blocking the page would strand the user
+        // with an unconfirmed change until they reconnect. The offline indicator still shows, only the blocking view must not.
+        expect(screen.queryByText(TestHelper.translateLocal('common.thisFeatureRequiresInternet'))).not.toBeOnTheScreen();
+        expect(screen.getByText('Admin Workspace')).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.objectContaining({policyID: ADMIN_POLICY_ID}), expect.anything());
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.objectContaining({overridePolicyDiffWarning: true}), expect.anything());
+    });
+
     it('invites a delegate that has no personal details entry yet using an optimistic accountID', async () => {
         await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID], nonAdminPolicies: []});
         renderPage();
