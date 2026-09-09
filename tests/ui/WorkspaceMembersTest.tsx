@@ -527,6 +527,64 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Sorting by approver', () => {
+        // Every member row is labelled "<name>, <email>[, Approver: <name>], <role>", so the labels in render order
+        // are the sorted order.
+        const getRowLabels = () =>
+            screen
+                .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
+                .filter((row) => typeof row.type === 'string')
+                .map((row) => String(row.props.accessibilityLabel ?? ''));
+
+        const approverNameOf = (label: string) => label.split(', ').find((part) => part.startsWith('Approver: '));
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: ownerEmail,
+                    employeeList: {
+                        // Owner and self approve their own expenses, so both rows sort as blank.
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                        [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: selfEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: userEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: ownerEmail},
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminEmail},
+                    },
+                });
+            });
+        });
+
+        it('should sort by approver, reverse, and keep members without an approver last in both directions', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await screen.findByText(ADMIN_OPTION);
+
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.approver')));
+            await waitForBatchedUpdatesWithAct();
+
+            const ascending = getRowLabels();
+
+            expect(ascending.map(approverNameOf).filter(Boolean)).toEqual(['Approver: Admin User', 'Approver: Member User', 'Approver: Owner User']);
+
+            // The two self-approving members carry no approver, so they trail the sorted rows.
+            expect(ascending.slice(3).every((label) => !approverNameOf(label))).toBe(true);
+
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.approver')));
+            await waitForBatchedUpdatesWithAct();
+
+            const descending = getRowLabels();
+
+            expect(descending.map(approverNameOf).filter(Boolean)).toEqual(['Approver: Owner User', 'Approver: Member User', 'Approver: Admin User']);
+
+            // Blanks stay at the bottom rather than flipping to the top, which is what the unmultiplied 1 / -1 buys.
+            expect(descending.slice(3).every((label) => !approverNameOf(label))).toBe(true);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     describe('Removing members who are approvers and non-approvers', () => {
         it('should call workflow actions once when removing multiple members including an approver', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});

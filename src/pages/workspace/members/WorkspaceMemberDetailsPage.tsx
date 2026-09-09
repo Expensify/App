@@ -170,16 +170,21 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
     // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
     const canEditApprover = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
-    const approverLabel = (memberApprovalWorkflow?.approvers.length ?? 0) > 1 ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver');
     // A member at the top of their own chain has no approver, the workspace owner being the common case.
     const approverToDisplay = memberFirstApprover && memberFirstApprover.email !== memberLogin ? memberFirstApprover : undefined;
+    const approverLabel =
+        approverToDisplay && (memberApprovalWorkflow?.approvers.length ?? 0) > 1
+            ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}`
+            : translate('common.approver');
 
     const openMemberApprovalWorkflow = () => {
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
         clearApprovalWorkflow();
 
-        if (memberFirstApprover?.email) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, memberFirstApprover.email, memberLogin));
+        // Branch on what the row actually shows. A self-approving member reads as having no approver, so sending them
+        // to the editor would open the workflow they approve and let an admin reassign everyone else on it.
+        if (approverToDisplay?.email) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, approverToDisplay.email, memberLogin));
             return;
         }
 
