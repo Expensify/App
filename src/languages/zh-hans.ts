@@ -3101,7 +3101,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         timeExpiredAnnouncement: '时间已到期',
         error: {
             pleaseFillSecurityCode: '请输入您的安全码',
-            tooManyAttempts: '尝试次数过多。请稍后重试。',
+            tooManyAttempts: '尝试次数过多。请稍后再试。',
             incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。',
             pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
         },
