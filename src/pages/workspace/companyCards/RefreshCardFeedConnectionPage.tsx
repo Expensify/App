@@ -20,6 +20,7 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect} from 'react';
 
@@ -51,13 +52,14 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         };
     }, []);
 
-    // Plaid feeds: isRefreshing is cleared by importPlaidAccounts successData
+    // Plaid feeds: isRefreshing is cleared by importPlaidAccounts on both success and failure; a failure also sets
+    // errors, which BankConnection renders instead of closing the panel.
     useEffect(() => {
-        if (prevIsRefreshing !== true || isRefreshing) {
+        if (prevIsRefreshing !== true || isRefreshing || !isEmptyObject(assignCard?.errors)) {
             return;
         }
         Navigation.closeRHPFlow();
-    }, [prevIsRefreshing, isRefreshing]);
+    }, [prevIsRefreshing, isRefreshing, assignCard?.errors]);
 
     // OAuth feeds: expiration updates after bank re-authentication completes. A feed whose OAuth details were never
     // cached has no expiration yet, so the first populated value counts as completion too.

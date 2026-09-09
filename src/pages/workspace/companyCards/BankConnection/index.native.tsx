@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -7,6 +8,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -27,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {WebViewNavigation} from 'react-native-webview';
 
@@ -70,6 +73,9 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    // Set by importPlaidAccounts failureData while repairing an existing feed
+    const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
@@ -100,6 +106,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
 
     useEffect(() => {
         if ((!url && !isPlaid) || isNewFeedHasError) {
+            return;
+        }
+
+        // A failed import is rendered instead; clearing isRefreshing must not fall through to the healthy-feed close below.
+        if (hasImportError) {
             return;
         }
 
@@ -159,6 +170,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        hasImportError,
         checkForDuplicateFeed,
     ]);
 
@@ -197,10 +209,22 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && !hasImportError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
+                    />
+                )}
+                {hasImportError && (
+                    <ConfirmationPage
+                        heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
+                        description={translate('common.genericErrorMessage')}
+                        illustration={illustrations.BrokenCompanyCardBankConnection}
+                        illustrationStyle={styles.errorStateCardIllustration}
+                        containerStyle={styles.h100}
+                        shouldShowButton
+                        buttonText={translate('common.buttonConfirm')}
+                        onButtonPress={handleBackButtonPress}
                     />
                 )}
                 {isNewFeedHasError && (
