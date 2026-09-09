@@ -9,7 +9,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 type IOURequestStepDistanceGPSProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 

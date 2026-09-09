@@ -15,7 +15,7 @@ import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -35,10 +35,7 @@ type TextCommentFragmentProps = {
     /** The reportAction's source */
     source: OriginalMessageSource;
 
-    /** The report action's id */
     reportActionID?: string;
-
-    /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
     /** Should this message fragment be styled as deleted? */
@@ -157,7 +154,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 <>
                     <Text style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight]}> </Text>
                     <Text
-                        fontSize={variables.fontSizeSmall}
+                        fontSize={fontScale.micro}
                         color={theme.textSupporting}
                         style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
