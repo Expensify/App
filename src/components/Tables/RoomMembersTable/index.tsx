@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -72,7 +72,7 @@ export default function RoomMembersTable({ref, members, selectionEnabled, select
         return results.length > 0;
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<RoomMemberRowData>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<RoomMemberRowData>) => (
         <RoomMembersTableRow
             item={item}
             rowIndex={index}

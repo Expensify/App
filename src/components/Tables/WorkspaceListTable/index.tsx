@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -132,7 +132,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<WorkspaceRowData>) => {
         return (
             <WorkspaceRow
                 item={item}

@@ -16,7 +16,7 @@ import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
@@ -28,7 +28,7 @@ import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
-import {getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
+import {getDataIndex, getDataVisibleIndices, getListIndex, getTableListMetadata} from './buildTableListData';
 import useFiltering from './middlewares/filtering';
 import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
@@ -64,17 +64,16 @@ function isTableListHeaderElement(child: React.ReactNode): child is ReactElement
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
- * falling back to FlashList's own methods (e.g. `scrollToIndex`).
+ * falling back to LegendList's own methods (e.g. `scrollToIndex`).
  *
  * This is a standalone top-level function (rather than being inlined in the `useImperativeHandle`
  * callback) because OXC's React Compiler currently fails to compile a component when a generic type
  * cast referencing the component's own type parameters (e.g. `as TableHandle<DataType, ColumnKey, FilterKey>`)
- * appears inside a nested closure. That bailout is silent (no build warning) and disables automatic
- * memoization for the entire file, which is what previously caused an infinite FlashList re-render.
+ * appears inside a nested closure. That bailout is silent and disables automatic memoization for the entire file.
  */
 function createTableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
     tableMethods: TableMethods<ColumnKey, FilterKey>,
-    listRef: React.RefObject<FlashListRef<DataType> | null>,
+    listRef: React.RefObject<LegendListRef | null>,
     getProcessedData: () => Array<TableRow<DataType>>,
     tableListMetadata: TableListMetadata,
 ): TableHandle<DataType, ColumnKey, FilterKey> {
@@ -94,47 +93,62 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
                     return scrollToIndex;
                 }
 
-                return (params: Parameters<FlashListRef<DataType>['scrollToIndex']>[0]) =>
+                return (params: Parameters<LegendListRef['scrollToIndex']>[0]) =>
                     scrollToIndex({
                         ...params,
                         index: getListIndex(params.index, tableListMetadata),
                     });
             }
 
-            if (property === 'getLayout') {
-                const getLayout = listRef.current?.getLayout;
-                if (tableListMetadata.listDataRowOffset === 0 || !getLayout) {
-                    return getLayout;
+            if (property === 'scrollIndexIntoView') {
+                const scrollIndexIntoView = listRef.current?.scrollIndexIntoView;
+                if (tableListMetadata.listDataRowOffset === 0 || !scrollIndexIntoView) {
+                    return scrollIndexIntoView;
                 }
 
-                return (index: number) => getLayout(getListIndex(index, tableListMetadata));
+                return (params: Parameters<LegendListRef['scrollIndexIntoView']>[0]) =>
+                    scrollIndexIntoView({
+                        ...params,
+                        index: getListIndex(params.index, tableListMetadata),
+                    });
             }
 
-            if (property === 'computeVisibleIndices') {
-                const computeVisibleIndices = listRef.current?.computeVisibleIndices;
-                if (tableListMetadata.listDataRowOffset === 0 || !computeVisibleIndices) {
-                    return computeVisibleIndices;
+            if (property === 'getState') {
+                const getState = listRef.current?.getState;
+                if (tableListMetadata.listDataRowOffset === 0 || !getState) {
+                    return getState;
                 }
 
-                return () => getDataVisibleIndices(computeVisibleIndices(), tableListMetadata);
+                return () => getTableListState(getState(), tableListMetadata);
             }
 
-            if (property === 'getFirstVisibleIndex') {
-                const computeVisibleIndices = listRef.current?.computeVisibleIndices;
-                const getFirstVisibleIndex = listRef.current?.getFirstVisibleIndex;
-                if (tableListMetadata.listDataRowOffset === 0 || !computeVisibleIndices) {
-                    return getFirstVisibleIndex;
-                }
-
-                return () => {
-                    const {startIndex} = getDataVisibleIndices(computeVisibleIndices(), tableListMetadata);
-                    return startIndex;
-                };
-            }
-
-            return listRef.current?.[property as keyof FlashListRef<DataType>];
+            return listRef.current?.[property as keyof LegendListRef];
         },
     }) as TableHandle<DataType, ColumnKey, FilterKey>;
+}
+
+function getTableListState(state: ReturnType<LegendListRef['getState']>, tableListMetadata: TableListMetadata): ReturnType<LegendListRef['getState']> {
+    const {startIndex, endIndex} = getDataVisibleIndices({startIndex: state.start, endIndex: state.end}, tableListMetadata);
+    const {startIndex: startBuffered, endIndex: endBuffered} = getDataVisibleIndices({startIndex: state.startBuffered, endIndex: state.endBuffered}, tableListMetadata);
+
+    return {
+        ...state,
+        data: state.data.slice(tableListMetadata.listDataRowOffset),
+        start: startIndex,
+        end: endIndex,
+        startBuffered,
+        endBuffered,
+        elementAtIndex: (index) => {
+            const element: unknown = state.elementAtIndex(getListIndex(index, tableListMetadata));
+            return element;
+        },
+        indexByKey: (key) => {
+            const index = state.indexByKey(key);
+            return index === undefined ? undefined : getDataIndex(index, tableListMetadata);
+        },
+        positionAtIndex: (index) => state.positionAtIndex(getListIndex(index, tableListMetadata)),
+        sizeAtIndex: (index) => state.sizeAtIndex(getListIndex(index, tableListMetadata)),
+    };
 }
 
 /**
@@ -151,7 +165,7 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
  *
  * - `<Table>` - The parent component that manages state and provides context
  * - `<Table.Header>` - Renders sortable column headers
- * - `<Table.Body>` - Renders the data rows using FlashList
+ * - `<Table.Body>` - Renders the data rows using LegendList
  * - `<Table.FilterBar>` - Renders a search input that filters data
  *
  * ## Middleware Architecture
@@ -328,7 +342,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
     const processedData = highlightMiddleware(selectionData);
 
-    const listRef = useRef<FlashListRef<DataType>>(null);
+    const listRef = useRef<LegendListRef>(null);
     const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
     const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
     const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
@@ -410,7 +424,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     );
     /**
      * Exposes table control methods through the ref.
-     * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
+     * Uses a Proxy to also forward LegendList methods such as scrollToIndex.
      */
     useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata));
 

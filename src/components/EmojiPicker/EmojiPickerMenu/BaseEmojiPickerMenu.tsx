@@ -10,12 +10,12 @@ import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/Em
 
 import CONST from '@src/CONST';
 
-import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import type {LegendListProps, LegendListRef} from '@legendapp/list/react-native';
 import type {ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {FlashList} from '@shopify/flash-list';
+import {LegendList} from '@legendapp/list/react-native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,7 +33,7 @@ type BaseEmojiPickerMenuProps = {
 
     listWrapperStyle?: StyleProp<ViewStyle>;
     data: EmojiPickerList;
-    renderItem: ListRenderItem<EmojiPickerListItem>;
+    renderItem: NonNullable<LegendListProps<EmojiPickerListItem>['renderItem']>;
     extraData?: Array<EmojiPickerList | OnyxEntry<string | number> | ((skinTone: number) => void)>;
     stickyHeaderIndices?: number[];
     alwaysBounceVertical?: boolean;
@@ -42,11 +42,11 @@ type BaseEmojiPickerMenuProps = {
     /** The current search input value, used for accessibility re-announcements */
     searchValue?: string;
 
-    ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
+    ref?: ForwardedRef<LegendListRef>;
 };
 
 /**
- * Improves FlashList's recycling when there are different types of items
+ * Improves LegendList's recycling when there are different types of items
  */
 const getItemType = (item: EmojiPickerListItem): string | undefined => {
     // item is undefined only when list is empty
@@ -116,7 +116,8 @@ function BaseEmojiPickerMenu({
                 />
             )}
             <View style={listWrapperStyle}>
-                <FlashList
+                <LegendList
+                    maintainVisibleContentPosition
                     ref={ref}
                     keyboardShouldPersistTaps="handled"
                     data={data}
@@ -128,16 +129,14 @@ function BaseEmojiPickerMenu({
                     ListEmptyComponent={<ListEmptyComponent searchValue={searchValue} />}
                     alwaysBounceVertical={alwaysBounceVertical}
                     contentContainerStyle={styles.ph4}
-                    extraData={extraData}
+                    extraData={[extraData, renderItem]}
                     getItemType={getItemType}
                     onMomentumScrollEnd={onMomentumScrollEnd}
-                    overrideProps={{
-                        // scrollPaddingTop set to consider sticky header while scrolling, https://github.com/Expensify/App/issues/36883
-                        style: {
-                            minHeight: 1,
-                            minWidth: 1,
-                            scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
-                        },
+                    style={{
+                        minHeight: 1,
+                        minWidth: 1,
+                        // Keep keyboard scrolling below the sticky category header.
+                        scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
                     }}
                     scrollEnabled={data.length > 0}
                 />

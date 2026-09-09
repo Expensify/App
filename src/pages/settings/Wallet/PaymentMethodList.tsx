@@ -62,9 +62,9 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
-import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
@@ -690,7 +690,8 @@ function PaymentMethodList({
                 },
             ]}
         >
-            <FlashList<PaymentMethod | string>
+            <LegendList<PaymentMethod | string>
+                maintainVisibleContentPosition
                 data={itemsToRender}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}

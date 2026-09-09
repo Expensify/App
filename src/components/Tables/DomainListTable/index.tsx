@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -77,7 +77,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
     const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<DomainRowData>) => {
         return (
             <DomainListTableRow
                 item={item}

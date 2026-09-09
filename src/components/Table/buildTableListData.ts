@@ -34,7 +34,7 @@ function getTableListMetadata<DataType extends TableData>({listHeaderElement, li
 }
 
 function createSyntheticRow<DataType extends TableData>(keyForList: string): DataType {
-    // FlashList data is typed to consumer rows, but synthetic rows are intercepted before consumer callbacks.
+    // LegendList data is typed to consumer rows, but synthetic rows are intercepted before consumer callbacks.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {keyForList} as DataType;
 }

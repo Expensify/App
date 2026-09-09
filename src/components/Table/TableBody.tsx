@@ -7,17 +7,17 @@ import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
+import type {LegendListRenderItemProps, ViewToken} from '@legendapp/list/react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
-import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {LegendList} from '@legendapp/list/react-native';
+import React, {useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
-import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
+import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getDataVisibleIndices, getListIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -25,7 +25,7 @@ import {TableRowSemanticIDContext, useTableContext} from './TableContext';
  * Props for the TableBody component.
  */
 type TableBodyProps = ViewProps & {
-    /** Optional custom styles for the FlashList content container. */
+    /** Optional custom styles for the LegendList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -37,6 +37,10 @@ type TableBodyListProps = TableBodyProps & {
 type ViewabilityInfo = {
     viewableItems: Array<ViewToken<TableData>>;
     changed: Array<ViewToken<TableData>>;
+    start: number;
+    end: number;
+    startBuffered: number;
+    endBuffered: number;
 };
 
 function getDataViewabilityInfo(info: ViewabilityInfo, metadata: TableListMetadata): ViewabilityInfo {
@@ -52,9 +56,17 @@ function getDataViewabilityInfo(info: ViewabilityInfo, metadata: TableListMetada
         return {...token, index: getDataIndex(token.index, metadata)};
     };
 
+    const visibleIndices = getDataVisibleIndices({startIndex: info.start, endIndex: info.end}, metadata);
+    const bufferedIndices = getDataVisibleIndices({startIndex: info.startBuffered, endIndex: info.endBuffered}, metadata);
+
     return {
+        ...info,
         viewableItems: info.viewableItems.map(getDataViewToken).filter((token): token is ViewToken<TableData> => token !== null),
         changed: info.changed.map(getDataViewToken).filter((token): token is ViewToken<TableData> => token !== null),
+        start: visibleIndices.startIndex,
+        end: visibleIndices.endIndex,
+        startBuffered: bufferedIndices.startIndex,
+        endBuffered: bufferedIndices.endIndex,
     };
 }
 
@@ -68,9 +80,9 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
 }
 
 /**
- * Renders the table body using FlashList when data rows are present or a page-header search/filter has no results.
+ * Renders the table body using LegendList when data rows are present or a page-header search/filter has no results.
  *
- * This component consumes the Table context to access processed data and FlashList props.
+ * This component consumes the Table context to access processed data and LegendList props.
  * It automatically handles empty states, including a special "no results found" message
  * when search returns no results but original data exists.
  *
@@ -98,9 +110,6 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
     const styles = useThemeStyles();
     const scrollEnabled = useScrollEnabled();
-    const [isListLoaded, setIsListLoaded] = useState(false);
-    const [hasActivatedStickyHeader, setHasActivatedStickyHeader] = useState(false);
-    const [activeStickyHeaderIndex, setActiveStickyHeaderIndex] = useState(-1);
     const {
         processedData: filteredAndSortedData,
         listProps,
@@ -120,7 +129,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
-        ListEmptyComponentStyle,
         ListFooterComponent,
         ListFooterComponentStyle,
         ListHeaderComponent,
@@ -130,7 +138,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         keyExtractor,
         onEndReached,
         onLoad,
-        onChangeStickyIndex,
         onScroll,
         onStartReached,
         onViewableItemsChanged,
@@ -140,6 +147,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
+    const extraData: unknown = listProps?.extraData;
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -153,52 +161,20 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
 
-    const shouldRenderStickyHeader = tableListMetadata.shouldRenderStickyHeader;
     const hasRows = filteredAndSortedData.length > 0;
-    const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
+    const shouldRenderLegendList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
     const shouldApplyPageHeaderTable = isTableSemanticsEnabled && tableListMetadata.hasPageHeader && hasRows;
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+    const rowExtraData = useMemo(
+        () => ({extraData, renderItem, tableHeaderElement, tableListMetadata, isTableSemanticsEnabled}),
+        [extraData, renderItem, tableHeaderElement, tableListMetadata, isTableSemanticsEnabled],
+    );
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
-    const [previousListState, setPreviousListState] = useState(currentListState);
-    const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
-    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader;
-
-    if (shouldResetListLoad || shouldResetStickyHeader) {
-        setPreviousListState(currentListState);
-
-        if (shouldResetListLoad) {
-            setIsListLoaded(false);
-        }
-
-        if (shouldResetStickyHeader) {
-            setHasActivatedStickyHeader(false);
-            setActiveStickyHeaderIndex(-1);
-        }
-    }
-
-    useEffect(() => {
-        if (!hasRows || !tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
-            return;
-        }
-
-        const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
-        return () => cancelAnimationFrame(frame);
-    }, [hasActivatedStickyHeader, hasRows, isListLoaded, tableListMetadata.shouldRenderStickyHeader]);
-
-    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
-        (current, previous) => {
-            setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
-            onChangeStickyIndex?.(current, previous);
-        },
-        [onChangeStickyIndex],
-    );
-
     const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
         (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
         [onViewableItemsChanged, tableListMetadata],
@@ -214,17 +190,22 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     );
 
     const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
-        (layout, item, index, maxColumns, extraData) => {
+        (layout, item, index, maxColumns) => {
             if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
                 return;
             }
 
             overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
         },
-        [overrideItemLayout, tableListMetadata],
+        [extraData, overrideItemLayout, tableListMetadata],
     );
 
-    const initialScrollIndexForList = initialScrollIndex == null ? initialScrollIndex : getListIndex(initialScrollIndex, tableListMetadata);
+    let initialScrollIndexForList = initialScrollIndex;
+    if (typeof initialScrollIndex === 'number') {
+        initialScrollIndexForList = getListIndex(initialScrollIndex, tableListMetadata);
+    } else if (initialScrollIndex) {
+        initialScrollIndexForList = {...initialScrollIndex, index: getListIndex(initialScrollIndex.index, tableListMetadata)};
+    }
 
     const renderListComponent = (component: typeof ListHeaderComponent | typeof ListEmptyComponent | typeof ListFooterComponent) => {
         if (!component) {
@@ -275,7 +256,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             },
     ];
 
-    if (!shouldRenderFlashList) {
+    if (!shouldRenderLegendList) {
         return (
             <View
                 ref={listContainerRef}
@@ -303,23 +284,20 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         );
     }
 
-    // Keep the page header in the same FlashList across rows -> no results -> rows transitions.
-    // FlashList renders ListHeaderComponent outside its virtualized item collection, so controls such
+    // Keep the page header in the same LegendList across rows -> no results -> rows transitions.
+    // LegendList renders ListHeaderComponent outside its virtualized item collection, so controls such
     // as the search input keep their identity. The full-layout wrapper below is the semantic table ancestor;
     // keeping rows in their physical accessibility tree avoids focus/scroll jumps caused by detached aria-owns rows.
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
-    const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
     const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
     const handleLoad: NonNullable<typeof onLoad> = (info) => {
-        setIsListLoaded(true);
         onLoad?.(info);
     };
 
-    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+    const renderListItem = (info: LegendListRenderItemProps<TableData>) => {
         const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
         switch (rowKind) {
@@ -328,23 +306,19 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     return null;
                 }
 
-                const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
-                const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
                 return React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'aria-hidden': isAccessibilityHidden ? true : undefined,
-                    isAccessibilityHidden,
                 });
             }
             case 'data':
             default: {
                 const dataIndex = getDataIndex(info.index, tableListMetadata);
-                const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled, info.target);
+                const semanticRowID = getVirtualizedRowSemanticID(isTableSemanticsEnabled);
                 return (
                     <TableRowSemanticIDContext.Provider value={semanticRowID}>
                         {renderItem?.({
                             ...info,
+                            extraData,
                             index: dataIndex,
                         }) ?? null}
                     </TableRowSemanticIDContext.Provider>
@@ -363,14 +337,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         return keyExtractor?.(item, getDataIndex(index, tableListMetadata)) ?? item.keyForList;
     };
 
-    const getItemTypeForList = (item: TableData, index: number, extraData: unknown) => {
+    const getItemTypeForList = (item: TableData, index: number) => {
         const rowKind = getSyntheticRowKind(index, tableListMetadata);
 
         if (rowKind !== 'data') {
             return item.keyForList;
         }
 
-        return getItemType?.(item, getDataIndex(index, tableListMetadata), extraData);
+        return getItemType?.(item, getDataIndex(index, tableListMetadata));
     };
 
     return (
@@ -381,20 +355,18 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             {...tableBodyAccessibilityProps}
             {...props}
         >
-            <FlashList<TableData>
+            <LegendList<TableData>
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
-                maintainVisibleContentPosition={{disabled: true}}
+                maintainVisibleContentPosition={false}
                 ListHeaderComponent={pageHeaderElement}
-                ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
-                ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
+                ListEmptyComponent={shouldRenderEmptyStateInList ? <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View> : ListEmptyComponent}
                 ListFooterComponent={ListFooterComponent}
                 ListFooterComponentStyle={shouldRenderEmptyStateInList ? emptyStateFooterStyle : ListFooterComponentStyle}
                 onLoad={handleLoad}
-                onChangeStickyIndex={handleChangeStickyIndex}
-                stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
+                stickyHeaderIndices={hasRows ? adjustedStickyHeaderIndices : undefined}
                 contentContainerStyle={[
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
@@ -421,6 +393,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     onScroll?.(event);
                 }}
                 {...restListProps}
+                extraData={rowExtraData}
                 scrollEnabled={scrollEnabled}
             />
         </View>

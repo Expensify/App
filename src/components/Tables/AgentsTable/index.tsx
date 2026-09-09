@@ -15,7 +15,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -86,7 +86,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
         return results.length > 0;
     };
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<AgentRowData>) => (
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<AgentRowData>) => (
         <AgentsTableRow
             item={item}
             rowIndex={index}

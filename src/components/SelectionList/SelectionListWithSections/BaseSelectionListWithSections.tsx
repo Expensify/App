@@ -22,11 +22,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {ValueOf} from 'type-fest';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -35,12 +35,6 @@ import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './ty
 function getItemType(item: FlattenedItem<ListItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
 }
-
-/**
- * FlashList paints its first frame in batches of `initialDrawBatchSize ** ceil(pass / 5)` rows, re-measuring every
- * mounted row on each pass. Rows stay at opacity 0 until that ends, so a bigger batch only means fewer passes.
- */
-const FLASH_LIST_OVERRIDE_PROPS = {initialDrawBatchSize: 8};
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
@@ -104,11 +98,9 @@ function BaseSelectionListWithSectionsImpl({
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
-
-    // FlashList treats any defined initialScrollIndex as a scroll target and recomputes every layout on each
-    // progressive pass. `initialFocusedIndex` is -1 when nothing is focused, which is not a scroll target.
+    // `initialFocusedIndex` is -1 when nothing is focused, which is not a valid scroll target.
     const targetScrollIndex = initialScrollIndex ?? (initialFocusedIndex < 0 ? undefined : initialFocusedIndex);
-    const listRef = useRef<FlashListRef<FlattenedItem<ListItem>> | null>(null);
+    const listRef = useRef<LegendListRef | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, flattenedData);
     const {containerRef, trackScrollOffset, scrollInputIntoView} = useScrollToFocusedInput(listRef, isKeyboardShown);
 
@@ -122,7 +114,6 @@ function BaseSelectionListWithSectionsImpl({
         shouldDebounceScrolling,
         scrollToIndex,
         debouncedScrollToIndex,
-        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
     });
 
@@ -278,7 +269,7 @@ function BaseSelectionListWithSectionsImpl({
         );
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<FlattenedItem<ListItem>>) => {
+    const renderItem = ({item, index}: LegendListRenderItemProps<FlattenedItem<ListItem>>) => {
         if (!item) {
             return null;
         }
@@ -350,15 +341,14 @@ function BaseSelectionListWithSectionsImpl({
                     listEmptyContent={listEmptyContent}
                 />
             ) : (
-                <FlashList
+                <LegendList
                     role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}
-                    extraData={flattenedData.length}
+                    extraData={renderItem}
                     getItemType={getItemType}
                     initialScrollIndex={targetScrollIndex}
-                    overrideProps={FLASH_LIST_OVERRIDE_PROPS}
                     keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={onEndReachedThreshold}
@@ -377,7 +367,7 @@ function BaseSelectionListWithSectionsImpl({
                     ListFooterComponentStyle={style?.listFooterContentStyle}
                     style={style?.listStyle}
                     contentContainerStyle={style?.contentContainerStyle}
-                    maintainVisibleContentPosition={{disabled: true}}
+                    maintainVisibleContentPosition={false}
                 />
             )}
             {!!footerContent && (

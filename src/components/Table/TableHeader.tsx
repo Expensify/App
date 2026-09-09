@@ -34,7 +34,7 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
  * Props for the TableHeader component.
  */
 type TableHeaderProps = ViewProps & {
-    /** Whether this header is rendered as a sticky FlashList item. */
+    /** Whether this header is rendered as a sticky LegendList item. */
     isStickyListHeader?: boolean;
 
     /** Whether this duplicate sticky-header render must be hidden and removed from keyboard focus. */

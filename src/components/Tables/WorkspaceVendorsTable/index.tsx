@@ -9,7 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -46,7 +46,7 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
         return results.length > 0;
     };
 
-    const renderVendorItem = ({item, index}: ListRenderItemInfo<WorkspaceVendorTableRowData>) => (
+    const renderVendorItem = ({item, index}: LegendListRenderItemProps<WorkspaceVendorTableRowData>) => (
         <Table.Row
             interactive={false}
             accessibilityLabel={item.name}

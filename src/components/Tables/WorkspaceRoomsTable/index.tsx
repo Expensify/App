@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React, {useEffect, useRef} from 'react';
 
@@ -61,7 +61,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
             return;
         }
         // The room has to be looked up in the table's processed data: an active search can filter it out
-        // (in which case there is nothing to scroll to and the FlashList is not even mounted), and FlashList
+        // (in which case there is nothing to scroll to and the LegendList is not even mounted), and LegendList
         // matches the scroll target by reference, so the row instance must come from the data the list renders.
         const highlightedRow = tableRef.current?.getProcessedData().find((row) => row.keyForList === highlightedRoom.keyForList);
         if (!highlightedRow) {
@@ -93,7 +93,7 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, headerCompon
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceRoomRowData> = (item, searchValue) => item.name.toLowerCase().includes(searchValue.toLowerCase());
 
-    const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceRoomRowData>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<WorkspaceRoomRowData>) => (
         <WorkspaceRoomsTableRow
             item={item}
             rowIndex={index}

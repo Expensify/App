@@ -33,10 +33,10 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {FlashList} from '@shopify/flash-list';
+import {LegendList} from '@legendapp/list/react-native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -159,7 +159,7 @@ function WorkspaceFieldsSection({
     );
 
     const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<FieldListItem>) => (
+        ({item}: LegendListRenderItemProps<FieldListItem>) => (
             <OfflineWithFeedback pendingAction={item.pendingAction}>
                 <MenuItem
                     style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
@@ -256,11 +256,12 @@ function WorkspaceFieldsSection({
                         <>
                             <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
                                 {!isLoading && (
-                                    <FlashList
+                                    <LegendList
                                         data={fields}
                                         renderItem={renderItem}
+                                        extraData={renderItem}
                                         keyExtractor={keyExtractor}
-                                        maintainVisibleContentPosition={{disabled: true}}
+                                        maintainVisibleContentPosition={false}
                                     />
                                 )}
                             </View>

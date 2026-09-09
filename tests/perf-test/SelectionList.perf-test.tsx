@@ -9,7 +9,6 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import variables from '@styles/variables';
 
 import type * as NativeNavigation from '@react-navigation/native';
-import type ReactNative from 'react-native';
 
 import React, {useState} from 'react';
 import {measureRenders} from 'reassure';
@@ -18,20 +17,6 @@ type SelectionListWrapperProps = {
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 };
-
-// FlashList requires layout events to render items; mock it with FlatList for tests.
-jest.mock('@shopify/flash-list', () => {
-    const RN = jest.requireActual<typeof ReactNative>('react-native');
-    return {
-        FlashList: ({data, ...props}: React.ComponentProps<typeof RN.FlatList>) => (
-            <RN.FlatList
-                data={data}
-                {...props}
-                initialNumToRender={data?.length}
-            />
-        ),
-    };
-});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

@@ -43,7 +43,7 @@ function shouldUseTableSemantics(shouldUseNarrowTableLayout: boolean): boolean {
 }
 
 /**
- * Props for the element wrapping the whole table. The row count lives on the container because FlashList virtualizes
+ * Props for the element wrapping the whole table. The row count lives on the container because LegendList virtualizes
  * rows, so a screen reader cannot derive the total by walking the DOM. `columnCount` includes the leading selection
  * column when present, so it matches the 1-based `aria-colindex` assigned to headers and cells (the checkbox is
  * column 1). `hasHeaderRow` reflects whether the active virtualized layout currently exposes a column-header row.
@@ -78,7 +78,7 @@ function getRowGroupAccessibilityProps(isEnabled: boolean): TableAccessibilityPr
 }
 
 /**
- * Props for a table row. `aria-rowindex` is 1-based and has to be set explicitly because FlashList only keeps the
+ * Props for a table row. `aria-rowindex` is 1-based and has to be set explicitly because LegendList only keeps the
  * visible rows in the DOM, so a screen reader would otherwise announce the position within the rendered window.
  * Data rows start at 2 when a header occupies index 1, and at 1 when the current table layout has no exposed header.
  */
@@ -95,13 +95,10 @@ function getRowAccessibilityProps(isEnabled: boolean, rowIndex: number, isHeader
     };
 }
 
-/** Keeps real FlashList cells in the semantic tree while marking measurement and sticky clones as hidden. */
-function getVirtualizedRowSemanticID(isEnabled: boolean, target: VirtualizedRowTarget): null | undefined {
-    if (!isEnabled) {
-        return undefined;
-    }
-
-    return target === 'Cell' ? undefined : null;
+/** LegendList moves the original row when it becomes sticky, so every rendered row remains in the semantic tree. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getVirtualizedRowSemanticID(isEnabled: boolean, legacyTarget?: VirtualizedRowTarget): undefined {
+    return undefined;
 }
 
 /**
