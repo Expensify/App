@@ -560,6 +560,10 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
+                isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
             ListItem={InviteMemberListItem}
