@@ -1399,11 +1399,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
         if (!iouReport && isPolicyExpenseChat) {
-            iouReport =
-                getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, getAllReportNameValuePairs(), allReports, false)
-                    // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
-                    .sort((report1, report2) => (report2?.created ?? '').localeCompare(report1?.created ?? ''))
-                    .at(0) ?? null;
+            const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, getAllReportNameValuePairs(), allReports, false);
+
+            // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
+            iouReport = outstandingReports.reduce<OnyxInputValue<OnyxTypes.Report>>(
+                (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? report ?? null : newest),
+                outstandingReports.at(0) ?? null,
+            );
         }
     }
 
