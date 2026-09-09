@@ -558,7 +558,6 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Wide layouts open the pressed expense on a short timer, so let it run. Narrow layouts push both at once.
         const settleCascade = async () => {
             await act(async () => {
                 jest.advanceTimersByTime(400);
@@ -689,7 +688,6 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('opens the report and the pressed expense on top of it in the same tick on narrow layouts', async () => {
-            // Deploy blocker #100673: a delayed push let the user watch the report mount before the expense opened.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
@@ -923,7 +921,6 @@ describe('MoneyRequestReportPreview', () => {
         it('resolves the pressed expense through its live IOU action when the first match is one deleted by an offline split revert', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});
-            // Deploy blocker #100669: a reverted split leaves a deleted IOU action that the first-match lookup could pick.
             const deletedAction: ReportAction = {
                 ...mockAction,
                 reportActionID: 'deleted',
@@ -941,7 +938,6 @@ describe('MoneyRequestReportPreview', () => {
             jest.spyOn(ReportActionUtils, 'getAllReportActions').mockReturnValue({deleted: deletedAction, live: liveAction});
 
             await renderAndPopulateCarousel();
-            // The cards are rendered from the live action. The press is what runs into the deleted first match.
             getIOUActionSpy.mockImplementation((reportID, transactionID) => (transactionID === mockSecondTransactionID ? deletedAction : buildActionWithThread(reportID, transactionID)));
             await pressSecondTransaction();
             await settleCascade();

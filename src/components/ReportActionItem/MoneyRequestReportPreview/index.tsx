@@ -56,7 +56,6 @@ import resolvePressOrigin from './resolvePressOrigin';
 const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length > 0;
 
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
-// Wide layouts only, where the expense visibly cascades over the super-wide report RHP.
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
@@ -237,7 +236,6 @@ function MoneyRequestReportPreview({
         (transaction: Transaction) => {
             let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             if (transactionIOUAction && (isDeletedAction(transactionIOUAction) || transactionIOUAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
-                // A reverted split leaves a deleted IOU action next to the live one, and a deleted parent action shows the not-found page.
                 const liveIOUAction = getIOUActionForTransactionID(
                     Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(
                         (reportAction) => !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -245,14 +243,12 @@ function MoneyRequestReportPreview({
                     transaction.transactionID,
                 );
                 if (!liveIOUAction) {
-                    // Only deleted actions remain, so the caller opens the parent report instead.
                     return undefined;
                 }
                 transactionIOUAction = liveIOUAction;
             }
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
-                // The offline clean-up leaves the thread report with a null reportID instead of removing it.
                 const existingThread = getReportOrDraftReport(childReportID);
                 if (existingThread && !existingThread.reportID) {
                     return undefined;
@@ -299,7 +295,6 @@ function MoneyRequestReportPreview({
                     Navigation.navigate(reportRoute);
                 }
                 setActiveTransactionIDs(openableTransactionIDs);
-                // No stagger on narrow layouts, or the user watches the report load before the expense opens.
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
