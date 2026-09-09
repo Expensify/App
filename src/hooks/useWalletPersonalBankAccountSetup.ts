@@ -1,3 +1,7 @@
+/**
+ * Reads the Onyx state needed to open or resume a Wallet-initiated personal bank account setup
+ * and reports whether that state is still loading.
+ */
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
