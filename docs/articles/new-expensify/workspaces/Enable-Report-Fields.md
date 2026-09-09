@@ -6,6 +6,8 @@ keywords: [New Expensify, report fields, custom report fields, workspace headers
 
 Report Fields let workspace admins collect additional header-level information on reports, such as project names, client codes, or trip types. This feature is only available on the **Control plan**.
 
+Report Fields apply to expense reports. They don't appear on invoices. To collect extra details on invoices, [learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
+
 **Note:** If your workspace is connected to an accounting system like QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite, Report Fields must be created in that system directly. [Learn more about connecting integrations.](#)
 
 ---
@@ -29,13 +31,14 @@ Once Report Fields are enabled, follow these steps to create a new field:
 
 1. Go to **Workspaces > [Workspace Name] > Report Fields**.
    - If you don’t see **Report Fields**, first enable it using the steps above.
-2. Click **Add Field** in the top-right corner.
-3. Enter a name for your field under **Name**.
-4. Choose a **Field Type**:
-   - **Text** – Free-text entry.
-   - **Date** – Calendar date selection.
-   - **List** – Predefined list of values.
-     - To create list options, click **List Values** > **Add Values**.
+2. Click **Add field**.
+3. Click **Name** and enter a name for your field.
+4. Click **Type** and choose one:
+   - **Text** – Add a field for free text input.
+   - **Date** – Add a calendar for date selection.
+   - **List** – Add a list of options to choose from.
+     - To create list options, click **List values**, then click **Add value** for each option.
+   - **Formula** – Add a formula field.
 5. After naming and choosing the field type, click **Save**.
 
 ---
