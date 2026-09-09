@@ -71,6 +71,7 @@ function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'cate
         rule.comment ?? '',
         rule.reimbursable ?? null,
         rule.billable ?? null,
+        rule.vendorID ?? null,
     ]);
 }
 
@@ -150,19 +151,26 @@ type ParsedSpreadsheetRules = {
 
     /** The lower-cased category cells that didn't match any workspace category */
     invalidCategoryNames: Set<string>;
+
+    /** The lower-cased vendor/supplier cells that didn't match exactly one active vendor */
+    invalidVendorNames: Set<string>;
 };
 
 /**
  * Parses the mapped spreadsheet into the merchant rules to import. Rows that duplicate an existing/loaded rule are
- * counted in `skippedDuplicateCount`, and category cells that don't match a workspace category are collected in
- * `invalidCategoryNames`. Kept as a pure function so the offline button-enablement check and `importRules` derive
+ * counted in `skippedDuplicateCount`, category cells that don't match a workspace category are collected in
+ * `invalidCategoryNames`, and vendor/supplier cells that don't match exactly one active vendor are collected in
+ * `invalidVendorNames`. Kept as a pure function so the offline button-enablement check and `importRules` derive
  * from the exact same parse and can never disagree about whether the import needs the API.
+ *
+ * `isVendorListReady` must be false while the active integration's vendor list hasn't loaded yet.
  */
 function parseSpreadsheetRules(
     spreadsheet: OnyxEntry<ImportedSpreadsheet>,
     containsHeader: boolean,
     policy: OnyxEntry<Policy>,
     policyCategories: OnyxEntry<PolicyCategories>,
+    isVendorListReady: boolean,
 ): ParsedSpreadsheetRules {
     const columns = Object.values(spreadsheet?.columns ?? {});
     const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
@@ -173,6 +181,7 @@ function parseSpreadsheetRules(
     const commentColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT);
     const reimbursableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE);
     const billableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.BILLABLE);
+    const vendorColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.VENDOR);
 
     const rowCount = (spreadsheet?.data.at(0)?.length ?? 0) - (containsHeader ? 1 : 0);
     const getCellValue = (columnIndex: number, rowIndex: number): string => {
@@ -193,6 +202,8 @@ function parseSpreadsheetRules(
 
     const categoryLookup = buildImportedCategoryLookup(policyCategories);
     const invalidCategoryNames = new Set<string>();
+    const vendorLookup = buildImportedVendorLookup(policy);
+    const invalidVendorNames = new Set<string>();
 
     const rules: Record<string, ImportedMerchantRule> = {};
     for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
@@ -216,9 +227,14 @@ function parseSpreadsheetRules(
         const comment = getCellValue(commentColumn, rowIndex);
         const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
         const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
+        const vendorCell = getCellValue(vendorColumn, rowIndex);
+        const vendorID = isVendorListReady && vendorCell ? (vendorLookup.get(vendorCell.toLowerCase()) ?? '') : '';
+        if (isVendorListReady && vendorCell && !vendorID) {
+            invalidVendorNames.add(vendorCell.toLowerCase());
+        }
 
         // Skip rows where every action cell is empty since the resulting rule would never change anything
-        if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined) {
+        if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined && !vendorID) {
             continue;
         }
 
@@ -234,6 +250,7 @@ function parseSpreadsheetRules(
             ...(comment && {comment: Parser.replace(comment)}),
             ...(reimbursable !== undefined && {reimbursable}),
             ...(billable !== undefined && {billable}),
+            ...(vendorID && {vendorID}),
             created: new Date().toISOString(),
         };
 
@@ -247,16 +264,16 @@ function parseSpreadsheetRules(
         rules[rand64()] = rule;
     }
 
-    return {rules, skippedDuplicateCount, invalidCategoryNames};
+    return {rules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames};
 }
 
 /**
  * Whether the parsed import resolves entirely client-side: no net-new rule remains, but at least one row was
- * skipped as a duplicate or referenced an unknown category. In that case `importRules` builds the confirmation
+ * skipped as a duplicate or referenced an unknown category/vendor. In that case `importRules` builds the confirmation
  * modal locally with no API call, so it's the only case where the import can proceed offline.
  */
-function willImportShortCircuitLocally({rules, skippedDuplicateCount, invalidCategoryNames}: ParsedSpreadsheetRules): boolean {
-    return Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0);
+function willImportShortCircuitLocally({rules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames}: ParsedSpreadsheetRules): boolean {
+    return Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0 || invalidVendorNames.size > 0);
 }
 
 type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED>;
