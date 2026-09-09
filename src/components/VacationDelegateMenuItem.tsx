@@ -18,7 +18,6 @@ import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
 
 type VacationDelegateSectionProps = {
-    /** Currently selected vacation delegate (if any) */
     vacationDelegate?: BaseVacationDelegate;
 
     /** Errors related to setting the vacation delegate */

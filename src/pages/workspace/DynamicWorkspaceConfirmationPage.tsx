@@ -51,7 +51,7 @@ function DynamicWorkspaceConfirmationPage() {
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         // policyID is always supplied by WorkspaceConfirmationForm (stable per form instance).
         const policyID = params.policyID;
-        const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
+        const isDifferentOwner = !!params.owner?.email && params.owner.email !== (currentUserPersonalDetails.email ?? '');
         const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
         const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
         const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
@@ -60,7 +60,7 @@ function DynamicWorkspaceConfirmationPage() {
         }
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
-            policyOwnerEmail: params.owner,
+            policyOwner: params.owner,
             policyName: params.name,
             transitionFromOldDot: false,
             makeMeAdmin: params.makeMeAdmin,
