@@ -58,13 +58,8 @@ const ENVIRONMENT = {
 // oxc-transform-react. Hence the exact version pin in package.json, the throw on an unmapped category,
 // and the fixtures in oxlint-migration/port-probe/: an upstream rename has to fail loudly.
 //
-// CURRENTLY INERT. This module analyzes every file and returns nothing, because oxc-transform-react
-// 0.148.0 narrowed `result.errors` to fatal React Compiler diagnostics only (oxc-project/oxc#26128),
-// and `should_panic` in crates/oxc_react_compiler/src/diagnostics.rs answers false unconditionally
-// for `panicThreshold: 'none'`. All twelve rc/* rules are `off` in .oxlintrc.json as a result; the
-// reasoning and the measured numbers live there. The code below is left in the shape that worked on
-// 0.147.0 rather than adapted, because that is the shape that starts working again the moment
-// upstream exposes non-fatal diagnostics. Tracked as oxc-project/oxc#26318.
+// Three of the twelve categories are `off` in .oxlintrc.json because the Rust compiler cannot be made
+// to hand them back at all; the rc/* block there has the reasoning and the numbers.
 const CATEGORY_PATTERN = /react-compiler\(([^)]+)\)/;
 
 const cache = new Map();
@@ -107,7 +102,22 @@ function analyze(filename, sourceText) {
             reactCompiler: {
                 target: '19',
                 outputMode: 'lint',
-                panicThreshold: 'none',
+                // `all_errors`, not the `none` default, and this is the only reason rc/* reports
+                // anything at all. oxc-transform-react 0.148.0 narrowed `result.errors` to *fatal*
+                // React Compiler diagnostics (oxc-project/oxc#26128, tracked as #26318), and
+                // `should_panic` in crates/oxc_react_compiler/src/diagnostics.rs answers false
+                // unconditionally for `PanicThreshold::None`, so on the default nothing is fatal and
+                // the list is always empty. `all_errors` makes every diagnostic fatal, which is
+                // currently the only way to read one back. `fatal` is therefore the normal case here
+                // rather than a failure, which is why the handling below no longer bails on it.
+                //
+                // The cost, and it is a real one: a fatal result aborts on the first function that
+                // fails to compile and carries only what was accumulated by then, so later functions
+                // in the same file are not analyzed on that pass. Findings are revealed iteratively,
+                // one function per fix, rather than all at once. `npm run compare-oxlint` prints the
+                // per-rule ESLint-only counts every run, so the size of the remaining gap is always
+                // on screen rather than silent.
+                panicThreshold: 'all_errors',
                 flowSuppressions: false,
                 // The option oxlint's native react/* rules do not expose, and the reason this module
                 // exists: without it the compiler skips every function under an
@@ -122,12 +132,24 @@ function analyze(filename, sourceText) {
         return [];
     }
 
-    if (result.fatal) {
+    const errors = result.errors ?? [];
+
+    // A config oxc rejects is a bug in this module, not a finding about the file. Fail loudly, the
+    // same way an unmapped category does.
+    const rejected = errors.find((error) => (error.message ?? '').startsWith('Invalid React Compiler'));
+    if (rejected) {
+        throw new Error(`oxc-transform-react rejected this module's React Compiler options: ${rejected.message}`);
+    }
+
+    // A fatal result carrying no `react-compiler(...)` category means the compiler never got as far
+    // as analyzing: a parse failure aborts that way. oxlint's own parser reports the syntax error, so
+    // a rule here stays quiet rather than throwing on it.
+    if (result.fatal && !errors.some((error) => CATEGORY_PATTERN.test(error.codeframe ?? ''))) {
         return [];
     }
 
     const diagnostics = [];
-    for (const error of result.errors ?? []) {
+    for (const error of errors) {
         const match = CATEGORY_PATTERN.exec(error.codeframe ?? '');
         if (!match) {
             throw new Error(`React Compiler diagnostic with no category in its codeframe (${filename}): ${error.message ?? ''}`);

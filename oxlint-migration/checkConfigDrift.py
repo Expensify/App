@@ -55,24 +55,6 @@ LEDGER = {
     'progress/activate': (ACCEPTED, 'progress-bar plugin; oxlint prints its own progress. No behavior to preserve'),
     'react-hooks/config': (ACCEPTED, 'not a compiler-category rule and not ported. Left behind when the rh/ sidecar was deleted'),
     'react-hooks/gating': (ACCEPTED, 'same'),
-    # The twelve rc/* rules are off in .oxlintrc.json, and not by choice: oxc-transform-react 0.148.0 narrowed
-    # result.errors to fatal React Compiler diagnostics (oxc-project/oxc#26128) and should_panic answers false for
-    # the default panicThreshold, so the Rust engine analyzes every file and hands back nothing. Measured 12/12
-    # fixtures on 0.147.0, 0/12 on 0.148.0 and 0.149.0. panicThreshold: all_errors is not a workaround; the rc/*
-    # block in .oxlintrc.json carries the numbers. Costs 352 findings against ESLint. Delete these twelve entries
-    # when oxc exposes non-fatal diagnostics and the rules go back on. Tracked as oxc-project/oxc#26318.
-    'react-hooks/refs': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/set-state-in-effect': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/set-state-in-render': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/preserve-manual-memoization': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/immutability': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/static-components': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/use-memo': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/globals': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/error-boundaries': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/purity': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/incompatible-library': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
-    'react-hooks/unsupported-syntax': (ACCEPTED, 'off in .oxlintrc.json; the Rust React Compiler cannot report it since oxc-project/oxc#26128, see the rc/* block there'),
     'react-hooks/component-hook-factories': (ACCEPTED, 'ships as a deprecated stub upstream: create() returns {}, so it cannot report on either tool'),
     'prefer-const': (OPEN, 'oxlint passes {ignoreReadBeforeAssign: true}; the default is false (eslint/lib/rules/prefer-const.js:343-348). oxlint is the more lenient of the two'),
     'no-redeclare': (OPEN, 'oxlint passes {builtinGlobals: false}; the default is true (eslint/lib/rules/no-redeclare.js:23). oxlint is the more lenient of the two'),

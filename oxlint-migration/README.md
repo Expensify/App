@@ -59,46 +59,58 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `ruleMap.py` | the shared rule-id map and `PORT_PLAN`; imported by most of the above | library |
 | `compareNativeCtxValues.py`, `eslint-ctx-values-rule.mjs` | reproduction for the two upstream bugs in Oxlint's native `react/jsx-no-constructed-context-values` (wrong anchor line, no component-scope check) | on demand, until both are filed |
 
-## The one thing still blocking the switch
+## The React Compiler rules report partially, on purpose
 
-All twelve `rc/*` React Compiler rules are `off` in `.oxlintrc.json`. They were ported and measured
-working on `oxc-transform-react` 0.147.0. Version 0.148.0 narrowed `result.errors` to *fatal* React
-Compiler diagnostics ([oxc-project/oxc#26128](https://github.com/oxc-project/oxc/pull/26128), "match
-Babel diagnostic reporting"), and `should_panic` in `crates/oxc_react_compiler/src/diagnostics.rs`
-answers `false` unconditionally for the default `panicThreshold: "none"`, so the Rust engine now
-analyzes every file and returns nothing. Measured: 12/12 fixtures report on 0.147.0, 0/12 on 0.148.0
-and 0.149.0.
+All twelve `rc/*` rules are on. Some of them report less than ESLint does, and they are left on
+anyway: a rule that under-reports shows up as a number in `npm run compare-oxlint`, while a rule
+switched off reads exactly like a clean codebase.
 
-Forcing the diagnostics fatal to read them back does not work. `panicThreshold: "all_errors"` aborts
-on the first function that fails to compile and returns only what it accumulated, so later components
-in the same file are never analyzed: two components each with a ref read gives 1 finding where ESLint
-gives 2. Whole-repo that was `refs` 215 vs 215 with mismatched locations both ways, `immutability` 6
-vs 7, and `preserve-manual-memoization` 2 vs 65. Wrong in both directions, so worse than off.
+Measured whole-repo on `oxc-transform-react` 0.149.0:
 
-Cost while off: 352 findings ESLint reports and oxlint does not. What it needs is for oxc to expose
-non-fatal React Compiler diagnostics; their own `outputMode: "lint"` is documented as "analyze and
-report diagnostics without applying compiler output", which is precisely the missing channel.
+| rule | ESLint | oxlint | |
+| --- | --- | --- | --- |
+| `refs` | 215 | 215 | same count, 3 ESLint-only and 3 oxlint-only |
+| `set-state-in-effect` | 127 | 47 | partial |
+| `preserve-manual-memoization` | 2 | 65 | over-reports, and 15 of its 25 files are flagged by no other `rc/*` rule |
+| `immutability` | 6 | 7 | one extra |
+| `static-components` | 2 | 2 | exact |
+| the other seven | 0 | 0 | latent in this repo |
+
+`config/oxlint/reactCompilerRust.mjs` has to pass `panicThreshold: "all_errors"` for any of this to
+work. `oxc-transform-react` 0.148.0 narrowed `result.errors` to *fatal* React Compiler diagnostics
+([oxc-project/oxc#26128](https://github.com/oxc-project/oxc/pull/26128), "match Babel diagnostic
+reporting"), and `should_panic` in `crates/oxc_react_compiler/src/diagnostics.rs` answers `false`
+unconditionally for the `none` default. On the default, every one of these rules reports exactly
+nothing: 12/12 fixtures report on 0.147.0, 0/12 on 0.148.0 and 0.149.0.
+
+Making every diagnostic fatal has a cost, and it is what the partial numbers above are. A fatal
+result aborts on the first function in a file that fails to compile and carries only what was
+accumulated by then, so later functions are not analyzed on that pass. Findings surface iteratively:
+fix one and the next run shows the next. `oxlint-migration/native-vs-sidecar-probe/TwoComponents.tsx`
+pins that behaviour, reporting line 7 where ESLint reports 7, 21 and 24 in one pass.
+
+Three categories are non-fatal on their own, so their isolated fixture reports nothing while the rule
+still fires in real code, where the category usually shares a function with something fatal and rides
+along on the abort. `Counter.tsx` shows it: `set-state-in-effect` on line 12, carried out by the ref
+read on line 8. They are marked `blockedUpstream` in `port-probe/fixtures.manifest.json` and listed
+in `NON_FATAL_IN_ISOLATION` in `checkReactCompilerRust.mjs`, both asserted as zero so they trip when
+this changes.
 
 Tracked upstream as [oxc-project/oxc#26318](https://github.com/oxc-project/oxc/issues/26318),
-"expose recoverable React Compiler diagnostics" against the Node binding, filed 2026-09-04 and open with
-no maintainer reply. Filed by someone else and it reaches the same three conclusions independently:
-`errors` is fatal-only, `outputMode: "lint"` returns nothing, and `panicThreshold` is not a workaround
-because it stops at the first diagnostic. It asks for a `diagnostics` array beside `errors`, or a
-Babel-style logger; the Rust side already has category, span and help text and only the binding drops
-them. So there is nothing to file, only something to wait on or contribute to.
+"expose recoverable React Compiler diagnostics" against the Node binding, filed 2026-09-04 and open
+with no maintainer reply. Filed by someone else and it reaches the same conclusions independently:
+`errors` is fatal-only, `outputMode: "lint"` returns nothing, and `panicThreshold` is not a clean
+workaround because it stops at the first diagnostic. It asks for a `diagnostics` array beside
+`errors`, or a Babel-style logger; the Rust side already has category, span and help text and only
+the binding drops them. When it lands, `panicThreshold` goes back to `none` and the iterative reveal
+disappears.
 
 Related but already avoided:
 [oxc-project/oxc#26277](https://github.com/oxc-project/oxc/issues/26277) reports that a
 `disable-next-line` naming `react/exhaustive-deps` or `react/rules-of-hooks` suppresses every React
-Compiler diagnostic in the enclosing component. That hits Oxlint's *native* `react/*` rules, which this
-config does not use for the compiler checks precisely because of that behaviour, which is what
+Compiler diagnostic in the enclosing component. That hits Oxlint's *native* `react/*` rules, which
+this config does not use for the compiler checks precisely because of that behaviour, which is what
 `eslintSuppressionRules: []` in `config/oxlint/reactCompilerRust.mjs` is there to defeat.
-
-Nothing here silently tolerates it. `checkReactCompilerRust.mjs` derives an `ENGINE_REPORTS` flag and
-asserts either the real expectations or the blocked ones, ending with a check that the twelve rules
-are enabled if and only if the engine can feed them. The `port-probe/` entries carry
-`blockedUpstream`, which asserts ESLint still reports and oxlint still does not. So the day upstream
-fixes this, both suites fail and say what to turn back on.
 
 ## Files that are records, not inputs
 

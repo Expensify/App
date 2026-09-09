@@ -870,51 +870,48 @@
         // 49 against ESLint's 1, every one of them the "changes every render" advice the gate drops
         // in a dual-memoized file. See config/oxlint/plugins/hosted-rules.mjs.
         "hosted/exhaustive-deps": "error",
-        // The 12 React Compiler rules run as rc/* below, on the Rust compiler rather than the
-        // JavaScript one: config/oxlint/reactCompilerRust.mjs
+        // The React Compiler rules run as rc/* below, on the Rust compiler rather than the JavaScript
+        // one: config/oxlint/reactCompilerRust.mjs, which explains why `panicThreshold: "all_errors"`
+        // is what makes any of them report at all.
         //
-        // ALL TWELVE ARE OFF, and none of them by choice. oxc-transform-react 0.148.0 narrowed
-        // `result.errors` to *fatal* React Compiler diagnostics (oxc-project/oxc#26128, "match Babel
-        // diagnostic reporting"), and `should_panic` in crates/oxc_react_compiler/src/diagnostics.rs
-        // returns false unconditionally for the default `panicThreshold: "none"`. So the Rust engine
-        // analyzes every file and hands back nothing. Measured: 12/12 fixtures report on 0.147.0,
-        // 0/12 on 0.148.0 and 0.149.0.
+        // All twelve are on, deliberately including the ones that only report part of what ESLint
+        // does. A rule that under-reports is visible in `npm run compare-oxlint`; a rule switched off
+        // reads identically to a clean codebase, which is the failure mode worth avoiding.
         //
-        // Forcing the diagnostics to be fatal so they can be read back does not work either, and the
-        // numbers are worth keeping so nobody retries it. With `panicThreshold: "all_errors"` the
-        // engine aborts on the first function that fails to compile and returns only what it had
-        // accumulated by then, so a file's later components are never analyzed: two components each
-        // with a ref read yields 1 finding where ESLint reports 2. Whole-repo against ESLint it gave
-        // refs 215 vs 215 but with mismatched locations on both sides, immutability 6 vs 7, and
-        // preserve-manual-memoization 2 vs 65, because `all_errors` promotes a category the compiler
-        // deliberately keeps non-fatal. Wrong in both directions, so worse than off.
+        // Measured whole-repo against ESLint on oxc-transform-react 0.149.0:
+        //   refs                        215 vs 215   same count, 3 ESLint-only and 3 oxlint-only
+        //   set-state-in-effect         127 vs  47   partial, see below
+        //   preserve-manual-memoization   2 vs  65   over-reports, and 15 of its 25 files are flagged
+        //                                            by no other rc rule, so it is not just noise
+        //   immutability                  6 vs   7   one extra
+        //   static-components             2 vs   2   exact
+        //   the other seven                0 vs   0   latent in this repo
         //
-        // Cost while off: 352 findings ESLint reports that oxlint does not (refs 215,
-        // set-state-in-effect 127, immutability 6, preserve-manual-memoization 2, static-components 2;
-        // the other 7 rules report 0 on both sides today). This is the one thing still blocking the
-        // migration, and it needs oxc to expose non-fatal React Compiler diagnostics. Their own
-        // `outputMode: "lint"` is documented as "analyze and report diagnostics without applying
-        // compiler output", which is exactly the missing channel.
+        // Why some under-report: a fatal abort stops at the first function in a file that fails to
+        // compile and carries only the diagnostics accumulated by then, so later functions are not
+        // analyzed on that pass. Findings surface iteratively, one function per fix, rather than all
+        // at once. That is the whole reason `panicThreshold` has to be `all_errors`:
+        // oxc-transform-react 0.148.0 narrowed `result.errors` to fatal React Compiler diagnostics
+        // (oxc-project/oxc#26128) and `should_panic` answers false for the `none` default, so on the
+        // default every one of these rules reports exactly nothing.
         //
-        // Tracked upstream as oxc-project/oxc#26318, "expose recoverable React Compiler
-        // diagnostics", open and unanswered as of 2026-09-08. It asks for a `diagnostics` array beside `errors`,
-        // or a Babel-style logger; the Rust side already carries category, span and help text per diagnostic and
-        // only the binding drops them. Independently filed, and it reports the same three things measured here.
-        //
-        // Re-enable all twelve when that lands. oxlint-migration/checkReactCompilerRust.mjs and
-        // port-probe/ both assert the blockage, so they fail the moment it is lifted.
-        "rc/refs": "off",
-        "rc/set-state-in-effect": "off",
-        "rc/set-state-in-render": "off",
-        "rc/preserve-manual-memoization": "off",
-        "rc/immutability": "off",
-        "rc/static-components": "off",
-        "rc/use-memo": "off",
-        "rc/globals": "off",
-        "rc/error-boundaries": "off",
-        "rc/purity": "off",
-        "rc/incompatible-library": "off",
-        "rc/unsupported-syntax": "off",
+        // Tracked upstream as oxc-project/oxc#26318, "expose recoverable React Compiler diagnostics",
+        // open and unanswered as of 2026-09-09. It asks for a `diagnostics` array beside `errors`, or
+        // a Babel-style logger; the Rust side already carries category, span and help text per
+        // diagnostic and only the binding drops them. When that lands, `panicThreshold` can go back
+        // to `none` and the iterative reveal goes away.
+        "rc/refs": "error",
+        "rc/set-state-in-effect": "error",
+        "rc/set-state-in-render": "error",
+        "rc/preserve-manual-memoization": "error",
+        "rc/immutability": "error",
+        "rc/static-components": "error",
+        "rc/use-memo": "error",
+        "rc/globals": "error",
+        "rc/error-boundaries": "error",
+        "rc/purity": "error",
+        "rc/incompatible-library": "error",
+        "rc/unsupported-syntax": "error",
         "no-restricted-exports": [
             "error",
             {

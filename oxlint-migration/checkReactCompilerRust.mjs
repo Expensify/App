@@ -13,17 +13,34 @@ const PLUGIN_BUNDLE = path.join(repoRoot, 'node_modules/eslint-config-expensify/
 
 const FIXTURES = [
     ['rhRefs.tsx', 'refs', 1],
-    ['rhSetStateInEffect.tsx', 'set-state-in-effect', 1],
     ['rhSetStateInRender.tsx', 'set-state-in-render', 1],
     ['rhPreserveManualMemoization.tsx', 'preserve-manual-memoization', 1],
     ['rhImmutability.tsx', 'immutability', 2],
-    ['rhStaticComponents.tsx', 'static-components', 1],
     ['rhUseMemo.tsx', 'use-memo', 1],
     ['rhGlobals.tsx', 'globals', 1],
-    ['rhErrorBoundaries.tsx', 'error-boundaries', 1],
     ['rhPurity.tsx', 'purity', 1],
     ['rhIncompatibleLibrary.tsx', 'incompatible-library', 1],
     ['rhUnsupportedSyntax.tsx', 'unsupported-syntax', 1],
+];
+
+// Three categories whose fixture cannot report, while the rule itself does fire in real code. All
+// three are non-fatal on their own, and since oxc-transform-react 0.148.0 only fatal React Compiler
+// diagnostics come back through `result.errors` (oxc-project/oxc#26128, tracked as #26318). Each of
+// these fixtures is one component whose only problem is the non-fatal one, so nothing fails the
+// compile and nothing is returned.
+//
+// They are still `error` in .oxlintrc.json, and correctly so: in real code the category usually
+// shares a function with something fatal and rides along on the abort. Counter.tsx in section 6 is
+// exactly that, reporting set-state-in-effect on line 12 because the ref read on line 8 fails the
+// compile. Whole-repo that is set-state-in-effect 47 of ESLint's 127, and static-components 2 of 2.
+//
+// A tripwire, not an exemption: if a fixture starts reporting on its own, upstream has exposed
+// non-fatal diagnostics and `panicThreshold` in config/oxlint/reactCompilerRust.mjs can go back to
+// `none`, which removes the iterative reveal.
+const NON_FATAL_IN_ISOLATION = [
+    ['rhSetStateInEffect.tsx', 'set-state-in-effect'],
+    ['rhStaticComponents.tsx', 'static-components'],
+    ['rhErrorBoundaries.tsx', 'error-boundaries'],
 ];
 
 let failed = false;
@@ -45,33 +62,29 @@ function countsByRule(diagnostics) {
     return counts;
 }
 
-// Does the Rust engine hand back diagnostics at all? oxc-transform-react 0.148.0 narrowed
-// `result.errors` to fatal React Compiler diagnostics (oxc-project/oxc#26128) and `should_panic`
-// answers false unconditionally for the default `panicThreshold: 'none'`, so on 0.148.0 and 0.149.0
-// it analyzes every file and returns nothing. All twelve rc/* rules are `off` in .oxlintrc.json
-// because of it; the reasoning and the measured numbers live there, and it is tracked upstream as
-// oxc-project/oxc#26318.
-//
-// Rather than hardcode zeroes, every assertion below reads this flag and checks the real expectation
-// or the blocked one. So the day upstream exposes non-fatal diagnostics, this script starts
-// enforcing the real numbers on its own, and the last check fails to say the config needs flipping
-// back on. No false green in either direction, and nothing to remember to edit.
-const ENGINE_REPORTS = diagnose(path.join(FIXTURE_DIR, 'rhRefs.tsx')).length > 0;
-if (!ENGINE_REPORTS) {
-    console.log('NOTE: the Rust engine reports nothing on this oxc-transform-react. Checking the blocked expectations.');
-    console.log('      See the rc/* block in .oxlintrc.json. Fixed upstream? This script will tell you.\n');
-}
-
 console.log("1. one fixture per rule, and no rule reporting another rule's fixture");
 const ALL_RULES = Object.values(RULE_BY_CATEGORY);
-for (const [fixture, rule, reportingExpected] of FIXTURES) {
-    const expected = ENGINE_REPORTS ? reportingExpected : 0;
+for (const [fixture, rule, expected] of FIXTURES) {
     const counts = countsByRule(diagnose(path.join(FIXTURE_DIR, fixture)));
     const own = counts.get(rule) ?? 0;
     const strays = ALL_RULES.filter((other) => other !== rule && (counts.get(other) ?? 0) > 0);
     check(own === expected && strays.length === 0, `${fixture} -> rc/${rule}`, `got ${own}, expected ${expected}${strays.length ? `, STRAY ${strays.join(',')}` : ''}`);
 }
-check(FIXTURES.length === ALL_RULES.length, 'every rule in RULE_BY_CATEGORY has a fixture', `${FIXTURES.length} fixtures, ${ALL_RULES.length} rules`);
+for (const [fixture, rule] of NON_FATAL_IN_ISOLATION) {
+    const own = countsByRule(diagnose(path.join(FIXTURE_DIR, fixture))).get(rule) ?? 0;
+    check(
+        own === 0,
+        `${fixture} -> rc/${rule} silent in isolation`,
+        own === 0
+            ? 'nothing fatal in the fixture to carry it out, as oxc-project/oxc#26318 leaves it'
+            : `now reports ${own} alone: upstream exposed non-fatal diagnostics, revisit panicThreshold`,
+    );
+}
+check(
+    FIXTURES.length + NON_FATAL_IN_ISOLATION.length === ALL_RULES.length,
+    'every rule in RULE_BY_CATEGORY has a fixture',
+    `${FIXTURES.length} self-reporting + ${NON_FATAL_IN_ISOLATION.length} non-fatal in isolation, ${ALL_RULES.length} rules`,
+);
 
 console.log('\n2. the category tables cover the whole ErrorCategory enum in eslint-plugin-react-hooks');
 const bundle = fs.readFileSync(PLUGIN_BUNDLE, 'utf8');
@@ -99,7 +112,7 @@ RULE_BY_CATEGORY.Refs = savedRule;
 fs.rmSync(unmappedCopy);
 // The throw needs a categorized diagnostic to trip over, so it is unobservable while the engine
 // returns nothing. Asserted in the negative rather than skipped, so the pair still says something.
-check(threw === ENGINE_REPORTS, 'a category missing from both tables throws', ENGINE_REPORTS ? '' : 'unobservable while the engine reports nothing, and it did not throw');
+check(threw, 'a category missing from both tables throws');
 
 console.log('\n4. a file the compiler cannot parse reports nothing');
 const brokenFile = path.join(PROBE_DIR, 'broken.probe.tsx');
@@ -121,17 +134,20 @@ check(cachedSecond === cachedFirst, 'a second call for the same filename returns
 console.log('\n6. suppression comments no longer hide the analysis (the reason this module exists)');
 const counter = diagnose(path.join(PROBE_DIR, 'Counter.tsx'));
 const counterLines = counter.map((diagnostic) => diagnostic.loc.start.line).sort((first, second) => first - second);
-check(
-    JSON.stringify(counterLines) === JSON.stringify(ENGINE_REPORTS ? [8, 12] : []),
-    'Counter.tsx reports the ref read and the setState-in-effect',
-    `lines ${counterLines.join(',') || '(none)'}`,
-);
+check(JSON.stringify(counterLines) === JSON.stringify([8, 12]), 'Counter.tsx reports the ref read and the setState-in-effect', `lines ${counterLines.join(',') || '(none)'}`);
+// Only the first of the three, and that is the `all_errors` cost rather than a suppression bug.
+// `Dirty` fails first, the fatal abort carries what was accumulated by then, and `Clean` is never
+// analyzed on this pass. Fix line 7 and the next run surfaces 21, then 24. ESLint reports all three
+// at once, which is the 129-finding gap `npm run compare-oxlint` prints per rule.
+//
+// Asserted as exactly [7] so this is a tripwire: if it ever returns all three, upstream stopped
+// aborting at the first failure and .oxlintrc.json should be revisited.
 const twoComponents = diagnose(path.join(PROBE_DIR, 'TwoComponents.tsx'));
 const twoLines = twoComponents.map((diagnostic) => diagnostic.loc.start.line).sort((first, second) => first - second);
 check(
-    JSON.stringify(twoLines) === JSON.stringify(ENGINE_REPORTS ? [7, 21, 24] : []),
-    'TwoComponents.tsx reports all three, including the one in the component holding the comment',
-    `lines ${twoLines.join(',') || '(none)'}`,
+    JSON.stringify(twoLines) === JSON.stringify([7]),
+    'TwoComponents.tsx reports the first failing component, the rest on later passes',
+    `lines ${twoLines.join(',') || '(none)'}; ESLint reports 7,21,24 in one pass`,
 );
 
 console.log('\n7. the one recorded anchor divergence stays where it was measured');
@@ -145,25 +161,23 @@ const escapeLine = anchorLines.findLastIndex((line) => line.includes('onClick={o
 const anchorPoints = diagnose(anchorFile)
     .map((diagnostic) => `${diagnostic.loc.start.line}:${diagnostic.loc.start.column + 1}`)
     .sort();
-const expectedPoints = ENGINE_REPORTS ? [`${modificationLine}:9`, `${modificationLine}:9`] : [];
+const expectedPoints = [`${modificationLine}:9`, `${modificationLine}:9`];
 check(
     JSON.stringify(anchorPoints) === JSON.stringify(expectedPoints),
     'rhImmutabilityAnchor.tsx reports both immutability findings on the modification site',
     `got ${anchorPoints.join(' and ') || 'nothing'}, expected ${expectedPoints.join(' and ') || 'nothing'}; ESLint puts the second one at ${escapeLine}:29`,
 );
 
-console.log('\n8. the rc/* rules are enabled if and only if the engine can feed them');
-// The tripwire. While the engine reports nothing the rules are `off` and this passes; the moment
-// upstream exposes non-fatal diagnostics, every assertion above switches to the real expectations
-// and this one fails until the twelve rules go back to "error" in .oxlintrc.json.
+console.log('\n8. every rc/* rule is enabled, including the ones that only report part of what ESLint does');
+// A rule that under-reports shows up as a count in `npm run compare-oxlint`. A rule switched off
+// reads exactly like a clean codebase, so none of them are switched off.
 const oxlintrc = fs.readFileSync(path.join(repoRoot, '.oxlintrc.json'), 'utf8');
-const enabledInConfig = ALL_RULES.filter((rule) => new RegExp(`"rc/${rule}":\\s*"error"`).test(oxlintrc));
+const severityOf = (rule) => oxlintrc.match(new RegExp(`"rc/${rule}":\\s*"(error|off)"`))?.[1];
+const notEnabled = ALL_RULES.filter((rule) => severityOf(rule) !== 'error');
 check(
-    ENGINE_REPORTS ? enabledInConfig.length === ALL_RULES.length : enabledInConfig.length === 0,
-    'rc/* config matches what the engine can deliver',
-    ENGINE_REPORTS
-        ? `engine reports, so all ${ALL_RULES.length} must be "error"; ${enabledInConfig.length} are. Turn the rest back on in .oxlintrc.json`
-        : `engine reports nothing, so all ${ALL_RULES.length} are "off"`,
+    notEnabled.length === 0,
+    'all rc/* rules are "error" in .oxlintrc.json',
+    notEnabled.length === 0 ? `${ALL_RULES.length} of ${ALL_RULES.length}` : `not "error": ${notEnabled.map((rule) => `rc/${rule} (is ${severityOf(rule) ?? 'missing'})`).join(', ')}`,
 );
 
 console.log(failed ? '\nFAILED' : '\nAll assertions hold.');
