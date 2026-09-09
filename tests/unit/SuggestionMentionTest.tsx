@@ -163,31 +163,45 @@ describe('SuggestionMention', () => {
     });
 
     it('searches for uncached users while typing an @ mention', async () => {
-        renderSuggestionMention('@alice');
+        // Given an uncached user mention
+        const value = '@alice';
 
+        // When the mention suggestions are rendered
+        renderSuggestionMention(value);
+
+        // Then the user is searched for on the server
         await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledWith('alice'));
     });
 
     it('does not search for the built-in @here mention', async () => {
-        renderSuggestionMention(CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT);
+        // Given the built-in @here mention
+        const value = CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
 
+        // When the mention suggestions are rendered
+        renderSuggestionMention(value);
+
+        // Then suggestions are shown without searching the server
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         expect(mockSearchUserInServer).not.toHaveBeenCalled();
     });
 
     it('does not search the server for a multi-word mention', () => {
+        // Given a rendered multi-word mention
         renderSuggestionMention('@alice are');
         const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];
         if (!calculateMentionSuggestions) {
             throw new Error('Expected the mention calculation callback to be available');
         }
 
+        // When the mention suggestions are calculated
         act(() => calculateMentionSuggestions('@alice are', 10, 10));
 
+        // Then the server is not searched
         expect(mockSearchUserInServer).not.toHaveBeenCalled();
     });
 
     it('does not update mention state while typing ordinary text', () => {
+        // Given ordinary text with no active mention
         renderSuggestionMention('hello friend');
         const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];
         if (!calculateMentionSuggestions) {
@@ -195,15 +209,19 @@ describe('SuggestionMention', () => {
         }
         mockSetHighlightedMentionIndex.mockClear();
 
+        // When more ordinary text is typed
         act(() => calculateMentionSuggestions('hello friends', 13, 13));
 
+        // Then the highlighted mention is not updated
         expect(mockSetHighlightedMentionIndex).not.toHaveBeenCalled();
     });
 
     it('does not search for the same user again when server results hydrate', async () => {
+        // Given an initial user search
         const {rerender} = renderSuggestionMention('@alice');
         await waitFor(() => expect(mockSearchUserInServer).toHaveBeenCalledTimes(1));
 
+        // When the matching server result hydrates and suggestions are recalculated
         mockPersonalDetails[2] = {
             accountID: 2,
             login: 'alice@example.com',
@@ -218,6 +236,7 @@ describe('SuggestionMention', () => {
         }
         act(() => calculateMentionSuggestions('@alice', 6, 6));
 
+        // Then the hydrated result is shown without another server search
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         expect(getLastMentionSuggestionsProps().mentions).toEqual(
             expect.arrayContaining([
@@ -230,6 +249,7 @@ describe('SuggestionMention', () => {
     });
 
     it('shows user mention suggestions when prefix has a trailing dot', async () => {
+        // Given a matching personal detail and a mention prefix with a trailing dot
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -238,8 +258,10 @@ describe('SuggestionMention', () => {
             lastName: 'Tester',
         };
 
+        // When the mention suggestions are rendered
         renderSuggestionMention('@a.');
 
+        // Then the prefix is preserved and the matching user is suggested
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {prefix, mentions} = getLastMentionSuggestionsProps();
 
@@ -256,6 +278,7 @@ describe('SuggestionMention', () => {
     });
 
     it('preserves trailing punctuation dot and inserts trailing space when selected mention does not include dotted prefix', async () => {
+        // Given a mention with a trailing dot that is not part of the selected login
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -270,13 +293,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the mention is selected
         act(() => onSelect(0));
 
+        // Then the dot is preserved and a trailing space is inserted
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com. ', true);
         expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
     });
 
     it('does not append an extra trailing dot and inserts trailing space when selected mention already matches dotted prefix', async () => {
+        // Given a mention with a trailing dot that is part of the selected login
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -291,13 +317,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the mention is selected
         act(() => onSelect(0));
 
+        // Then no extra dot is added and a trailing space is inserted
         expect(updateComment).toHaveBeenCalledWith('@a.smith@example.com ', true);
         expect(setSelection).toHaveBeenCalledWith({start: 21, end: 21});
     });
 
     it('does not insert trailing space when mention is followed by a comma (punctuation)', async () => {
+        // Given a mention followed by punctuation
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -312,13 +341,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the mention is selected
         act(() => onSelect(0));
 
+        // Then the punctuation remains directly after the mention
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com, thanks', true);
         expect(setSelection).toHaveBeenCalledWith({start: 17, end: 17});
     });
 
     it('inserts trailing space when mention is followed by a regular word', async () => {
+        // Given a mention followed by a regular word
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -333,8 +365,10 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the mention is selected
         act(() => onSelect(0));
 
+        // Then a space separates the mention from the following word
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com thanks', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
@@ -363,6 +397,7 @@ describe('SuggestionMention', () => {
         };
 
         it('weights report participants above policy employees and everyone else for a group chat', async () => {
+            // Given a group chat with a report participant and a policy employee
             setupPersonalDetails();
             const currentReportID = 'group1';
             mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
@@ -376,8 +411,10 @@ describe('SuggestionMention', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
             });
 
+            // When matching mention suggestions are rendered
             renderSuggestionMention('@u');
 
+            // Then the report participant is weighted above the policy employee and everyone else
             await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
             const {mentions} = getLastMentionSuggestionsProps();
 
@@ -385,6 +422,7 @@ describe('SuggestionMention', () => {
         });
 
         it('weights details when the current report belongs to the active workspace', async () => {
+            // Given a workspace chat from the active workspace
             setupPersonalDetails();
             const currentReportID = 'wsp1';
             mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
@@ -399,8 +437,10 @@ describe('SuggestionMention', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
             });
 
+            // When matching mention suggestions are rendered
             renderSuggestionMention('@u');
 
+            // Then report participants and policy employees are weighted first
             await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
             const {mentions} = getLastMentionSuggestionsProps();
 
@@ -408,6 +448,7 @@ describe('SuggestionMention', () => {
         });
 
         it('skips weighting for a 1:1 DM and falls back to alphabetical order', async () => {
+            // Given a one-to-one direct message
             setupPersonalDetails();
             const currentReportID = 'dm1';
             mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
@@ -418,8 +459,10 @@ describe('SuggestionMention', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
             });
 
+            // When matching mention suggestions are rendered
             renderSuggestionMention('@u');
 
+            // Then the suggestions remain in alphabetical order
             await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
             const {mentions} = getLastMentionSuggestionsProps();
 
@@ -428,6 +471,7 @@ describe('SuggestionMention', () => {
     });
 
     it('preserves the first mention when a second mention is inserted before it', async () => {
+        // Given a complete mention after the active mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -448,13 +492,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then both mentions are preserved and separated by a space
         expect(updateComment).toHaveBeenCalledWith('@bob@example.com @adam@example.com ', true);
         expect(setSelection).toHaveBeenCalledWith({start: 17, end: 17});
     });
 
     it('preserves a trailing @here mention when inserting a new mention before it', async () => {
+        // Given an @here mention after the active mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -469,13 +516,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the trailing @here mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com @here', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
 
     it('preserves a trailing phone number mention when inserting a new mention before it', async () => {
+        // Given a phone number mention after the active mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -490,13 +540,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the trailing phone number mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com @+14404589784', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
 
     it('preserves a trailing private domain short mention when inserting a new mention before it', async () => {
+        // Given a private domain short mention after the active mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -520,13 +573,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the trailing private domain mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com @charlie', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
 
     it('preserves a trailing #room mention when inserting a new mention before it', async () => {
+        // Given a room mention after the active mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -541,13 +597,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the trailing room mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com #admins', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
 
     it('removes junk between the new mention and a trailing complete mention', async () => {
+        // Given junk between the active mention and a trailing complete mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -565,13 +624,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the junk is removed and the trailing mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@alice@example.com @alice@example.com', true);
         expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
     });
 
     it('removes junk between the new mention and a trailing private domain short mention', async () => {
+        // Given junk between the active mention and a trailing private domain mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -597,13 +659,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the junk is removed and the trailing private domain mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@bob @charlie', true);
         expect(setSelection).toHaveBeenCalledWith({start: 5, end: 5});
     });
 
     it('removes junk between the new mention and a trailing phone number mention', async () => {
+        // Given junk between the active mention and a trailing phone number mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -620,13 +685,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the junk is removed and the trailing phone number mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com @+14404589784', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
     });
 
     it('removes junk between the new mention and a trailing room mention', async () => {
+        // Given junk between the active mention and a trailing room mention
         mockPersonalDetails = {};
         mockPersonalDetails[2] = {
             accountID: 2,
@@ -643,12 +711,16 @@ describe('SuggestionMention', () => {
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {onSelect} = getLastMentionSuggestionsProps();
 
+        // When the active mention is selected
         act(() => onSelect(0));
 
+        // Then the junk is removed and the trailing room mention is preserved
         expect(updateComment).toHaveBeenCalledWith('@alice@example.com #admins', true);
         expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
     });
+
     it('matches a phone contact when searching by unformatted digits', async () => {
+        // Given a phone contact with a formatted display name
         // The display name of a phone contact is the formatted number, so the raw login has to stay searchable.
         mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>({...mockLocalize, formatPhoneNumber}));
         mockPersonalDetails = {};
@@ -658,8 +730,10 @@ describe('SuggestionMention', () => {
             displayName: '+18332403627@expensify.sms',
         };
 
+        // When searching by unformatted digits
         renderSuggestionMention('@8332403627');
 
+        // Then the phone contact is included in the suggestions
         await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
         const {mentions} = getLastMentionSuggestionsProps();
 
