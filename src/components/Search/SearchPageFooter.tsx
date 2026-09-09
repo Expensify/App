@@ -11,14 +11,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getFooterTotalItems} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 
 import React, {useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
-import type {SearchFooterCount} from './types';
+import type {SearchFooterCount, SearchFooterTotal} from './types';
 
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
 import SearchFooterPopup from './FilterDropdowns/SearchFooterPopup';
@@ -40,6 +42,9 @@ type SearchPageFooterProps = {
     /** Total amount to display in the footer */
     total: number | undefined;
 
+    /** Which total the footer is displaying. Undefined renders the plain total spend with no selector. */
+    totalType: SearchFooterTotal | undefined;
+
     /** Currency code for the displayed total */
     currency: string | undefined;
 
@@ -54,9 +59,24 @@ type SearchPageFooterProps = {
 
     /** Function to call when the displayed count changes */
     onCountChange: (countType: SearchFooterCount) => void;
+
+    /** Function to call when the displayed total changes */
+    onTotalChange: (totalType: SearchFooterTotal) => void;
 };
 
-function SearchPageFooter({count, countType, defaultCountType, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange, onCountChange}: SearchPageFooterProps) {
+function SearchPageFooter({
+    count,
+    countType,
+    defaultCountType,
+    total,
+    totalType,
+    currency,
+    defaultCurrency,
+    isTotalLoading,
+    onCurrencyChange,
+    onCountChange,
+    onTotalChange,
+}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -92,22 +112,30 @@ function SearchPageFooter({count, countType, defaultCountType, total, currency, 
         <SearchFooterPopup
             countType={countType}
             defaultCountType={defaultCountType}
+            totalType={totalType}
+            isTotalLoading={isTotalLoading}
             currency={currency}
             defaultCurrency={defaultCurrency}
             isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             onCountChange={onCountChange}
+            onTotalChange={onTotalChange}
             onCurrencyChange={handleCurrencyChange}
         />
     );
 
+    // The default reads as "Total spend" in the footer but as plain "Spend" inside the menu, where the row it sits in is
+    // already labelled Total.
+    const totalLabel =
+        totalType && totalType !== CONST.SEARCH.FOOTER_TOTAL.TOTAL ? getFooterTotalItems(translate).find((item) => item.value === totalType)?.text : translate('common.totalSpend');
+
     const totalButton = (props: ButtonComponentProps) => (
         <Button
             ref={props.ref}
-            accessibilityLabel={translate('common.totalSpend')}
+            accessibilityLabel={totalLabel ?? translate('common.totalSpend')}
             innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
             contentContainerStyle={styles.gap1}
-            isDisabled={isOffline || isTotalLoading}
+            isDisabled={isOffline}
             size={CONST.BUTTON_SIZE.SMALL}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
@@ -130,39 +158,31 @@ function SearchPageFooter({count, countType, defaultCountType, total, currency, 
 
     return (
         <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-            <View
-                style={[
-                    shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.gap3,
-                    isTotalLoading && styles.opacity0,
-                ]}
-                pointerEvents={isTotalLoading ? 'none' : undefined}
-            >
+            <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text style={styles.textLabelSupporting}>{`${translate(countType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses')}:`}</Text>
+                    {/* The count never loads: both counts come back on every search, so it holds still while the total reloads. */}
                     <Text style={valueTextStyle}>{count}</Text>
                 </View>
                 {typeof total === 'number' && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                        <FilterPopupButton
-                            PopoverComponent={renderFooterPopup}
-                            renderButton={totalButton}
-                            popoverAnchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                        />
+                        {/* Both labels stay rendered while the total reloads, so the footer keeps its height and nothing shifts. */}
+                        <Text style={styles.textLabelSupporting}>{`${totalLabel}:`}</Text>
+                        {isTotalLoading ? (
+                            <SearchPageFooterSkeleton />
+                        ) : (
+                            <FilterPopupButton
+                                PopoverComponent={renderFooterPopup}
+                                renderButton={totalButton}
+                                popoverAnchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                }}
+                            />
+                        )}
                     </View>
                 )}
             </View>
-            {isTotalLoading && (
-                <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}>
-                    <SearchPageFooterSkeleton />
-                </View>
-            )}
         </View>
     );
 }

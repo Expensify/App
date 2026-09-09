@@ -438,6 +438,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Non puoi lasciare questo spazio di lavoro come rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o monitora pagamenti, quindi riprova.',
         reimbursable: 'Rimborsabile',
+        nonReimbursable: 'Non rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
         comments: 'Commenti',
         sharedIn: 'Condiviso in',

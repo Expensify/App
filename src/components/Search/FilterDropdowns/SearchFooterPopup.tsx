@@ -1,10 +1,12 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import type {SearchFooterCount} from '@components/Search/types';
+import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -19,6 +21,12 @@ type SearchFooterPopupProps = {
 
     /** The count to fall back to when the count selector is reset */
     defaultCountType: SearchFooterCount;
+
+    /** The total the footer is currently displaying. Undefined hides the total row, e.g. on an empty result set. */
+    totalType: SearchFooterTotal | undefined;
+
+    /** Whether the total and currency rows are waiting on a search, which recomputes both server-side */
+    isTotalLoading: boolean;
 
     /** The currency the footer's total is currently displayed in */
     currency: string | undefined;
@@ -35,6 +43,9 @@ type SearchFooterPopupProps = {
     /** Function to call when the displayed count changes */
     onCountChange: (countType: SearchFooterCount) => void;
 
+    /** Function to call when the displayed total changes */
+    onTotalChange: (totalType: SearchFooterTotal) => void;
+
     /** Function to call when the displayed currency changes */
     onCurrencyChange: (item: SingleSelectItem<string> | undefined) => void;
 };
@@ -43,15 +54,30 @@ type SearchFooterPopupProps = {
  * The Spend footer's display menu: a row per selector, each opening its own sub-popup with Apply and Reset. Mirrors
  * the Display menu in the search header, so the two behave the same way.
  */
-function SearchFooterPopup({countType, defaultCountType, currency, defaultCurrency, isExpanded, closeOverlay, onCountChange, onCurrencyChange}: SearchFooterPopupProps) {
+function SearchFooterPopup({
+    countType,
+    defaultCountType,
+    totalType,
+    isTotalLoading,
+    currency,
+    defaultCurrency,
+    isExpanded,
+    closeOverlay,
+    onCountChange,
+    onTotalChange,
+    onCurrencyChange,
+}: SearchFooterPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [selectedFooterFilter, setSelectedFooterFilter] = useState<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY | null>(null);
-    console.log('>>>>>>>>>>>', {selectedFooterFilter, countType});
+    const [selectedFooterFilter, setSelectedFooterFilter] = useState<
+        typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY | null
+    >(null);
+
     const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
         {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
         {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
     ];
+    const totalItems = getFooterTotalItems(translate);
 
     if (!selectedFooterFilter) {
         return (
@@ -65,8 +91,21 @@ function SearchFooterPopup({countType, defaultCountType, currency, defaultCurren
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_COUNT}
                     />
                 )}
+                {!!totalType && (
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        // Both rows re-run the search, so they are inert until the one in flight lands. The count row
+                        // stays interactive, since switching it needs no request.
+                        interactive={!isTotalLoading}
+                        description={translate('common.total')}
+                        title={totalItems.find((item) => item.value === totalType)?.text}
+                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
+                    interactive={!isTotalLoading}
                     description={translate('common.currency')}
                     title={currency ?? defaultCurrency}
                     onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY)}
@@ -89,6 +128,20 @@ function SearchFooterPopup({countType, defaultCountType, currency, defaultCurren
                 // Reset falls back to the count that matches the search type, which is also what an unset selection shows.
                 onChange={(item) => onCountChange(item?.value ?? defaultCountType)}
                 defaultValue={defaultCountType}
+            />
+        );
+    }
+
+    if (selectedFooterFilter === CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL) {
+        return (
+            <SingleSelectPopup
+                items={totalItems}
+                value={totalItems.find((item) => item.value === totalType)}
+                label={translate('common.total')}
+                onBackButtonPress={goBack}
+                closeOverlay={closeOverlay}
+                onChange={(item) => onTotalChange(item?.value ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL)}
+                defaultValue={CONST.SEARCH.FOOTER_TOTAL.TOTAL}
             />
         );
     }

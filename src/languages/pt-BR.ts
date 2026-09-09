@@ -436,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Se você sair deste workspace, você será substituído como contato técnico por ${workspaceOwner}, o proprietário do workspace.`,
         leaveWorkspaceReimburser: 'Você não pode sair deste workspace sendo o reembolsador. Defina um novo reembolsador em Workspaces > Fazer ou acompanhar pagamentos e tente novamente.',
         reimbursable: 'Reembolsável',
+        nonReimbursable: 'Não reembolsável',
         editYourProfile: 'Editar seu perfil',
         comments: 'Comentários',
         sharedIn: 'Compartilhado em',

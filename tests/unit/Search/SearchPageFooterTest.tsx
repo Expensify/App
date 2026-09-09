@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import SearchPageFooter from '@components/Search/SearchPageFooter';
-import type {SearchFooterCount} from '@components/Search/types';
+import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
@@ -10,6 +10,8 @@ import React from 'react';
 type CapturedPopupProps = {
     countType?: SearchFooterCount;
     defaultCountType?: SearchFooterCount;
+    totalType?: SearchFooterTotal;
+    isTotalLoading?: boolean;
     currency?: string;
 };
 
@@ -81,6 +83,8 @@ const defaultProps = {
     count: 1204,
     countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
     defaultCountType: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
+    totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL,
+    onTotalChange: () => {},
     total: -192000,
     currency: CONST.CURRENCY.USD,
     defaultCurrency: CONST.CURRENCY.USD,
@@ -126,6 +130,44 @@ describe('SearchPageFooter', () => {
         expect(screen.getByText('common.expenses:')).toBeOnTheScreen();
         // The popup hides its count row on an undefined selection, so the footer offers currency only.
         expect(mockCapturedPopupProps.current?.countType).toBeUndefined();
+    });
+
+    it('labels the total with the aggregate the footer is displaying', () => {
+        render(
+            <SearchPageFooter
+                {...defaultProps}
+                totalType={CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}
+            />,
+        );
+
+        expect(screen.getByText('common.reimbursable:')).toBeOnTheScreen();
+        expect(screen.queryByText('common.totalSpend:')).not.toBeOnTheScreen();
+    });
+
+    it('labels the default total as total spend, including when no total selection applies', () => {
+        render(
+            <SearchPageFooter
+                {...defaultProps}
+                totalType={undefined}
+            />,
+        );
+
+        expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
+    });
+
+    it('keeps the count and both labels while the total reloads', () => {
+        render(
+            <SearchPageFooter
+                {...defaultProps}
+                isTotalLoading
+            />,
+        );
+
+        // Only the total's value is replaced by the skeleton: the count and the labels hold their place.
+        expect(screen.getByText('common.expenses:')).toBeOnTheScreen();
+        expect(screen.getByText('1204')).toBeOnTheScreen();
+        expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
+        expect(mockCapturedPopupProps.current).toBeUndefined();
     });
 
     it('hands the display menu the current and default count selections', () => {

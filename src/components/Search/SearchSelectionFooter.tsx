@@ -7,7 +7,7 @@ import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import {getFooterTotalAmount, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import type {SearchFooterCount, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
@@ -26,6 +26,9 @@ import SearchPageFooter from './SearchPageFooter';
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Called before a footer selector re-runs the search, so the page keeps the current results while it loads. */
+    onDisplayChange: () => void;
 };
 
 type FooterCurrencyState = {
@@ -104,7 +107,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
-function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
+function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
@@ -280,6 +283,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
     const shouldShowCountSelector = isFooterDescribingWholeSearch && !shouldUseLiveData && (isExpenseType || isReportsSearch) && typeof metadataReportCount === 'number';
     const footerCountType = shouldShowCountSelector ? (currentSearchQueryJSON?.footerCount ?? defaultFooterCountType) : undefined;
+
+    // The four aggregates are computed by the backend, so the total selector only applies to the whole-search figures —
+    // a selection's subtotal is summed on the client from rows that carry no aggregate of their own. An empty result set
+    // has no total to break down either, so it keeps the plain total spend with no selector.
+    const shouldShowTotalSelector = isFooterDescribingWholeSearch && !shouldUseLiveData && !!metadataCount;
+    const footerTotalType = shouldShowTotalSelector ? (currentSearchQueryJSON?.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
@@ -458,16 +467,39 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         transactionSourceByID,
     ]);
 
-    const handleFooterCurrencyChange = useCallback(
-        (currency: string) => {
-            setFooterCurrencyState({
-                searchHash: currentSearchHash,
-                selectedCurrency: currency,
-                defaultCurrency: effectiveDefaultCurrency,
-            });
-        },
-        [currentSearchHash, effectiveDefaultCurrency],
-    );
+    // Total and currency change what the backend computes, so applying either re-runs the search under a new hash. The
+    // page is told first, so it keeps the current rows on screen: the selection changes the figures, never which rows match.
+    const reloadWithFooterSelection = (selection: {footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
+        if (!currentSearchQueryJSON) {
+            return;
+        }
+
+        const nextQuery = buildSearchQueryString({...currentSearchQueryJSON, ...selection});
+        close(() => {
+            onDisplayChange();
+            Navigation.setParams({q: nextQuery, rawQuery: undefined});
+        });
+    };
+
+    const handleFooterCurrencyChange = (currency: string) => {
+        // While the footer describes the whole search the backend converts the figures (and any aggregate it is
+        // computing) into the chosen currency. A selection's subtotal is summed on the client instead, so that case
+        // keeps converting through the conversion cache.
+        if (isFooterDescribingWholeSearch) {
+            reloadWithFooterSelection({footerCurrency: currency});
+            return;
+        }
+
+        setFooterCurrencyState({
+            searchHash: currentSearchHash,
+            selectedCurrency: currency,
+            defaultCurrency: effectiveDefaultCurrency,
+        });
+    };
+
+    const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
+        reloadWithFooterSelection({footerTotal: nextTotalType});
+    };
 
     // The count selection lives in the query (so it persists with the search) but is left out of the query hash, so
     // applying it re-renders the footer from the counts this search already returned instead of running a new one.
@@ -578,24 +610,32 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         return null;
     }
 
+    // A footer selector re-runs the search under a new hash, and the page keeps the previous results on screen while it
+    // loads — so the figures on display belong to the previous query until the new snapshot lands.
+    const isFooterReloading = metadata?.hash !== undefined && metadata.hash !== currentSearchHash;
+
     // A partial selection shows a client-side subtotal that is ready immediately, so only show the search-loading
     // skeleton when the footer is displaying the whole-search total. (Load-more requests also set metadata.isLoading
     // but don't recalculate totals, so gate on offset 0.)
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isFooterReloading || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? metadataReportCount : footerData.count;
+    // Only the whole-search branch has an aggregate to show; every other branch is a client-side sum of selected rows.
+    const footerTotal = footerTotalType && footerTotalType !== CONST.SEARCH.FOOTER_TOTAL.TOTAL ? getFooterTotalAmount(metadata, footerTotalType) : footerData.total;
 
     return (
         <SearchPageFooter
             count={footerCount}
             countType={footerCountType}
             defaultCountType={defaultFooterCountType}
-            total={footerData.total}
+            total={footerTotal}
+            totalType={footerTotalType}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
             onCountChange={handleFooterCountChange}
+            onTotalChange={handleFooterTotalChange}
         />
     );
 }

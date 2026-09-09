@@ -8868,6 +8868,7 @@ const CONST = {
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
             FOOTER_COUNT: 'Search-FooterCount',
+            FOOTER_TOTAL: 'Search-FooterTotal',
             FOOTER_CURRENCY: 'Search-FooterCurrency',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',

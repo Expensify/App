@@ -39,6 +39,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
@@ -5475,6 +5476,41 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
+/**
+ * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
+ * applies; the four aggregates are computed by the backend, so picking one re-runs the search.
+ */
+function getFooterTotalItems(translate: LocalizedTranslate) {
+    const labels: Record<SearchFooterTotal, string> = {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: translate('common.spend'),
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: translate('common.reimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: translate('common.nonReimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: translate('common.billable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: translate('common.nonBillable'),
+    };
+
+    return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
+}
+
+/**
+ * The figure the Spend footer shows for the selected total. The backend may answer either by filling the matching
+ * aggregate field or by returning the requested aggregate as `total`, so fall back to `total` when the field is absent.
+ */
+function getFooterTotalAmount(metadata: SearchResults['search'] | undefined, totalType: SearchFooterTotal | undefined) {
+    switch (totalType) {
+        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
+            return metadata?.reimbursableTotal ?? metadata?.total;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
+            return metadata?.nonReimbursableTotal ?? metadata?.total;
+        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
+            return metadata?.billableTotal ?? metadata?.total;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
+            return metadata?.nonBillableTotal ?? metadata?.total;
+        default:
+            return metadata?.total;
+    }
+}
+
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -7260,6 +7296,8 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterTotalItems,
+    getFooterTotalAmount,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
