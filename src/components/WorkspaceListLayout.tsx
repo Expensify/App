@@ -1,5 +1,3 @@
-import {useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
-
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,6 +12,7 @@ import SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
+import {useDebugTabViewHeight} from './Navigation/DebugTabView';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';

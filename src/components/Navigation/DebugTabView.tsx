@@ -43,7 +43,7 @@ import {View} from 'react-native';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
-const FULL_WIDTH_TAB_ROOT_SCREENS = new Set([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
+const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
 
 function getActiveTabRoute(rootState: NavigationState | undefined) {
     if (!rootState) {

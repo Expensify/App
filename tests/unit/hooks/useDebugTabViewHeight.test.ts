@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
+import {getSettingsMessage, useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -119,7 +119,7 @@ describe('useDebugTabViewHeight', () => {
             [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: true,
             [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
                 errorFields: {
-                    phoneNumber: CONST.ERROR.API_EXCEPTION,
+                    phoneNumber: {error: 'Invalid phone number'},
                 },
             },
         });
@@ -127,6 +127,7 @@ describe('useDebugTabViewHeight', () => {
 
         const {result} = renderHook(() => useDebugTabViewHeight());
 
+        expect(getSettingsMessage(CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR)).toBeUndefined();
         expect(result.current).toBe(0);
     });
 });
