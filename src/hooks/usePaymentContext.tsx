@@ -2,10 +2,9 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {createContext, useContext} from 'react';
 
@@ -21,12 +20,6 @@ type PaymentContextValue = {
     currentUserLogin: string | undefined;
     email: string | undefined;
     localCurrencyCode: string | undefined;
-    introSelected: OnyxEntry<IntroSelected>;
-    betas: OnyxEntry<Beta[]>;
-    isSelfTourViewed: boolean;
-    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     conciergeReportID: string | undefined;
@@ -54,12 +47,6 @@ function usePaymentContextValues(): PaymentContextValue {
     const {translate} = useLocalize();
     const {login: currentUserLogin, accountID: currentUserAccountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -74,12 +61,6 @@ function usePaymentContextValues(): PaymentContextValue {
         currentUserLogin,
         email,
         localCurrencyCode,
-        introSelected,
-        betas,
-        isSelfTourViewed,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
         conciergeReportID,

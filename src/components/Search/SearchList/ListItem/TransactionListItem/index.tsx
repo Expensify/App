@@ -23,6 +23,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPaymentEventContext from '@libs/getPaymentEventContext';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
@@ -148,10 +149,9 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
-    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {currentUserAccountID, currentUserLogin, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
@@ -212,7 +212,8 @@ function TransactionListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+    const runActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+        const {introSelected, betas, isSelfTourViewed, amountOwed} = await getPaymentEventContext();
         handleActionButtonPressUtil({
             getCurrencyDecimals,
             hash: currentSearchHash,
@@ -252,6 +253,10 @@ function TransactionListItemInner<TItem extends ListItem>({
             allViolations,
             conciergeChat,
         });
+    };
+
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+        runActionButtonPress(event);
     };
 
     const sharedProps = {

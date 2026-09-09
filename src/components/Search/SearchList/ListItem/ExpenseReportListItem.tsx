@@ -30,6 +30,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPaymentEventContext from '@libs/getPaymentEventContext';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
@@ -237,12 +238,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {currentUserAccountID, currentUserLogin, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
 
-    const handleOnButtonPress = useCallback(() => {
+    const handleOnButtonPress = useCallback(async () => {
+        const {introSelected, betas, isSelfTourViewed, amountOwed} = await getPaymentEventContext();
         handleActionButtonPress({
             getCurrencyDecimals,
             hash: currentSearchHash,
@@ -330,7 +331,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         showHoldMenu,
         liveReportTransactions,
         ownerBillingGracePeriodEnd,
-        amountOwed,
         openReportSubmitToPopover,
         shouldDisableSearchSubmitPress,
         consumeIgnoreNextSearchSubmitPress,
@@ -340,9 +340,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         getCurrencyDecimals,
         currentUserAccountID,
         currentUserLogin,
-        introSelected,
-        betas,
-        isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
         chatReportActions,
@@ -523,7 +520,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isActionLoading={isActionLoading ?? isLoading}
                             canSelectMultiple={canSelectMultiple}
                             onCheckboxPress={handleSelectionButtonPress}
-                            onButtonPress={handleOnButtonPress}
+                            onButtonPress={() => {
+                                handleOnButtonPress();
+                            }}
                             chatReport={chatReport}
                             isSelectAllChecked={isSelected}
                             isIndeterminate={isIndeterminate}

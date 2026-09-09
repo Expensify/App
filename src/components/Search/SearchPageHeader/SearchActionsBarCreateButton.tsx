@@ -38,6 +38,7 @@ import {emailSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
@@ -60,9 +61,6 @@ function SearchActionsBarCreateButton() {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
     // scalar selector keeps useOnyx from deep-comparing thousands of policy objects
     const [defaultChatEnabledPolicySelection] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -145,7 +143,7 @@ function SearchActionsBarCreateButton() {
                 icon: expensifyIcons.Document,
                 text: translate('report.newReport.createReport'),
                 onSelected: () =>
-                    interceptAnonymousUser(() => {
+                    interceptAnonymousUser(async () => {
                         // No valid policy at all → upgrade + create workspace flow
                         if (shouldNavigateToUpgradePath) {
                             const freshReportID = generateReportID();
@@ -165,6 +163,10 @@ function SearchActionsBarCreateButton() {
                         }
 
                         const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+
+                        const amountOwed = await Onyx.get(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+                        const ownerBillingGracePeriodEnd = await Onyx.get(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+                        const userBillingGracePeriodEnds = await Onyx.get(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
@@ -213,11 +215,8 @@ function SearchActionsBarCreateButton() {
             hasMultipleChatEnabledPolicies,
             defaultChatEnabledPolicyID,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
-            ownerBillingGracePeriodEnd,
-            userBillingGracePeriodEnds,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
-            amountOwed,
             currentUserPersonalDetails.accountID,
             defaultChatEnabledPolicy,
         ],

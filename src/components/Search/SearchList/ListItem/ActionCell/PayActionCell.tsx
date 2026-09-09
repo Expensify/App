@@ -16,6 +16,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPaymentEventContext from '@libs/getPaymentEventContext';
 import Log from '@libs/Log';
 import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
@@ -55,26 +56,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
-    const {
-        currentUserLogin,
-        currentUserAccountID,
-        email,
-        localCurrencyCode,
-        introSelected,
-        betas,
-        isSelfTourViewed,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        activePolicyID,
-        activePolicy,
-        conciergeChat,
-        defaultWorkspaceName,
-        chatReportPolicy,
-        delegateAccountID,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserLogin, currentUserAccountID, email, localCurrencyCode, activePolicyID, activePolicy, conciergeChat, defaultWorkspaceName, chatReportPolicy, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere =
@@ -82,7 +67,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
     const {currency} = iouReport ?? {};
 
-    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+    const confirmPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !reportID || !hash || !amount) {
             Log.info('[SearchPay] Dropping row pay: missing required data', false, {
                 hasPaymentType: !!type,
@@ -97,6 +82,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             showDelegateNoAccessModal();
             return;
         }
+
+        const {introSelected, betas, isSelfTourViewed, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = await getPaymentEventContext();
 
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
@@ -194,7 +181,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={confirmPayment}
+                onPress={(params) => {
+                    confirmPayment(params);
+                }}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}

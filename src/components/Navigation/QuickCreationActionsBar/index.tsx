@@ -39,6 +39,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
@@ -53,9 +54,6 @@ function QuickCreationActionsBar() {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
@@ -137,8 +135,8 @@ function QuickCreationActionsBar() {
     );
 
     const handleReport = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
+        async () =>
+            interceptAnonymousUser(async () => {
                 if (shouldNavigateToUpgradePath) {
                     const freshReportID = generateReportID();
                     const freshTransactionID = generateReportID();
@@ -158,6 +156,9 @@ function QuickCreationActionsBar() {
 
                 const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
+                const amountOwed = await Onyx.get(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+                const ownerBillingGracePeriodEnd = await Onyx.get(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+                const userBillingGracePeriodEnds = await Onyx.get(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
                 if (
                     !workspaceIDForReportCreation ||
                     (shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID) &&
@@ -181,9 +182,6 @@ function QuickCreationActionsBar() {
         [
             shouldNavigateToUpgradePath,
             defaultChatEnabledPolicyID,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            amountOwed,
             defaultChatEnabledPolicy,
             hasMultipleChatEnabledPolicies,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,

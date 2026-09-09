@@ -25,6 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPaymentEventContext from '@libs/getPaymentEventContext';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
@@ -298,10 +299,9 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {currentUserAccountID, currentUserLogin, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -314,7 +314,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
+    const runOnButtonPress = async (event?: ModifiedMouseEvent) => {
+        const {introSelected, betas, isSelfTourViewed, amountOwed} = await getPaymentEventContext();
         handleActionButtonPress({
             getCurrencyDecimals,
             hash: currentSearchHash,
@@ -354,6 +355,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             conciergeChat,
         });
     };
+    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
+        runOnButtonPress(event);
+    };
+
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow

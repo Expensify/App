@@ -150,7 +150,7 @@ describe('PayActionCell', () => {
         mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
     });
 
-    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', () => {
+    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', async () => {
         // Given an invoice report row whose invoice chat is resolved and passed down as a prop
         render(
             <PayActionCell
@@ -164,7 +164,7 @@ describe('PayActionCell', () => {
         );
 
         // When the user confirms the payment from the cell's settlement button
-        act(() => {
+        await act(async () => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 payAsBusiness: false,
@@ -181,7 +181,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not call payInvoice when no chatReport prop is supplied', () => {
+    it('does not call payInvoice when no chatReport prop is supplied', async () => {
         // Given an invoice report row whose invoice chat is not loaded (no chatReport prop)
         render(
             <PayActionCell
@@ -195,7 +195,7 @@ describe('PayActionCell', () => {
         );
 
         // When the user confirms the payment from the cell's settlement button
-        act(() => {
+        await act(async () => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 payAsBusiness: false,
@@ -207,7 +207,7 @@ describe('PayActionCell', () => {
         expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID: TEST_INVOICE_REPORT_ID});
     });
 
-    it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {
+    it('pays a money request with a fallback chat report when no chatReport prop is supplied', async () => {
         // Given an expense report row whose chat report is not loaded (no chatReport prop) while the report itself carries a chatReportID
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -224,7 +224,7 @@ describe('PayActionCell', () => {
         );
 
         // When the user confirms the payment from the cell's settlement button
-        act(() => {
+        await act(async () => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 payAsBusiness: false,
@@ -240,7 +240,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('pays a money request with the loaded chat report when it is supplied', () => {
+    it('pays a money request with the loaded chat report when it is supplied', async () => {
         // Given an expense report row whose chat report is loaded and passed down as a prop
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -257,7 +257,7 @@ describe('PayActionCell', () => {
         );
 
         // When the user confirms the payment from the cell's settlement button
-        act(() => {
+        await act(async () => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 payAsBusiness: false,
@@ -273,7 +273,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', () => {
+    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', async () => {
         // Given an expense report row whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([{...expenseReport, chatReportID: undefined, parentReportID: undefined}, [], undefined]);
@@ -290,7 +290,7 @@ describe('PayActionCell', () => {
         );
 
         // When the user confirms the payment from the cell's settlement button
-        act(() => {
+        await act(async () => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 payAsBusiness: false,
