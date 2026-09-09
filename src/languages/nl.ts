@@ -2266,7 +2266,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 staging: {label: 'Staging', description: 'Kopie van productie. Wordt gebruikt voor de eindvalidatie'},
                 qa: {label: 'QA', description: 'Experimentele omgeving voor tests'},
             },
-            confirmServerChangeDescription: 'Overschakelen naar of vanaf QA meldt je af, omdat QA een aparte database is.',
             serverPinnedDescription: 'Deze build communiceert altijd met één server, dus dit kan hier niet worden gewijzigd.',
             forceOffline: 'Offline forceren',
             simulatePoorConnection: 'Slechte internetverbinding simuleren',

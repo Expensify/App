@@ -2252,7 +2252,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 staging: {label: 'ステージング', description: '本番のミラー。最終確認に使用します'},
                 qa: {label: 'QA', description: 'テストに使用する実験的な環境'},
             },
-            confirmServerChangeDescription: 'QA は独立したデータベースのため、QA への切り替えと QA からの切り替えではサインアウトされます。',
             serverPinnedDescription: 'このビルドは常に単一のサーバーに接続するため、ここでは変更できません。',
             forceOffline: '強制的にオフラインにする',
             simulatePoorConnection: '不安定なインターネット接続をシミュレート',

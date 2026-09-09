@@ -2193,7 +2193,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 staging: {label: '预备', description: '生产环境的镜像，用于最终验证'},
                 qa: {label: 'QA', description: '用于测试的实验环境'},
             },
-            confirmServerChangeDescription: '切换到 QA 或从 QA 切换出去都会将你退出登录，因为 QA 是独立的数据库。',
             serverPinnedDescription: '此版本始终连接到单一服务器，因此无法在此处更改。',
             forceOffline: '强制离线',
             simulatePoorConnection: '模拟较差的互联网连接',

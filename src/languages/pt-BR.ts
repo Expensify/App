@@ -2260,7 +2260,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 staging: {label: 'Homologação', description: 'Cópia da produção. Usada para a validação final'},
                 qa: {label: 'QA', description: 'Ambiente experimental usado para testes'},
             },
-            confirmServerChangeDescription: 'Mudar para o QA ou sair dele encerra sua sessão, porque o QA é um banco de dados separado.',
             serverPinnedDescription: 'Esta versão sempre se conecta a um único servidor, portanto não é possível alterá-lo aqui.',
             forceOffline: 'Forçar modo offline',
             simulatePoorConnection: 'Simular conexão de internet ruim',

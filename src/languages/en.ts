@@ -2379,7 +2379,6 @@ const translations = {
                 staging: {label: 'Staging', description: 'Mirror of production. Used for final validation'},
                 qa: {label: 'QA', description: 'Experimental environment used for testing'},
             },
-            confirmServerChangeDescription: 'Switching to or from QA signs you out, because QA is a separate database.',
             serverPinnedDescription: 'This build always talks to one server, so it cannot be changed here.',
             qaAuth: 'QA auth (Cloudflare)',
             qaAuthRunProbe: 'Run probe',

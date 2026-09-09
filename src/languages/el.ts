@@ -2328,7 +2328,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 staging: {label: 'Staging', description: 'Αντίγραφο της παραγωγής. Χρησιμοποιείται για τον τελικό έλεγχο'},
                 qa: {label: 'QA', description: 'Πειραματικό περιβάλλον που χρησιμοποιείται για δοκιμές'},
             },
-            confirmServerChangeDescription: 'Η εναλλαγή προς ή από το QA σας αποσυνδέει, επειδή το QA είναι ξεχωριστή βάση δεδομένων.',
             serverPinnedDescription: 'Αυτή η έκδοση επικοινωνεί πάντα με έναν διακομιστή, οπότε δεν μπορεί να αλλάξει εδώ.',
             forceOffline: 'Εξαναγκασμός εκτός σύνδεσης',
             simulatePoorConnection: 'Προσομοίωση κακής σύνδεσης στο διαδίκτυο',
