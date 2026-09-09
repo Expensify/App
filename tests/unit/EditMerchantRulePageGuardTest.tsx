@@ -66,8 +66,9 @@ function renderEditMerchantRulePage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <EditMerchantRulePage
-                // @ts-expect-error - route type from navigator
                 route={{key: 'test-route', name: 'Rules_Merchant_Edit', params: {policyID: POLICY_ID, ruleID: RULE_ID}}}
+                // @ts-expect-error - the page only reads route.params, so the navigator prop is not built here
+                navigation={undefined}
             />
         </ComposeProviders>,
     );

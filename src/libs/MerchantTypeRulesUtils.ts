@@ -13,7 +13,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData} from './CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -149,8 +149,17 @@ function getMerchantRulesTableData({
                     actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(value)));
                 } else if (field === FIELD.COMMENT && typeof value === 'string') {
                     actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, value));
-                } else if (field === FIELD.TAX && isExpenseDefaultTaxValue(value) && value.field_id_TAX.value) {
-                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${value.field_id_TAX.name} (${value.field_id_TAX.value})`));
+                } else if (field === FIELD.TAX && isExpenseDefaultTaxValue(value) && !!value.field_id_TAX.externalID) {
+                    // The rate saved on the rule is a snapshot, so resolve the live one first and keep the snapshot
+                    // as a fallback. Without this a renamed rate reads stale, and a rule saved before the rates
+                    // loaded has no snapshot at all and its tax default disappears from the summary.
+                    actions.push(
+                        translate(
+                            'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                            fieldLabels.tax,
+                            getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
+                        ),
+                    );
                 } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
                     const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
                     actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)));
