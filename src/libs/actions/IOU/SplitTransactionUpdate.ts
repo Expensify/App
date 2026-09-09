@@ -80,7 +80,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} fr
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports} from './index';
+import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllSnapshots} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
@@ -89,8 +89,11 @@ import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
-    allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
-    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    /** Optional: falls back to the module-level cache in `actions/IOU/index`, which already tracks this collection */
+    allReportActionsList?: OnyxCollection<OnyxTypes.ReportActions>;
+    /** Optional: falls back to the module-level cache in `actions/IOU/index`, which already tracks this collection */
+    allReportNameValuePairsList?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    /** Optional: falls back to the module-level cache in `actions/IOU/index`, which already tracks this collection */
     allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
     allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
     transactionData: {
@@ -115,7 +118,8 @@ type UpdateSplitTransactionsParams = {
     isFromSplitExpensesFlow?: boolean;
     /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
     shouldSkipReportHighlightRail?: boolean;
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    /** Optional: falls back to the module-level cache in `actions/IOU/index`, which already tracks this key */
+    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     isOffline: boolean;
@@ -179,9 +183,9 @@ function rescaleSnapshotGroupAmount<T extends OnyxTypes.Transaction>(transaction
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
-    allReportActionsList,
-    allReportNameValuePairsList,
-    allSnapshots,
+    allReportActionsList = getAllReportActionsFromIOU(),
+    allReportNameValuePairsList = getAllReportNameValuePairs(),
+    allSnapshots = getAllSnapshots(),
     allPolicyTags,
     transactionData,
     searchContext,
@@ -199,7 +203,7 @@ function updateSplitTransactions({
     isFromSplitExpensesFlow,
     shouldSkipReportHighlightRail,
     betas,
-    personalDetails,
+    personalDetails = getAllPersonalDetails(),
     transactionReport,
     expenseReport: expenseReportFromParams,
     isOffline,
