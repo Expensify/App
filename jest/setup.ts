@@ -1,20 +1,25 @@
 import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
+import type LegendListModuleType from '@legendapp/list/react-native';
+import type React from 'react';
 import type {ReactNode} from 'react';
+import type {FlatList, FlatListProps, NativeSyntheticEvent, NativeScrollEvent} from 'react-native';
+import type ReactNativeModuleType from 'react-native';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
-import type * as RNKeyboardController from 'react-native-keyboard-controller';
 
 import 'react-native-gesture-handler/jestSetup';
+import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import type Animated from 'react-native-reanimated';
 
-import {useMemo} from 'react';
 import 'setimmediate';
+import {useMemo} from 'react';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
+
+import {TextDecoder, TextEncoder} from 'util';
 
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -31,23 +36,23 @@ mockFSLibrary();
 // LegendList relies on native layout measurements that Jest does not produce. FlatList gives full-app tests
 // a deterministic renderer while preserving the scroll callbacks used by the report list.
 jest.mock('@legendapp/list/react-native', () => {
-    const ReactActual = jest.requireActual<typeof import('react')>('react');
-    const {FlatList} = jest.requireActual<typeof import('react-native')>('react-native');
-    const LegendListActual = jest.requireActual<typeof import('@legendapp/list/react-native')>('@legendapp/list/react-native');
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const FlatListActual = jest.requireActual<typeof ReactNativeModuleType>('react-native').FlatList;
+    const LegendListModuleActual = jest.requireActual<typeof LegendListModuleType>('@legendapp/list/react-native').LegendList;
 
-    type MockLegendListProps = Omit<import('react-native').FlatListProps<unknown>, 'data' | 'initialScrollIndex' | 'maintainVisibleContentPosition' | 'onScroll'> & {
+    type MockLegendListProps = Omit<FlatListProps<unknown>, 'data' | 'initialScrollIndex' | 'maintainVisibleContentPosition' | 'onScroll'> & {
         alignItemsAtEnd?: boolean;
         data?: ArrayLike<unknown>;
         initialScrollAtEnd?: boolean;
         initialScrollIndex?: number | {index: number};
         maintainScrollAtEnd?: unknown;
         maintainVisibleContentPosition?: unknown;
-        onScroll?: (event: import('react-native').NativeSyntheticEvent<import('react-native').NativeScrollEvent>) => void;
+        onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     };
 
     return {
-        ...LegendListActual,
-        LegendList: ReactActual.forwardRef<import('react-native').FlatList<unknown>, MockLegendListProps>(
+        ...LegendListModuleActual,
+        LegendList: ReactActual.forwardRef<FlatList<unknown>, MockLegendListProps>(
             (
                 {
                     alignItemsAtEnd,
@@ -63,7 +68,7 @@ jest.mock('@legendapp/list/react-native', () => {
                 },
                 ref,
             ) => {
-                const handleScroll = (event: import('react-native').NativeSyntheticEvent<import('react-native').NativeScrollEvent>) => {
+                const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                     onScroll?.(event);
                     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
                     const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
@@ -72,7 +77,7 @@ jest.mock('@legendapp/list/react-native', () => {
                     }
                 };
 
-                return ReactActual.createElement(FlatList<unknown>, {...props, data, initialNumToRender: data.length, onScroll: handleScroll, ref});
+                return ReactActual.createElement(FlatListActual<unknown>, {...props, data, initialNumToRender: data.length, onScroll: handleScroll, ref});
             },
         ),
     };
