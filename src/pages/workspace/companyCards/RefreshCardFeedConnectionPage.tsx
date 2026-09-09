@@ -59,9 +59,10 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         Navigation.closeRHPFlow();
     }, [prevIsRefreshing, isRefreshing]);
 
-    // OAuth feeds: expiration updates after bank re-authentication completes
+    // OAuth feeds: expiration updates after bank re-authentication completes. A feed whose OAuth details were never
+    // cached has no expiration yet, so the first populated value counts as completion too.
     useEffect(() => {
-        if (prevFeedExpiration === undefined || prevFeedExpiration === feedExpiration || !isRefreshing) {
+        if (prevFeedExpiration === feedExpiration || !isRefreshing) {
             return;
         }
         Navigation.closeRHPFlow();
