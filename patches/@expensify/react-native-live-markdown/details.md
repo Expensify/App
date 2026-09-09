@@ -17,6 +17,6 @@
     native file.
     ```
 
-- Upstream PR/issue: 🛑, there's no upstream PR/issue found.
+- Upstream PR/issue: https://github.com/Expensify/react-native-live-markdown/pull/777
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/99495

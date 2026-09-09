@@ -15,6 +15,6 @@
     matching its native declaration and its sibling elements in the same file.
     ```
 
-- Upstream PR/issue: 🛑, there's no upstream PR/issue found.
+- Upstream PR/issue: https://github.com/software-mansion/react-native-svg/pull/3056
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/99495

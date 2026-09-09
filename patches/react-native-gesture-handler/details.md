@@ -18,6 +18,6 @@
     shape already declared in the native `gestureStateManager.d.ts`) instead of re-importing it.
     ```
 
-- Upstream PR/issue: 🛑, there's no upstream PR/issue found.
+- Upstream PR/issue: https://github.com/software-mansion/react-native-gesture-handler/pull/4508
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/99495
