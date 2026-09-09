@@ -63,7 +63,6 @@ type IssueNewCardFlowData = {
     /** Data required to be sent to issue a new card */
     data?: Partial<IssueNewCardData>;
 
-    /** ID of the policy */
     policyID: string | undefined;
 
     /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */

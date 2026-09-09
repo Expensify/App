@@ -1669,11 +1669,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tout est en ordre !',
         noDuplicatesDescription: "Il n'y a aucune transaction en double à vérifier ici.",
         confirmApprove: 'Confirmer le montant approuvé',
-        confirmApprovalAmount: 'Approuvez uniquement les dépenses conformes, ou approuvez l’intégralité de la note de frais.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Cette dépense est en attente. Voulez-vous l’approuver quand même ?',
-            other: 'Ces dépenses sont en attente. Voulez-vous tout de même approuver ?',
-        }),
+        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
+        confirmApprovalAllHoldAmount: 'Toutes les dépenses sont en attente. Approuver quand même ?',
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
@@ -3351,6 +3348,7 @@ ${amount} pour ${merchant} - ${date}`,
                 `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
             workAccountClosedSubtitle:
                 'Le compte professionnel associé à cet e-mail est fermé. Veuillez contacter l’administrateur de votre entreprise pour le réactiver, ou inscrivez-vous avec un autre e-mail.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} est un identifiant contrôlé par domaine pour un compte Expensify existant.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4630,6 +4628,7 @@ ${amount} pour ${merchant} - ${date}`,
             customFieldHint: 'Ajoutez un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Notes de frais',
             reportFields: 'Champs de note de frais',
+            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre de la note de frais',
             reportField: 'Champ de note de frais',
             taxes: 'Taxes',
@@ -6401,6 +6400,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
                         },
+                        setUpNewFeed: 'Configurer un nouveau flux de voyage',
+                        feedSelectorIntro:
+                            'Votre organisation dispose déjà d’un flux de facturation de voyage consolidée configuré. Sélectionnez-le pour conserver les dépenses de voyage de cet espace de travail sur la même facture mensuelle.',
                     },
                     disableModal: {
                         title: 'Désactiver la facturation voyage consolidée ?',
@@ -6662,6 +6664,29 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             unsupportedFormulaValueError: (value: string) => `Champ de formule ${value} non reconnu`,
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
+        },
+        invoiceFields: {
+            subtitle: 'Les champs de facture peuvent être utiles lorsque vous souhaitez inclure des informations supplémentaires.',
+            importedFromAccountingSoftware: 'Les champs de facture ci-dessous sont importés depuis votre',
+            disableInvoiceFields: 'Désactiver les champs de facture',
+            disableInvoiceFieldsConfirmation: 'Êtes-vous sûr ? Les champs de facture seront désactivés sur les factures.',
+            delete: 'Supprimer le champ de facture',
+            deleteConfirmation: 'Voulez-vous vraiment supprimer ce champ de facture ?',
+            findInvoiceField: 'Trouver un champ de facture',
+            nameInputSubtitle: 'Choisissez un nom pour le champ de facture.',
+            typeInputSubtitle: 'Choisissez le type de champ de facture à utiliser.',
+            initialValueInputSubtitle: 'Saisissez une valeur de départ à afficher dans le champ de facture.',
+            listValuesInputSubtitle: 'Ces valeurs apparaîtront dans la liste déroulante du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            listInputSubtitle: 'Ces valeurs apparaîtront dans la liste du champ de facture. Les valeurs activées peuvent être sélectionnées par les membres.',
+            emptyInvoiceFieldsValues: {
+                title: 'Aucune valeur de liste pour le moment',
+                subtitle: 'Ajoutez des valeurs personnalisées à afficher sur les factures.',
+            },
+            existingInvoiceFieldNameError: 'Un champ de facture portant ce nom existe déjà',
+            invoiceFieldNameRequiredError: 'Veuillez saisir un nom de champ de facture',
+            invoiceFieldTypeRequiredError: 'Veuillez choisir un type de champ de facture',
+            invoiceFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale de champ de facture',
+            addField: 'Ajouter un champ',
         },
         vendors: {
             emptyTitle: 'Aucun fournisseur pour le moment',
@@ -7586,6 +7611,12 @@ ${reportName}`,
                 description: `Les champs de note de frais vous permettent de spécifier des détails au niveau de l’en‑tête, distincts des tags qui concernent les dépenses ligne par ligne. Ces détails peuvent inclure des noms de projet spécifiques, des informations sur les déplacements professionnels, des emplacements, et plus encore.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Les champs de note de frais sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Champs de facture',
+                description: `Les champs de facture vous permettent d'inclure des détails supplémentaires au niveau de la facture.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les champs de facture sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9544,6 +9575,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportedTo: 'Exporté vers',
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
+            allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
             selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
@@ -9656,6 +9688,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exporté vers ${translatedLabel}`;
@@ -10898,6 +10931,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',
         multipleTaxExport: 'Export canadien à taxes multiples',
+        reconciliationAllExpenses: 'Rapprochement - Toutes les dépenses',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',

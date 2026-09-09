@@ -62,7 +62,6 @@ type DateFilterBaseProps = {
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
-    /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
 };

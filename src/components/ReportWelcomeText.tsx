@@ -40,7 +40,6 @@ import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ReportWelcomeTextProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** The policy for the current route */

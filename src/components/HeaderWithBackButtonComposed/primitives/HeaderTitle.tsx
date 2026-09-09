@@ -16,10 +16,7 @@ type HeaderTitleProps = {
     /** Subtitle of the header. */
     subtitle?: ReactNode;
 
-    /** Title color. */
     titleColor?: string;
-
-    /** Additional styles to apply to the title text. */
     titleStyles?: StyleProp<TextStyle>;
 
     /** Data to display a step counter in the header. When set, it replaces the subtitle. */

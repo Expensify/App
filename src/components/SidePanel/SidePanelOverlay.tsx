@@ -13,7 +13,6 @@ type SidePanelOverlayProps = {
     /** Whether the Side Panel is displayed over RHP */
     shouldBeVisible: boolean;
 
-    /** Callback fired when pressing the backdrop */
     onBackdropPress: () => void;
 };
 

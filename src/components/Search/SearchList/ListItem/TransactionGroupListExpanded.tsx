@@ -239,11 +239,12 @@ function TransactionGroupListExpandedImpl({
                 });
                 return;
             }
-            markReportRHPWidth(reportID, 'wide');
             const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            // Marked after the new-tab guard: opening in a new tab never mounts the screen that would consume the hint, so it would pin this report wide on a later visit.
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(route);
         };
 

@@ -26,25 +26,25 @@ describe('lastWorkspaceNumberSelector', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
 
     it('should return undefined when there are no policies', () => {
-        expect(lastWorkspaceNumberSelector({}, email)).toBeUndefined();
+        expect(lastWorkspaceNumberSelector({}, email, displayName)).toBeUndefined();
     });
 
     it('should return undefined when email is invalid', () => {
-        expect(lastWorkspaceNumberSelector({}, 'invalid-email')).toBeUndefined();
+        expect(lastWorkspaceNumberSelector({}, 'invalid-email', displayName)).toBeUndefined();
     });
 
     it('should return 0 when there is a matching workspace without a number', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email)).toBe(0);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(0);
     });
 
     it('should return the number when there is a matching workspace with a number', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({name: `${workspaceName} 2`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email)).toBe(2);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(2);
     });
 
     it('should return the maximum number when there are multiple matching workspaces', () => {
@@ -54,7 +54,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}3`]: createMock<Policy>({name: `${workspaceName} 5`}),
             [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildPolicy({name: 'Other Workspace'}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email)).toBe(5);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(5);
     });
 
     it('should handle SMS domain correctly', () => {
@@ -64,7 +64,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: smsDisplayName}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${smsDisplayName} 3`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, smsEmail)).toBe(3);
+        expect(lastWorkspaceNumberSelector(policies, smsEmail, displayName)).toBe(3);
     });
 
     it('should ignore case when matching workspace names', () => {
@@ -72,7 +72,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName.toLowerCase()}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${workspaceName.toUpperCase()} 4`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email)).toBe(4);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(4);
     });
 });
 

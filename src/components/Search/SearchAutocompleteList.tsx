@@ -77,7 +77,6 @@ type SearchAutocompleteListProps = {
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
 
-    /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
@@ -92,7 +91,6 @@ type SearchAutocompleteListProps = {
 
     /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
     autocompleteSubstitutions?: SubstitutionMap;
-    /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 

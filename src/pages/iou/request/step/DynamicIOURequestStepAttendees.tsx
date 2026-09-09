@@ -1,3 +1,4 @@
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -9,7 +10,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -61,7 +61,7 @@ function DynamicIOURequestStepAttendees({
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const transactionViolations = useTransactionViolations(transactionID);
+    const allTransactionViolations = useAllTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -92,7 +92,7 @@ function DynamicIOURequestStepAttendees({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
-                    violations: transactionViolations ?? undefined,
+                    violations: allTransactionViolations,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
@@ -120,7 +120,7 @@ function DynamicIOURequestStepAttendees({
         policy,
         policyTags,
         policyCategories,
-        transactionViolations,
+        allTransactionViolations,
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,

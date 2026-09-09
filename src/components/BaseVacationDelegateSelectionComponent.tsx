@@ -26,25 +26,15 @@ import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionList from './SelectionList/SelectionListWithSections';
 
 type BaseVacationDelegateSelectionComponentProps = {
-    /** Current vacation delegate */
     vacationDelegate?: BaseVacationDelegate;
-
-    /** Callback when a row is selected */
     onSelectRow: (option: Participant) => void;
-
-    /** Title for the header */
     headerTitle: string;
-
-    /** Function to call when the back button is pressed */
     onBackButtonPress?: () => void;
 
     /** Message to display when the user can't set a vacation delegate */
     cannotSetDelegateMessage: string;
 
-    /** Additional logins to exclude from the list */
     additionalExcludeLogins?: Record<string, boolean>;
-
-    /** Whether to include the current user in the list */
     includeCurrentUser?: boolean;
 };
 

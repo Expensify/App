@@ -43,7 +43,6 @@ type ConfirmationFieldListProps = {
     /** Pre-formatted amount values */
     amountDisplay: AmountDisplay;
 
-    /** Per-field "required" flags */
     requiredFlags: RequiredFlags;
 
     /** The expense-type-driven fields, supplied by the footer variant. Rendered above the classification
@@ -53,10 +52,7 @@ type ConfirmationFieldListProps = {
     /** Caller-supplied visibility decisions */
     visibilityFlags: VisibilityFlags;
 
-    /** Error state */
     errorState: ErrorState;
-
-    /** Toggle handlers */
     toggleHandlers: ToggleHandlers;
 
     /** Compact-mode bookkeeping */

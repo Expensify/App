@@ -44,7 +44,7 @@ import Tooltip from './Tooltip';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type AccountSwitcherProps = {
-    /* Whether the screen is focused. Used to hide the product training tooltip */
+    /** Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
 

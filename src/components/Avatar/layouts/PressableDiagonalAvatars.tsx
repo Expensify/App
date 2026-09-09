@@ -30,7 +30,6 @@ type PressableDiagonalAvatarsProps = {
     /** Total number of icons the stack represents (affects the xxxx-large right margin, matching `DiagonalAvatars`) */
     iconCount: number;
 
-    /** Called with the pressed avatar */
     onAvatarPress: (avatar: IconType) => void;
 
     /** Sentry label applied to both pressables */

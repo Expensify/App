@@ -39,9 +39,7 @@ import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
-    /** Search query JSON */
     queryJSON?: SearchQueryJSON;
-    /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
 

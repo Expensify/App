@@ -57,7 +57,6 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    /** The transaction object being modified in Onyx */
     transaction: OnyxEntry<Transaction>;
 
     /** Whether the user input should be kept or not */

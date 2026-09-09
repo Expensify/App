@@ -36,13 +36,10 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type LimitTypeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Array of step names */
     stepNames: readonly string[];
 };
 

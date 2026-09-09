@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
@@ -34,7 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -110,7 +109,6 @@ function IOURequestEditReportCommon({
     // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
-    const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
@@ -245,12 +243,18 @@ function IOURequestEditReportCommon({
                 if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
                     return true;
                 }
-                setPerDiemWarningModalVisible(true);
+                showConfirmModal({
+                    title: translate('iou.moveExpenses'),
+                    prompt: translate('iou.moveExpensesError'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
                 return false;
             }
             return true;
         },
-        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved],
+        // `showConfirmModal` is recreated on every render, so it has to stay in the dep array to keep this callback correct.
+        [transactionIDs?.length, isPerDiemRequest, checkIfPerDiemTransactionsCanBeMoved, showConfirmModal, translate],
     );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
@@ -349,8 +353,6 @@ function IOURequestEditReportCommon({
         return isOpen && !isAdmin && !isSubmitter;
     }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
-    const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
@@ -394,15 +396,6 @@ function IOURequestEditReportCommon({
                     ) : undefined
                 }
                 listEmptyContent={createReportOption}
-            />
-            <ConfirmModal
-                isVisible={perDiemWarningModalVisible}
-                onConfirm={hidePerDiemWarningModal}
-                onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses')}
-                prompt={translate('iou.moveExpensesError')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
             />
         </StepScreenWrapper>
     );

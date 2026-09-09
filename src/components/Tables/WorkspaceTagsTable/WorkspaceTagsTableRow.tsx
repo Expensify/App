@@ -21,13 +21,8 @@ import {View} from 'react-native';
 import type {WorkspaceTagTableRowData} from '.';
 
 type WorkspaceTagsTableRowProps = {
-    /** Data about the tag or tag list */
     item: WorkspaceTagTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */

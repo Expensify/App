@@ -33,9 +33,7 @@ type AvatarPreviewProps = {
     isRemoved: boolean;
     /** Callback when the current avatar photo is removed */
     onImageRemoved: () => void;
-    /** The image data */
     imageData: ImageData;
-    /** The function to set the error */
     setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;

@@ -55,13 +55,8 @@ type AttachmentViewProps = Attachment & {
     /** Whether this view is the active screen  */
     isFocused?: boolean;
 
-    /** Function for handle on press */
     onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
-
-    /** Whether the attachment is used in attachment modal */
     isUsedInAttachmentModal?: boolean;
-
-    /** Flag to show/hide download icon */
     shouldShowDownloadIcon?: boolean;
 
     /** Flag to show the loading indicator */
@@ -85,16 +80,9 @@ type AttachmentViewProps = Attachment & {
     /** Fallback source to use in case of error */
     fallbackSource?: AttachmentSource;
 
-    /* Whether it is hovered or not */
     isHovered?: boolean;
-
-    /** Whether the attachment is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
-
-    /* Flag indicating whether the attachment has been uploaded. */
     isUploaded?: boolean;
-
-    /** Whether the attachment is deleted */
     isDeleted?: boolean;
 
     /** Flag indicating if the attachment is being uploaded. */

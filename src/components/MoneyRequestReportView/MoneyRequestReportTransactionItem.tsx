@@ -32,7 +32,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
-    /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
     /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
@@ -62,22 +61,11 @@ type MoneyRequestReportTransactionItemProps = {
     /** Callback function triggered upon long pressing a transaction. */
     handleLongPress: (transactionID: string) => void;
 
-    /** Whether the transaction is selected */
     isSelected: boolean;
-
-    /** The size of the date column */
     dateColumnSize: TableColumnSize;
-
-    /** The size of the posted column */
     postedColumnSize: TableColumnSize;
-
-    /** The size of the amount column */
     amountColumnSize: TableColumnSize;
-
-    /** The size of the tax amount column */
     taxAmountColumnSize: TableColumnSize;
-
-    /** Columns to show */
     columns: SearchColumnType[];
 
     /** Callback function that navigates to the transaction thread */
@@ -86,13 +74,8 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    /** List of cards for the user */
     nonPersonalAndWorkspaceCards: CardList;
-
-    /** Whether this is the last item in the list */
     isLastItem?: boolean;
-
-    /** Whether the list is horizontally scrollable */
     shouldScrollHorizontally?: boolean;
 
     /** Precomputed transaction-thread report ID for this transaction. Lets the RBR row early-return for clean rows
@@ -109,7 +92,6 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
     animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
 
-    /** Whether to skip deferring the RBR content. */
     shouldSkipDeferRBR?: boolean;
 };
 

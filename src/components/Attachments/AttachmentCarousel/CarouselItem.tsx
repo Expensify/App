@@ -25,7 +25,6 @@ type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
     item: Attachment;
 
-    /** onPress callback */
     onPress?: () => void;
 
     /** Whether attachment carousel modal is hovered over */

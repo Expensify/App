@@ -42,6 +42,7 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -175,6 +176,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
@@ -265,6 +268,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         enablePolicyReportFields(policyID, true);
                     }
                 }
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.

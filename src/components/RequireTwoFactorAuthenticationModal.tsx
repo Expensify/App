@@ -29,7 +29,6 @@ type RequireTwoFactorAuthenticationModalProps = {
     /** Modal visibility */
     isVisible: boolean;
 
-    /** Describe what is showing */
     description: string;
 
     /**

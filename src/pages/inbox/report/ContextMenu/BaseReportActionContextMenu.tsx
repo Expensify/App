@@ -110,16 +110,9 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    /** Content Ref */
     contentRef?: RefObject<View | null>;
-
-    /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
-
-    /** List of disabled actions */
     disabledActions?: ContextMenuAction[];
-
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 
     /** Whether to add bottom safe area padding for edge-to-edge modal content */

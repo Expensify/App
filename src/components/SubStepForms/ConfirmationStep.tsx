@@ -32,10 +32,7 @@ type SummaryItem = {
 
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
-        /** The title of the step */
         pageTitle: string;
-
-        /** The summary items to display */
         summaryItems: SummaryItem[];
 
         /** Whether show additional section with Onfido terms etc. */
@@ -44,13 +41,11 @@ type ConfirmationStepProps = SubPageProps &
         /** The title of the Onfido section */
         onfidoLinksTitle?: string;
 
-        /** Whether the data is loading */
         isLoading?: boolean;
 
         /** The error message to display */
         error?: string;
 
-        /** Whether to apply safe area padding bottom */
         shouldApplySafeAreaPaddingBottom?: boolean;
     };
 

@@ -26,7 +26,6 @@ import {View} from 'react-native';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
-    /** The id of the report */
     reportID: string | undefined;
 
     /** The id of the policy */

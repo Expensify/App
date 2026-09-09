@@ -38,7 +38,6 @@ import React, {useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
-    /** All the data of the action */
     action: ReportAction;
 
     /** Extra styles to pass to View wrapper */

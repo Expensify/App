@@ -26,16 +26,12 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
     defaultValue: FileObject[];
 
-    /** The ID of the form */
     formID: TFormID;
-
-    /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
 
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
@@ -44,7 +40,6 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Currency of related account */
     currency: string;
 
-    /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */

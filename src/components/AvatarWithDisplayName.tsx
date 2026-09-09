@@ -62,16 +62,12 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
 
-    /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
 
     /** Whether the avatar is pressable to open the actor details */
@@ -92,13 +88,8 @@ type AvatarWithDisplayNameProps = {
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
-    /** The style of the custom display name text */
     customDisplayNameStyle?: TextStyle;
-
-    /** The style of the parent navigation subtitle text */
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
-
-    /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 

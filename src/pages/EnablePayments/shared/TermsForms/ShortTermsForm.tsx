@@ -14,7 +14,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ShortTermsFormProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 

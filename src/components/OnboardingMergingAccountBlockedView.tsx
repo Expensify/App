@@ -19,10 +19,9 @@ import BlockingView from './BlockingViews/BlockingView';
 import Button from './ButtonComposed';
 
 type OnboardingMergingAccountBlockedViewProps = {
-    // Work email to display in the subtitle
+    /** Work email to display in the subtitle */
     workEmail: string | undefined;
 
-    // Whether the user is a VSB
     isVsb: boolean | undefined;
 };
 
@@ -33,6 +32,10 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
+        // This subtitle interpolates the work email, so translate it with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle') {
+            return translate('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail);
+        }
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);
         }

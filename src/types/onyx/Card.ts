@@ -15,7 +15,6 @@ type CardStatusChanges = {
     /** Card status change date */
     date: string;
 
-    /** Card status change value */
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
@@ -48,13 +47,8 @@ type PossibleFraudData = {
 
 /** Model of Expensify card */
 type Card = OnyxValueWithOfflineFeedback<{
-    /** Card ID number */
     cardID: number;
-
-    /** Current card state */
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
-
-    /** Bank name */
     bank: CardFeedWithNumber;
 
     /** Available amount to spend */
@@ -66,7 +60,6 @@ type Card = OnyxValueWithOfflineFeedback<{
     /** Total spend on the card (comes as a negative number) */
     totalSpend?: number;
 
-    /** Domain name */
     domainName: string;
 
     /** Transaction start date */
@@ -81,19 +74,10 @@ type Card = OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
-    /** Pin of the card */
     pin?: string;
-
-    /** Card number */
     cardNumber?: string;
-
-    /** Encrypted card number */
     encryptedCardNumber?: string;
-
-    /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-
-    /** Card name */
     cardName?: string;
 
     /** Related policy account id */
@@ -108,10 +92,7 @@ type Card = OnyxValueWithOfflineFeedback<{
     /** Whether transactions from the card should be marked reimbursable by default */
     reimbursable?: boolean;
 
-    /** Last update result */
     lastScrapeResult?: number;
-
-    /** Last import attempt */
     lastImportAttempt?: string;
 
     /** Card related error messages */
@@ -164,22 +145,11 @@ type Card = OnyxValueWithOfflineFeedback<{
         /** Program currency of the card (USD, GBP, or EUR) */
         currency?: string;
 
-        /** Is a virtual card */
         isVirtual?: boolean;
-
-        /** Is a travel card */
         isTravelCard?: boolean;
-
-        /** Previous card state */
         previousState?: number;
-
-        /** Card expiration date */
         expirationDate?: string;
-
-        /** Card status changes */
         statusChanges?: CardStatusChanges[];
-
-        /** Card terminated reason */
         terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
 
         /** Card's primary account identifier */
@@ -199,7 +169,6 @@ type Card = OnyxValueWithOfflineFeedback<{
         /** Whether the card's PIN is currently blocked due to too many incorrect entries */
         isPINBlocked?: boolean;
 
-        /** Collection of errors coming from BE */
         errors?: Errors;
 
         /** Collection of form field errors  */
@@ -211,7 +180,6 @@ type Card = OnyxValueWithOfflineFeedback<{
          */
         frozen?: FrozenCardData | null;
 
-        /** Possible fraud information */
         possibleFraud?: PossibleFraudData;
     }> &
         OnyxValueWithOfflineFeedback<
@@ -222,10 +190,7 @@ type Card = OnyxValueWithOfflineFeedback<{
 
 /** Model of card just added to a wallet */
 type ProvisioningCardData = {
-    /** Card identifier */
     cardToken: string;
-
-    /** Card display name */
     displayName: string;
 
     /** Last 4 digits of the card */
@@ -322,10 +287,7 @@ type IssueNewCardData = {
     /** The email address of the inviting member */
     invitingMemberEmail: string;
 
-    /** The accountID of the inviting member */
     invitingMemberAccountID: number;
-
-    /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
@@ -334,10 +296,7 @@ type IssueNewCardData = {
     /** Card spending limit */
     limit: number;
 
-    /** Name of the card */
     cardTitle: string;
-
-    /** Currency of the card */
     currency: string;
 
     /** Optional start date for card validity (YYYY-MM-DD) */
@@ -426,10 +385,7 @@ type CardAssignmentData = {
     /** User-defined name for the card (e.g., "John's card") */
     customCardName?: string;
 
-    /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
-
-    /** Errors */
     errors?: Errors;
 
     /**
@@ -437,7 +393,6 @@ type CardAssignmentData = {
      */
     errorFields?: ErrorFields;
 
-    /** Pending action */
     pendingAction?: PendingAction;
 };
 

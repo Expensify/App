@@ -15,7 +15,6 @@ import Modal from './Modal';
 import Text from './Text';
 
 type TrialPaymentReminderModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** The variant of the modal to display */
@@ -27,10 +26,7 @@ type TrialPaymentReminderModalProps = {
     /** Countdown time for 'countdown' variant */
     countdownTime?: CountdownTime;
 
-    /** Called when user presses Close */
     onClose: () => void;
-
-    /** Called when user presses Add payment card */
     onAddPaymentCard: () => void;
 };
 

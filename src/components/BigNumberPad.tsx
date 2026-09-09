@@ -24,7 +24,6 @@ type BigNumberPadProps = {
     /** Used to locate this view from native classes. */
     id?: string;
 
-    /** Whether long press is disabled */
     isLongPressDisabled?: boolean;
 };
 

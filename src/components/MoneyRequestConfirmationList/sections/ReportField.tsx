@@ -26,28 +26,16 @@ import {createOutstandingReportsForPolicySelector, reportFieldTransactionStateSe
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
-    /** The selected participants */
     selectedParticipants: Participant[];
-
-    /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** The report ID */
     reportID: string;
-
-    /** The report action ID */
     reportActionID: string | undefined;
 
     /** The action to perform */
     action: IOUAction;
 
-    /** The transaction ID */
     transactionID: string | undefined;
-
-    /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
-
-    /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
 };
 

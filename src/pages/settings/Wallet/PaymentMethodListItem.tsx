@@ -84,19 +84,13 @@ type PaymentMethodItem = PaymentMethod & {
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
-    /** The payment method item to render */
     item: PaymentMethodItem;
 
     /** Whether to show the default badge for this payment method */
     shouldShowDefaultBadge: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 };
 

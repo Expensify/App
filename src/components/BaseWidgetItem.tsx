@@ -19,7 +19,6 @@ import Text from './Text';
 const ICON_SIZE = variables.iconSizeNormal;
 
 type BaseWidgetItemProps = {
-    /** Icon to display */
     icon: IconAsset;
 
     /** Primary title text */
@@ -31,7 +30,6 @@ type BaseWidgetItemProps = {
     /** Text for the CTA button */
     ctaText: string;
 
-    /** Callback when CTA is pressed */
     onCtaPress: () => void;
 
     /** The visual variant of the CTA button */

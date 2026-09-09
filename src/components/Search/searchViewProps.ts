@@ -35,7 +35,6 @@ type CommonSearchViewProps = {
     /** Whether the action column uses its wider variant. */
     isActionColumnWide: boolean;
 
-    /** Whether mobile selection mode is on. */
     isMobileSelectionModeEnabled: boolean;
 
     /** The column header element (undefined on narrow layouts). */
@@ -59,16 +58,12 @@ type CommonSearchViewProps = {
     /** Fires when the list scrolls near its end (router's fetchMoreResults). */
     onEndReached: () => void;
 
-    /** Fires on the list's first layout and on layout changes. */
     onLayout: () => void;
 
     /** Scroll handler forwarded to the list. */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
-    /** Content container style for the list. */
     contentContainerStyle: StyleProp<ViewStyle>;
-
-    /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
 
     /** Imperative handle for highlight-driven scrolling, set by the router. */

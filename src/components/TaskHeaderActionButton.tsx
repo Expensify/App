@@ -24,7 +24,6 @@ import {View} from 'react-native';
 import Button from './ButtonComposed';
 
 type TaskHeaderActionButtonProps = {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 

@@ -24,7 +24,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
@@ -168,7 +167,6 @@ type PrepareTransactionsListParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */

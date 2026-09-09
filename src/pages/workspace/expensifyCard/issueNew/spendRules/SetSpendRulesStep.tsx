@@ -40,13 +40,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
-    /* The policy that the card will be issued under */
+    /** The ID of the policy that the card will be issued under */
     policyID: string;
 
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Array of step names */
     stepNames: readonly string[];
 };
 

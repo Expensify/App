@@ -21,7 +21,6 @@ import ExpensifyWordmark from './ExpensifyWordmark';
 import Text from './Text';
 
 type AnonymousReportFooterProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 };
 

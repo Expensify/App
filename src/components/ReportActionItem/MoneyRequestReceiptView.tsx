@@ -98,7 +98,6 @@ import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** Whether we should show Money Request with disabled all fields */
@@ -110,13 +109,8 @@ type MoneyRequestReceiptViewProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Whether the receipt view should fill the given space */
     fillSpace?: boolean;
-
-    /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
-
-    /** Whether the parent component has a pending action */
     hasParentPendingAction?: boolean;
 };
 

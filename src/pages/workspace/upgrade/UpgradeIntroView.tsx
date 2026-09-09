@@ -45,7 +45,6 @@ type UpgradeIntroViewProps = {
     /** Primary button label. */
     buttonText: string;
 
-    /** Unlock badge text. */
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */
