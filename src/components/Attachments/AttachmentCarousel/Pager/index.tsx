@@ -34,7 +34,6 @@ type AttachmentCarouselPagerProps = {
     /** The index of the initial page to be rendered. */
     initialPage: number;
 
-    /** A callback to be called when the page is changed. */
     onPageSelected?: (
         event: NativeSyntheticEvent<
             Readonly<{
@@ -52,10 +51,7 @@ type AttachmentCarouselPagerProps = {
     /** The reportID related to the attachment */
     reportID?: string;
 
-    /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource) => void;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<AttachmentCarouselPagerHandle>;
 };
 
