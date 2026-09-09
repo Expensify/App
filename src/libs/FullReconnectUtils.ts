@@ -66,6 +66,7 @@ function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[] |
     const deliveredCutoffValue: unknown = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE)?.value;
     const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
     const cutoffToSatisfy = deliveredCutoff > knownServerReconnectCutoff ? deliveredCutoff : knownServerReconnectCutoff;
+    // Written directly to Onyx (not via an action) so subscribeToFullReconnect observes LAST_FULL_RECONNECT_TIME before any cutoff from the same response can land.
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoffToSatisfy));
 }
