@@ -39,7 +39,7 @@ type UseMarkAsReadParams = {
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
 
-    /** Identifies the list surface consuming the hook; concurrent surfaces must use distinct scopes */
+    /** Identifies the list surface consuming the hook. Concurrent surfaces must use distinct scopes. */
     scopeKey?: string;
 
     /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
