@@ -1771,6 +1771,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 iouReportTransactions: [transactionToDelete, remainingTransaction],
                 chatReport,
                 transactionThreadReport: undefined,
+                transactionThreadReportActions: undefined,
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs: undefined,
                 allTransactionViolationsParam: {},
