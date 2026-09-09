@@ -107,11 +107,11 @@ describe('showReportActionNotification', () => {
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
         const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
-        expect(callArgs?.derivedReportName).toBe(DERIVED_REPORT_NAME);
+        expect(callArgs?.derivedMovedFromReportName).toBe(DERIVED_REPORT_NAME);
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
-    it('passes undefined derivedReportName to showModifiedExpenseNotification when not provided', async () => {
+    it('passes undefined derivedMovedFromReportName to showModifiedExpenseNotification when not provided', async () => {
         await setupReport();
 
         const reportAction = {
@@ -136,7 +136,7 @@ describe('showReportActionNotification', () => {
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
         const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
-        expect(callArgs?.derivedReportName).toBeUndefined();
+        expect(callArgs?.derivedMovedFromReportName).toBeUndefined();
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 

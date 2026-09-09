@@ -25,7 +25,7 @@ type LocalNotificationModifiedExpenseParams = {
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
-    derivedReportName?: string;
+    derivedMovedFromReportName?: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
