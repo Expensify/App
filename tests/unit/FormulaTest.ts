@@ -537,6 +537,64 @@ describe('CustomFormula', () => {
         });
     });
 
+    describe('Debited and credited amount', () => {
+        const reimbursementContext: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            report: {
+                reportID: '123',
+                reportName: '',
+                type: 'expense',
+                policyID: 'policy1',
+            },
+            policy: createMock<Policy>({
+                name: 'Test Policy',
+            }),
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            reimbursementContext.report.debitedAmount = undefined;
+            reimbursementContext.report.debitedCurrency = undefined;
+            reimbursementContext.report.creditedAmount = undefined;
+            reimbursementContext.report.creditedCurrency = undefined;
+        });
+
+        test('should format debitedAmount in its bank-account currency', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'USD';
+
+            expect(compute('{report:debitedAmount}', reimbursementContext)).toBe('$82.50');
+            expect(compute('{report:debitedAmount:nosymbol}', reimbursementContext)).toBe('82.50');
+            expect(compute('{report:debitedAmount:USD}', reimbursementContext)).toBe('$82.50');
+        });
+
+        test('should format creditedAmount in its bank-account currency', () => {
+            reimbursementContext.report.creditedAmount = 11000;
+            reimbursementContext.report.creditedCurrency = 'USD';
+
+            expect(compute('{report:creditedAmount}', reimbursementContext)).toBe('$110.00');
+        });
+
+        test('should return empty when the amounts are missing', () => {
+            expect(compute('Debited {report:debitedAmount}', reimbursementContext)).toBe('Debited ');
+            expect(compute('Credited {report:creditedAmount}', reimbursementContext)).toBe('Credited ');
+        });
+
+        test('should keep the token when a currency conversion is needed', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'USD';
+
+            expect(compute('{report:debitedAmount:EUR}', reimbursementContext)).toBe('{report:debitedAmount:EUR}');
+        });
+
+        test('should keep the token for an unrecognized display currency modifier', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'USD';
+
+            expect(compute('{report:debitedAmount:UNKNOWN}', reimbursementContext)).toBe('{report:debitedAmount:UNKNOWN}');
+        });
+    });
+
     describe('Function Modifiers', () => {
         const mockContext: FormulaContext = {
             getCurrencyDecimals: getCurrencyDecimalsLocal,

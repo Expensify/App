@@ -187,6 +187,8 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         'enddate',
         'total',
         'reimbursable',
+        'debitedamount',
+        'creditedamount',
         'currency',
         'policyname',
         'workspacename',

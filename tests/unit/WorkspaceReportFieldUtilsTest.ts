@@ -67,6 +67,8 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
         expect(getUnsupportedReportFieldFormulaParts('{report:submit:to}')).toEqual([]);
         expect(getUnsupportedReportFieldFormulaParts('{report:submit:from:firstname}')).toEqual([]);
         expect(getUnsupportedReportFieldFormulaParts('{report:autoreporting:start}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:debitedAmount}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:creditedAmount}')).toEqual([]);
     });
 
     it('returns only unsupported parts in mixed formulas', () => {
