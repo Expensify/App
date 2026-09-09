@@ -25,6 +25,7 @@ import {
     getDefaultChatEnabledPolicySelection,
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
+    getDualEntryVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
     getExpensifyTeamExclusions,
@@ -33,6 +34,7 @@ import {
     getMatchingVendorByID,
     getMatchingVendors,
     getVendorEmptyState,
+    getVendorRuleDisplayValue,
     getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
@@ -62,6 +64,8 @@ import {
     hasPolicyWithXeroConnection,
     hasVendorFeature,
     isArchivedPolicy,
+    isDualEntryVendorMatchingActive,
+    isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEligiblePolicy,
@@ -84,7 +88,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
-import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type {Connections, DualEntryVendor, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -3772,6 +3776,86 @@ describe('PolicyUtils', () => {
                     },
                 },
             });
+
+        describe('DualEntry vendors', () => {
+            const vendors: DualEntryVendor[] = [
+                {id: '1', name: 'Company vendor', companyID: '10', email: 'vendor@example.com', isActive: true},
+                {id: '2', name: 'Organization vendor', isActive: true},
+                {id: '3', name: 'Empty company', companyID: '', isActive: true},
+                {id: '4', name: 'Other company', companyID: '20', isActive: true},
+                {id: '5', name: 'Inactive vendor', companyID: '10', isActive: false},
+                {id: '', name: 'Missing ID', isActive: true},
+            ];
+            const buildDualEntryPolicy = (vendorList: DualEntryVendor[] | undefined, isConfigured = true, subsidiaryID = '10'): Policy =>
+                createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        dualEntry: {config: {isConfigured, subsidiaryID}, data: {vendors: vendorList}},
+                    },
+                });
+
+            it('requires a configured connection and the matching beta', () => {
+                const policy = buildDualEntryPolicy(vendors);
+                expect(isDualEntryVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(buildDualEntryPolicy(vendors, false), true)).toBe(false);
+                expect(isDualEntryVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('normalizes only eligible vendors for matching and the default picker', () => {
+                const policy = buildDualEntryPolicy(vendors);
+                const expected = [
+                    {id: '1', name: 'Company vendor', currency: '', email: 'vendor@example.com'},
+                    {id: '2', name: 'Organization vendor', currency: '', email: ''},
+                    {id: '3', name: 'Empty company', currency: '', email: ''},
+                ];
+                expect(getMatchingVendors(policy)).toEqual(expected);
+                expect(getDualEntryVendors(policy)).toEqual(expected);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
+            });
+
+            it('distinguishes an unloaded list from a loaded list with no eligible vendors', () => {
+                expect(isMatchingVendorListLoaded(buildDualEntryPolicy(undefined))).toBe(false);
+                expect(isMatchingVendorListLoaded(buildDualEntryPolicy([]))).toBe(true);
+                expect(isMatchingVendorListLoaded(buildDualEntryPolicy([{id: '5', name: 'Inactive', isActive: false}]))).toBe(true);
+                expect(getMatchingVendors(buildDualEntryPolicy(undefined))).toEqual([]);
+            });
+
+            it('filters historical names and rule values after a company switch', () => {
+                // Given a vendor selected before the workspace changed companies
+                const policy = buildDualEntryPolicy(vendors, true, '20');
+
+                // Then the old company vendor is unavailable while shared vendors still resolve
+                expect(getMatchingVendorByID(policy, '1')).toBeUndefined();
+                expect(findVendorByID(policy, '1')).toBeUndefined();
+                expect(findVendorByID(policy, '5')).toBeUndefined();
+                expect(findVendorByID(policy, '4')?.name).toBe('Other company');
+                expect(findVendorByID(policy, '2')?.name).toBe('Organization vendor');
+                expect(getVendorRuleDisplayValue(policy, '1', 'Unavailable')).toBe('Unavailable');
+                expect(getVendorRuleDisplayValue(policy, '2', 'Unavailable')).toBe('Organization vendor');
+            });
+
+            it('keeps an offline rule ID while the vendor list loads', () => {
+                expect(getVendorRuleDisplayValue(buildDualEntryPolicy(undefined), '1', 'Unavailable')).toBe('1');
+            });
+
+            it('keeps the DualEntry default picker bound to DualEntry when Rillet takes precedence', () => {
+                const policy = buildDualEntryPolicy(vendors);
+                policy.connections = {...policy.connections, ...buildRilletPolicy().connections};
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.RILLET);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['rv-1']);
+                expect(getDualEntryVendors(policy).map((vendor) => vendor.id)).toEqual(['1', '2', '3']);
+            });
+
+            it('uses the existing DualEntry empty state', () => {
+                const translate = TestHelper.translateLocal;
+                expect(getVendorEmptyState(buildDualEntryPolicy([]), translate)).toEqual({
+                    title: translate('workspace.dualEntry.noVendorsFound'),
+                    subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+                });
+            });
+        });
 
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
