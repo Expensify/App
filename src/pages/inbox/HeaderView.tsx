@@ -101,7 +101,6 @@ type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: () => void;
 
-    /** The reportID of the current report */
     reportID: string | undefined;
 };
 

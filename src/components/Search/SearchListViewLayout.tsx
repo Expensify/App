@@ -43,7 +43,6 @@ type SearchListViewLayoutProps = {
     /** The bottom safe-area padding style applied when the keyboard is hidden. */
     safeAreaPaddingBottomStyle: StyleProp<ViewStyle>;
 
-    /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
 
     /** The rendered transactions, so the free-text columns can be sized from them. Left out, columns keep their widths. */
