@@ -730,20 +730,20 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx', 'src/types/native/**/*.d.ts'],
+        files: [
+            'src/**/*.native.ts',
+            'src/**/*.native.tsx',
+            'src/**/*.ios.ts',
+            'src/**/*.ios.tsx',
+            'src/**/*.android.ts',
+            'src/**/*.android.tsx',
+            'src/types/native/**/*.d.ts',
+            'modules/background-task/src/**/*',
+            'modules/hybrid-app/src/**/*',
+        ],
         // `tsconfig.app.native.json` excludes `__mocks__` (those belong to the Jest program), so mock
         // files matching a platform suffix above must keep resolving through the Jest mapping instead.
         ignores: ['src/**/__mocks__/**'],
-        languageOptions: {
-            parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
-                projectService: false,
-            },
-        },
-    },
-
-    {
-        files: ['modules/background-task/src/**/*', 'modules/hybrid-app/src/**/*'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
