@@ -360,6 +360,7 @@ describe('ModifiedExpenseMessage', () => {
                     policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -945,6 +946,7 @@ describe('ModifiedExpenseMessage', () => {
                     policy: undefined,
                     policyTags: undefined,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
 
                 expect(result).toEqual(expectedResult);
