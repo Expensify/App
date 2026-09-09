@@ -143,6 +143,11 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['id', 'type', 'role', 'outputCurrency', 'areCategoriesEnabled', 'areTagsEnabled'],
         maskList: ['name', 'avatar'],
     },
+    // Vendor names can reveal a workspace's suppliers, so keep the collection structure but mask names in exports.
+    [ONYXKEYS.COLLECTION.POLICY_VENDORS]: {
+        allowList: ['externalID', 'enabled', 'origin'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.USER_WALLET]: {
         allowList: ['currentBalance', 'availableBalance', 'tierName'],
         maskList: [],
@@ -172,6 +177,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED,
     ONYXKEYS.BETAS,
     ONYXKEYS.BETA_CONFIGURATION,
+    ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.CACHED_PDF_PATHS,
     ONYXKEYS.CARD_SUPPORTED_COUNTRIES,
     ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST,
@@ -198,6 +204,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE,
     ONYXKEYS.COLLECTION.REPORT_METADATA,
     ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE,
+    ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT,
     ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM,
     ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB,
     ONYXKEYS.COLLECTION.SELECTED_TAB,

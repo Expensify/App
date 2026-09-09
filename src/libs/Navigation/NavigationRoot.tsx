@@ -54,7 +54,6 @@ type NavigationRootProps = {
     /** Stores path of last visited page */
     lastVisitedPath: Route;
 
-    /** Initial url */
     initialUrl: string | null;
 
     /** Fired when react-navigation is ready */

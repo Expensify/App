@@ -8,10 +8,7 @@ import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {
-    /** The array of items to render in the list. */
     data: T[];
-
-    /** Function that extracts a unique key for each item in the list. */
     keyExtractor: (item: T, index: number) => string;
 
     /** Ref to the underlying list instance. */
