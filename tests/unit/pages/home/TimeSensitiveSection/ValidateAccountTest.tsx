@@ -3,8 +3,8 @@ import {render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
-import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -62,7 +62,12 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: '
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 function TimeSensitiveSection() {
-    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+    return (
+        <HomeTaskGroup
+            title="homePage.timeSensitiveSection.title"
+            rows={useTimeSensitiveItems()}
+        />
+    );
 }
 
 const renderTimeSensitiveSection = () =>
@@ -109,7 +114,6 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
 
         renderTimeSensitiveSection();
 
-        expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
         expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
         expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
     });
@@ -134,7 +138,6 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
 
         renderTimeSensitiveSection();
 
-        expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
         expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
         expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
     });
