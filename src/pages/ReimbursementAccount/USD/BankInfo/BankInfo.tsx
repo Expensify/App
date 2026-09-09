@@ -32,8 +32,7 @@ type BankInfoProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Current Policy ID */
-    policyID: string;
+    policyID?: string;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;

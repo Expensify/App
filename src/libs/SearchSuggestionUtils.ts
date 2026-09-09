@@ -144,7 +144,6 @@ function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
-    topSpendersPolicyIDs: string[] = [],
     activeExpensifyCardFeedID?: string,
 ): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
@@ -395,8 +394,6 @@ function getSuggestedSearches(
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    // Scope Top Spenders to the eligible workspaces so individual-chat/personal expenses don't leak in.
-                    ...(topSpendersPolicyIDs.length > 0 ? {policyID: topSpendersPolicyIDs} : {}),
                     status: [
                         CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,

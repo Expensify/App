@@ -60,10 +60,7 @@ type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
     route: PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-    /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
-
-    /** Fund ID */
     fundID: number;
 };
 

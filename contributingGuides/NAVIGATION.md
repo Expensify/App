@@ -104,6 +104,9 @@ interceptAnonymousUser(() => {
 > 3. Our method uses `PUSH` instead of `NAVIGATE` by default!
 > 4. We do not have a separate function `REPLACE`. To use this method, you need to pass the `forceReplace` option to `Navigation.navigate`.
 
+> [!TIP]
+> When navigating straight from a touch handler (a shutter press, a tap that jumps to another screen), use `deferNavigate` (`@libs/Navigation/deferNavigate`) instead of `Navigation.navigate` directly. A synchronous navigate can mount the next screen mid-touch, so the release lands on the new screen (e.g. its back button) and pops the flow back. `deferNavigate` runs it on the next microtask so the touch finishes first.
+
 ### Going back
 
 To navigate back, we use the `Navigation.goBack` function. We can call this function without any parameters, but the most common case is to call it with `backToRoute`. It is worth remembering that it is possible to deep link to any page in the application. When we open a specific page using a link, the navigation state is rebuilt and we lose previously visited pages. In such a case, we can simply use the mentioned parameter to indicate which page should be opened when going back.

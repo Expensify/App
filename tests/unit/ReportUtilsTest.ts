@@ -138,6 +138,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -210,6 +211,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
+    shouldDisplayReportFields,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldHideSingleReportField,
@@ -296,7 +298,15 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
+    localeCompare,
+    translateLocal,
+} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type ClosedReportActionMessage = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>['message'];
@@ -377,6 +387,9 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         translate: translateLocal,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        getCurrencySymbol: getCurrencySymbolLocal,
         conciergeReportID,
         reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
@@ -18943,6 +18956,57 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportFieldMaps', () => {
+        it('returns persisted invoice fields when the receiver has no policy field list', async () => {
+            const report = createMock<Report>({
+                reportID: 'invoiceReceiverWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
+                Object.fromEntries([
+                    ['expensify_invoice_field', invoiceField],
+                    ['invoice_field', invoiceField],
+                ]),
+            );
+            await waitForBatchedUpdates();
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+
+            expect(fieldValues).toEqual({client: 'Acme'});
+            expect(fieldsByName).toEqual({client: invoiceField});
+        });
+
+        it('does not use persisted invoice fields for an expense report', async () => {
+            const report = createMock<Report>({
+                reportID: 'expenseReportWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
+            await waitForBatchedUpdates();
+
+            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+        });
+    });
+
     describe('canEditReportTitle', () => {
         const getTitleField = (deletable: boolean): PolicyReportField => ({
             fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -19180,6 +19244,35 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
+    describe('shouldDisplayReportFields', () => {
+        it('returns true for an invoice when the receiver policy does not include the invoice fields feature flag', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.INVOICE});
+            const receiverPolicy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM});
+
+            expect(shouldDisplayReportFields(report, receiverPolicy)).toBe(true);
+        });
+
+        it('returns true for a workspace expense report when report fields are enabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: true,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(true);
+        });
+
+        it('returns false for a workspace expense report when report fields are disabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: false,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(false);
+        });
+    });
+
     describe('getMissingPaymentMethodForQueuedPayment', () => {
         const bankAccountListWithDepositAccount: BankAccountList = {
             123: {
@@ -22168,7 +22261,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22182,7 +22275,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22192,7 +22285,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -22202,7 +22295,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22223,7 +22316,7 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -22243,7 +22336,7 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, convertToDisplayString, undefined);
 
             expect(result).toBe('Invoice #42');
         });
@@ -22281,7 +22374,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -22296,7 +22389,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -22310,7 +22403,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
+                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
@@ -22336,7 +22429,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
