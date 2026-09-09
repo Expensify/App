@@ -1,3 +1,4 @@
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import StatusBadge from '@components/StatusBadge';
 import Switch from '@components/Switch';
@@ -39,6 +40,8 @@ type DistanceRateTableItemData = TableData & {
     action: () => void;
     dismissError: () => void;
     onToggleEnabled: (value: boolean) => void;
+    canEditName: boolean;
+    onRenameName: (newName: string) => void;
 };
 
 type WorkspaceDistanceRatesTableRowProps = {
@@ -186,11 +189,12 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, shouldUseNarrowTableLay
                             style={[styles.flex1]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={rate.name ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={rate.name ?? ''}
+                                accessibilityLabel={translate('common.name')}
+                                canEdit={item.canEditName && !item.disabled}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}

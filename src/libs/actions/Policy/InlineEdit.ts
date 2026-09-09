@@ -2,6 +2,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 
 import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
+import {getDistanceRateNameError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
@@ -11,6 +12,7 @@ import {updateCompanyCardName} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -25,6 +27,7 @@ import type {ValueOf} from 'type-fest';
  * Add new items as additional sections below rather than creating a file per item.
  */
 import {renamePolicyCategory} from './Category';
+import {updatePolicyDistanceRateName} from './DistanceRate';
 import {updateWorkspaceMembersRole} from './Member';
 import {renamePolicyTag} from './Tag';
 
@@ -90,6 +93,24 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
     updateExpensifyCardTitle(workspaceAccountID, cardID, newName, currentName);
 }
 
+/**
+ * Renames a distance rate from an inline table edit. Sanitizes the input and delegates to the
+ * canonical rename action. Silently no-ops when the name is unchanged or fails validation
+ * (matching the Spend inline-edit behavior, where an invalid edit reverts to the original
+ * value without an error).
+ */
+function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
+    const sanitized = sanitizeDistanceRateName(newName);
+    const currentName = rate.name ?? '';
+    const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
+
+    if (sanitized === currentName || getDistanceRateNameError(existingRateNames, newName, currentName)) {
+        return;
+    }
+
+    updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
+}
+
 function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
     switch (role) {
         case CONST.POLICY.ROLE.OWNER:
@@ -119,4 +140,4 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, updateMemberRoleInline};
+export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, renameDistanceRateInline, updateMemberRoleInline};

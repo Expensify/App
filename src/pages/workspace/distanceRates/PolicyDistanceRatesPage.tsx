@@ -33,6 +33,7 @@ import {
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
+import {renameDistanceRateInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -152,6 +153,10 @@ function PolicyDistanceRatesPage({
     }, [setSelectedDistanceRates]);
 
     useCleanupSelectedOptions(clearTableSelection);
+
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedDistanceRates.length > 0 || isMobileSelectionModeEnabled;
 
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>
@@ -314,18 +319,27 @@ function PolicyDistanceRatesPage({
                     formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
                     pendingAction: resolvedPendingAction ?? undefined,
                     errors: rate.errors ?? undefined,
+                    canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
                     action: () => openRateDetailsByID(rate.customUnitRateID),
                     dismissError: () => dismissErrorByID(rate.customUnitRateID),
                     onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
+                    onRenameName: (newName: string) => {
+                        if (!customUnit) {
+                            return;
+                        }
+                        renameDistanceRateInline(policyID, customUnit, rate, newName);
+                    },
                 };
             }),
         [
             customUnitRates,
             unitTranslation,
-            customUnit?.pendingFields?.attributes,
+            customUnit,
             policy?.pendingAction,
             canWriteDistanceRates,
             canDisableOrDeleteRate,
+            isSelectionModeActive,
+            policyID,
             openRateDetailsByID,
             dismissErrorByID,
             updateDistanceRateEnabled,

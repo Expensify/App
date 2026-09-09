@@ -1,11 +1,13 @@
 import {
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateNameError,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    sanitizeDistanceRateName,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -219,6 +221,39 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should pass through an unset preference', () => {
             expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateNameError', () => {
+        const existingRateNames = ['IRS', 'Custom rate'];
+
+        it('should return required when the name is empty or only whitespace', () => {
+            expect(getDistanceRateNameError(existingRateNames, '')).toBe('required');
+            expect(getDistanceRateNameError(existingRateNames, '   ')).toBe('required');
+        });
+
+        it('should return existing when the name matches another rate', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS')).toBe('existing');
+            expect(getDistanceRateNameError(existingRateNames, ' Custom rate ')).toBe('existing');
+        });
+
+        it('should not flag a rate as a duplicate of its own name', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS', 'IRS')).toBeUndefined();
+        });
+
+        it('should return tooLong when the name exceeds the character limit', () => {
+            const tooLongName = 'a'.repeat(CONST.TAX_RATES.NAME_MAX_LENGTH + 1);
+            expect(getDistanceRateNameError(existingRateNames, tooLongName)).toBe('tooLong');
+        });
+
+        it('should accept a unique name within the character limit', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'New rate')).toBeUndefined();
+        });
+    });
+
+    describe('sanitizeDistanceRateName', () => {
+        it('should convert non-breaking spaces and trim surrounding whitespace', () => {
+            expect(sanitizeDistanceRateName(`\u00A0Custom rate\u00A0`)).toBe('Custom rate');
         });
     });
 });
