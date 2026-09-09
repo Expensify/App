@@ -112,7 +112,7 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
         mergeExpenseAddedGrowlTransactionIDs(Object.fromEntries(pendingTransactionIDs.map((id) => [id, null])));
 
         // Suppress the growl when the user is already viewing the expense's money-request report
-        if (Navigation.getTopmostReportId() === transaction.reportID) {
+        if (Navigation.getFocusedReportId() === transaction.reportID) {
             return;
         }
         nonceRef.current += 1;

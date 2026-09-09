@@ -21,6 +21,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 type GrowlContentProps = ComponentProps<typeof GrowlNotificationContent>;
 
 const mockGetTopmostReportId = jest.fn<string | undefined, []>();
+const mockGetFocusedReportId = jest.fn<string | undefined, []>();
 
 const mockGrowlContent = jest.fn<void, [GrowlContentProps]>();
 jest.mock('@components/GrowlNotification/GrowlNotificationContent', () => (props: GrowlContentProps) => {
@@ -30,6 +31,7 @@ jest.mock('@components/GrowlNotification/GrowlNotificationContent', () => (props
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getTopmostReportId: () => mockGetTopmostReportId(),
+    getFocusedReportId: () => mockGetFocusedReportId(),
     getActiveRoute: () => '',
 }));
 jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => ({
@@ -76,6 +78,7 @@ describe('ExpenseAddedGrowl', () => {
         jest.clearAllMocks();
         mockCreateTransactionThreadReport.mockReset();
         mockGetTopmostReportId.mockReturnValue(undefined);
+        mockGetFocusedReportId.mockReturnValue(undefined);
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -107,7 +110,7 @@ describe('ExpenseAddedGrowl', () => {
 
     it("suppresses the growl when the user is already viewing the expense's report", async () => {
         // Given the user is already viewing report-1
-        mockGetTopmostReportId.mockReturnValue('report-1');
+        mockGetFocusedReportId.mockReturnValue('report-1');
         render(<ExpenseAddedGrowl />);
 
         // When an expense is created in that same report
@@ -117,9 +120,22 @@ describe('ExpenseAddedGrowl', () => {
         expect(mockGrowlContent).not.toHaveBeenCalled();
     });
 
+    it("still shows the growl when the expense's report is only left open on an inactive tab", async () => {
+        // Given report-1 sits in the Inbox stack the user isn't looking at, so only the central-pane read sees it
+        mockGetTopmostReportId.mockReturnValue('report-1');
+        mockGetFocusedReportId.mockReturnValue(undefined);
+        render(<ExpenseAddedGrowl />);
+
+        // When an expense is created in report-1 from another tab, e.g. splitting an expense in Spend
+        await seedExpense('1', 'report-1');
+
+        // Then the growl still shows, because nothing on screen highlights the new expense
+        expect(mockGrowlContent).toHaveBeenCalled();
+    });
+
     it('still shows for a tracked/unreported (self-DM) expense even when a report is open, since its reportID is UNREPORTED', async () => {
         // Given the user is viewing some report
-        mockGetTopmostReportId.mockReturnValue('some-open-report');
+        mockGetFocusedReportId.mockReturnValue('some-open-report');
         render(<ExpenseAddedGrowl />);
 
         // When a tracked expense is created, which has no report to be viewed in
