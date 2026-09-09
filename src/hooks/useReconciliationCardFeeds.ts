@@ -54,7 +54,11 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
         [allFeeds, domains, policyID, workspaceAccountID],
     );
 
-    return {candidates, defaultFundID};
+    // Default to this workspace's own feed whenever it is one of the candidates.
+    // Fall back to defaultFundID for a workspace that has no feed of its own.
+    const ownFeedFundID = candidates.some((entry) => entry.fundID === workspaceAccountID) ? workspaceAccountID : undefined;
+
+    return {candidates, defaultFundID: ownFeedFundID ?? defaultFundID};
 }
 
 export default useReconciliationCardFeeds;

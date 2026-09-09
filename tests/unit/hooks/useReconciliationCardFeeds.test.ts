@@ -30,9 +30,11 @@ jest.mock('@hooks/useWorkspaceAccountID', () => ({
     default: () => workspaceAccountID,
 }));
 
+let mockDefaultFundIDFromCardPages = workspaceAccountID;
+
 jest.mock('@hooks/useDefaultFundID', () => ({
     __esModule: true,
-    default: () => workspaceAccountID,
+    default: () => mockDefaultFundIDFromCardPages,
 }));
 
 function cardSettingsKey(fundID: number) {
@@ -87,9 +89,15 @@ function candidateFundIDs(policyID: string | undefined = currentPolicyID) {
     return result.current.candidates.map((entry) => entry.fundID);
 }
 
+function defaultFundID(policyID: string | undefined = currentPolicyID) {
+    const {result} = renderHook(() => useReconciliationCardFeeds(policyID));
+    return result.current.defaultFundID;
+}
+
 describe('useReconciliationCardFeeds', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockDefaultFundIDFromCardPages = workspaceAccountID;
         mockCollections({});
     });
 
@@ -237,6 +245,47 @@ describe('useReconciliationCardFeeds', () => {
         });
 
         expect(candidateFundIDs(undefined)).toEqual([]);
+    });
+
+    describe('the default selection', () => {
+        it("is this workspace's own feed even when the card pages last selected a domain feed", () => {
+            mockDefaultFundIDFromCardPages = domainFundID;
+            mockCollections({
+                cardSettings: {
+                    [cardSettingsKey(workspaceAccountID)]: configuredCardSettings(),
+                    [cardSettingsKey(domainFundID)]: configuredCardSettings({preferredPolicy: currentPolicyID}),
+                },
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            expect(defaultFundID()).toBe(workspaceAccountID);
+        });
+
+        it('falls back to the card pages default when this workspace has no feed of its own', () => {
+            mockDefaultFundIDFromCardPages = domainFundID;
+            mockCollections({
+                cardSettings: {[cardSettingsKey(domainFundID)]: configuredCardSettings({preferredPolicy: currentPolicyID})},
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            expect(defaultFundID()).toBe(domainFundID);
+        });
+
+        it('falls back to the card pages default when the own feed is pending delete', () => {
+            mockDefaultFundIDFromCardPages = domainFundID;
+            mockCollections({
+                cardSettings: {
+                    [cardSettingsKey(workspaceAccountID)]: configuredCardSettings({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+                    [cardSettingsKey(domainFundID)]: configuredCardSettings({preferredPolicy: currentPolicyID}),
+                },
+                policies: adminPolicyWithAccount(currentPolicyID, workspaceAccountID),
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            expect(defaultFundID()).toBe(domainFundID);
+        });
     });
 
     it('offers the own feed and an unclaimed linked domain feed together', () => {
