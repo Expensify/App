@@ -91,7 +91,7 @@ describe('EditMerchantRulePage route guard', () => {
         renderEditMerchantRulePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByTestId('EditMerchantRulePage')).not.toBeNull();
+        expect(screen.getByTestId('EditMerchantRulePage')).toBeOnTheScreen();
     });
 
     it('refuses a rule scoped to another policy', async () => {
