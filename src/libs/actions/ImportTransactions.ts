@@ -470,7 +470,7 @@ async function uploadOFXStatement(file: FileObject, settings: ImportTransactionS
         });
         return await importFinalModalResult.promise;
     } catch (error) {
-        Log.warn('[ImportTransactions] UploadOFX failed', {message: (error as Error)?.message});
+        Log.warn('[ImportTransactions] UploadOFX failed', {message: String(error)});
         importFinalModalResult.cancel();
         return getImportFailedFinalModal();
     }

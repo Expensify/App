@@ -27,6 +27,7 @@ describe('ImportTransactions', () => {
         jest.clearAllMocks();
         // Spy on Onyx.merge for tests that need to verify it was called
         jest.spyOn(Onyx, 'merge').mockResolvedValue(undefined);
+        writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
     });
 
     afterEach(() => {
@@ -896,14 +897,6 @@ describe('ImportTransactions', () => {
             containsHeader: true,
         });
 
-        beforeEach(() => {
-            writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
-        });
-
-        afterEach(() => {
-            writeSpy.mockRestore();
-        });
-
         it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
             const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
 
@@ -970,14 +963,6 @@ describe('ImportTransactions', () => {
     describe('uploadOFXStatement', () => {
         const CURRENT_USER_ACCOUNT_ID = 12345;
         const statement = {name: 'statement.ofx', type: 'application/x-ofx', uri: 'file:///statement.ofx'};
-
-        beforeEach(() => {
-            writeSpy = jest.spyOn(API, 'write').mockRejectedValue(new Error('forced'));
-        });
-
-        afterEach(() => {
-            writeSpy.mockRestore();
-        });
 
         it('sends the file itself so the backend parses it', async () => {
             await uploadOFXStatement(statement, {}, CURRENT_USER_ACCOUNT_ID);
