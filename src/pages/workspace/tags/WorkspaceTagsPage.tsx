@@ -28,12 +28,12 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useTagInlineEdit from '@hooks/useTagInlineEdit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameTagInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearPolicyTagErrors,
     deletePolicyTags,
@@ -130,7 +130,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
-    const {canEditName, renameTag} = useTagInlineEdit({policyData, canWriteTags, showReadOnlyModal});
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     // The revamp moves the multi-level tag settings to Rules, but the GL codes toggle stays here and needs a way in.
@@ -428,10 +427,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,
-                canEditName: canEditName && !isSelectionModeActive,
+                canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
-                onRenameName: (newName: string) => renameTag(tag.name, newName),
+                onRenameName: (newName: string) => renameTagInline(policyData, tag.name, newName),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
@@ -439,9 +438,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }, []);
     }, [
         canWriteTags,
-        canEditName,
         isSelectionModeActive,
-        renameTag,
+        policyData,
         handleTagEnabledToggle,
         handleTagListRequiredToggle,
         hasDependentTags,
