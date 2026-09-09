@@ -57,7 +57,6 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    /** The transaction object being modified in Onyx */
     transaction: OnyxEntry<Transaction>;
 
     /** Whether the user input should be kept or not */
@@ -76,7 +75,7 @@ function IOURequestStepAmount({
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -232,6 +231,7 @@ function IOURequestStepAmount({
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  convertToDisplayString,
               });
     });
     const participant = participants.at(0);
@@ -253,6 +253,7 @@ function IOURequestStepAmount({
         submitAmount({
             getCurrencyDecimals,
             getCurrencySymbol,
+            convertToDisplayString,
             translate,
             dateFnsLocale,
             report,
