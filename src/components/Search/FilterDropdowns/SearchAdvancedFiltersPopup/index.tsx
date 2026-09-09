@@ -90,6 +90,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         role={CONST.ROLE.BUTTON}
                         sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
                         onHoverIn={() => setIsDescribeMode(true)}
+                        onFocus={() => setIsDescribeMode(true)}
                         onPress={() => setIsDescribeMode(true)}
                     >
                         {({pressed}) => (
