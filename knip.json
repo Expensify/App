@@ -90,5 +90,5 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert", "python3"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl", "python3"]
 }

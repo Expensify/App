@@ -1690,11 +1690,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Wszystko gotowe!',
         noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
-        confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz go zatwierdzić?',
-            other: 'Te wydatki są wstrzymane. Czy mimo to chcesz je zatwierdzić?',
-        }),
+        confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
+        confirmApprovalAllHoldAmount: 'Wszystkie wydatki są wstrzymane. Zatwierdzić mimo to?',
         confirmPay: 'Potwierdź kwotę płatności',
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({
@@ -2326,6 +2323,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            betaOverrides: 'Nadpisywanie bet',
+            betaOverridesDescription:
+                'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
+            resetAllOverrides: 'Zresetuj wszystkie nadpisania',
+            overridden: 'Nadpisana',
             qaAuth: 'Uwierzytelnianie QA (Cloudflare)',
             qaAuthRunProbe: 'Uruchom test',
             qaAuthSession: 'Sesja uwierzytelniania QA',
@@ -3364,6 +3366,7 @@ ${amount} dla ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
             workAccountClosedSubtitle:
                 'Konto służbowe powiązane z tym adresem e‑mail jest zamknięte. Skontaktuj się z administratorem w swojej firmie, żeby je ponownie aktywować, albo zarejestruj się przy użyciu innego adresu e‑mail.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} to login kontrolowany przez domenę dla istniejącego konta Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4625,6 +4628,7 @@ ${amount} dla ${merchant} - ${date}`,
             customFieldHint: 'Dodaj niestandardowe kodowanie, które będzie stosowane do wszystkich wydatków tego członka.',
             reports: 'Raporty',
             reportFields: 'Pola raportu',
+            invoiceFields: 'Pola faktury',
             reportTitle: 'Tytuł raportu',
             reportField: 'Pole raportu',
             taxes: 'Podatki',
@@ -6363,6 +6367,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                                 'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                             sendInvoiceNowCta: 'Wyślij fakturę teraz',
                         },
+                        setUpNewFeed: 'Skonfiguruj nowy kanał podróży',
+                        feedSelectorIntro:
+                            'Twoja organizacja ma już skonfigurowany skonsolidowany kanał rozliczeń podróży. Wybierz go, żeby wydatki z podróży w tym miejscu pracy były na tym samym miesięcznym rachunku.',
                     },
                     disableModal: {
                         title: 'Wyłączyć zbiorcze rozliczanie podróży?',
@@ -6619,6 +6626,29 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             unsupportedFormulaValueError: (value: string) => `Pole formuły ${value} nie zostało rozpoznane`,
             reportFieldInitialValueRequiredError: 'Wybierz początkową wartość pola raportu',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizowania pola raportu. Spróbuj ponownie.',
+        },
+        invoiceFields: {
+            subtitle: 'Pola faktury mogą być pomocne, gdy chcesz dodać dodatkowe informacje.',
+            importedFromAccountingSoftware: 'Poniższe pola faktury są importowane z Twojego',
+            disableInvoiceFields: 'Wyłącz pola faktury',
+            disableInvoiceFieldsConfirmation: 'Czy na pewno? Pola faktury zostaną wyłączone na fakturach.',
+            delete: 'Usuń pole faktury',
+            deleteConfirmation: 'Czy na pewno chcesz usunąć to pole faktury?',
+            findInvoiceField: 'Znajdź pole faktury',
+            nameInputSubtitle: 'Wybierz nazwę pola faktury.',
+            typeInputSubtitle: 'Wybierz typ pola faktury, którego chcesz użyć.',
+            initialValueInputSubtitle: 'Wprowadź wartość początkową, która ma być wyświetlana w polu faktury.',
+            listValuesInputSubtitle: 'Te wartości pojawią się na liście rozwijanej pola faktury. Członkowie mogą wybierać włączone wartości.',
+            listInputSubtitle: 'Te wartości pojawią się na liście pola faktury. Członkowie mogą wybierać włączone wartości.',
+            emptyInvoiceFieldsValues: {
+                title: 'Brak wartości listy',
+                subtitle: 'Dodaj niestandardowe wartości, które mają pojawiać się na fakturach.',
+            },
+            existingInvoiceFieldNameError: 'Pole faktury o tej nazwie już istnieje',
+            invoiceFieldNameRequiredError: 'Wprowadź nazwę pola faktury',
+            invoiceFieldTypeRequiredError: 'Wybierz typ pola faktury',
+            invoiceFieldInitialValueRequiredError: 'Wybierz początkową wartość pola faktury',
+            addField: 'Dodaj pole',
         },
         vendors: {
             emptyTitle: 'Brak dostawców',
@@ -7530,6 +7560,12 @@ ${reportName}`,
                 description: `Pola raportu pozwalają określić szczegóły na poziomie nagłówka, inne niż tagi odnoszące się do wydatków w poszczególnych pozycjach. Te szczegóły mogą obejmować konkretne nazwy projektów, informacje o podróżach służbowych, lokalizacje i inne.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Pola raportu są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Pola faktury',
+                description: `Pola faktury pozwalają dodać dodatkowe szczegóły na poziomie faktury.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Pola faktury są dostępne tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9475,6 +9511,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         exportedTo: 'Wyeksportowano do',
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
+            allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
             selectAllOnThisPage: 'Zaznacz wszystko na tej stronie',
         },
         errors: {
@@ -9583,6 +9620,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `wyeksportowano do ${translatedLabel}`;
@@ -10820,6 +10858,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         multipleTaxExport: 'Kanadyjski eksport z wieloma podatkami',
+        reconciliationAllExpenses: 'Uzgodnienie - Wszystkie wydatki',
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
         currentView: 'Bieżący widok',
@@ -10851,6 +10890,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         notVerified: 'Niezweryfikowane',
         retry: 'Ponów próbę',
         requestSent: 'Wysłano prośbę',
+        requestAccessError: 'Nie udało się wysłać Twojej prośby. Spróbuj ponownie.',
         verifyDomain: {
             title: 'Zweryfikuj domenę',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10911,12 +10951,12 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             setMetadataGenericError: 'Nie można było ustawić metadanych SAML',
         },
         accessRestricted: {
-            title: 'Dostęp ograniczony',
-            subtitle: (domainName: string) => `Zwierzyń się proszę jako upoważniony administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
-            companyCardManagement: 'Zarządzanie kartami służbowymi',
-            accountCreationAndDeletion: 'Tworzenie i usuwanie konta',
-            workspaceCreation: 'Tworzenie przestrzeni roboczej',
-            samlSSO: 'SSO SAML',
+            headerTitle: 'Dostęp ograniczony',
+            title: 'Wymagana weryfikacja',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Zweryfikuj się jako upoważniony administrator firmy dla <strong>${domainName}</strong> lub poproś o dostęp obecnych administratorów.</centered-text></muted-text>`,
+            requestAdminAccess: 'Poproś o dostęp administratora',
+            verifyYourself: 'Zweryfikuj się',
         },
         addDomain: {
             title: 'Dodaj domenę',
@@ -10930,7 +10970,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             title: 'Domena jest już skonfigurowana. Poprosić o dostęp?',
             description: 'Ktoś już skonfigurował tę domenę w Expensify. Chcesz poprosić o dostęp administratora?',
             requestAccess: 'Poproś o dostęp administratora',
-            requestAccessError: 'Nie udało się wysłać Twojej prośby. Spróbuj ponownie.',
         },
         domainAdded: {
             title: 'Dodano domenę',
