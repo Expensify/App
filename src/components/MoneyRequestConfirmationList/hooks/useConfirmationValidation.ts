@@ -75,7 +75,6 @@ type UseConfirmationValidationParams = {
     /** Participants selected for this IOU */
     selectedParticipants: Participant[];
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
@@ -113,9 +112,6 @@ type UseConfirmationValidationParams = {
 
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
-
-    /** Whether the new manual expense flow is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
 
     /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
     canEnterScanFieldsManually: boolean;
@@ -172,7 +168,6 @@ function useConfirmationValidation({
     isMovingTransactionFromTrackExpense,
     isTimeRequest,
     routeError,
-    isNewManualExpenseFlowEnabled,
     canEnterScanFieldsManually,
     isReadOnly,
     shouldShowDate,
@@ -180,10 +175,10 @@ function useConfirmationValidation({
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
-    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more" in the new manual expense
-    // flow. Each is optional there — a field left blank is still read off the receipt — but one the user does fill in
-    // is subject to the same validation as a manually entered one.
-    const shouldValidateEnteredAmount = isNewManualExpenseFlowEnabled && (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually);
+    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more". Each is optional there —
+    // a field left blank is still read off the receipt — but one the user does fill in is subject to the same
+    // validation as a manually entered one.
+    const shouldValidateEnteredAmount = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually;
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
@@ -202,7 +197,7 @@ function useConfirmationValidation({
         }
         // `isConfirmationAmountMissing` only applies to manually entered amounts — per diem, distance and time set the
         // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
-        if (isNewManualExpenseFlowEnabled && isConfirmationAmountMissing(transaction)) {
+        if (isConfirmationAmountMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
@@ -215,9 +210,9 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // The date is an inline, clearable required field in the new manual flow for every type that shows it
-        // (manual, distance, time, invoice, ...). Block confirmation when the user cleared it.
-        if (isNewManualExpenseFlowEnabled && isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly)) {
+        // The date is an inline, clearable required field for every type that shows it (manual, distance, time,
+        // invoice, ...). Block confirmation when the user cleared it.
+        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
@@ -277,14 +272,14 @@ function useConfirmationValidation({
             return {errorKey: 'violations.taxOutOfPolicy'};
         }
 
-        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
+        if (shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
             return {errorKey: 'iou.error.invalidAmount'};
         }
 
-        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        // In the manual expense flow the tax amount is edited inline, so the standalone tax amount step's
         // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
         // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
-        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+        if (shouldShowTax && !isDistanceRequest) {
             const decimals = getCurrencyDecimals(iouCurrencyCode);
             const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
             const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);

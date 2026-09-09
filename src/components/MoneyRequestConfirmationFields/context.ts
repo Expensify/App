@@ -23,7 +23,6 @@ type ConfirmationFieldsContextValue = {
     isReadOnly: boolean;
     didConfirm: boolean;
     isEditingSplitBill: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
     canEnterScanFieldsManually: boolean;
     isPolicyExpenseChat: boolean;

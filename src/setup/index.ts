@@ -1,3 +1,4 @@
+import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
@@ -64,6 +65,8 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
+            [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
@@ -89,8 +92,11 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
         ],
     });
+
+    cleanupPreMountedDraftReports();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.

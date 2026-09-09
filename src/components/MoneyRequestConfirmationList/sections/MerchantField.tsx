@@ -32,8 +32,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, canEnterScanFieldsManually} =
-        useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -121,7 +120,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         setMoneyRequestMerchant(transactionID, newMerchant, true, transactionHasReceipt);
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput

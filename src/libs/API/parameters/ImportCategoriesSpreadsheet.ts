@@ -1,5 +1,4 @@
 type ImportCategoriesSpreadsheetParams = {
-    /** ID of the policy */
     policyID: string;
 
     /**
