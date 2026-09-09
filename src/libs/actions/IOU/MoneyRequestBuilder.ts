@@ -1403,7 +1403,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
             // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
             iouReport = outstandingReports.reduce<OnyxInputValue<OnyxTypes.Report>>(
-                (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? report ?? null : newest),
+                (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest),
                 outstandingReports.at(0) ?? null,
             );
         }
