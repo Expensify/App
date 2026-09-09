@@ -3780,6 +3780,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
+        },
+
         longTermsRow: {
             flexDirection: 'row',
             marginTop: 20,
