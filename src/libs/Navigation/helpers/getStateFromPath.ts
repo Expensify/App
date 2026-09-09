@@ -1,7 +1,6 @@
 import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 
-import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -20,7 +19,7 @@ import getMatchingNewRoute from './getMatchingNewRoute';
  * @param path - The path to parse
  * @returns - It's possible that there is no navigation action for the given path
  */
-function getStateFromPath(path: Route): PartialState<NavigationState> {
+function getStateFromPath(path: string): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 

@@ -3,8 +3,6 @@ import type {State} from '@navigation/types';
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 
-import type {ActionPayload} from './types';
-
 type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
@@ -30,15 +28,15 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         currentState = currentState?.routes[currentState.index ?? -1].state;
         currentTargetKey = currentState?.key;
 
-        const payload = currentAction.payload as ActionPayload;
+        const params = 'params' in currentAction.payload && typeof currentAction.payload.params === 'object' ? currentAction.payload.params : undefined;
 
         // Creating new smaller action
         currentAction = {
             type: currentAction.type,
             payload: {
-                name: payload?.params?.screen,
-                params: payload?.params?.params,
-                path: payload?.params?.path,
+                name: params && 'screen' in params ? params.screen : undefined,
+                params: params && 'params' in params ? params.params : undefined,
+                path: params && 'path' in params ? params.path : undefined,
             },
             target: currentTargetKey,
         };
