@@ -36,6 +36,10 @@ type UseMarkAsReadParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** All sorted actions (the full chain), scanned for unread messages when the app regains focus. Defaults to the visible actions. */
+    sortedReportActions?: OnyxTypes.ReportAction[];
+
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
 
@@ -59,6 +63,7 @@ function useMarkAsRead({
     report,
     transactionThreadReport,
     sortedVisibleReportActions,
+    sortedReportActions,
     isScrolledToEnd,
     hasNewerActions,
     scopeKey = 'default',
@@ -116,7 +121,13 @@ function useMarkAsRead({
         }
 
         didMarkReportAsReadInitially.current = true;
+
+        if (hasNewerActions || !isScrolledToEnd) {
+            return;
+        }
+
         readNewestAction(reportID, isReportActionsLoaded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
@@ -184,7 +195,7 @@ function useMarkAsRead({
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = isScrolledToEnd;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
+        const hasUnreadReportAction = (sortedReportActions ?? sortedVisibleReportActions).some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&

@@ -304,6 +304,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         report,
         transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
+        sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
         scopeKey: 'moneyRequestReport',
@@ -657,7 +658,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     return (
         <MoneyRequestReportActionsListContent
-            key={reportIDFromRoute}
+            key={reportIDFromRoute ?? ''}
             reportIDFromRoute={reportIDFromRoute}
             onLayout={onLayout}
         />

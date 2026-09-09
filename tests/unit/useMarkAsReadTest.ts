@@ -245,4 +245,87 @@ describe('useMarkAsRead', () => {
 
         expect(readNewestAction).not.toHaveBeenCalled();
     });
+
+    it('should not mark the report as read on mount when newer actions are still unloaded', () => {
+        renderMarkAsRead({hasNewerActions: true});
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('should not mark the report as read on mount when the list is not scrolled to the end', () => {
+        renderMarkAsRead({isScrolledToEnd: false});
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('should mark the report as read on focus return when the unread action is only in the full action chain', () => {
+        const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const incomingAction: OnyxTypes.ReportAction = {...createRandomReportAction(2), created: '2023-01-01 11:00:00.000', actorAccountID: 2};
+
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    sortedReportActions: props.actions,
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                    scopeKey: 'fullChainScan',
+                }),
+            {initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[]}},
+        );
+        readNewestAction.mockClear();
+
+        mockHasFocus = false;
+        mockIsUnread = true;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+
+        mockHasFocus = true;
+        act(() => mockTriggerAppFocus?.());
+
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('should keep tracking its own report when another surface mounts a different report under a different scope', () => {
+        const reportA = {reportID: 'A', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportAWithNewMessage = {...reportA, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report}) =>
+                useMarkAsRead({
+                    reportID: 'A',
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                    scopeKey: 'chat',
+                }),
+            {initialProps: {report: reportA}},
+        );
+
+        renderHook(() =>
+            useMarkAsRead({
+                reportID: 'B',
+                report: reportB as OnyxEntry<OnyxTypes.Report>,
+                transactionThreadReport: undefined,
+                sortedVisibleReportActions: [],
+                isScrolledToEnd: true,
+                hasNewerActions: false,
+                scopeKey: 'moneyRequestReport',
+            }),
+        );
+        readNewestAction.mockClear();
+
+        mockIsUnread = true;
+        rerender({report: reportAWithNewMessage});
+
+        expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
+    });
 });
