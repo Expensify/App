@@ -530,11 +530,9 @@ describe('WorkspaceMembers', () => {
     describe('Sorting by approver', () => {
         // Every member row is labelled "<name>, <email>[, Approver: <name>], <role>", so the labels in render order
         // are the sorted order.
-        const getRowLabels = () =>
-            screen
-                .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
-                .filter((row) => typeof row.type === 'string')
-                .map((row) => String(row.props.accessibilityLabel ?? ''));
+        // A row is labelled "<name>, <email>, [Approver: <name>, ]<role>", so matching that shape picks out the rows
+        // and nothing else, in render order.
+        const getRowLabels = () => screen.getAllByLabelText(/^[^,]+, [^,]+@[^,]+, /).map((row) => String(row.props.accessibilityLabel ?? ''));
 
         const approverNameOf = (label: string) => label.split(', ').find((part) => part.startsWith('Approver: '));
 

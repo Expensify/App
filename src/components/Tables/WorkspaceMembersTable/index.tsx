@@ -8,6 +8,7 @@ import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/Po
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -116,7 +117,7 @@ export default function WorkspaceMembersTable({
                       // One header for the whole table, so it follows the deepest workflow in the workspace.
                       label: hasMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver'),
                       dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: variables.fontSizeNormal}] : []),
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : []),
                           extraWidth: APPROVER_CELL_AVATAR_WIDTH,
                       },
                   },
