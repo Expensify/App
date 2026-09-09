@@ -13,7 +13,7 @@ import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
 import type {MouseEvent} from 'react';
-import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 /** Renders the number itself, displaying and editing the canonical value owned by the root. */
@@ -100,7 +100,7 @@ function NumericTextInput({
             onBlur={onBlur}
             onChangeText={setNumber}
             onFocus={onFocus}
-            onKeyPress={handleInputKeyPress as (event: TextInputKeyPressEvent) => void}
+            onKeyPress={handleInputKeyPress}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onPress={handlePress}
