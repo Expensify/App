@@ -41,6 +41,8 @@ import {
     hasVendorFeature,
     isControlPolicy,
     isPerDiemEnabled,
+    isPolicyFeatureEnabled,
+    isPolicyTaxEnabled,
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -122,10 +124,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
-    const isSyncTaxEnabled =
-        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
-        !!policy?.connections?.xero?.config?.importTaxRates ||
-        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
 
@@ -382,7 +380,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Members}
                             title={translate('workspace.hr.title')}
                             subtitle={translate('workspace.hr.subtitle')}
-                            isActive={((policy?.isHREnabled === true || isAnyHRConnected(policy)) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false}
+                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)}
                             pendingAction={policy?.pendingFields?.isHREnabled}
                             disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
                             disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
@@ -409,7 +407,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.ReceiptPartners}
                             title={translate('workspace.moreFeatures.receiptPartners.title')}
                             subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
-                            isActive={policy?.receiptPartners?.enabled ?? false}
+                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
                             pendingAction={policy?.pendingFields?.receiptPartners}
                             disabled={!canWriteMoreFeatures || isUberConnected}
                             disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
@@ -439,9 +437,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 title={translate('workspace.recruiting.title')}
                                 subtitle={translate('workspace.recruiting.subtitle')}
                                 isActive={
-                                    ((policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy)) &&
-                                        canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)) ??
-                                    false
+                                    isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) &&
+                                    canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)
                                 }
                                 pendingAction={policy?.pendingFields?.isRecruitingEnabled}
                                 disabled={!canWriteMoreFeatures || isAnyRecruitingConnected(policy)}
@@ -516,7 +513,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             icon={illustrations.Coins}
                             title={translate('workspace.moreFeatures.taxes.title')}
                             subtitle={translate('workspace.moreFeatures.taxes.subtitle')}
-                            isActive={(policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled}
+                            isActive={isPolicyTaxEnabled(policy)}
                             pendingAction={policy?.pendingFields?.tax}
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
