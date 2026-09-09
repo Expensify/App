@@ -9,30 +9,34 @@ import type {CellRendererProps} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useRef} from 'react';
+import React, {createContext, useContext} from 'react';
 import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(FlashList);
 
 type CellRendererComponentType<Item> = React.ComponentType<CellRendererProps<Item>> | null | undefined;
 
-const createCellRendererComponent = <Item,>(CellRendererComponentProp?: CellRendererComponentType<Item>, itemLayoutAnimationRef?: React.RefObject<ILayoutAnimationBuilder | undefined>) => {
-    // Make CellRendererComponent specifically use the 'Item' type from its parent scope
-    function CellRendererComponent(props: CellRendererProps<Item> & {children: React.ReactNode}) {
-        return (
-            <Animated.View
-                // @ts-expect-error TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
-                layout={itemLayoutAnimationRef?.current as unknown}
-                onLayout={props.onLayout}
-                style={CellRendererComponentProp ? undefined : props.style}
-            >
-                {CellRendererComponentProp ? <CellRendererComponentProp {...props}>{props.children}</CellRendererComponentProp> : props.children}
-            </Animated.View>
-        );
-    }
-
-    return CellRendererComponent;
+type CellRendererConfig = {
+    itemLayoutAnimation?: ILayoutAnimationBuilder;
+    outerCellRenderer?: CellRendererComponentType<unknown>;
 };
+
+const CellRendererConfigContext = createContext<CellRendererConfig>({});
+
+function CellRendererComponentImpl(props: CellRendererProps<unknown> & {children: React.ReactNode}) {
+    const {itemLayoutAnimation, outerCellRenderer: OuterCellRenderer} = useContext(CellRendererConfigContext);
+
+    return (
+        <Animated.View
+            // @ts-expect-error TODO TYPESCRIPT This is temporary cast is to get rid of .d.ts file.
+            layout={itemLayoutAnimation as unknown}
+            onLayout={props.onLayout}
+            style={OuterCellRenderer ? undefined : props.style}
+        >
+            {OuterCellRenderer ? <OuterCellRenderer {...props}>{props.children}</OuterCellRenderer> : props.children}
+        </Animated.View>
+    );
+}
 type ReanimatedFlashListPropsWithLayout<T> = {
     /**
      * Lets you pass layout animation directly to the FlashList item.
@@ -55,10 +59,8 @@ type AnimatedFlashListWithCellRendererProps<Item = any> = Omit<ReanimatedFlashLi
     ref?: Ref<FlashListRef<Item>>;
 };
 
-// We need explicit any here, because this is the exact same type that is used in React Native types.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function FlashListRender<Item = any>(props: AnimatedFlashListWithCellRendererProps<Item>) {
-    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, ...restProps} = props;
+function FlashListRenderImpl(props: AnimatedFlashListWithCellRendererProps<unknown>) {
+    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, CellRendererComponent: outerCellRenderer, ...restProps} = props;
 
     // Set default scrollEventThrottle, because user expects
     // to have continuous scroll events and
@@ -69,19 +71,16 @@ function FlashListRender<Item = any>(props: AnimatedFlashListWithCellRendererPro
         restProps.scrollEventThrottle = 1;
     }
 
-    const itemLayoutAnimationRef = useRef(itemLayoutAnimation);
-    // eslint-disable-next-line react-hooks/refs
-    itemLayoutAnimationRef.current = itemLayoutAnimation;
-
-    const CellRendererComponent = React.useMemo(() => createCellRendererComponent<Item>(props.CellRendererComponent, itemLayoutAnimationRef), [props.CellRendererComponent]);
+    const cellRendererConfig: CellRendererConfig = {itemLayoutAnimation, outerCellRenderer};
 
     const animatedFlashList = (
-        <AnimatedFlashList
-            {...restProps}
-            // @ts-expect-error In its current type state, createAnimatedComponent cannot create generic components.
-            ref={ref}
-            CellRendererComponent={CellRendererComponent}
-        />
+        <CellRendererConfigContext.Provider value={cellRendererConfig}>
+            <AnimatedFlashList
+                {...restProps}
+                ref={ref}
+                CellRendererComponent={CellRendererComponentImpl}
+            />
+        </CellRendererConfigContext.Provider>
     );
 
     if (skipEnteringExitingAnimations === undefined) {
@@ -96,6 +95,12 @@ function FlashListRender<Item = any>(props: AnimatedFlashListWithCellRendererPro
             {animatedFlashList}
         </LayoutAnimationConfig>
     );
+}
+
+// We need explicit any here, because this is the exact same type that is used in React Native types.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FlashListRender<Item = any>(props: AnimatedFlashListWithCellRendererProps<Item>) {
+    return <FlashListRenderImpl {...(props as AnimatedFlashListWithCellRendererProps<unknown>)} />;
 }
 
 const AnimatedFlashListWithCellRenderer = FlashListRender as <
