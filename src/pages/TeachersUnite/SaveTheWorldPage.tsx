@@ -148,6 +148,7 @@ function SaveTheWorldPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
+                shouldDisplayAccountButton={!shouldUseNarrowLayout}
                 onBackButtonPress={Navigation.goBack}
                 shouldUseHeadlineHeader
             />

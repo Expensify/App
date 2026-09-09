@@ -664,6 +664,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();

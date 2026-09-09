@@ -109,6 +109,7 @@ function WorkspaceReportFieldsPage({
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                 />
                 {isLoading && (

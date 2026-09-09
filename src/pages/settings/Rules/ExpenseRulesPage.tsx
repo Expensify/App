@@ -225,6 +225,7 @@ function ExpenseRulesPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 shouldDisplayHelpButton
+                shouldDisplayAccountButton={!shouldUseNarrowLayout}
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
                 {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}

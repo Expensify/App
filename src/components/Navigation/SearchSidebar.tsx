@@ -117,6 +117,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                             breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
                             shouldDisplaySearch={false}
                             shouldDisplayHelpButton={false}
+                            shouldDisplayAccountButton={false}
                         >
                             {toggleButton}
                         </TopBar>

@@ -130,6 +130,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should display the button that opens the Help Panel */
     shouldDisplayHelpButton?: boolean;
 
+    /** Whether we should display the avatar button that opens the Account tab */
+    shouldDisplayAccountButton?: boolean;
+
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 

@@ -387,6 +387,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();

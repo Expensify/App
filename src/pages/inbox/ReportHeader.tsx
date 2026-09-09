@@ -83,6 +83,7 @@ function ReportHeader() {
                 <MoneyRequestHeader
                     reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
+                    shouldDisplayAccountButton
                 />
             </OfflineWithFeedback>
         );
@@ -99,6 +100,7 @@ function ReportHeader() {
                 <MoneyReportHeader
                     reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
+                    shouldDisplayAccountButton
                 />
             </OfflineWithFeedback>
         );
@@ -114,6 +116,7 @@ function ReportHeader() {
             <HeaderView
                 reportID={reportIDFromRoute}
                 onNavigationMenuButtonClicked={onBackButtonPress}
+                shouldDisplayAccountButton
             />
         </OfflineWithFeedback>
     );

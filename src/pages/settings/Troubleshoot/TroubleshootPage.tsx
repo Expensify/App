@@ -201,6 +201,7 @@ function TroubleshootPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
+                shouldDisplayAccountButton={!shouldUseNarrowLayout}
                 onBackButtonPress={Navigation.goBack}
                 shouldUseHeadlineHeader
             />

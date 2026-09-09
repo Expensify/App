@@ -246,6 +246,7 @@ function WorkspacePageWithSections({
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
                 >
                     {headerContent}
                 </HeaderWithBackButton>

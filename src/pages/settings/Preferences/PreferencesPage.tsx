@@ -68,6 +68,7 @@ function PreferencesPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
+                shouldDisplayAccountButton={!shouldUseNarrowLayout}
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>

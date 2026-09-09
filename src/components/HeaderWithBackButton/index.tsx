@@ -4,6 +4,7 @@ import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -84,6 +85,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
+    shouldDisplayAccountButton = false,
     shouldDisplaySearchRouter = false,
     style,
     subTitleLink = '',
@@ -336,6 +338,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayAccountButton && <AccountAvatarButton />}
             </View>
         </View>
     );

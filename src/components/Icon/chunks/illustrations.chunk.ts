@@ -29,6 +29,7 @@ import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
+import Concierge from '@assets/images/concierge-illustration.svg';
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
@@ -264,6 +265,7 @@ const Illustrations = {
 
     // Other assets
     Computer,
+    Concierge,
     ExpensifyCardImage,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,

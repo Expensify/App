@@ -8,6 +8,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowAccountTab = !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -123,11 +126,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
-                                <NavigationTabBarAvatar
-                                    style={styles.leftNavigationTabBarItem}
-                                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                                    onPress={navigateToSettings}
-                                />
+                                {shouldShowAccountTab && (
+                                    <NavigationTabBarAvatar
+                                        style={styles.leftNavigationTabBarItem}
+                                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                                        onPress={navigateToSettings}
+                                    />
+                                )}
                             </View>
                             <View style={styles.leftNavigationTabBarFAB}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
@@ -173,11 +178,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={navigateToSettings}
-                />
+                {shouldShowAccountTab && (
+                    <NavigationTabBarAvatar
+                        style={styles.navigationTabBarItem}
+                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                        onPress={navigateToSettings}
+                    />
+                )}
             </View>
 
             {shouldShowFloatingButtons && (

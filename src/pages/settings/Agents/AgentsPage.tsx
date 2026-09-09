@@ -276,6 +276,7 @@ function AgentsPage() {
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplaySearchRouter
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
