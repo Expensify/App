@@ -142,6 +142,29 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.groupedChildState.isSelected).toBe(false);
     });
 
+    it('shows a child picked back out of an excluded group as selected, since its own entry outranks the group', () => {
+        const {result} = renderSelection();
+
+        // Given every matching item selected, then the group taken back out of it
+        act(() => {
+            result.current.actions.selectAllMatchingItems(true);
+            result.current.actions.setSelectedTransactions(buildSelected('group_1'));
+        });
+        act(() => {
+            result.current.actions.applySelection(() => ({}), {totalSelectableItemsCount: 1, shouldPreserveAllMatchingSelection: true});
+        });
+        expect(result.current.groupedChildState.isSelected).toBe(false);
+
+        // When one of its children is picked on its own
+        act(() => {
+            result.current.actions.applySelection(() => buildSelected('tx_1'), {shouldPreserveAllMatchingSelection: true});
+        });
+
+        // Then it reads selected, and the exclusion that covered it through the group is gone
+        expect(result.current.groupedChildState.isSelected).toBe(true);
+        expect(result.current.state.excludedTransactions.tx_1).toBeUndefined();
+    });
+
     it('clears all-matching selection when every result is excluded', () => {
         const {result} = renderSelection();
         seedAllMatchingSelection(result);

@@ -126,7 +126,10 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
     // an all-matching selection and record their removed entries as explicit exclusions.
     const applySelection: SearchSelectionActionsValue['applySelection'] = (updater, options) => {
         setSelectionState((prevState) => {
-            const selectedTransactions = updater(prevState.selectedTransactions);
+            const selectedTransactions = updater(prevState.selectedTransactions, {
+                excludedTransactions: prevState.excludedTransactions,
+                areAllMatchingItemsSelected: prevState.areAllMatchingItemsSelected,
+            });
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
             if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
                 return prevState;

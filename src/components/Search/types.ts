@@ -227,6 +227,12 @@ type SearchSelectionContextValue = {
     areAllMatchingItemsSelected: boolean;
 };
 
+/** The rest of the same commit's selection, so an updater never pairs its fresh map with a slice read a commit late */
+type PreviousSelectionSlices = {
+    excludedTransactions: SelectedTransactions;
+    areAllMatchingItemsSelected: boolean;
+};
+
 type SearchSelectionActionsValue = {
     /**
      * If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise.
@@ -247,7 +253,7 @@ type SearchSelectionActionsValue = {
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
      */
     applySelection: (
-        updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
+        updater: (previousSelectedTransactions: SelectedTransactions, previousSelection: PreviousSelectionSlices) => SelectedTransactions,
         options?: {
             data?: SearchData;
             totalSelectableItemsCount?: number;
@@ -513,6 +519,7 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
+    PreviousSelectionSlices,
     SearchData,
     SearchRowSelectionActionsValue,
     SearchShiftRangeGroupsActions,

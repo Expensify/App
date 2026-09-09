@@ -495,17 +495,17 @@ function SearchWriteActionsProvider({
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     // Undefined under select-all-matching, where the group is selected without its rows being known.
-    const resolveGroupBlock = (selection: SelectedTransactions, childKey: string) => {
+    const resolveGroupBlock = (selection: SelectedTransactions, childKey: string, areAllMatchingItemsSelected: boolean) => {
         const groupKey = groupKeyByChildKeyRef.current.get(childKey);
-        if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
+        if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
             return undefined;
         }
         return {groupKey, loaded: childrenByGroupKeyRef.current.get(groupKey) ?? []};
     };
 
     // A group selected before its children loaded lives under its own key, so dropping one child means writing it out first.
-    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
-        const block = resolveGroupBlock(selection, childKey);
+    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string, areAllMatchingItemsSelected: boolean): SelectedTransactions => {
+        const block = resolveGroupBlock(selection, childKey, areAllMatchingItemsSelected);
         // Counted the same way the loop writes, so writing out can never delete the entry and put nothing back.
         const selectable = block?.loaded.filter((child) => !isTransactionPendingDelete(child)) ?? [];
         if (!block || selectable.length === 0) {
@@ -522,18 +522,25 @@ function SearchWriteActionsProvider({
         return spelledOut;
     };
 
-    // Defaults to the refs, so asking whether a group is checked never re-renders this provider.
-    const groupSelectionParams = (groupKey: string | undefined, groupChildren: TransactionListItemType[], selectedTransactions = getSelectedTransactions()) => ({
+    // Read on demand rather than subscribed, so asking whether a group is checked never re-renders this provider. An
+    // updater passes its own commit's slices instead, since pairing those with these would read one of them a commit late.
+    const groupSelectionParams = (
+        groupKey: string | undefined,
+        groupChildren: TransactionListItemType[],
+        selectedTransactions = getSelectedTransactions(),
+        excludedTransactions = getExcludedTransactions(),
+        areAllMatchingItemsSelected = getAreAllMatchingItemsSelected(),
+    ) => ({
         groupKey,
         children: groupChildren,
         selectedTransactions,
-        excludedTransactions: getExcludedTransactions(),
-        areAllMatchingItemsSelected: getAreAllMatchingItemsSelected(),
+        excludedTransactions,
+        areAllMatchingItemsSelected,
     });
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
         applySelection(
-            (selectedTransactions) => {
+            (selectedTransactions, {areAllMatchingItemsSelected}) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
                 // Returning the given map unchanged is what lets the commit bail on identity rather than re-render every row.
                 let hasWritten = false;
@@ -552,7 +559,7 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    updated = spellOutGroupSelection(updated, tx.keyForList);
+                    updated = spellOutGroupSelection(updated, tx.keyForList, areAllMatchingItemsSelected);
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = blockGroupKey ?? groupKeyByChildKeyRef.current.get(tx.keyForList);
                     if (parentGroupKey) {
@@ -573,7 +580,7 @@ function SearchWriteActionsProvider({
                             if (parentGroupKey) {
                                 partialGroupKeys.add(parentGroupKey);
                             }
-                            updated = spellOutGroupSelection(updated, row.keyForList);
+                            updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected);
                             dropKey(row.keyForList);
                         }
                         return;
@@ -714,9 +721,9 @@ function SearchWriteActionsProvider({
             if (!item.keyForList || isTransactionPendingDelete(item)) {
                 return;
             }
-            applySelection((selectedTransactions) => {
+            applySelection((selectedTransactions, {areAllMatchingItemsSelected}) => {
                 const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
-                const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList);
+                const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList, areAllMatchingItemsSelected);
                 const updatedTransactions = prepareTransactionsList({
                     item,
                     itemTransaction,
@@ -753,7 +760,7 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        applySelection((selectedTransactions) => {
+        applySelection((selectedTransactions, {excludedTransactions, areAllMatchingItemsSelected}) => {
             if (groupTransactions.length === 0 && item.keyForList) {
                 const reportKey = item.keyForList;
 
@@ -775,7 +782,7 @@ function SearchWriteActionsProvider({
             // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
             const groupKey = item.keyForList;
 
-            if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions))) {
+            if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected))) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                 if (groupKey) {
                     delete reducedSelectedTransactions[groupKey];
