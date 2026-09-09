@@ -246,40 +246,43 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         </View>
     ) : undefined;
 
-    let feedListContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.expensifyCard.noCardFeedsAvailable')}
-            subtitle={translate('workspace.expensifyCard.noCardFeedsAvailableDescription')}
-        />
-    );
-    if (issueNewCardAndOtherFeedsFooter) {
-        feedListContent = (
-            <ScrollView
+    const renderFeedListContent = () => {
+        if (primaryFeeds.length > 0) {
+            return (
+                <SelectionList
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={selectFeed}
+                    data={primaryListData}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                    addBottomSafeAreaPadding
+                    listFooterContent={issueNewCardAndOtherFeedsFooter}
+                    onDismissError={onDismissError}
+                />
+            );
+        }
+        if (issueNewCardAndOtherFeedsFooter) {
+            return (
+                <ScrollView
+                    addBottomSafeAreaPadding
+                    style={styles.flex1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {issueNewCardAndOtherFeedsFooter}
+                </ScrollView>
+            );
+        }
+        return (
+            <BlockingView
                 addBottomSafeAreaPadding
-                style={styles.flex1}
-                keyboardShouldPersistTaps="handled"
-            >
-                {issueNewCardAndOtherFeedsFooter}
-            </ScrollView>
-        );
-    }
-    if (primaryFeeds.length > 0) {
-        feedListContent = (
-            <SelectionList
-                ListItem={SingleSelectListItem}
-                onSelectRow={selectFeed}
-                data={primaryListData}
-                alternateNumberOfSupportedLines={2}
-                initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
-                addBottomSafeAreaPadding
-                listFooterContent={issueNewCardAndOtherFeedsFooter}
-                onDismissError={onDismissError}
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.expensifyCard.noCardFeedsAvailable')}
+                subtitle={translate('workspace.expensifyCard.noCardFeedsAvailableDescription')}
             />
         );
-    }
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -297,7 +300,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
-                {feedListContent}
+                {renderFeedListContent()}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
