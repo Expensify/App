@@ -76,6 +76,15 @@ function useLoadReportActions({
         }
     }
 
+    const currentReportNewestActionID = newestFetchedReportActionID ?? currentReportNewestAction?.reportActionID;
+    const newestReportActionsRequestCursor = isTransactionThreadReport
+        ? JSON.stringify([currentReportNewestActionID, transactionThreadNewestAction?.reportActionID])
+        : (currentReportNewestActionID ?? newestReportAction?.reportActionID);
+    const oldestReportActionsRequestCursor = isTransactionThreadReport
+        ? JSON.stringify([currentReportOldestAction?.reportActionID, transactionThreadOldestAction?.reportActionID])
+        : currentReportOldestAction?.reportActionID;
+    const canLoadNewerChats = !!isFocused && !!newestReportAction && newestReportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
     /**
      * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -102,7 +111,7 @@ function useLoadReportActions({
     const loadNewerChats = (force = false) => {
         if (
             !force &&
-            (!isFocused ||
+            (!canLoadNewerChats ||
                 !newestReportAction ||
                 !hasNewerActions ||
                 isOffline ||
@@ -138,6 +147,10 @@ function useLoadReportActions({
         loadNewerChats,
         // The exact cursor `loadOlderChats` sends, which is not always the end of the rendered chain.
         currentReportOldestActionID: currentReportOldestAction?.reportActionID,
+        currentReportNewestActionID,
+        oldestReportActionsRequestCursor,
+        newestReportActionsRequestCursor,
+        canLoadNewerChats,
     };
 }
 

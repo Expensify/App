@@ -58,6 +58,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
+    const isLoadingNewerReportActions = reportLoadingState?.isLoadingNewerReportActions;
+    const hasLoadingNewerReportActionsError = reportLoadingState?.hasLoadingNewerReportActionsError;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
@@ -71,15 +73,16 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
-        reportID,
-        reportActions,
-        allReportActionIDs,
-        transactionThreadReportID,
-        hasOlderActions,
-        hasNewerActions,
-        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
-    });
+    const {loadOlderChats, loadNewerChats, currentReportOldestActionID, currentReportNewestActionID, oldestReportActionsRequestCursor, newestReportActionsRequestCursor, canLoadNewerChats} =
+        useLoadReportActions({
+            reportID,
+            reportActions,
+            allReportActionIDs,
+            transactionThreadReportID,
+            hasOlderActions,
+            hasNewerActions,
+            newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
+        });
 
     const {
         sortedReportActions,
@@ -150,7 +153,13 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasNewerActions,
         isLoadingOlderReportActions,
         hasLoadingOlderReportActionsError,
+        isLoadingNewerReportActions,
+        hasLoadingNewerReportActionsError,
         oldestReportActionID: currentReportOldestActionID,
+        newestReportActionID: currentReportNewestActionID,
+        olderReportActionsRequestCursor: oldestReportActionsRequestCursor,
+        newerReportActionsRequestCursor: newestReportActionsRequestCursor,
+        canLoadNewerChats,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,

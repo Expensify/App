@@ -1,4 +1,4 @@
-import {act, render, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -128,6 +128,11 @@ async function renderList(initialOffset: number) {
             </ComposeProviders>
         </NavigationContainer>,
     );
+    fireEvent(screen.getByTestId('report-actions-list-viewport'), 'onLayout', {
+        nativeEvent: {
+            layout: {x: 0, y: 0, width: 300, height: 500},
+        },
+    });
     await waitFor(() => expect(capturedListProps.maintainVisibleContentPosition).toBeDefined());
     return utils;
 }

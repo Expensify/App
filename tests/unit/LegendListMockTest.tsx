@@ -1,7 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {LegendListRef} from '@legendapp/list/react-native';
+
 import {LegendList} from '@legendapp/list/react-native';
 import {FlashList} from '@shopify/flash-list';
+import {createRef} from 'react';
 
 const DATA = ['first', 'second', 'third'];
 
@@ -37,11 +40,13 @@ describe('LegendList Jest mock', () => {
 
     it('invokes onEndReached only in response to a matching scroll event', () => {
         const onEndReached = jest.fn();
+        const listRef = createRef<LegendListRef>();
         const renderResult = render(
             <LegendList
                 data={DATA}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}
+                ref={listRef}
                 renderItem={renderItem}
                 testID="legend-list"
             />,
@@ -60,5 +65,6 @@ describe('LegendList Jest mock', () => {
         });
 
         expect(onEndReached).toHaveBeenCalledTimes(1);
+        expect(listRef.current?.getState()).toEqual(expect.objectContaining({contentLength: 600, scroll: 100, scrollLength: 400}));
     });
 });

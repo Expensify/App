@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -20,6 +20,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsPaginationSkeleton, {PAGINATION_SPINNER_HEIGHT, PAGINATION_TOP_OVERLAY_CLEARANCE} from '@pages/inbox/report/ReportActionsPaginationSkeleton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -85,9 +86,26 @@ const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunc
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
-function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
+function getMockReportLoadingState(
+    selector: unknown,
+    hasOnceLoadedReportActions = true,
+    paginationState: {
+        isLoadingOlderReportActions?: boolean;
+        hasLoadingOlderReportActionsError?: boolean;
+        isLoadingNewerReportActions?: boolean;
+        hasLoadingNewerReportActionsError?: boolean;
+    } = {},
+) {
     return selector === reportActionsListLoadingStateSelector
-        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false, isLoadingOlderReportActions: false, hasLoadingOlderReportActionsError: false}
+        ? {
+              hasOnceLoadedReportActions,
+              isLoadingInitialReportActions: false,
+              isLoadingOlderReportActions: false,
+              hasLoadingOlderReportActionsError: false,
+              isLoadingNewerReportActions: false,
+              hasLoadingNewerReportActionsError: false,
+              ...paginationState,
+          }
         : undefined;
 }
 
@@ -116,11 +134,13 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 const mockLoadOlderChats = jest.fn();
+const mockLoadNewerChats = jest.fn();
 jest.mock('@hooks/useLoadReportActions', () =>
     jest.fn(({reportActions}: {reportActions: OnyxTypes.ReportAction[]}) => ({
         loadOlderChats: mockLoadOlderChats,
-        loadNewerChats: jest.fn(),
+        loadNewerChats: mockLoadNewerChats,
         currentReportOldestActionID: reportActions.at(-1)?.reportActionID,
+        currentReportNewestActionID: reportActions.at(0)?.reportActionID,
     })),
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
@@ -154,6 +174,8 @@ jest.mock('@legendapp/list/react-native', () => {
 });
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
+let mockInitialScrollIndex: number | undefined;
+let mockInitialScrollIndexParams: {viewOffset?: number; viewPosition?: number} | undefined;
 jest.mock('@hooks/useReportActionsScroll', () =>
     jest.fn(() => ({
         listRef: {current: null},
@@ -164,8 +186,8 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         scrollToBottomAndMarkReportAsRead: jest.fn(),
         scrollToActionBadgeTarget: jest.fn(),
         shouldBeAlignedToTop: false,
-        initialScrollIndex: undefined,
-        initialScrollIndexParams: undefined,
+        initialScrollIndex: mockInitialScrollIndex,
+        initialScrollIndexParams: mockInitialScrollIndexParams,
         onLoad: jest.fn(),
     })),
 );
@@ -184,10 +206,16 @@ type MockLegendListProps = {
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
     initialScrollAtEnd?: boolean;
+    initialScrollIndex?: {index: number; viewOffset?: number; viewPosition?: number};
+    estimatedHeaderSize?: number;
     maintainScrollAtEnd?: {animated: boolean} | false;
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
+    ListHeaderComponent?: React.ReactNode;
+    ListFooterComponent?: React.ReactNode;
+    ListFooterComponentStyle?: unknown;
     onLoad?: () => void;
+    onContentSizeChange?: (width: number, height: number) => void;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
@@ -200,12 +228,32 @@ type MockLegendListProps = {
     }) => void;
 };
 
+type PaginationSkeletonProps = React.ComponentProps<typeof ReportActionsPaginationSkeleton>;
+
 const {LegendList: mockLegendList} = jest.requireMock<{LegendList: jest.MockedFunction<(props: MockLegendListProps) => null>}>('@legendapp/list/react-native');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 /** Returns the chronological report actions the body fed into the mocked LegendList on its latest render. */
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockLegendList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendList.mock.calls.at(-1)?.at(0);
+
+function findPaginationSkeleton(node: React.ReactNode): React.ReactElement<PaginationSkeletonProps> | undefined {
+    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
+        return undefined;
+    }
+    if (node.type === ReportActionsPaginationSkeleton) {
+        return node as React.ReactElement<PaginationSkeletonProps>;
+    }
+
+    for (const child of React.Children.toArray(node.props.children)) {
+        const paginationSkeleton = findPaginationSkeleton(child);
+        if (paginationSkeleton) {
+            return paginationSkeleton;
+        }
+    }
+
+    return undefined;
+}
 
 const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): {shouldDisableContextMenuForConciergeDraft?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
@@ -230,6 +278,10 @@ const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
+let mockIsLoadingOlderReportActions = false;
+let mockHasLoadingOlderReportActionsError = false;
+let mockIsLoadingNewerReportActions = false;
+let mockHasLoadingNewerReportActionsError = false;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -287,12 +339,19 @@ const olderMockReportAction: OnyxTypes.ReportAction = {
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(
+    const view = render(
         <ReportActionsList
             reportID={reportID}
             conciergeChat={undefined}
         />,
     );
+    const viewport = screen.queryByTestId('report-actions-list-viewport');
+    if (viewport) {
+        fireEvent(viewport, 'onLayout', {
+            nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}},
+        });
+    }
+    return view;
 };
 
 describe('ReportActionsList (body)', () => {
@@ -305,6 +364,12 @@ describe('ReportActionsList (body)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockHasOnceLoadedReportActions = true;
+        mockInitialScrollIndex = undefined;
+        mockInitialScrollIndexParams = undefined;
+        mockIsLoadingOlderReportActions = false;
+        mockHasLoadingOlderReportActionsError = false;
+        mockIsLoadingNewerReportActions = false;
+        mockHasLoadingNewerReportActionsError = false;
         mockShouldCallLegendListOnLoad = true;
         mockUseIsReportLoadPending.mockReturnValue(false);
 
@@ -368,7 +433,15 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions), {status: 'loaded'}];
+                return [
+                    getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, {
+                        isLoadingOlderReportActions: mockIsLoadingOlderReportActions,
+                        hasLoadingOlderReportActionsError: mockHasLoadingOlderReportActionsError,
+                        isLoadingNewerReportActions: mockIsLoadingNewerReportActions,
+                        hasLoadingNewerReportActionsError: mockHasLoadingNewerReportActionsError,
+                    }),
+                    {status: 'loaded'},
+                ];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -572,52 +645,127 @@ describe('ReportActionsList (body)', () => {
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
     });
 
-    it('continues loading older pages from scroll events when LegendList does not report reaching the start', () => {
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        mockUsePaginatedReportActions.mockReturnValue({
-            ...defaultPaginatedReportActionsResult,
-            reportActions: mockReportActions,
-            hasOlderActions: true,
-        });
-        const view = renderReportActionsList();
+    describe('pagination placeholders', () => {
+        it('measures the chat viewport before mounting LegendList', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
 
-        const listProps = getCapturedListProps();
-        const createScrollEvent = (offset: number) => ({
-            nativeEvent: {
-                contentOffset: {x: 0, y: offset},
-                contentSize: {height: 1000, width: 300},
-                layoutMeasurement: {height: 500, width: 300},
-            },
+            render(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                />,
+            );
+
+            expect(mockLegendList).not.toHaveBeenCalled();
+
+            fireEvent(screen.getByTestId('report-actions-list-viewport'), 'onLayout', {
+                nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}},
+            });
+
+            expect(mockLegendList).toHaveBeenCalled();
         });
 
-        act(() => {
-            listProps?.onScroll?.(createScrollEvent(0));
-        });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+        it('keeps one measured skeleton page at both available edges while requests are idle or loading', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: true,
+                hasNewerActions: true,
+            });
+            const view = renderReportActionsList();
 
-        act(() => {
-            listProps?.onStartReached?.();
-            listProps?.onScroll?.(createScrollEvent(0));
-        });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+            let olderSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent);
+            let newerSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent);
+            expect(olderSkeleton?.props).toEqual(expect.objectContaining({direction: 'older', viewportHeight: 500, isLoading: false, hasError: false}));
+            expect(newerSkeleton?.props).toEqual(expect.objectContaining({direction: 'newer', viewportHeight: 500, isLoading: false, hasError: false}));
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(500 + PAGINATION_SPINNER_HEIGHT + PAGINATION_TOP_OVERLAY_CLEARANCE);
+            expect(getCapturedVisibleActions()).toEqual(mockReportActions.toReversed());
 
-        mockUsePaginatedReportActions.mockReturnValue({
-            ...defaultPaginatedReportActionsResult,
-            reportActions: [...mockReportActions, olderMockReportAction],
-            hasOlderActions: true,
-        });
-        view.rerender(
-            <ReportActionsList
-                reportID={mockReport.reportID}
-                conciergeChat={undefined}
-                onLayout={jest.fn()}
-            />,
-        );
+            mockIsLoadingOlderReportActions = true;
+            mockIsLoadingNewerReportActions = true;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
 
-        act(() => {
-            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+            olderSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent);
+            newerSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent);
+            expect(olderSkeleton?.props.isLoading).toBe(true);
+            expect(newerSkeleton?.props.isLoading).toBe(true);
         });
-        expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
+
+        it('positions an unanchored newer window at the last real action before the skeleton page', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasNewerActions: true,
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedListProps()?.initialScrollAtEnd).toBe(false);
+            expect(getCapturedListProps()?.initialScrollIndex).toEqual({index: mockReportActions.length - 1, viewPosition: 1, viewOffset: 548});
+        });
+
+        it('preserves an explicit linked-action index when a newer skeleton page is present', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockInitialScrollIndex = 0;
+            mockInitialScrollIndexParams = {viewPosition: 0.5, viewOffset: 12};
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasNewerActions: true,
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedListProps()?.initialScrollIndex).toEqual({index: 0, viewPosition: 0.5, viewOffset: 12});
+        });
+
+        it('removes only exhausted edge pages and omits pagination placeholders offline', () => {
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: true,
+                hasNewerActions: true,
+            });
+            const view = renderReportActionsList();
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                hasOlderActions: false,
+                hasNewerActions: true,
+            });
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            expect(findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
+
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            expect(findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
+        });
     });
 
     describe('Concierge Draft Context Menu', () => {

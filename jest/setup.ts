@@ -49,10 +49,18 @@ jest.mock('@legendapp/list/react-native', () => {
         maintainVisibleContentPosition?: unknown;
         recycleItems?: boolean;
     };
+    type MockLegendListState = {
+        contentLength: number;
+        scroll: number;
+        scrollLength: number;
+    };
+    type MockLegendListRef = FlashListModule.FlashListRef<unknown> & {
+        getState: () => MockLegendListState | undefined;
+    };
 
     return {
         ...LegendListModuleActual,
-        LegendList: ReactActual.forwardRef<FlashListModule.FlashListRef<unknown>, MockLegendListProps>(
+        LegendList: ReactActual.forwardRef<MockLegendListRef, MockLegendListProps>(
             (
                 {
                     alignItemsAtEnd,
@@ -70,17 +78,33 @@ jest.mock('@legendapp/list/react-native', () => {
                 },
                 ref,
             ) => {
+                const listStateRef = ReactActual.useRef<MockLegendListState | undefined>(undefined);
                 const initialScrollConfig = typeof initialScrollIndex === 'number' ? {index: initialScrollIndex} : initialScrollIndex;
                 const flashListInitialScrollIndex = initialScrollAtEnd && data.length > 0 ? data.length - 1 : initialScrollConfig?.index;
                 const flashListInitialScrollIndexParams = initialScrollAtEnd
                     ? {viewPosition: 1}
                     : initialScrollConfig && {viewOffset: initialScrollConfig.viewOffset, viewPosition: initialScrollConfig.viewPosition};
                 const handleScroll: NonNullable<FlashListModule.FlashListProps<unknown>['onScroll']> = (event) => {
-                    onScroll?.(event);
                     const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+                    listStateRef.current = {
+                        contentLength: contentSize.height,
+                        scroll: contentOffset.y,
+                        scrollLength: layoutMeasurement.height,
+                    };
+                    onScroll?.(event);
                     const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
                     if (distanceFromEnd <= layoutMeasurement.height * (onEndReachedThreshold ?? 0)) {
                         onEndReached?.();
+                    }
+                };
+                const setRef = (instance: FlashListModule.FlashListRef<unknown> | null) => {
+                    const mockInstance = instance && Object.assign(instance, {getState: () => listStateRef.current});
+                    if (typeof ref === 'function') {
+                        ref(mockInstance);
+                        return;
+                    }
+                    if (ref) {
+                        Object.assign(ref, {current: mockInstance});
                     }
                 };
 
@@ -90,7 +114,7 @@ jest.mock('@legendapp/list/react-native', () => {
                     initialScrollIndex: flashListInitialScrollIndex,
                     initialScrollIndexParams: flashListInitialScrollIndexParams,
                     onScroll: handleScroll,
-                    ref,
+                    ref: setRef,
                 });
             },
         ),

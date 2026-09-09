@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportActionsPaginationScroll from '@hooks/useReportActionsPaginationScroll';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,9 +17,7 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionHtml,
@@ -71,6 +70,7 @@ import {useReportActionsListActions, useReportActionsListState} from './ReportAc
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import ReportActionsPaginationSkeleton, {PAGINATION_SPINNER_HEIGHT, PAGINATION_TOP_OVERLAY_CLEARANCE} from './ReportActionsPaginationSkeleton';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
@@ -85,7 +85,6 @@ type ReportActionsListContentProps = {
 
 type ReportActionsListProps = ReportActionsListContentProps;
 
-const PAGINATION_THRESHOLD = 0.75;
 const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
 
 const REPORT_ACTION_COMMENT_SIZE = {
@@ -160,7 +159,13 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         hasNewerActions,
         isLoadingOlderReportActions,
         hasLoadingOlderReportActionsError,
+        isLoadingNewerReportActions,
+        hasLoadingNewerReportActionsError,
         oldestReportActionID,
+        newestReportActionID,
+        olderReportActionsRequestCursor,
+        newerReportActionsRequestCursor,
+        canLoadNewerChats,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -182,20 +187,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
-    const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
 
     useEffect(() => {
         didLayout.current = false;
-        lastRequestedOldestActionIDRef.current = undefined;
     }, [reportID]);
-
-    useEffect(() => {
-        if (isLoadingOlderReportActions && !hasLoadingOlderReportActionsError) {
-            return;
-        }
-        lastRequestedOldestActionIDRef.current = undefined;
-    }, [isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
@@ -237,6 +233,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
     const legendListRef = useRef<LegendListRef>(null);
+    const [viewportHeight, setViewportHeight] = useState(0);
+    const [newerFooterHeight, setNewerFooterHeight] = useState(0);
+    const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
 
     useImperativeHandle(
         listRef,
@@ -259,6 +258,32 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
+    const shouldShowOlderPaginationSkeleton = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasOlderActions && !showHiddenHistory;
+    const shouldShowNewerPaginationSkeleton = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasNewerActions;
+    const olderPaginationExtent = shouldShowOlderPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT + PAGINATION_TOP_OVERLAY_CLEARANCE : 0;
+    const newerPaginationExtent = shouldShowNewerPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT + newerFooterHeight : 0;
+
+    const {onScroll: checkPaginationOnScroll, onContentSizeChange: checkPaginationOnContentSizeChange} = useReportActionsPaginationScroll({
+        reportID,
+        linkedReportActionID: reportActionIDFromRoute,
+        listRef: legendListRef,
+        viewportHeight,
+        olderPaginationExtent,
+        newerPaginationExtent,
+        olderCursor: olderReportActionsRequestCursor ?? oldestReportActionID,
+        newerCursor: newerReportActionsRequestCursor ?? newestReportActionID,
+        hasOlderActions,
+        hasNewerActions,
+        isLoadingOlderReportActions: !!isLoadingOlderReportActions,
+        isLoadingNewerReportActions: !!isLoadingNewerReportActions,
+        hasLoadingOlderReportActionsError: !!hasLoadingOlderReportActionsError,
+        hasLoadingNewerReportActionsError: !!hasLoadingNewerReportActionsError,
+        isOffline,
+        canLoadOlder: !showHiddenHistory && loadedInitialViewportListID === listID,
+        canLoadNewer: canLoadNewerChats && loadedInitialViewportListID === listID,
+        loadOlderActions: () => loadOlderChats(false),
+        loadNewerActions: () => loadNewerChats(false),
+    });
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
@@ -387,7 +412,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         setTreatAsNoPaginationAnchor,
     });
 
-    const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     const shouldShowInitialViewportSkeleton = !isOffline && (!hasOnceLoadedReportActions || loadedInitialViewportListID !== listID);
 
     const handleListLoad = () => {
@@ -395,25 +419,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         setLoadedInitialViewportListID(listID);
     };
 
-    const loadOlderChatsOnStartReached = () => {
-        if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
-            return;
-        }
-
-        lastRequestedOldestActionIDRef.current = oldestReportActionID;
-        loadOlderChats(false);
-    };
-
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
         const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
-        const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
-
-        if (isNearStart) {
-            loadOlderChatsOnStartReached();
-        } else {
-            lastRequestedOldestActionIDRef.current = undefined;
-        }
+        checkPaginationOnScroll();
 
         const bottomRelativeEvent = {
             ...event,
@@ -426,19 +435,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         trackVerticalScrolling(bottomRelativeEvent);
         setHasScrolledOverThreshold(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
         emitComposerScrollEvents();
-    };
-
-    const loadNewerChatsAfterTransitions = () => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                requestAnimationFrame(() => loadNewerChats(false));
-            },
-        });
     };
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
@@ -525,16 +521,48 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isDraftPendingCompletion,
     ];
 
-    const listHeaderComponent = (
-        <ReportActionsListHeader
-            reportID={reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+    const handleViewportLayout = (event: LayoutChangeEvent) => {
+        setViewportHeight(event.nativeEvent.layout.height);
+    };
+
+    const handleNewerFooterLayout = (event: LayoutChangeEvent) => {
+        setNewerFooterHeight(event.nativeEvent.layout.height);
+    };
+
+    const newerListFooterComponent = (
+        <>
+            <View onLayout={handleNewerFooterLayout}>
+                <ReportActionsListHeader
+                    reportID={reportID}
+                    isDraftPendingCompletion={isDraftPendingCompletion}
+                />
+            </View>
+            {shouldShowNewerPaginationSkeleton && (
+                <ReportActionsPaginationSkeleton
+                    direction="newer"
+                    viewportHeight={viewportHeight}
+                    isLoading={!!isLoadingNewerReportActions}
+                    hasError={!!hasLoadingNewerReportActionsError}
+                />
+            )}
+        </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const olderListHeaderComponent = (
+        <>
+            {shouldShowOlderPaginationSkeleton && (
+                <ReportActionsPaginationSkeleton
+                    direction="older"
+                    viewportHeight={viewportHeight}
+                    isLoading={!!isLoadingOlderReportActions}
+                    hasError={!!hasLoadingOlderReportActionsError}
+                />
+            )}
+            {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+        </>
+    );
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -563,6 +591,22 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return <ReportActionsSkeletonView />;
     }
 
+    const newerPaginationPageExtent = shouldShowNewerPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT : 0;
+    const shouldTargetNewestRealAction = initialScrollIndex === undefined && shouldShowNewerPaginationSkeleton && listData.length > 0;
+    const initialListIndex = (() => {
+        if (initialScrollIndex !== undefined) {
+            return {index: initialScrollIndex, ...initialScrollIndexParams};
+        }
+        if (shouldTargetNewestRealAction) {
+            return {
+                index: listData.length - 1,
+                viewPosition: 1,
+                viewOffset: newerPaginationPageExtent,
+            };
+        }
+        return undefined;
+    })();
+
     return (
         <>
             <FloatingMessageCounter
@@ -578,49 +622,61 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <LegendList
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={legendListRef}
-                    testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
-                    data={listData}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
-                    recycleItems
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={loadNewerChatsAfterTransitions}
-                    onEndReachedThreshold={PAGINATION_THRESHOLD}
-                    ListHeaderComponent={listFooterComponent}
-                    ListFooterComponent={listHeaderComponent}
-                    ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    keyboardShouldPersistTaps="handled"
-                    onLayout={recordTimeToMeasureItemLayout}
-                    onScroll={trackScrollPositionAndThreshold}
-                    onViewableItemsChanged={onViewableItemsChanged}
-                    extraData={extraData}
-                    key={listID}
-                    getItemType={getItemType}
-                    initialScrollAtEnd={initialScrollIndex === undefined}
-                    initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
-                    alignItemsAtEnd={!shouldBeAlignedToTop}
-                    // Only follow the real latest page. Older/linked windows must retain their visible anchor.
-                    maintainScrollAtEnd={!hasNewerActions && {animated: false}}
-                    // Leave the end-follow region as soon as the user starts reading older messages.
-                    maintainScrollAtEndThreshold={0.01}
-                    maintainVisibleContentPosition
-                    onLoad={handleListLoad}
-                    onContentSizeChange={() => trackVerticalScrolling(undefined)}
-                />
-                {shouldShowInitialViewportSkeleton && (
-                    <View
-                        pointerEvents="none"
-                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.appBG, styles.overflowHidden, styles.zIndex10, styles.justifyContentEnd, styles.pb4]}
-                    >
+                <View
+                    testID="report-actions-list-viewport"
+                    style={styles.flex1}
+                    onLayout={handleViewportLayout}
+                >
+                    {viewportHeight > 0 ? (
+                        <LegendList
+                            accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                            ref={legendListRef}
+                            testID="report-actions-list"
+                            style={styles.overscrollBehaviorContain}
+                            data={listData}
+                            renderItem={renderItem}
+                            keyExtractor={keyExtractor}
+                            drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                            recycleItems
+                            renderScrollComponent={renderActionSheetAwareScrollView}
+                            contentContainerStyle={styles.chatContentScrollView}
+                            ListHeaderComponent={olderListHeaderComponent}
+                            ListFooterComponent={newerListFooterComponent}
+                            ListFooterComponentStyle={shouldBeAlignedToTop && !shouldShowNewerPaginationSkeleton ? styles.flex1 : undefined}
+                            estimatedHeaderSize={olderPaginationExtent}
+                            keyboardShouldPersistTaps="handled"
+                            onLayout={recordTimeToMeasureItemLayout}
+                            onScroll={trackScrollPositionAndThreshold}
+                            onViewableItemsChanged={onViewableItemsChanged}
+                            extraData={extraData}
+                            key={listID}
+                            getItemType={getItemType}
+                            initialScrollAtEnd={initialScrollIndex === undefined && !shouldTargetNewestRealAction}
+                            initialScrollIndex={initialListIndex}
+                            alignItemsAtEnd={!shouldBeAlignedToTop}
+                            // Only follow the real latest page. Older/linked windows must retain their visible anchor.
+                            maintainScrollAtEnd={!hasNewerActions && {animated: false}}
+                            // Leave the end-follow region as soon as the user starts reading older messages.
+                            maintainScrollAtEndThreshold={0.01}
+                            maintainVisibleContentPosition
+                            onLoad={handleListLoad}
+                            onContentSizeChange={() => {
+                                trackVerticalScrolling(undefined);
+                                checkPaginationOnContentSizeChange();
+                            }}
+                        />
+                    ) : (
                         <ReportActionsSkeletonView />
-                    </View>
-                )}
+                    )}
+                    {viewportHeight > 0 && shouldShowInitialViewportSkeleton && (
+                        <View
+                            pointerEvents="none"
+                            style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.appBG, styles.overflowHidden, styles.zIndex10, styles.justifyContentEnd, styles.pb4]}
+                        >
+                            <ReportActionsSkeletonView />
+                        </View>
+                    )}
+                </View>
             </ReportActionsListPaddingView>
         </>
     );
