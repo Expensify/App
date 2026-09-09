@@ -92,7 +92,9 @@ jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravel
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
-jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
+// Discover was removed from Home for everyone (#100238). The virtual mock stands in for the deleted module, so the section
+// shows up as a sentinel if the import ever comes back, without needing the old component's Onyx guard state.
+jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'), {virtual: true});
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseNetwork = jest.mocked(useNetwork);
@@ -243,7 +245,6 @@ describe('HomePage', () => {
                 'section-YourSpendSection',
                 'section-RecentlyAddedSection',
                 'section-InsightsSection',
-                'section-DiscoverSection',
             ]);
         });
 
@@ -263,11 +264,19 @@ describe('HomePage', () => {
 
             expect(screen.queryByTestId('section-AnnouncementSection')).not.toBeOnTheScreen();
         });
+
+        it('does not render the Discover section anywhere on narrow layout', async () => {
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            expect(screen.queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
+        });
     });
 
     // Recently added moves into the right column directly below Your spend on wide layout (PRD-98653 R1/R2).
     describe('wide layout column placement', () => {
-        it('renders Discover and Recently added in the right column, not the left', async () => {
+        it('renders Recently added in the right column, not the left', async () => {
             setWideLayout();
             await waitForBatchedUpdates();
 
@@ -276,8 +285,6 @@ describe('HomePage', () => {
             const leftColumn = screen.getByTestId('homePageLeftColumn');
             const rightColumn = screen.getByTestId('homePageRightColumn');
 
-            expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
-            expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
             expect(within(rightColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-RecentlyAddedSection')).not.toBeOnTheScreen();
         });
@@ -302,6 +309,15 @@ describe('HomePage', () => {
             renderHomePage();
 
             expect(screen.queryByTestId('section-AnnouncementSection')).not.toBeOnTheScreen();
+        });
+
+        it('does not render the Discover section anywhere on wide layout', async () => {
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            expect(screen.queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
         });
 
         // Getting started lives in the left column below For you, matching mobile placement.

@@ -9084,9 +9084,6 @@ const CONST = {
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
         },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',

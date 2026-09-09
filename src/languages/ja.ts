@@ -978,12 +978,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
         },
-        discoverSection: {
-            title: '発見',
-            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
-            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法を確認しましょう。',
-            menuItemDescription: 'Expensify でできることを 2 分で確認',
-        },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
                 one: `${count} 件のレポートを送信`,

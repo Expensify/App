@@ -989,12 +989,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Adicione seus dados para visualizar e começar a usar seu Cartão Expensify.', subtitle: 'Cartão Expensify', cta: 'Adicionar'},
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
-        discoverSection: {
-            title: 'Descobrir',
-            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
-            menuItemTitleAdmin: 'Saiba como convidar membros, editar fluxos de aprovação e conciliar cartões corporativos.',
-            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
-        },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
                 one: `Enviar ${count} relatório`,
