@@ -186,12 +186,13 @@ describe('Server selection', () => {
             expect(getConfirmButtonOptions().isDisabled).toBe(false);
         });
 
-        it('stores the picked server on Save', () => {
+        it('stores the picked server on Save and leaves the page, so the pick does not need a second press to dismiss', () => {
             render(<ServerSelector />);
             act(() => getSelectionListProps().onSelectRow({keyForList: CONST.SERVER.STAGING}));
             pressSave();
 
             expect(setActiveServer).toHaveBeenCalledWith(CONST.SERVER.STAGING);
+            expect(Navigation.goBack).toHaveBeenCalledWith();
         });
 
         it('drops the pick when the back caret is used, so only Save commits', () => {

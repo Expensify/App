@@ -48,10 +48,15 @@ function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelector
         isSelected: selectedServer === server,
     }));
 
+    const saveAndGoBack = () => {
+        setActiveServer(selectedServer);
+        Navigation.goBack();
+    };
+
     const confirmButtonOptions = {
         showButton: !isPinnedByEnvironment,
         text: translate('common.save'),
-        onConfirm: () => setActiveServer(selectedServer),
+        onConfirm: saveAndGoBack,
         isDisabled: selectedServer === activeServer,
     };
 
