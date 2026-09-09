@@ -318,11 +318,11 @@ function getForReportAction({
     const hasModifiedMerchant = isReportActionOriginalMessageAnObject && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
 
     if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
+        const currency = reportActionOriginalMessage?.currency;
+        const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? currency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
         const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
-        const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
 
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.

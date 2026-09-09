@@ -923,6 +923,32 @@ describe('ModifiedExpenseMessage', () => {
                 });
                 expect(result).toEqual(expectedResult);
             });
+
+            it('uses the current currency for the old amount when oldCurrency is missing', () => {
+                const reportActionWithoutOldCurrency = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldMerchant: '1.00 km @ €0.70 / km',
+                        merchant: '10.00 km @ €0.70 / km',
+                        oldAmount: 70,
+                        amount: 700,
+                        currency: CONST.CURRENCY.EUR,
+                    },
+                };
+                const expectedResult = `changed the distance to ${reportActionWithoutOldCurrency.originalMessage.merchant} (previously ${reportActionWithoutOldCurrency.originalMessage.oldMerchant}), which updated the amount to €7.00 (previously €0.70)`;
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: reportActionWithoutOldCurrency,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
         });
 
         describe('when the distance rate is changed', () => {
