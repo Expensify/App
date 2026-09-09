@@ -6,7 +6,7 @@ import createDummySharedValue from '@src/utils/createDummySharedValue';
 
 import type {PropsWithChildren} from 'react';
 
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useState} from 'react';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 
@@ -143,12 +143,4 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     );
 }
 
-function useKeyboardDismissibleFlatListState(): KeyboardDismissibleFlatListStateContextValue {
-    return useContext(KeyboardDismissibleFlatListStateContext);
-}
-
-function useKeyboardDismissibleFlatListActions(): KeyboardDismissibleFlatListActionsContextValue {
-    return useContext(KeyboardDismissibleFlatListActionsContext);
-}
-
-export {KeyboardDismissibleFlatListContextProvider, useKeyboardDismissibleFlatListState, useKeyboardDismissibleFlatListActions};
+export {KeyboardDismissibleFlatListContextProvider};
