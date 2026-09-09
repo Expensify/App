@@ -2654,7 +2654,8 @@ type BuildPolicyDataKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
     | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
     | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
-    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST;
+    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+    | typeof ONYXKEYS.NVP_SIDE_PANEL;
 
 function getRoleForNewWorkspaceMember(isSubmitWorkspace: boolean, makeMeAdmin: boolean): ValueOf<typeof CONST.POLICY.ROLE> {
     if (isSubmitWorkspace) {
@@ -2815,6 +2816,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
             | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.NVP_SIDE_PANEL
         >
     > = [
         {

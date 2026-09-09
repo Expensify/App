@@ -3206,6 +3206,7 @@ describe('actions/Report', () => {
 
         it('should close a side panel saved open on this device before CompleteGuidedSetup resolves', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             // A saved open state would otherwise show the panel on the first Home after onboarding while the request is still pending.
             await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true, forceConcierge: false});
             const mockFetch = TestHelper.createGlobalFetchMock();
@@ -5408,6 +5409,98 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('closes a side panel saved open on this device when OpenReport completes invite onboarding', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-side-panel-1'};
+            await waitForBatchedUpdates();
+
+            Report.openReport({
+                conciergeChat,
+                hasReportActions: true,
+                reportID: '4',
+                introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
+                personalDetails: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(false);
+            expect(sidePanel?.openNarrowScreen).toBe(false);
+            expect(sidePanel?.forceConcierge).toBe(false);
+            const onboardingAfter = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboardingAfter?.hasCompletedGuidedSetupFlow).toBe(true);
+        });
+
+        it('leaves the side panel alone when OpenReport only finishes a pending invite flow after onboarding', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            const invitedIntroSelected: OnyxTypes.IntroSelected = {...TEST_INTRO_SELECTED, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE};
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, invitedIntroSelected);
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(778, undefined), reportID: 'concierge-side-panel-2'};
+            await waitForBatchedUpdates();
+
+            Report.openReport({
+                conciergeChat,
+                hasReportActions: true,
+                reportID: '5',
+                introSelected: invitedIntroSelected,
+                betas: undefined,
+                personalDetails: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(true);
+        });
+
+        it('leaves the side panel alone for a legacy account, which the app already treats as onboarded, when OpenReport runs a pending invite flow', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            // Old accounts carry an empty nvp_onboarding, which hasCompletedGuidedSetupFlowSelector reads as complete
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {});
+            const invitedIntroSelected: OnyxTypes.IntroSelected = {...TEST_INTRO_SELECTED, inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE};
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, invitedIntroSelected);
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: false});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(779, undefined), reportID: 'concierge-side-panel-3'};
+            await waitForBatchedUpdates();
+
+            Report.openReport({
+                conciergeChat,
+                hasReportActions: true,
+                reportID: '6',
+                introSelected: invitedIntroSelected,
+                betas: undefined,
+                personalDetails: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(true);
         });
 
         it('should handle openReport with TEST_INTRO_SELECTED', async () => {
