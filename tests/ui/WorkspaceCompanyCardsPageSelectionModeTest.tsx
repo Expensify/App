@@ -14,10 +14,13 @@ const POLICY_ID = 'policy123';
 const mockClearTableSelection = jest.fn();
 const mockGoBack = jest.fn();
 const mockTurnOffMobileSelectionMode = jest.fn();
-const mockTableProps: {current?: {isSelectionModeEnabled: boolean}} = {};
+const mockTableProps: {current?: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}} = {};
 let mockFeedName = 'feed-a';
 let mockIsMobileSelectionModeEnabled = true;
 let mockShouldUseNarrowLayout = true;
+let mockIsOffline = false;
+let mockPolicy: {name: string; policyAccountID?: number; employeeList: Record<string, unknown>} | undefined = {name: 'Acme', policyAccountID: 123, employeeList: {}};
+let mockAllCardFeeds: Record<string, unknown> | undefined = {feed: {}};
 
 jest.mock('@components/DecisionModal', () => () => null);
 
@@ -28,12 +31,14 @@ jest.mock('@components/Tables/WorkspaceCompanyCardsTable', () => {
     const {View} = require('react-native');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(({isSelectionModeEnabled}: {isSelectionModeEnabled: boolean}, ref: unknown) => {
-        mockTableProps.current = {isSelectionModeEnabled};
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
-        return <View testID="WorkspaceCompanyCardsTable" />;
-    });
+    const MockWorkspaceCompanyCardsTable = ReactMock.forwardRef(
+        ({isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending}: {isSelectionModeEnabled: boolean; isPolicyLoaded: boolean; isPageFetchPending: boolean}, ref: unknown) => {
+            mockTableProps.current = {isSelectionModeEnabled, isPolicyLoaded, isPageFetchPending};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            ReactMock.useImperativeHandle(ref, () => ({clearSelection: mockClearTableSelection}));
+            return <View testID="WorkspaceCompanyCardsTable" />;
+        },
+    );
 
     return {
         __esModule: true,
@@ -50,7 +55,7 @@ jest.mock('@hooks/useAssignCard', () => ({
 jest.mock('@hooks/useCompanyCards', () => ({
     __esModule: true,
     default: () => ({
-        allCardFeeds: {feed: {}},
+        allCardFeeds: mockAllCardFeeds,
         feedName: mockFeedName,
         selectedFeed: undefined,
         bankName: undefined,
@@ -81,12 +86,12 @@ jest.mock('@hooks/useMobileSelectionMode', () => ({
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: () => ({isOffline: mockIsOffline}),
 }));
 
 jest.mock('@hooks/usePolicy', () => ({
     __esModule: true,
-    default: () => ({name: 'Acme', policyAccountID: 123, employeeList: {}}),
+    default: () => mockPolicy,
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -181,14 +186,19 @@ function getWorkspaceCompanyCardsPage() {
     );
 }
 
+function resetMocks() {
+    jest.clearAllMocks();
+    mockTableProps.current = undefined;
+    mockFeedName = 'feed-a';
+    mockIsMobileSelectionModeEnabled = true;
+    mockShouldUseNarrowLayout = true;
+    mockIsOffline = false;
+    mockPolicy = {name: 'Acme', policyAccountID: 123, employeeList: {}};
+    mockAllCardFeeds = {feed: {}};
+}
+
 describe('WorkspaceCompanyCardsPage selection mode', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockTableProps.current = undefined;
-        mockFeedName = 'feed-a';
-        mockIsMobileSelectionModeEnabled = true;
-        mockShouldUseNarrowLayout = true;
-    });
+    beforeEach(resetMocks);
 
     it('uses the focused select header and table controls in narrow-layout selection mode', () => {
         render(getWorkspaceCompanyCardsPage());
@@ -228,5 +238,66 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
 
         expect(mockTurnOffMobileSelectionMode).not.toHaveBeenCalled();
         expect(mockClearTableSelection).not.toHaveBeenCalled();
+    });
+});
+
+describe('WorkspaceCompanyCardsPage isPolicyLoaded', () => {
+    beforeEach(resetMocks);
+
+    it('reports the policy as loaded once its account ID has been returned', () => {
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPolicyLoaded).toBe(true);
+    });
+
+    it('reports the policy as not loaded while a freshly created workspace has no account ID yet', () => {
+        mockPolicy = {name: 'Acme', employeeList: {}};
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPolicyLoaded).toBe(false);
+    });
+
+    it('reports the policy as loaded when its account ID resolved to 0, so the feeds load error can surface', () => {
+        mockPolicy = {name: 'Acme', policyAccountID: 0, employeeList: {}};
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPolicyLoaded).toBe(true);
+    });
+
+    it('reports the policy as loaded offline, where the account ID can never resolve', () => {
+        mockPolicy = {name: 'Acme', employeeList: {}};
+        mockIsOffline = true;
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPolicyLoaded).toBe(true);
+    });
+
+    it('reports the policy as not loaded when there is no policy at all', () => {
+        mockPolicy = undefined;
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPolicyLoaded).toBe(false);
+    });
+});
+
+describe('WorkspaceCompanyCardsPage isPageFetchPending', () => {
+    beforeEach(resetMocks);
+
+    it('reports the page fetch as pending while no feeds are cached for the workspace', () => {
+        mockAllCardFeeds = undefined;
+
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPageFetchPending).toBe(true);
+    });
+
+    it('reports the page fetch as settled once feeds are cached, since it is no longer re-fetched', () => {
+        render(getWorkspaceCompanyCardsPage());
+
+        expect(mockTableProps.current?.isPageFetchPending).toBe(false);
     });
 });

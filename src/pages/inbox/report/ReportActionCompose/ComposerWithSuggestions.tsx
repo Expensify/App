@@ -91,13 +91,8 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsRef = ComposerRef & {
-    /** Focus the composer */
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
-
-    /** Replace the selection with text */
     replaceSelectionWithText: OnEmojiSelected;
-
-    /** Get the current text of the composer */
     getCurrentText: () => string;
 
     /**
@@ -106,19 +101,13 @@ type ComposerWithSuggestionsRef = ComposerRef & {
      */
     clearWorklet: () => void;
 
-    /** Reset the height of the composer */
     resetHeight: () => void;
 };
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
-        /** Report ID */
         reportID: string;
-
-        /** Callback to focus composer */
         onFocus: () => void;
-
-        /** Callback to blur composer */
         onBlur: (event: BlurEvent) => void;
 
         /** Callback when layout of composer changes */
@@ -130,19 +119,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Callback when the composer got cleared on the UI thread */
         onClear?: (text: string) => void;
 
-        /** Whether the composer is full size */
         isComposerFullSize: boolean;
-
-        /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
-        /** Whether the menu is visible */
         isMenuVisible: boolean;
-
-        /** The placeholder for the input */
         inputPlaceholder: string;
-
-        /** Callback when a file is pasted */
         onPasteFile: (file: FileObject | FileObject[]) => void;
 
         /** Whether the input is disabled, defaults to false */
@@ -151,31 +131,14 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** Whether the scroll is likely to trigger a layout */
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
-
-        /** Function to raise the scroll is likely layout triggered */
         raiseIsScrollLikelyLayoutTriggered: () => void;
-
-        /** The ref to the suggestions */
         suggestionsRef: React.RefObject<SuggestionsRef | null>;
-
-        /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
-        /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
-
-        /** policy ID of the report */
         policyID?: string;
-
-        /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
@@ -286,7 +249,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -308,6 +271,22 @@ function ComposerWithSuggestions({
         updateDraftMessage: setText,
         isEditInProgressRef: isDraftSavePending,
     });
+
+    // A pending report-action draft save belongs to the edit session that scheduled it. Without cancelling it at the
+    // session boundary, the trailing debounced write can land after Save/Cancel has already cleared the draft and
+    // re-open the editor with stale text (see the composer flipping back into edit mode after saving on narrow layout).
+    useEffect(() => {
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
+            return;
+        }
+        cancelSaveReportActionDraft();
+    }, [editingState, cancelSaveReportActionDraft]);
+
+    // Switching from one edit target straight to another never passes through OFF, so it needs its own cancellation.
+    // Otherwise the first message's pending save can overwrite the draft of the message just switched to.
+    useEffect(() => {
+        cancelSaveReportActionDraft();
+    }, [editingReportID, editingReportAction?.reportActionID, cancelSaveReportActionDraft]);
 
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
 
@@ -337,7 +316,7 @@ function ComposerWithSuggestions({
     const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const handleEditFocus = useCallback(() => {
-        focus(true, undefined, true);
+        focus(true, undefined, editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         onFocus();
 
         if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {

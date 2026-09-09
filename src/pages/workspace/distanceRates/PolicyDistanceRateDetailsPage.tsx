@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -57,12 +58,13 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+            const reportIDs: Record<string, true> = {};
+            for (const report of Object.values(reports ?? {})) {
                 if (report?.policyID === policyID) {
-                    reportIDs.add(report.reportID);
+                    reportIDs[report.reportID] = true;
                 }
-                return reportIDs;
-            }, new Set<string>());
+            }
+            return reportIDs;
         },
         [policyID],
     );
@@ -73,17 +75,17 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const transactionsSelector = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
-            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+            return Object.values(transactions ?? {}).reduce<string[]>((transactionIDs, transaction) => {
                 if (
                     transaction?.reportID &&
-                    policyReports?.has(transaction.reportID) &&
+                    policyReports?.[transaction.reportID] &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
                     transaction?.comment?.customUnit?.customUnitRateID === rateID
                 ) {
-                    transactionIDs.add(transaction?.transactionID);
+                    transactionIDs.push(transaction?.transactionID);
                 }
                 return transactionIDs;
-            }, new Set<string>());
+            }, []);
         },
         [rateID, policyReports],
     );
@@ -151,7 +153,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
 
     const deleteRate = () => {
-        deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID], eligibleTransactionIDs ?? [], transactionViolations);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
@@ -278,12 +280,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    onPress={editTaxRateValue}
-                                    interactive={canWriteDistanceRates}
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    value={taxRate}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -319,7 +319,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                     prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteRate();

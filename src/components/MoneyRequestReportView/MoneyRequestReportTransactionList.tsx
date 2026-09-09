@@ -11,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,6 +35,7 @@ import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransaction
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
@@ -186,7 +188,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */
@@ -308,6 +309,7 @@ function MoneyRequestReportTransactionList({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [reportLayoutOption] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -318,6 +320,10 @@ function MoneyRequestReportTransactionList({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -332,8 +338,9 @@ function MoneyRequestReportTransactionList({
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
-                lastDistanceExpenseType,
+                lastDistanceExpenseType: distanceExpenseType,
                 currentUserAccountID: currentUserDetails?.accountID,
+                blockDistanceRequestIfNeeded,
             }),
         [
             translate,
@@ -342,10 +349,11 @@ function MoneyRequestReportTransactionList({
             policy,
             userBillingGracePeriodEnds,
             amountOwed,
-            lastDistanceExpenseType,
+            distanceExpenseType,
             ownerBillingGracePeriodEnd,
             draftTransactionIDs,
             currentUserDetails?.accountID,
+            blockDistanceRequestIfNeeded,
         ],
     );
 
@@ -593,8 +601,17 @@ function MoneyRequestReportTransactionList({
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
         // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
         // still seed the correct siblings lazily via useNavigateToTransactionThread.
-        if (getActiveTransactionIDs().descriptors) {
+        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeDescriptors) {
             return;
+        }
+        // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
+        // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
+        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+            const activeIDSet = new Set(activeIDs);
+            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
+                return;
+            }
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {

@@ -100,7 +100,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** A function that is called when the button is released */
         onPressOut?: (event: GestureResponderEvent) => void;
 
-        /** Callback that is called when mousedown is triggered. */
         onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
         /** Call the onPress function when Enter key is pressed */
@@ -112,25 +111,18 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Additional styles to add after local styles. Applied to Pressable portion of button */
         style?: StyleProp<ViewStyle>;
 
-        /** Additional styles to add to the component when it's disabled */
         disabledStyle?: StyleProp<ViewStyle>;
 
         /** Additional button styles. Specific to the OpacityView of the button */
         innerStyles?: StyleProp<ViewStyle>;
 
-        /** Additional text styles */
         textStyles?: StyleProp<TextStyle>;
 
         /** Additional text styles when the button is hovered */
         textHoverStyles?: StyleProp<TextStyle>;
 
-        /** The number of lines to display for the primary text */
         primaryTextNumberOfLines?: number;
-
-        /** Whether we should use the default hover style */
         shouldUseDefaultHover?: boolean;
-
-        /** Additional hover styles */
         hoverStyles?: StyleProp<ViewStyle>;
 
         /** Whether we should use the success theme color */
@@ -148,16 +140,12 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Should we remove the left border radius top + bottom? */
         shouldRemoveLeftBorderRadius?: boolean;
 
-        /** Should enable the haptic feedback? */
         shouldEnableHapticFeedback?: boolean;
-
-        /** Should disable the long press? */
         isLongPressDisabled?: boolean;
 
         /** Id to use for this button */
         id?: string;
 
-        /** Accessibility label for the component */
         accessibilityLabel?: string;
 
         /** Accessibility state to pass to the pressable */
@@ -166,7 +154,6 @@ type ButtonProps = Partial<ChildrenProps> &
         /** The text for the button label */
         text?: string;
 
-        /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
 
         /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
@@ -187,9 +174,6 @@ type ButtonProps = Partial<ChildrenProps> &
          */
         shouldBlendOpacity?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: ForwardedRef<View>;
 
         /**

@@ -32,7 +32,6 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -88,8 +87,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
-import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2351,19 +2349,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
-    }
-
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
     });
 
-    if (isFromGlobalCreate) {
-        signalExpenseAddedGrowl(parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-    }
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);

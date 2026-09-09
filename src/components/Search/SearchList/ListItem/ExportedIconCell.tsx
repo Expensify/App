@@ -1,7 +1,7 @@
-import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,6 +21,7 @@ type ExportedIconCellProps = {
 function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const actions = reportActions ?? [];
     const icons = useMemoizedLazyExpensifyIcons([
@@ -84,6 +85,8 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
         }
     }
 
+    const integrationIconStyle = StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.XXX_SMALL, CONST.AVATAR_SHAPE.CIRCLE);
+
     return (
         <View style={[styles.flexRow, styles.gap2]}>
             {isExportedToStandardTemplate && (
@@ -101,73 +104,73 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
                 />
             )}
             {isExportedToNetsuite && (
-                <Avatar
-                    source={icons.NetSuiteSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.NetSuiteSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToXero && (
-                <Avatar
-                    source={icons.XeroSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.XeroSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToIntacct && (
-                <Avatar
-                    source={icons.IntacctSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.IntacctSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {(isExportedToQuickbooksOnline || isExportedToQuickbooksDesktop) && (
-                <Avatar
-                    source={icons.QBOSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.QBOSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToIntuitEnterpriseSuite && (
-                <Avatar
-                    source={icons.IntuitSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.IntuitSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToCertinia && (
-                <Avatar
-                    source={icons.CertiniaSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.CertiniaSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToRillet && (
-                <Avatar
-                    source={icons.RilletSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.RilletSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToDualEntry && (
-                <Avatar
-                    source={icons.DualEntrySquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.DualEntrySquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToBillCom && (
-                <Avatar
-                    source={icons.BillComSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.BillComSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
             {isExportedToZenefits && (
-                <Avatar
-                    source={icons.ZenefitsSquare}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                <Icon
+                    src={icons.ZenefitsSquare}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[integrationIconStyle]}
                 />
             )}
         </View>

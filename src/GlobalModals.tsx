@@ -2,10 +2,8 @@ import React, {startTransition, useEffect, useState} from 'react';
 
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import ExpenseAddedGrowl from './components/ExpenseAddedGrowl';
 import GrowlNotification from './components/GrowlNotification';
 import LazyModalSlot from './components/LazyModalSlot';
-import useIsAuthenticated from './hooks/useIsAuthenticated';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {growlRef} from './libs/Growl';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -26,7 +24,6 @@ const IDLE_CALLBACK_TIMEOUT_MS = 2000;
 function GlobalModals() {
     const [shouldRenderContextMenu, setShouldRenderContextMenu] = useState(false);
     const [shouldRenderDeferredModals, setShouldRenderDeferredModals] = useState(false);
-    const isAuthenticated = useIsAuthenticated();
 
     // Defer loading the context menu and rare-condition modals until after startup to avoid
     // pulling in their dependencies (ContextMenuActions, ReportUtils, ModifiedExpenseMessage,
@@ -53,7 +50,6 @@ function GlobalModals() {
     return (
         <>
             <GrowlNotification ref={growlRef} />
-            {isAuthenticated && <ExpenseAddedGrowl />}
             <DelegateNoAccessModalProvider>
                 {shouldRenderContextMenu && (
                     <LazyModalSlot>

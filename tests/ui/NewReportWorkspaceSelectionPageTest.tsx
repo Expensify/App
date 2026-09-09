@@ -82,7 +82,6 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
         name: POLICY_NAME,
         role: CONST.POLICY.ROLE.ADMIN,
         type: CONST.POLICY.TYPE.TEAM,
-        isPolicyExpenseChatEnabled: true,
         owner: EMAIL,
         employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
         pendingAction: null,

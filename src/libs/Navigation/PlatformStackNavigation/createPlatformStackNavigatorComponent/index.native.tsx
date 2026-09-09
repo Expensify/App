@@ -18,7 +18,7 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {NativeStackView} from '@react-navigation/native-stack';
 import React from 'react';
 
-import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
+import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
     createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
@@ -27,7 +27,6 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
-    freezeNonTopScreens?: boolean;
     displayName: string;
 };
 
@@ -46,7 +45,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ExtraContent,
     NavigationContentWrapper,
     Effects,
-    freezeNonTopScreens,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
@@ -94,7 +92,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         state,
     };
 
-    const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state) : descriptors;
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state);
 
     const content = (
         <NavigationContent>
@@ -130,7 +128,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
-                freezeNonTopScreens={options?.freezeNonTopScreens}
                 displayName={displayName}
                 {...props}
             />

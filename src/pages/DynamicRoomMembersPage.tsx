@@ -87,7 +87,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
         Navigation.goBack(backPath);
     }, [backPath]);
     const isReportArchived = useReportIsArchived(report.reportID);
-    const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const reportForSubtitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
 
@@ -184,7 +185,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (action !== ModalActions.CONFIRM) {
             return;
@@ -284,7 +285,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const selectedKeys = selectedMembers.map(String);
 
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report.policyID, policy]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
@@ -294,6 +295,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 }),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
+                shouldSkipFocusRestore: true,
                 onSelected: showRemoveMembersModal,
             },
         ];
@@ -332,6 +334,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
+    const tableHeaderComponent = <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>;
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -363,13 +366,16 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         navigateBackToReportDetails();
                     }}
                 />
-                <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 {isLoading ? (
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <>
+                        {tableHeaderComponent}
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </>
                 ) : (
                     <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable
                             ref={tableRef}
+                            headerComponent={tableHeaderComponent}
                             members={members}
                             selectionEnabled
                             selectedKeys={selectedKeys}

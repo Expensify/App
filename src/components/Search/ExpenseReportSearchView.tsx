@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React from 'react';
+import React, {useImperativeHandle} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
@@ -55,6 +55,7 @@ function ExpenseReportSearchView({
     onScroll,
     contentContainerStyle,
     containerStyle,
+    ref,
 }: ExpenseReportSearchViewProps) {
     const {type} = queryJSON;
 
@@ -91,6 +92,9 @@ function ExpenseReportSearchView({
         emptyReports.reduce((acc, item) => acc + (isRowSelected(item.keyForList, selectedTransactions) ? 1 : 0), 0);
     const totalItems = flattenedTransactions.filter((item) => !isRowDeleted(item)).length + emptyReports.filter((item) => !isRowDeleted(item)).length;
 
+    // Report data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
+    useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
+
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Report rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
@@ -112,7 +116,6 @@ function ExpenseReportSearchView({
                 userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                 ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 onFocus={onFocus}
-                keyForList={item.keyForList}
                 isFirstItem={index === firstVisibleIndex}
                 isLastItem={index === lastVisibleIndex && !ListFooterComponent}
             />

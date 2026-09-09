@@ -27,7 +27,6 @@ import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLifecycleActions from './useLifecycleActions';
 import useLocalize from './useLocalize';
@@ -76,7 +75,6 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {isProduction} = useEnvironment();
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const);
@@ -93,6 +91,9 @@ function useSelectionModeReportActions({
         handleSubmitReport: lifecycleHandleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText,
+        shouldShowApproveSubMenu,
     } = useLifecycleActions({
         reportID: report?.reportID,
         startApprovedAnimation: () => {},
@@ -171,7 +172,6 @@ function useSelectionModeReportActions({
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
-            isProduction,
             isOffline,
         });
     })();
@@ -233,7 +233,7 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
@@ -248,7 +248,12 @@ function useSelectionModeReportActions({
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                onSelected: confirmApproval,
+                rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
+                backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
+                subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
+                // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+                onSelected: () => confirmApproval(),
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {
