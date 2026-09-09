@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -80,7 +80,7 @@ function DynamicIOURequestStepUpgrade({
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
-    const [isUpgradeWarningModalOpen, setIsUpgradeWarningModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
@@ -291,7 +291,12 @@ function DynamicIOURequestStepUpgrade({
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
-            setIsUpgradeWarningModalOpen(true);
+            showConfirmModal({
+                title: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning'),
+                prompt: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
 
@@ -332,10 +337,6 @@ function DynamicIOURequestStepUpgrade({
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    };
-
-    const handleConfirmUpgradeWarning = () => {
-        setIsUpgradeWarningModalOpen(false);
     };
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
@@ -408,15 +409,6 @@ function DynamicIOURequestStepUpgrade({
                     addBottomSafeAreaPadding={false}
                 />
             )}
-            <ConfirmModal
-                isVisible={isUpgradeWarningModalOpen}
-                shouldShowCancelButton={false}
-                onConfirm={handleConfirmUpgradeWarning}
-                onCancel={handleConfirmUpgradeWarning}
-                title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
-                prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
-                confirmText={translate('common.buttonConfirm')}
-            />
         </ScreenWrapper>
     );
 }

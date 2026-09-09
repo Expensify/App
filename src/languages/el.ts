@@ -1721,11 +1721,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Όλα έτοιμα!',
         noDuplicatesDescription: 'Δεν υπάρχουν διπλές συναλλαγές για έλεγχο εδώ.',
         confirmApprove: 'Επιβεβαιώστε το ποσό έγκρισης',
-        confirmApprovalAmount: 'Εγκρίνετε μόνο τις σύμφωνες δαπάνες ή εγκρίνετε ολόκληρη την αναφορά.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Αυτή η δαπάνη είναι σε αναμονή. Θέλετε παρ’ όλα αυτά να την εγκρίνετε;',
-            other: 'Αυτές οι δαπάνες έχουν τεθεί σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
-        }),
+        confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
+        confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
@@ -3397,6 +3394,7 @@ ${amount} για ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4693,6 +4691,7 @@ ${amount} για ${merchant} - ${date}`,
             customFieldHint: 'Προσθέστε προσαρμοσμένη κωδικοποίηση που θα εφαρμόζεται σε όλες τις δαπάνες από αυτό το μέλος.',
             reports: 'Αναφορές',
             reportFields: 'Πεδία αναφοράς',
+            invoiceFields: 'Πεδία τιμολογίου',
             reportTitle: 'Τίτλος αναφοράς',
             reportField: 'Πεδίο αναφοράς',
             taxes: 'Φόροι',
@@ -6508,6 +6507,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
                         },
+                        setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
+                        feedSelectorIntro:
+                            'Ο οργανισμός σας έχει ήδη ρυθμίσει ροή ενοποιημένης τιμολόγησης ταξιδιών. Επιλέξτε την για να διατηρήσετε τις ταξιδιωτικές δαπάνες αυτού του χώρου εργασίας στον ίδιο μηνιαίο λογαριασμό.',
                     },
                     disableModal: {
                         title: 'Απενεργοποίηση της ενοποιημένης χρέωσης ταξιδιών;',
@@ -6775,6 +6777,29 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             unsupportedFormulaValueError: (value) => `Το πεδίο τύπου ${value} δεν αναγνωρίζεται`,
             reportFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο αναφοράς',
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του πεδίου αναφοράς. Παρακαλούμε δοκιμάστε ξανά.',
+        },
+        invoiceFields: {
+            subtitle: 'Τα πεδία τιμολογίου μπορεί να είναι χρήσιμα όταν θέλετε να συμπεριλάβετε επιπλέον πληροφορίες.',
+            importedFromAccountingSoftware: 'Τα παρακάτω πεδία τιμολογίου εισάγονται από την/τον',
+            disableInvoiceFields: 'Απενεργοποίηση πεδίων τιμολογίου',
+            disableInvoiceFieldsConfirmation: 'Είστε βέβαιοι; Τα πεδία τιμολογίου θα απενεργοποιηθούν στα τιμολόγια.',
+            delete: 'Διαγραφή πεδίου τιμολογίου',
+            deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το πεδίο τιμολογίου;',
+            findInvoiceField: 'Εύρεση πεδίου τιμολογίου',
+            nameInputSubtitle: 'Επιλέξτε ένα όνομα για το πεδίο τιμολογίου.',
+            typeInputSubtitle: 'Επιλέξτε ποιον τύπο πεδίου τιμολογίου θέλετε να χρησιμοποιήσετε.',
+            initialValueInputSubtitle: 'Εισαγάγετε μια αρχική τιμή για εμφάνιση στο πεδίο τιμολογίου.',
+            listValuesInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα επιλογών του πεδίου τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            listInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα πεδίων τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            emptyInvoiceFieldsValues: {
+                title: 'Δεν υπάρχουν ακόμη τιμές λίστας',
+                subtitle: 'Προσθέστε προσαρμοσμένες τιμές για να εμφανίζονται στα τιμολόγια.',
+            },
+            existingInvoiceFieldNameError: 'Υπάρχει ήδη πεδίο τιμολογίου με αυτό το όνομα',
+            invoiceFieldNameRequiredError: 'Παρακαλούμε εισαγάγετε ένα όνομα πεδίου τιμολογίου',
+            invoiceFieldTypeRequiredError: 'Παρακαλούμε επιλέξτε έναν τύπο πεδίου τιμολογίου',
+            invoiceFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο τιμολογίου',
+            addField: 'Προσθήκη πεδίου',
         },
         tags: {
             tagName: 'Όνομα ετικέτας',
@@ -7822,6 +7847,12 @@ ${reportName}`,
                 description: `Τα πεδία αναφοράς σάς επιτρέπουν να ορίζετε λεπτομέρειες σε επίπεδο κεφαλίδας, διαφορετικές από τις ετικέτες που αφορούν έξοδα σε μεμονωμένες γραμμές. Αυτές οι λεπτομέρειες μπορούν να περιλαμβάνουν συγκεκριμένα ονόματα έργων, πληροφορίες επαγγελματικών ταξιδιών, τοποθεσίες και άλλα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Τα πεδία αναφοράς είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Πεδία τιμολογίου',
+                description: `Τα πεδία τιμολογίου σάς επιτρέπουν να συμπεριλάβετε επιπλέον λεπτομέρειες σε επίπεδο τιμολογίου στα τιμολόγια.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Τα πεδία τιμολογίου είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
@@ -9841,6 +9872,7 @@ ${reportName}`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `εξήχθη σε ${translatedLabel}`;
@@ -11074,6 +11106,7 @@ ${reportName}`,
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
+        reconciliationAllExpenses: 'Συμφωνία - Όλα τα έξοδα',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',
