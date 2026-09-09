@@ -72,18 +72,21 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasMerchantRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRulesSelector(activePolicyID)});
-
-    useEffect(() => {
-        if (!activePolicyID) {
-            return;
-        }
-        getRules();
-    }, [activePolicyID]);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
+
+    // Home never opens a workspace, so nothing else fetches the rules collection that `hasMerchantRules`
+    // reads. Gated on the same condition as the checklist item so this only runs where the item is shown.
+    const shouldFetchRules = !!activePolicyID && arePolicyRulesEnabled(policy, policyCategories);
+    useEffect(() => {
+        if (!shouldFetchRules) {
+            return;
+        }
+        getRules();
+    }, [shouldFetchRules]);
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
 
