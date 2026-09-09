@@ -178,6 +178,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
@@ -791,6 +792,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
@@ -879,6 +881,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -1178,6 +1181,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -1407,6 +1411,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
             return waitForBatchedUpdates()
@@ -1648,6 +1653,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
 

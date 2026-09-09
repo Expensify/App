@@ -684,6 +684,7 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
                 });
 
@@ -867,6 +868,7 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
                 });
 
@@ -1054,6 +1056,7 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
                 });
 
@@ -1250,6 +1253,7 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
                 });
 
