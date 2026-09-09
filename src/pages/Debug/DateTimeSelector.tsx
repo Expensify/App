@@ -59,7 +59,7 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value ? encodeURIComponent(value) : value)));
             }}
             shouldShowRightIcon
         />

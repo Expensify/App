@@ -36,7 +36,7 @@ function DynamicDebugDetailsDateTimePickerPage({
 
     const handleSubmit = (time: string) => {
         const formattedDateTime = format(new Date(`${date} ${time}`), 'yyyy-MM-dd HH:mm:ss.SSS');
-        Navigation.goBack(appendParam(backPath, fieldName ?? '', formattedDateTime), {compareParams: false});
+        Navigation.goBack(appendParam(backPath, fieldName ?? '', encodeURIComponent(formattedDateTime)), {compareParams: false});
     };
 
     return (
@@ -45,7 +45,7 @@ function DynamicDebugDetailsDateTimePickerPage({
                 title={fieldName}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack(fieldValue ? appendParam(backPath, fieldName, fieldValue) : backPath, {compareParams: false});
+                    Navigation.goBack(fieldValue ? appendParam(backPath, fieldName, encodeURIComponent(fieldValue)) : backPath, {compareParams: false});
                 }}
             />
             <ScrollView contentContainerStyle={styles.gap8}>
