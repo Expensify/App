@@ -153,6 +153,7 @@ export default {
     domainTableActionColumnWidth: 64,
     domainAdminsTableActionColumnWidth: 140,
     agentsTableActionColumnWidth: 260,
+    companyCardsTableActionColumnWidth: 140,
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
     sectionMenuItemHeight: 52,

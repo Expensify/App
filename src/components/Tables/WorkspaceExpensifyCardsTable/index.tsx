@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {filterCardsByPersonalDetails, getTranslationKeyForCardStatus, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCardListLabels';
 
@@ -108,7 +109,7 @@ export default function WorkspaceExpensifyCardsTable({
     listContentContainerStyle,
 }: WorkspaceExpensifyCardsTableProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -129,7 +130,7 @@ export default function WorkspaceExpensifyCardsTable({
                 // The cell stacks the cardholder's name above the card's own title, so whichever renders wider decides
                 // the column's width.
                 getContentToMeasure: (item) => [
-                    {text: item.cardholder?.displayName ?? item.cardholder?.login ?? '', fontSize: fontScale.text},
+                    {text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber}), fontSize: fontScale.text},
                     {text: item.name, fontSize: fontScale.label},
                 ],
                 extraWidth: MEMBER_CELL_AVATAR_WIDTH,

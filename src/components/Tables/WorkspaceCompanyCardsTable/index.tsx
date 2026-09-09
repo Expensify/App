@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -36,6 +36,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -204,14 +205,14 @@ function WorkspaceCompanyCardsTable({
             label: translate('common.member'),
             sortable: true,
             dynamicSizing: {
-                // The cell stacks the member's name above the card details or login, so whichever renders wider decides
-                // the column's width.
+                // Mirrors the row's own title/subtitle: the cardholder's name (or the unassigned label) stacked above
+                // their login, so whichever renders wider decides the column's width.
                 getContentToMeasure: (item) => [
                     {
-                        text: item.isAssigned ? (item.cardholder?.displayName ?? item.cardholder?.login ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                        text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
                         fontSize: fontScale.text,
                     },
-                    {text: item.customCardName ?? '', fontSize: fontScale.label},
+                    {text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
                 ],
                 extraWidth: MEMBER_CELL_AVATAR_WIDTH,
             },
@@ -222,7 +223,7 @@ function WorkspaceCompanyCardsTable({
             sortable: true,
             dynamicSizing: {
                 // Masked card numbers all render at the same length, so this column always fits them in full.
-                getContentToMeasure: (item) => [{text: item.cardName, fontSize: fontScale.text}],
+                getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
                 shouldFitContent: true,
             },
         },
@@ -251,14 +252,9 @@ function WorkspaceCompanyCardsTable({
             key: 'actions',
             label: '',
             sortable: false,
+            width: variables.companyCardsTableActionColumnWidth,
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
-            },
-            dynamicSizing: {
-                // Only unassigned rows render the Assign button, so that is the widest content this column ever holds.
-                getContentToMeasure: () => [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}],
-                extraWidth: variables.iconSizeNormal + styles.gap3.gap,
-                shouldFitContent: true,
             },
         },
     ];
