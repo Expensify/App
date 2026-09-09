@@ -24,7 +24,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming} from 'react-native-reanimated';
 
 import Banner from './Banner';
 import Icon from './Icon';
@@ -32,8 +32,12 @@ import Text from './Text';
 import TextLink from './TextLink';
 import {useWideRHPState} from './WideRHPContextProvider';
 
-/** How far the callout travels on its way in, matching the distance reanimated's FadeInUp and FadeInDown use */
-const CALLOUT_SLIDE_DISTANCE = 25;
+/** How far the callout travels on its way in, far enough for the spring to read as movement rather than a nudge */
+const CALLOUT_SLIDE_DISTANCE = 40;
+
+// The spring carries the movement, so the fade only has to stop the callout appearing before it has travelled. Linear
+// because that is what reanimated's own fade keyframes run at on web.
+const CALLOUT_FADE_CONFIG = {duration: CONST.ANIMATED_TRANSITION, easing: Easing.linear};
 
 type MerchantRuleSuggestionBannerProps = {
     /** The report hosting the expense detail view: a transaction thread, its expense report, or the chat it lives in */
@@ -68,9 +72,9 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
     const isShowing = !!suggestion && !!policyID;
 
-    // Slid in from the edge it is pinned to by a parked view, the way FloatingMessageCounter does it. A reanimated
-    // entering animation looked right when the callout arrived with a fresh page, but a toggle edit leaves the user
-    // on the page it appears in, and there the animation fought the surrounding layout and flickered.
+    // Sprung in from the edge it is pinned to, the way FloatingMessageCounter moves its pill. A reanimated entering
+    // animation looked right when the callout arrived with a fresh page, but a toggle edit leaves the user on the page
+    // it appears in, and there the animation fought the surrounding layout and flickered.
     const slideOffset = isAnchoredToBottom ? CALLOUT_SLIDE_DISTANCE : -CALLOUT_SLIDE_DISTANCE;
     const translateY = useSharedValue(slideOffset);
     const opacity = useSharedValue(0);
@@ -81,8 +85,8 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     useEffect(() => {
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
-                translateY.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
-                opacity.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+                translateY.set(withSpring(0));
+                opacity.set(withTiming(1, CALLOUT_FADE_CONFIG));
             },
         });
         return handle.cancel;
