@@ -104,7 +104,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                                 <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
                                 <Icon
                                     src={icons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(isDescribeMode, pressed))}
+                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isDescribeMode, isPressed: pressed})})}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                 />
