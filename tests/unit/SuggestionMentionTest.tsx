@@ -175,6 +175,18 @@ describe('SuggestionMention', () => {
         expect(mockSearchUserInServer).not.toHaveBeenCalled();
     });
 
+    it('does not search the server for a multi-word mention', () => {
+        renderSuggestionMention('@alice are');
+        const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];
+        if (!calculateMentionSuggestions) {
+            throw new Error('Expected the mention calculation callback to be available');
+        }
+
+        act(() => calculateMentionSuggestions('@alice are', 10, 10));
+
+        expect(mockSearchUserInServer).not.toHaveBeenCalled();
+    });
+
     it('does not update mention state while typing ordinary text', () => {
         renderSuggestionMention('hello friend');
         const calculateMentionSuggestions = mockUseDebounce.mock.calls.at(-1)?.[0];

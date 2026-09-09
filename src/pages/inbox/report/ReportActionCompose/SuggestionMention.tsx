@@ -144,7 +144,7 @@ function SuggestionMention({
     const debouncedSearchInServer = useDebounce(
         useCallback(
             (prefixType: string, searchPrefix: string, foundSuggestionsCount: number) => {
-                if (prefixType === '@') {
+                if (prefixType === '@' && !searchPrefix.includes(' ')) {
                     const isHereMention = `@${searchPrefix}`.toLowerCase() === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
                     if (!isHereMention) {
                         searchUserInServer(searchPrefix);
