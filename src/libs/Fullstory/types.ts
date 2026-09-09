@@ -217,9 +217,6 @@ type Fullstory = {
      */
     getSessionURL: () => Promise<string | undefined>;
 
-    /**
-     * Sends a custom event to FullStory.
-     */
     event: <TEventName extends FullstoryEventName>(eventName: TEventName, eventProperties?: FullstoryEventPropertiesMap[TEventName]) => void;
 
     /**

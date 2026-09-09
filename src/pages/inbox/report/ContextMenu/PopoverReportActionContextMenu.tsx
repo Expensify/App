@@ -56,7 +56,6 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 }
 
 type PopoverReportActionContextMenuProps = {
-    /** Reference to the outer element */
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
@@ -388,6 +387,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     chatReportID: reportIDRef.current,
                     chatReport: report,
                     chatReportActions: reportActions,
+                    transactionThreadReportActions: childReportActions,
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,

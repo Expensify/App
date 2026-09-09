@@ -338,6 +338,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' &&
@@ -1049,6 +1050,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
                 chatReportActions: moneyRequestReportActions,
+                transactionThreadReportActions,
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,
@@ -1092,6 +1094,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,
+        transactionThreadReportActions,
         iouReport,
         iouReportTransactions,
         chatIOUReport,
