@@ -558,7 +558,8 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Both layouts open the report first and the pressed expense on a short timer; let that timer run.
+        // Wide layouts open the report first and the pressed expense on a short timer; let that timer run. Narrow layouts
+        // push both in the same tick, so this is a no-op there.
         const settleCascade = async () => {
             await act(async () => {
                 jest.advanceTimersByTime(400);
@@ -688,18 +689,13 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
         });
 
-        it('opens the report and then the pressed expense on top of it (after a short delay) on narrow layouts', async () => {
-            jest.useRealTimers();
+        it('opens the report and the pressed expense on top of it in the same tick on narrow layouts', async () => {
+            // Deploy blocker #100673: a delayed push let the user watch the report mount before the expense opened.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
-            await act(async () => {
-                await new Promise((resolve) => {
-                    setTimeout(resolve, 350);
-                });
-            });
 
             // Back returns to the report and back again to the chat, matching the wide layout's order.
             const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
@@ -710,41 +706,16 @@ describe('MoneyRequestReportPreview', () => {
 
         it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
             // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
-            jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
-            await act(async () => {
-                await new Promise((resolve) => {
-                    setTimeout(resolve, 350);
-                });
-            });
 
             const threadID = `thread_${mockSecondTransactionID}`;
             const threadAsReportScreen = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`r/${threadID}`));
             expect(threadAsReportScreen).toEqual([]);
             expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadID, backTo: narrowReportRoute()}));
-        });
-
-        it('does not open the pressed expense if the user leaves the report during the narrow cascade delay', async () => {
-            jest.useRealTimers();
-            mockResponsiveLayoutOverride = narrowResponsiveLayout;
-            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
-            jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(false);
-
-            await renderAndPopulateCarousel();
-            await pressSecondTransaction();
-            await act(async () => {
-                await new Promise((resolve) => {
-                    setTimeout(resolve, 350);
-                });
-            });
-
-            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
-            expect(navigateSpy).toHaveBeenCalledWith(reportRoute);
-            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
         it('fetches the report actions when the thread resolved only from the transaction, so the carousel can resolve siblings', async () => {

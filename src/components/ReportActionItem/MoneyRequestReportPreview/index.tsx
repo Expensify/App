@@ -56,6 +56,7 @@ import resolvePressOrigin from './resolvePressOrigin';
 const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Object.keys(reportActions ?? {}).length > 0;
 
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
+// Wide layouts only, where the expense visibly cascades over the super-wide report RHP.
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
 
 function MoneyRequestReportPreview({
@@ -304,24 +305,13 @@ function MoneyRequestReportPreview({
                 if (!wasPressedFromReport) {
                     Navigation.navigate(reportRoute);
                 }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs);
-                const release = () => {
-                    seeded.then(() => {
-                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
-                            return;
-                        }
-                        clearActiveTransactionIDs();
-                    });
-                };
-                const timer = setTimeout(() => {
-                    cascadeTimerRef.current = null;
-                    if (!Navigation.isActiveRoute(reportRoute)) {
-                        release();
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                }, PRESSED_EXPENSE_CASCADE_DELAY);
-                cascadeTimerRef.current = {timer, release};
+                setActiveTransactionIDs(openableTransactionIDs);
+                // No stagger here: the report is a full-screen split screen, not a layer the expense can visibly cascade
+                // over, and mounting the money request report is heavy enough that a timer only fires once it has painted
+                // (about a second on a mid-range Android device). The user would watch the report load and re-layout before
+                // the expense finally opened. Pushing both in the same tick commits them together, so the expense slides in
+                // over the report from the start while back still returns to the report and then to the chat.
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
 
