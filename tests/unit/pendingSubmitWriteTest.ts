@@ -1,7 +1,7 @@
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import {
-    clearPendingSubmitWriteWhenBarrierSettles,
     hasPendingSubmitWriteForReport,
+    trackPendingSubmitWriteForReport,
     markPendingSubmitWriteForReport,
     resetForTesting,
     restartPendingSubmitWriteSafetyTimeout,
@@ -144,25 +144,25 @@ describe('pendingSubmitWrite', () => {
         }
     });
 
-    describe('clearPendingSubmitWriteWhenBarrierSettles', () => {
+    describe('trackPendingSubmitWriteForReport', () => {
         it('keeps the signal up until the write attaches to the barrier', async () => {
-            // Given a pending submit write whose clear is tied to a write barrier
-            const clear = markPendingSubmitWriteForReport('report-A');
+            // Given a pending submit write tied to a barrier the write has not attached to yet
             let releaseBarrier: () => void = () => {};
-            const barrier = () =>
+            const baseBarrier = () =>
                 new Promise<void>((resolve) => {
                     releaseBarrier = resolve;
                 });
-            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(barrier, clear);
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', baseBarrier);
 
-            // When the submit function has returned but no write has attached yet (e.g. a GPS lookup is still running)
+            // When the submit function has returned with the write still coming (e.g. a GPS lookup is running)
+            pendingWrite.settleAfterSubmit(true);
             await Promise.resolve();
 
             // Then the signal is still up, so the destination keeps its loading state instead of flashing empty
             expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
 
             // When the write attaches and the barrier settles
-            const pending = wrappedBarrier(new AbortController().signal);
+            const pending = pendingWrite.barrier(new AbortController().signal);
             releaseBarrier();
             await pending;
 
@@ -170,29 +170,97 @@ describe('pendingSubmitWrite', () => {
             expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
         });
 
-        it('clears the signal when the write is released early via abort', async () => {
-            // Given a pending submit write attached to a barrier that never settles on its own
-            const clear = markPendingSubmitWriteForReport('report-A');
-            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(() => new Promise<void>(() => {}), clear);
+        it('clears the signal right after submit when no write attached and none is coming', () => {
+            // Given a pending submit write whose submit function bailed before issuing any write (validation guard)
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => Promise.resolve());
+
+            // When the caller reports that no write is coming
+            pendingWrite.settleAfterSubmit(false);
+
+            // Then the signal drops immediately - the barrier will never run, and waiting for the safety
+            // timeout would leave the destination on its loading state until something else re-renders it
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+        });
+
+        it('extends the safety timeout while a write is still coming', () => {
+            jest.useFakeTimers();
+            try {
+                // Given a pending submit write marked at dismiss time, with the lookup taking most of the safety window
+                const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => Promise.resolve());
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+
+                // When the submit function returns with the write still coming
+                pendingWrite.settleAfterSubmit(true);
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+
+                // Then the signal survives past the original window, so a slow GPS fix does not flash the empty state
+                expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('restarts the safety timeout when the write attaches', () => {
+            jest.useFakeTimers();
+            try {
+                // Given a pending submit write whose write attaches near the end of the mark-time window
+                const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => new Promise<void>(() => {}));
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+                pendingWrite.barrier(new AbortController().signal);
+
+                // When the original window would have expired
+                jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+
+                // Then the signal is still up, timed from attach rather than from the mark
+                expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('does not clear on settle once the write has attached', async () => {
+            // Given a write that attached to the barrier and is waiting on it
+            let releaseBarrier: () => void = () => {};
+            const pendingWrite = trackPendingSubmitWriteForReport(
+                'report-A',
+                () =>
+                    new Promise<void>((resolve) => {
+                        releaseBarrier = resolve;
+                    }),
+            );
+            const pending = pendingWrite.barrier(new AbortController().signal);
+
+            // When the submit function returns and reports no further write coming
+            pendingWrite.settleAfterSubmit(false);
+
+            // Then the signal stays up - the attached write owns the clear now
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+
+            releaseBarrier();
+            await pending;
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+        });
+
+        it('clears the signal when the write is released early via abort', () => {
+            // Given a write attached to a barrier that never settles on its own
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => new Promise<void>(() => {}));
             const abortController = new AbortController();
-            const pending = wrappedBarrier(abortController.signal);
+            const pending = pendingWrite.barrier(abortController.signal);
 
             // When writeWhenReady releases the write early (safety timeout or app background) by aborting
             abortController.abort();
 
             // Then the signal clears too, instead of waiting for its own safety timeout
             expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
-            // The barrier itself never settles, so nothing more to await on `pending`
             expect(pending).toBeDefined();
         });
 
         it('still clears the signal when the barrier rejects', async () => {
-            // Given a pending submit write tied to a barrier that rejects (the write still executes in that case)
-            const clear = markPendingSubmitWriteForReport('report-A');
-            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(() => Promise.reject(new Error('barrier failed')), clear);
+            // Given a write attached to a barrier that rejects (the write still executes in that case)
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => Promise.reject(new Error('barrier failed')));
 
             // When the barrier rejects
-            await expect(wrappedBarrier(new AbortController().signal)).rejects.toThrow('barrier failed');
+            await expect(pendingWrite.barrier(new AbortController().signal)).rejects.toThrow('barrier failed');
 
             // Then the signal is cleared along with it
             expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);

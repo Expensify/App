@@ -975,9 +975,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier?: WriteReadyBarrier) {
+    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier?: WriteReadyBarrier): boolean {
         if (blockDistanceRequestIfNeeded()) {
-            return;
+            return false;
         }
 
         setIsConfirmed(true);
@@ -985,7 +985,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
         if (formHasBeenSubmitted.current) {
-            return;
+            return false;
         }
 
         formHasBeenSubmitted.current = true;
@@ -995,7 +995,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             createDistanceRequest(trimmedComment, shouldHandleNavigation, writeBarrier);
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
@@ -1043,7 +1043,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 }
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // Raise Search's own pending-write signal when a split write will actually run and land back on
@@ -1101,7 +1101,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 }
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // If the split expense is created from the global create menu, we also navigate the user to the group report
@@ -1151,7 +1151,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 }
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         if (iouType === CONST.IOU.TYPE.INVOICE) {
@@ -1191,7 +1191,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 cleanupAfterExpenseCreate({draftTransactionIDs});
             }
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
@@ -1210,27 +1210,27 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                             writeBarrier,
                         });
                         markSubmitExpenseEnd();
-                        return;
+                        return false;
                     }
 
                     getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords, writeBarrier}));
-                    return;
+                    return true;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
                 trackExpense(shouldHandleNavigation, {writeBarrier});
                 markSubmitExpenseEnd();
-                return;
+                return false;
             }
             trackExpense(shouldHandleNavigation, {writeBarrier});
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         if (isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT) {
             submitPerDiemExpense(trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories, writeBarrier);
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
@@ -1246,21 +1246,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         writeBarrier,
                     );
                     markSubmitExpenseEnd();
-                    return;
+                    return false;
                 }
 
                 getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(shouldHandleNavigation, gpsCoords, writeBarrier));
-                return;
+                return true;
             }
 
             // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
             requestMoney(shouldHandleNavigation, undefined, writeBarrier);
             markSubmitExpenseEnd();
-            return;
+            return false;
         }
 
         requestMoney(shouldHandleNavigation, undefined, writeBarrier);
         markSubmitExpenseEnd();
+        return false;
     }
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {

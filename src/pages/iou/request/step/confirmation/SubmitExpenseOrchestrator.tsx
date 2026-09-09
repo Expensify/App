@@ -15,7 +15,8 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {clearPendingSubmitWriteWhenBarrierSettles, markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import {trackPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import type {PendingSubmitWrite} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
@@ -49,8 +50,9 @@ type SubmitExpenseOrchestratorProps = {
      * Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction.
      * `writeBarrier`, when given, is what the resulting API write waits on before applying its
      * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
+     * Returns true when the write is still coming after the call returns (e.g. handed off to a GPS lookup).
      */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => void;
+    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => boolean;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -248,11 +250,11 @@ function SubmitExpenseOrchestrator({
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         // Armed before the reveal, so the barrier attaches to the transition that reveal starts. The pending-write
         // signal clears from the barrier, once the write attaches, not when createTransaction returns.
-        const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
-        const writeBarrier = clearPendingSubmitWriteWhenBarrierSettles(armTransitionBarrier().barrier, clearPendingWrite);
+        const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armTransitionBarrier().barrier);
 
         const afterTransition = () => {
-            createTransaction(locationPermissionGranted, false, writeBarrier);
+            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite.barrier);
+            pendingWrite.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
 
@@ -266,7 +268,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
 
-        let writeBarrier: WriteReadyBarrier | undefined;
+        let pendingWrite: PendingSubmitWrite | undefined;
 
         if (shouldPreserveSearchWithPlaceholder) {
             // Search-destined submissions release on Search's own content layout, not on this dismiss
@@ -278,12 +280,12 @@ function SubmitExpenseOrchestrator({
             // dismiss transition is starting, otherwise it would wait out an unrelated later one.
             // The pending-write signal clears from the barrier once the write attaches, so a GPS lookup
             // between dismiss and write keeps it up.
-            const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
-            writeBarrier = clearPendingSubmitWriteWhenBarrierSettles(armTransitionBarrier().barrier, clearPendingWrite);
+            pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armTransitionBarrier().barrier);
         }
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false, writeBarrier);
+            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
 
@@ -411,13 +413,16 @@ function SubmitExpenseOrchestrator({
 
         const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
-        const clearPendingWrite = isDestinationEmpty ? markPendingSubmitWriteForReport(destinationReportID) : () => {};
         // No wait here, the barrier resolves at once. It exists so the pending-write signal clears when the write
         // actually goes out, which can be seconds later if a GPS lookup runs first.
-        const writeBarrier = isDestinationEmpty ? markBarrierAsImmediate(clearPendingSubmitWriteWhenBarrierSettles(IMMEDIATE, clearPendingWrite)) : undefined;
+        const pendingWrite = isDestinationEmpty ? trackPendingSubmitWriteForReport(destinationReportID, IMMEDIATE) : undefined;
+        if (pendingWrite) {
+            markBarrierAsImmediate(pendingWrite.barrier);
+        }
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false, writeBarrier);
+            const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+            pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
 
@@ -434,7 +439,7 @@ function SubmitExpenseOrchestrator({
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
         // Nothing dismisses here, so runAfterDismiss never runs - drop the signal explicitly rather
         // than leaving it to the safety timeout.
-        clearPendingWrite();
+        pendingWrite?.settleAfterSubmit(false);
         handleDefaultSubmit(locationPermissionGranted);
     };
 
