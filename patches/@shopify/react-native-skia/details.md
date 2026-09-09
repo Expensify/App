@@ -104,41 +104,33 @@
 
     ```
     Fixes charts staying permanently blank on web whenever React re-runs the
-    layout effects of a mounted <Canvas> on the same DOM node - most importantly
-    a screen wrapped in React <Activity> being hidden and revealed (the
-    ScreenActivityWrapper rollout), and StrictMode's DEV double-invoke.
+    layout effects of a mounted <Canvas> on the same DOM node: a screen wrapped
+    in React <Activity> being hidden and revealed (the ScreenActivityWrapper
+    rollout) and StrictMode's DEV double-invoke.
 
-    Hiding an Activity subtree runs effect cleanups: SkiaPictureView's cleanup
-    calls WebGLRenderer.dispose(), which called WEBGL_lose_context.loseContext()
-    on the <canvas>. Per the WEBGL_lose_context spec that loss is permanent for
-    the element - a later getContext("webgl2") hands back the same lost context
-    and only restoreContext() can revive it. Revealing re-runs the effects and
-    creates a new renderer on the same canvas element, so
-    CanvasKit.MakeWebGLCanvasSurface can never succeed on it again - it throws
-    "Cannot read properties of null (reading 'rangeMin')" (which patch 002 turns
-    into the "unable to display chart" fallback). Losing the context also blanks
-    the canvas while the hidden screen can still be on screen: the app keeps a
-    hidden <Activity> screen visible as a static backdrop (display: contents).
+    The effect cleanup calls WebGLRenderer.dispose(), which lost the WebGL
+    context of the <canvas>. Per the WEBGL_lose_context spec that loss is
+    permanent for the element, so the renderer the re-run creates on the same
+    element can never get a surface again: CanvasKit.MakeWebGLCanvasSurface
+    throws "Cannot read properties of null (reading 'rangeMin')", which patch
+    002 turns into the "unable to display chart" fallback.
 
-    Fix (mirrors upstream PR #4027): dispose() no longer loses the context
-    synchronously. It defers the release by one microtask and only calls
-    loseContext() when the canvas actually left the document - React runs effect
-    cleanup before detaching the host node, so the element is still connected at
-    cleanup time even during a real unmount, but one microtask later
-    isConnected is false only for a real unmount. An Activity hide keeps the
-    element connected, so the context - and the last presented frame the
-    backdrop shows - survives, and the reveal creates its new surface on the
-    live context exactly like the already-working resize path. A real unmount
-    still releases the context deterministically, which matters because
-    browsers cap a page at ~16 live WebGL contexts.
+    dispose() now defers the release by one microtask and only loses the
+    context when the canvas has left the document. React runs cleanup before
+    detaching the host node, so isConnected is false one microtask later only
+    for a real unmount, which keeps releasing the context deterministically
+    (browsers cap a page at ~16 live contexts). An Activity hide keeps the
+    element connected, so the context and the last presented frame survive
+    and the reveal builds its surface on the live context like the resize path
+    already does. The kept frame matters because ScreenActivityWrapper keeps
+    the hidden screen painted as a static backdrop (AlwaysPaintedView).
 
-    A screen unmounted while hidden runs no cleanup at all, so its context is
-    reclaimed only by the browser's LRU force-loss once the cap is hit; a
-    leaked context is never used again, so it is the first eviction victim.
-    Context pressure from hidden screens matches the pre-Activity baseline,
-    where every mounted background screen held a live context anyway.
+    A screen unmounted while hidden runs no cleanup, so its context is only
+    reclaimed by the browser's LRU force-loss once the cap is hit. That matches
+    the pre-Activity baseline, where every mounted background screen held a
+    live context anyway.
     ```
 
-- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976 - the same root cause reported against upstream `main`, with two open fixes: https://github.com/Shopify/react-native-skia/pull/4027 (deferred `isConnected`-guarded release, which this patch mirrors) and https://github.com/Shopify/react-native-skia/pull/4002 (drops `loseContext()` entirely; safe upstream only because `deleteContext()` exists there, which 2.4.18 lacks). Revisit when either merges and the Skia dependency is bumped.
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-09; the latest is 2.11.2). Its dispose() defers the loss the same way and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
