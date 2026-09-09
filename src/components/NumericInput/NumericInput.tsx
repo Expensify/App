@@ -40,13 +40,13 @@ type NumericInputProps = {
     errorText?: string;
 
     /** Ref exposing the number editing imperative API. */
-    numericInputRef?: ForwardedRef<NumericEditingRef>;
+    ref?: ForwardedRef<NumericEditingRef>;
 
     /** Composed primitives that consume NumericInput state and actions through context. */
     children: ReactNode;
 };
 
-function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, numericInputRef, children}: NumericInputProps) {
+function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, children}: NumericInputProps) {
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const controller = useNumericEditingController({
         value,
@@ -58,7 +58,7 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
         toCanonicalValue: (displayText, previousCanonicalValue) => getSignedValue(displayText, previousCanonicalValue, allowNegative),
     });
 
-    useImperativeHandle(numericInputRef, () => ({
+    useImperativeHandle(ref, () => ({
         clearSelection: controller.clearSelection,
         getNumber: controller.getNumber,
         updateNumber: controller.updateNumber,

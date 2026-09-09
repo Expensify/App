@@ -409,18 +409,18 @@ describe('NumericInput', () => {
     describe('root imperative API', () => {
         it('reads and replaces the value without notifying onInputChange', () => {
             // Given a composition holding value "12" and a root ref
-            const numericInputRef = React.createRef<NumericEditingRef>();
-            renderNumericInput({value: '12', numericInputRef});
+            const ref = React.createRef<NumericEditingRef>();
+            renderNumericInput({value: '12', ref});
 
-            expect(numericInputRef.current?.getNumber()).toBe('12');
+            expect(ref.current?.getNumber()).toBe('12');
 
             // When the value is replaced imperatively
             act(() => {
-                numericInputRef.current?.updateNumber('7.5');
+                ref.current?.updateNumber('7.5');
             });
 
             // Then the new value is displayed with the caret at its end, and the root is not notified
-            expect(numericInputRef.current?.getNumber()).toBe('7.5');
+            expect(ref.current?.getNumber()).toBe('7.5');
             expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('7.5');
             expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
             expect(onInputChange).not.toHaveBeenCalled();
@@ -428,8 +428,8 @@ describe('NumericInput', () => {
 
         it('collapses the selection onto its end when clearSelection is called', () => {
             // Given a composition with a range selection on the input
-            const numericInputRef = React.createRef<NumericEditingRef>();
-            renderNumericInput({value: '1234', numericInputRef});
+            const ref = React.createRef<NumericEditingRef>();
+            renderNumericInput({value: '1234', ref});
 
             const input = screen.getByTestId(INPUT_TEST_ID);
             fireEvent(input, 'selectionChange', {
@@ -439,7 +439,7 @@ describe('NumericInput', () => {
 
             // When the selection is cleared imperatively
             act(() => {
-                numericInputRef.current?.clearSelection();
+                ref.current?.clearSelection();
             });
 
             // Then the selection collapses onto its end
