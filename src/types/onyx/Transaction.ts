@@ -222,7 +222,7 @@ type TransactionCustomUnit = {
  * the member's home and the workspace address needs geocoding, so only the server can decide it.
  */
 type CommuterExclusionPreview = {
-    /** The workspace the verdict was reached for, so a preview left behind by another workspace is ignored */
+    /** The workspace the preview was computed for, so one left behind by another workspace is ignored */
     policyID: string;
 
     /** Whether the trip starts or ends at the member's home, and so has a commute to take off it */
@@ -602,7 +602,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         routes?: Routes;
 
-        /** Server verdict on whether this trip is a commute the workspace excludes, for the confirmation screen */
+        /** Server preview of whether this trip is a commute the workspace excludes, for the confirmation screen */
         commuterExclusionPreview?: CommuterExclusionPreview | null;
 
         transactionID: string;

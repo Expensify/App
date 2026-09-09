@@ -633,7 +633,7 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBeUndefined();
         });
 
-        it('keeps a stored home and office exclusion while no verdict for this workspace has arrived', () => {
+        it('keeps a stored home and office exclusion while no preview for this workspace has arrived', () => {
             const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
                 transaction: distanceTransaction,
                 policy: policyWithHomeAndOfficeExclusion,
@@ -648,7 +648,7 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnit.reimbursableDistance).toBe(3);
         });
 
-        it('keeps a stored fixed distance exclusion even when a verdict for this workspace is present', () => {
+        it('keeps a stored fixed distance exclusion even when a preview for this workspace is present', () => {
             const transaction: Transaction = {
                 ...distanceTransaction,
                 commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0},

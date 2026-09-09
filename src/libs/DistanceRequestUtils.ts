@@ -338,6 +338,15 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
 }
 
 /**
+ * Whether the commuter exclusion preview on the transaction is the one for this workspace. The preview rides
+ * along on the route response, so one left behind by a workspace the member has since switched away from
+ * describes a different trip and does not answer for this one.
+ */
+function hasCommuterExclusionPreviewForPolicy(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.id && transaction?.commuterExclusionPreview?.policyID === policy.id;
+}
+
+/**
  * Whether a workspace's commuter exclusion applies to a distance expense of this request type.
  *
  * Only a distance the app itself measured describes a route the workspace can recognize a commute in, so a manually
@@ -416,9 +425,9 @@ function getTransactionCommuterExclusionData({
     // trip started and ended
     const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
     const commuterExclusionPreview = transaction?.commuterExclusionPreview;
-    const hasVerdictForThisPolicy = !!commuterExclusionPreview && !!policy?.id && commuterExclusionPreview.policyID === policy.id;
+    const hasPreviewForThisPolicy = hasCommuterExclusionPreviewForPolicy(transaction, policy);
     const isStoredExclusionDerivedFromTheTrip = storedCustomUnit?.commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
-    const shouldReuseStoredExclusion = typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && hasVerdictForThisPolicy);
+    const shouldReuseStoredExclusion = typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && hasPreviewForThisPolicy);
 
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
@@ -431,9 +440,9 @@ function getTransactionCommuterExclusionData({
         commuterExclusionMethod = storedCustomUnit?.commuterExclusionMethod ?? CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
     } else if (policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
         // How much of a trip is the member's commute is decided against their home address and the workspace
-        // address, which takes geocoding the backend does and the app can't, so the verdict rides along on the
+        // address, which takes geocoding the backend does and the app can't, so the preview rides along on the
         // route response.
-        if (!hasVerdictForThisPolicy || !commuterExclusionPreview?.hasExclusion) {
+        if (!hasPreviewForThisPolicy || !commuterExclusionPreview?.hasExclusion) {
             commuterExclusion = 0;
         } else if (commuterExclusionPreview.isWholeTripExcluded) {
             // The route distance here is the one to exclude, rather than the backend's copy of it, so the trip
@@ -928,6 +937,7 @@ export default {
     getCommuterExclusionDisplayData,
     getPolicyCommuterExclusionForDistance,
     isCommuterExclusionApplicableToRequestType,
+    hasCommuterExclusionPreviewForPolicy,
     getTransactionCommuterExclusionData,
     getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,

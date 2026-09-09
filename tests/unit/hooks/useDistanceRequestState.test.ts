@@ -27,6 +27,8 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
         },
         convertToDistanceInMeters: (distance: number): number => distance,
         isCommuterExclusionApplicableToRequestType: (iouRequestType: string | undefined): boolean => iouRequestType !== 'distance-manual' && iouRequestType !== 'distance-odometer',
+        hasCommuterExclusionPreviewForPolicy: (transaction: {commuterExclusionPreview?: {policyID: string}} | undefined, policy: {id?: string} | undefined): boolean =>
+            !!policy?.id && transaction?.commuterExclusionPreview?.policyID === policy.id,
     },
 }));
 
@@ -50,18 +52,18 @@ const baseParams: Params = {
 };
 
 describe('useDistanceRequestState', () => {
-    // A home and office exclusion is decided server-side, so the confirmation screen waits for the verdict rather
+    // A home and office exclusion is decided server-side, so the confirmation screen waits for the preview rather
     // than showing an amount the commute has not been taken off yet. The cases that can never receive a
-    // verdict must not wait forever.
+    // preview must not wait forever.
     it.each([
-        ['waits while the verdict for this workspace has not arrived yet', {}, true, true],
+        ['waits while the preview for this workspace has not arrived yet', {}, true, true],
         [
-            'stops waiting once the verdict for this workspace arrives',
+            'stops waiting once the preview for this workspace arrives',
             {commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0}},
             true,
             false,
         ],
-        ['stops waiting when the route errored, so no verdict can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
+        ['stops waiting when the route errored, so no preview can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
         ['does not wait for a personal expense, which no workspace exclusion governs', {}, false, false],
         ['does not wait for a manually entered distance, which describes no route to recognize a commute in', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, true, false],
         ['does not wait for an odometer distance either', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, true, false],

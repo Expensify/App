@@ -1,4 +1,5 @@
 import {getRoute} from '@libs/actions/Transaction';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceTypeRequest, isMapDistanceRequest as isMapDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import type {IOUAction} from '@src/CONST';
@@ -37,8 +38,7 @@ export default function useFetchRoute(
     // picked, or the member has since switched workspace. Requiring a route (and no route error) keeps this to the
     // states where the response is known to land back on this transaction, so it cannot drive a fetch per render.
     const homeAndOfficeExclusionPolicyID = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE ? policy.id : undefined;
-    const isCommuterExclusionPreviewStale =
-        !!homeAndOfficeExclusionPolicyID && hasRoute && !hasRouteError && transaction?.commuterExclusionPreview?.policyID !== homeAndOfficeExclusionPolicyID;
+    const isCommuterExclusionPreviewStale = !!homeAndOfficeExclusionPolicyID && hasRoute && !hasRouteError && !DistanceRequestUtils.hasCommuterExclusionPreviewForPolicy(transaction, policy);
     const shouldFetchRoute =
         isMapDistanceRequest &&
         (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || isCommuterExclusionPreviewStale) &&
