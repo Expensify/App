@@ -22,6 +22,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {getReportParentReportActionID} from '@selectors/Report';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -92,7 +93,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
-    const [parentReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.parentReportActionID});
+    const [parentReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParentReportActionID});
     const [parentReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${getNonEmptyStringOnyxID(parentReportActionID)}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
