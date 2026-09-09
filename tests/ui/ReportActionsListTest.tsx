@@ -20,7 +20,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
-import ReportActionsPaginationSkeleton, {PAGINATION_SPINNER_HEIGHT, PAGINATION_TOP_OVERLAY_CLEARANCE} from '@pages/inbox/report/ReportActionsPaginationSkeleton';
+import ReportActionsPaginationLoadingIndicator, {PAGINATION_LOADING_INDICATOR_HEIGHT} from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -228,7 +228,7 @@ type MockLegendListProps = {
     }) => void;
 };
 
-type PaginationSkeletonProps = React.ComponentProps<typeof ReportActionsPaginationSkeleton>;
+type PaginationLoadingIndicatorProps = React.ComponentProps<typeof ReportActionsPaginationLoadingIndicator>;
 
 const {LegendList: mockLegendList} = jest.requireMock<{LegendList: jest.MockedFunction<(props: MockLegendListProps) => null>}>('@legendapp/list/react-native');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
@@ -237,18 +237,18 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockLegendList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendList.mock.calls.at(-1)?.at(0);
 
-function findPaginationSkeleton(node: React.ReactNode): React.ReactElement<PaginationSkeletonProps> | undefined {
+function findPaginationLoadingIndicator(node: React.ReactNode): React.ReactElement<PaginationLoadingIndicatorProps> | undefined {
     if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
         return undefined;
     }
-    if (node.type === ReportActionsPaginationSkeleton) {
-        return node as React.ReactElement<PaginationSkeletonProps>;
+    if (node.type === ReportActionsPaginationLoadingIndicator) {
+        return node as React.ReactElement<PaginationLoadingIndicatorProps>;
     }
 
     for (const child of React.Children.toArray(node.props.children)) {
-        const paginationSkeleton = findPaginationSkeleton(child);
-        if (paginationSkeleton) {
-            return paginationSkeleton;
+        const loadingIndicator = findPaginationLoadingIndicator(child);
+        if (loadingIndicator) {
+            return loadingIndicator;
         }
     }
 
@@ -645,7 +645,7 @@ describe('ReportActionsList (body)', () => {
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
     });
 
-    describe('pagination placeholders', () => {
+    describe('pagination loading indicators', () => {
         it('measures the chat viewport before mounting LegendList', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
 
@@ -665,7 +665,7 @@ describe('ReportActionsList (body)', () => {
             expect(mockLegendList).toHaveBeenCalled();
         });
 
-        it('keeps one measured skeleton page at both available edges while requests are idle or loading', () => {
+        it('shows padded loading indicators only while requests are active', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -675,11 +675,9 @@ describe('ReportActionsList (body)', () => {
             });
             const view = renderReportActionsList();
 
-            let olderSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent);
-            let newerSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent);
-            expect(olderSkeleton?.props).toEqual(expect.objectContaining({direction: 'older', viewportHeight: 500, isLoading: false, hasError: false}));
-            expect(newerSkeleton?.props).toEqual(expect.objectContaining({direction: 'newer', viewportHeight: 500, isLoading: false, hasError: false}));
-            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(500 + PAGINATION_SPINNER_HEIGHT + PAGINATION_TOP_OVERLAY_CLEARANCE);
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(0);
             expect(getCapturedVisibleActions()).toEqual(mockReportActions.toReversed());
 
             mockIsLoadingOlderReportActions = true;
@@ -692,13 +690,25 @@ describe('ReportActionsList (body)', () => {
                 />,
             );
 
-            olderSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent);
-            newerSkeleton = findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent);
-            expect(olderSkeleton?.props.isLoading).toBe(true);
-            expect(newerSkeleton?.props.isLoading).toBe(true);
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)?.props.direction).toBe('older');
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(PAGINATION_LOADING_INDICATOR_HEIGHT);
+
+            mockHasLoadingOlderReportActionsError = true;
+            mockHasLoadingNewerReportActionsError = true;
+            view.rerender(
+                <ReportActionsList
+                    reportID={mockReport.reportID}
+                    conciergeChat={undefined}
+                    onLayout={jest.fn()}
+                />,
+            );
+
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
         });
 
-        it('positions an unanchored newer window at the last real action before the skeleton page', () => {
+        it('keeps an unanchored newer window aligned to the end when idle', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -708,11 +718,11 @@ describe('ReportActionsList (body)', () => {
 
             renderReportActionsList();
 
-            expect(getCapturedListProps()?.initialScrollAtEnd).toBe(false);
-            expect(getCapturedListProps()?.initialScrollIndex).toEqual({index: mockReportActions.length - 1, viewPosition: 1, viewOffset: 548});
+            expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
+            expect(getCapturedListProps()?.initialScrollIndex).toBeUndefined();
         });
 
-        it('preserves an explicit linked-action index when a newer skeleton page is present', () => {
+        it('preserves an explicit linked-action index when newer actions are available', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockInitialScrollIndex = 0;
             mockInitialScrollIndexParams = {viewPosition: 0.5, viewOffset: 12};
@@ -727,8 +737,10 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedListProps()?.initialScrollIndex).toEqual({index: 0, viewPosition: 0.5, viewOffset: 12});
         });
 
-        it('removes only exhausted edge pages and omits pagination placeholders offline', () => {
+        it('removes an exhausted edge indicator and hides loading UI offline', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
+            mockIsLoadingOlderReportActions = true;
+            mockIsLoadingNewerReportActions = true;
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: mockReportActions,
@@ -751,8 +763,8 @@ describe('ReportActionsList (body)', () => {
                 />,
             );
 
-            expect(findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
-            expect(findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
 
             mockUseNetwork.mockReturnValue({isOffline: true});
             view.rerender(
@@ -763,8 +775,8 @@ describe('ReportActionsList (body)', () => {
                 />,
             );
 
-            expect(findPaginationSkeleton(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
-            expect(findPaginationSkeleton(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)).toBeUndefined();
+            expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)).toBeUndefined();
         });
     });
 

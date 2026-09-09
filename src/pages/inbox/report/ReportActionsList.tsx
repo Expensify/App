@@ -70,7 +70,7 @@ import {useReportActionsListActions, useReportActionsListState} from './ReportAc
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
-import ReportActionsPaginationSkeleton, {PAGINATION_SPINNER_HEIGHT, PAGINATION_TOP_OVERLAY_CLEARANCE} from './ReportActionsPaginationSkeleton';
+import ReportActionsPaginationLoadingIndicator, {PAGINATION_LOADING_INDICATOR_HEIGHT} from './ReportActionsPaginationLoadingIndicator';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
@@ -258,10 +258,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
     const onShowPreviousMessages = handleShowPreviousMessages;
-    const shouldShowOlderPaginationSkeleton = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasOlderActions && !showHiddenHistory;
-    const shouldShowNewerPaginationSkeleton = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasNewerActions;
-    const olderPaginationExtent = shouldShowOlderPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT + PAGINATION_TOP_OVERLAY_CLEARANCE : 0;
-    const newerPaginationExtent = shouldShowNewerPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT + newerFooterHeight : 0;
+    const canPaginateOlder = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasOlderActions && !showHiddenHistory;
+    const canPaginateNewer = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasNewerActions;
+    const shouldShowOlderPaginationLoadingIndicator = canPaginateOlder && !!isLoadingOlderReportActions && !hasLoadingOlderReportActionsError;
+    const shouldShowNewerPaginationLoadingIndicator = canPaginateNewer && !!isLoadingNewerReportActions && !hasLoadingNewerReportActionsError;
+    const olderPaginationExtent = shouldShowOlderPaginationLoadingIndicator ? PAGINATION_LOADING_INDICATOR_HEIGHT : 0;
+    const newerPaginationExtent = canPaginateNewer ? newerFooterHeight + (shouldShowNewerPaginationLoadingIndicator ? PAGINATION_LOADING_INDICATOR_HEIGHT : 0) : 0;
 
     const {onScroll: checkPaginationOnScroll, onContentSizeChange: checkPaginationOnContentSizeChange} = useReportActionsPaginationScroll({
         reportID,
@@ -537,14 +539,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     isDraftPendingCompletion={isDraftPendingCompletion}
                 />
             </View>
-            {shouldShowNewerPaginationSkeleton && (
-                <ReportActionsPaginationSkeleton
-                    direction="newer"
-                    viewportHeight={viewportHeight}
-                    isLoading={!!isLoadingNewerReportActions}
-                    hasError={!!hasLoadingNewerReportActionsError}
-                />
-            )}
+            {shouldShowNewerPaginationLoadingIndicator && <ReportActionsPaginationLoadingIndicator direction="newer" />}
         </>
     );
 
@@ -552,14 +547,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const olderListHeaderComponent = (
         <>
-            {shouldShowOlderPaginationSkeleton && (
-                <ReportActionsPaginationSkeleton
-                    direction="older"
-                    viewportHeight={viewportHeight}
-                    isLoading={!!isLoadingOlderReportActions}
-                    hasError={!!hasLoadingOlderReportActionsError}
-                />
-            )}
+            {shouldShowOlderPaginationLoadingIndicator && <ReportActionsPaginationLoadingIndicator direction="older" />}
             {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
         </>
     );
@@ -590,22 +578,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     if (!report) {
         return <ReportActionsSkeletonView />;
     }
-
-    const newerPaginationPageExtent = shouldShowNewerPaginationSkeleton ? viewportHeight + PAGINATION_SPINNER_HEIGHT : 0;
-    const shouldTargetNewestRealAction = initialScrollIndex === undefined && shouldShowNewerPaginationSkeleton && listData.length > 0;
-    const initialListIndex = (() => {
-        if (initialScrollIndex !== undefined) {
-            return {index: initialScrollIndex, ...initialScrollIndexParams};
-        }
-        if (shouldTargetNewestRealAction) {
-            return {
-                index: listData.length - 1,
-                viewPosition: 1,
-                viewOffset: newerPaginationPageExtent,
-            };
-        }
-        return undefined;
-    })();
 
     return (
         <>
@@ -642,7 +614,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                             contentContainerStyle={styles.chatContentScrollView}
                             ListHeaderComponent={olderListHeaderComponent}
                             ListFooterComponent={newerListFooterComponent}
-                            ListFooterComponentStyle={shouldBeAlignedToTop && !shouldShowNewerPaginationSkeleton ? styles.flex1 : undefined}
+                            ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                             estimatedHeaderSize={olderPaginationExtent}
                             keyboardShouldPersistTaps="handled"
                             onLayout={recordTimeToMeasureItemLayout}
@@ -651,8 +623,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                             extraData={extraData}
                             key={listID}
                             getItemType={getItemType}
-                            initialScrollAtEnd={initialScrollIndex === undefined && !shouldTargetNewestRealAction}
-                            initialScrollIndex={initialListIndex}
+                            initialScrollAtEnd={initialScrollIndex === undefined}
+                            initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                             alignItemsAtEnd={!shouldBeAlignedToTop}
                             // Only follow the real latest page. Older/linked windows must retain their visible anchor.
                             maintainScrollAtEnd={!hasNewerActions && {animated: false}}

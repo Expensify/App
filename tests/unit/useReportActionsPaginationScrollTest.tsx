@@ -3,14 +3,13 @@ import {act, renderHook} from '@testing-library/react-native';
 import useReportActionsPaginationScroll, {REPORT_ACTIONS_PAGINATION_THRESHOLD} from '@hooks/useReportActionsPaginationScroll';
 
 const VIEWPORT_HEIGHT = 500;
-const NEWER_PAGINATION_EXTENT = VIEWPORT_HEIGHT + 48;
-const OLDER_PAGINATION_EXTENT = NEWER_PAGINATION_EXTENT + 40;
+const NEWER_PAGINATION_EXTENT = 168;
+const OLDER_PAGINATION_EXTENT = 128;
 const CONTENT_HEIGHT = 3000;
 const BOUNDARY_DISTANCE = VIEWPORT_HEIGHT * 0.25;
 
 const mockLoadOlderActions = jest.fn();
 const mockLoadNewerActions = jest.fn();
-const mockScrollToOffset = jest.fn();
 const mockAnimationFrames: FrameRequestCallback[] = [];
 const mockTransitionCallbacks: Array<() => void> = [];
 let mockIsSearchTopmostFullScreenRoute = false;
@@ -36,7 +35,6 @@ let listMetrics = {
 const listRef = {
     current: {
         getState: () => listMetrics,
-        scrollToOffset: mockScrollToOffset,
     },
 };
 
@@ -174,36 +172,6 @@ describe('useReportActionsPaginationScroll', () => {
         listMetrics = {...listMetrics, contentLength: CONTENT_HEIGHT + 100};
         flushAnimationFrames();
         expect(mockLoadNewerActions).toHaveBeenCalledTimes(3);
-    });
-
-    it('reveals the first real older action when a response arrives while the viewport is entirely in the skeleton', () => {
-        const initialParams = buildParams({hasNewerActions: false});
-        const {result, rerender} = renderHook((params: HookParams) => useReportActionsPaginationScroll(params), {initialProps: initialParams});
-
-        setListMetrics(0);
-        act(() => {
-            result.current.onScroll();
-        });
-        expect(mockLoadOlderActions).toHaveBeenCalledTimes(1);
-
-        rerender({...initialParams, olderCursor: 'older-2'});
-        flushAnimationFrames();
-
-        expect(mockScrollToOffset).toHaveBeenCalledWith({offset: OLDER_PAGINATION_EXTENT, animated: false});
-    });
-
-    it('leaves a partial-skeleton viewport anchored when it already contains a real older action', () => {
-        const initialParams = buildParams({hasNewerActions: false});
-        const {result, rerender} = renderHook((params: HookParams) => useReportActionsPaginationScroll(params), {initialProps: initialParams});
-
-        setListMetrics(100);
-        act(() => {
-            result.current.onScroll();
-        });
-        rerender({...initialParams, olderCursor: 'older-2'});
-        flushAnimationFrames();
-
-        expect(mockScrollToOffset).not.toHaveBeenCalled();
     });
 
     it('uses current availability when a scheduled content-size check runs', () => {

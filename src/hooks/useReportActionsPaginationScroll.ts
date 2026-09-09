@@ -1,7 +1,6 @@
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
-import type {LegendListRef} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
 
 import {useEffect, useEffectEvent, useLayoutEffect, useRef} from 'react';
@@ -16,7 +15,6 @@ type PaginationGeometry = {
 
 type PaginationListRef = {
     getState: () => PaginationGeometry | undefined;
-    scrollToOffset: LegendListRef['scrollToOffset'];
 };
 
 type ReportActionsPaginationDistances = {
@@ -68,14 +66,11 @@ function useReportActionsPaginationScroll(options: UseReportActionsPaginationScr
     const lastRequestedNewerCursorRef = useRef<string | undefined>(undefined);
     const wasNearOlderBoundaryRef = useRef(false);
     const wasNearNewerBoundaryRef = useRef(false);
-    const previousOlderCursorRef = useRef<string | undefined>(undefined);
-    const previousNewerCursorRef = useRef<string | undefined>(undefined);
     const wasOfflineRef = useRef(isOffline);
     const couldLoadOlderRef = useRef(canLoadOlder);
     const couldLoadNewerRef = useRef(canLoadNewer);
     const wasLoadingOlderRef = useRef(isLoadingOlderReportActions);
     const wasLoadingNewerRef = useRef(isLoadingNewerReportActions);
-    const pendingOlderRevealCursorRef = useRef<string | undefined>(undefined);
     const paginationWindowGenerationRef = useRef(0);
     const scheduledFramesRef = useRef(new Set<number>());
 
@@ -138,8 +133,6 @@ function useReportActionsPaginationScroll(options: UseReportActionsPaginationScr
         const threshold = latestArguments.viewportHeight * REPORT_ACTIONS_PAGINATION_THRESHOLD;
         const isNearOlderBoundary = distances.older <= threshold;
         const isNearNewerBoundary = distances.newer <= threshold;
-        const isWaitingForOlderReveal = pendingOlderRevealCursorRef.current === latestArguments.olderCursor;
-
         if (!isNearOlderBoundary) {
             lastRequestedOlderCursorRef.current = undefined;
         }
@@ -152,7 +145,6 @@ function useReportActionsPaginationScroll(options: UseReportActionsPaginationScr
 
         if (
             isNearOlderBoundary &&
-            !isWaitingForOlderReveal &&
             latestArguments.canLoadOlder &&
             latestArguments.hasOlderActions &&
             !latestArguments.isOffline &&
@@ -186,59 +178,26 @@ function useReportActionsPaginationScroll(options: UseReportActionsPaginationScr
     const schedulePaginationBoundaryCheck = () => scheduleFrame(checkPaginationBoundaries);
     const cancelScheduledFramesEffect = useEffectEvent(cancelScheduledFrames);
     const schedulePaginationBoundaryCheckEffect = useEffectEvent(schedulePaginationBoundaryCheck);
-    const scheduleOlderRevealEffect = useEffectEvent((advancedCursor: string | undefined) => {
-        scheduleFrame(() => {
-            scheduleFrame(() => {
-                const latestArguments = latestArgumentsRef.current;
-                const listState = latestArguments.listRef.current?.getState();
-                if (
-                    advancedCursor === latestArguments.olderCursor &&
-                    latestArguments.hasOlderActions &&
-                    listState &&
-                    listState.scroll + listState.scrollLength <= latestArguments.olderPaginationExtent
-                ) {
-                    latestArguments.listRef.current?.scrollToOffset({offset: latestArguments.olderPaginationExtent, animated: false});
-                }
-                if (pendingOlderRevealCursorRef.current === advancedCursor) {
-                    pendingOlderRevealCursorRef.current = undefined;
-                }
-                checkPaginationBoundaries();
-            });
-        });
-    });
 
     useEffect(() => {
         paginationWindowGenerationRef.current += 1;
         cancelScheduledFramesEffect();
         lastRequestedOlderCursorRef.current = undefined;
         lastRequestedNewerCursorRef.current = undefined;
-        pendingOlderRevealCursorRef.current = undefined;
         wasNearOlderBoundaryRef.current = false;
         wasNearNewerBoundaryRef.current = false;
         schedulePaginationBoundaryCheckEffect();
     }, [reportID, linkedReportActionID]);
 
     useEffect(() => {
-        if (previousOlderCursorRef.current !== olderCursor) {
-            const previousOlderCursor = previousOlderCursorRef.current;
-            const didAdvanceAfterOwnRequest = !!previousOlderCursor && lastRequestedOlderCursorRef.current === previousOlderCursor;
-            previousOlderCursorRef.current = olderCursor;
-            lastRequestedOlderCursorRef.current = undefined;
-            if (didAdvanceAfterOwnRequest && hasOlderActions) {
-                const advancedCursor = olderCursor;
-                pendingOlderRevealCursorRef.current = advancedCursor;
-                scheduleOlderRevealEffect(advancedCursor);
-            } else {
-                pendingOlderRevealCursorRef.current = undefined;
-                schedulePaginationBoundaryCheckEffect();
-            }
-        }
-        if (previousNewerCursorRef.current !== newerCursor) {
-            previousNewerCursorRef.current = newerCursor;
-            lastRequestedNewerCursorRef.current = undefined;
-            schedulePaginationBoundaryCheckEffect();
-        }
-    }, [olderCursor, newerCursor, hasOlderActions]);
+        lastRequestedOlderCursorRef.current = undefined;
+        schedulePaginationBoundaryCheckEffect();
+    }, [olderCursor]);
+
+    useEffect(() => {
+        lastRequestedNewerCursorRef.current = undefined;
+        schedulePaginationBoundaryCheckEffect();
+    }, [newerCursor]);
 
     useEffect(() => {
         const finishedLoadingOlder = wasLoadingOlderRef.current && !isLoadingOlderReportActions;
@@ -259,7 +218,6 @@ function useReportActionsPaginationScroll(options: UseReportActionsPaginationScr
 
         lastRequestedOlderCursorRef.current = undefined;
         lastRequestedNewerCursorRef.current = undefined;
-        pendingOlderRevealCursorRef.current = undefined;
         wasNearOlderBoundaryRef.current = false;
         wasNearNewerBoundaryRef.current = false;
         schedulePaginationBoundaryCheckEffect();
