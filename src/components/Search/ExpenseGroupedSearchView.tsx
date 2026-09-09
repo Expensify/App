@@ -17,7 +17,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useMemo, useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -121,7 +121,7 @@ function ExpenseGroupedSearchView({
 
     // Deleting every expense in a group flags the group's own snapshot entry, so drop the row from the list and let
     // its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
-    const data = useMemo(() => (isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item))), [sourceData, isOffline]);
+    const data = isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item));
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.

@@ -148,7 +148,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
-     * @param fullyDeletedGroupKeys - Grouped-search group rows this delete wipes out entirely
+     * @param fullyDeletedGroupKeys - Grouped-search group rows this delete wipes out entirely, keyed by transaction ID
      * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
@@ -158,7 +158,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
-            fullyDeletedGroupKeys?: SearchGroupKey[],
+            fullyDeletedGroupKeys?: Record<string, SearchGroupKey>,
         ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
                 return {
@@ -406,7 +406,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
                     searchHash: currentSearchHash,
-                    fullyDeletedGroupKeys,
+                    fullyDeletedGroupKey: fullyDeletedGroupKeys?.[transactionID],
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',

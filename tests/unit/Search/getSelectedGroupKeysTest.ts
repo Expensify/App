@@ -1,6 +1,6 @@
 import type {SelectedTransactions} from '@components/Search/types';
 
-import {getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
+import {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
 
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
@@ -89,5 +89,79 @@ describe('getSelectedGroupKeys', () => {
         );
 
         expect(keys).toEqual([]);
+    });
+});
+
+describe('getGroupKeysSelectedViaGroup', () => {
+    it('returns a group selected through the group header even when the loaded set is smaller than the group count', () => {
+        expect(
+            getGroupKeysSelectedViaGroup(
+                buildSelection({
+                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                }),
+            ),
+        ).toEqual([groupKey]);
+    });
+
+    it('skips children selected individually rather than through the group header', () => {
+        expect(
+            getGroupKeysSelectedViaGroup(
+                buildSelection({
+                    txn1: {isEntireGroupSelected: true, groupKey},
+                    txn2: {isEntireGroupSelected: true, groupKey},
+                }),
+            ),
+        ).toEqual([]);
+    });
+
+    it('returns an empty group row selected under its own group key', () => {
+        expect(getGroupKeysSelectedViaGroup(buildSelection({[groupKey]: {}}))).toEqual([groupKey]);
+    });
+});
+
+describe('getFullyDeletedGroupKeysByTransactionID', () => {
+    it('maps each selected transaction to its group when that group is fully covered', () => {
+        expect(
+            getFullyDeletedGroupKeysByTransactionID(
+                buildSelection({
+                    txn1: {isEntireGroupSelected: true, groupKey},
+                    txn2: {isEntireGroupSelected: true, groupKey},
+                    txn3: {isEntireGroupSelected: true, groupKey: otherGroupKey},
+                }),
+            ),
+        ).toEqual({
+            txn1: groupKey,
+            txn2: groupKey,
+            txn3: otherGroupKey,
+        });
+    });
+
+    it('omits transactions from a group that is not fully covered', () => {
+        expect(
+            getFullyDeletedGroupKeysByTransactionID(
+                buildSelection({
+                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn3: {isEntireGroupSelected: true, groupKey: otherGroupKey},
+                }),
+            ),
+        ).toEqual({
+            txn3: otherGroupKey,
+        });
+    });
+
+    it('omits a truncated group whose loaded selection is smaller than the group count', () => {
+        expect(
+            getFullyDeletedGroupKeysByTransactionID(
+                buildSelection({
+                    txn1: {isSelectedViaGroup: true, groupKey},
+                    txn2: {isSelectedViaGroup: true, groupKey},
+                }),
+                buildGroupSearchData({
+                    [groupKey]: {count: 5, total: 0, currency: 'USD'},
+                }),
+            ),
+        ).toEqual({});
     });
 });

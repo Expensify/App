@@ -73,9 +73,11 @@ type DeleteMoneyRequestFunctionParams = {
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
-    /** The grouped-search snapshot hash the delete was fired from, and the group rows it wipes out entirely. */
+    /** The grouped-search snapshot hash the delete was fired from. */
     searchHash?: number;
-    fullyDeletedGroupKeys?: SearchGroupKey[];
+
+    /** The group row this transaction belongs to when the delete wipes that group out entirely. */
+    fullyDeletedGroupKey?: SearchGroupKey;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -790,7 +792,7 @@ function deleteMoneyRequest({
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     searchHash,
-    fullyDeletedGroupKeys,
+    fullyDeletedGroupKey,
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
@@ -1113,7 +1115,7 @@ function deleteMoneyRequest({
     // A group row in a grouped search outlives its child transactions, so flagging the group's own snapshot entry
     // is what keeps the row out of the list until the next Search response drops it. Riding along with this request
     // is what puts the row back if the delete fails.
-    const groupPendingDeleteData = getGroupPendingDeleteOnyxUpdate(searchHash, fullyDeletedGroupKeys ?? []);
+    const groupPendingDeleteData = getGroupPendingDeleteOnyxUpdate(searchHash, fullyDeletedGroupKey ? [fullyDeletedGroupKey] : []);
     if (groupPendingDeleteData) {
         optimisticData.push(...(groupPendingDeleteData.optimisticData ?? []));
         failureData.push(...(groupPendingDeleteData.failureData ?? []));
