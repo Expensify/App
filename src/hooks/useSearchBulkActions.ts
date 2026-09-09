@@ -641,9 +641,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
-    // Reconciliation - All Expenses reports on card spend, so it is offered whenever the current user is a workspace admin or card
-    // admin of a workspace with a card product enabled, regardless of which rows are selected.
-    const hasCardEnabledAdminPolicy = useMemo(() => Object.values(policies ?? {}).some((policy) => isAdminOfCardEnabledPolicy(policy)), [policies]);
+    // Reconciliation - All Expenses reports on card spend, so any card-enabled workspace admin gets it, whichever workspace the
+    // selected rows belong to. P2P expenses aren't workspace spend, so a selection that includes one doesn't get the template.
+    const canExportReconciliationAllExpenses = useMemo(() => {
+        if (!Object.values(policies ?? {}).some((policy) => isAdminOfCardEnabledPolicy(policy))) {
+            return false;
+        }
+
+        return [...selectedReports, ...Object.values(selectedTransactions)].every((item) => {
+            // A selection entry built from a search row carries that row's report, which is the only copy available when the
+            // report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
+            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const reportType = ('type' in item ? item.type : undefined) ?? report?.type;
+            return reportType !== CONST.REPORT.TYPE.IOU;
+        });
+    }, [policies, allReports, selectedReports, selectedTransactions]);
 
     const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
@@ -1838,7 +1850,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 includeReportLevelExport,
                 !isGroupedSearch,
                 doAllSelectedItemsBelongToCADPolicies,
-                hasCardEnabledAdminPolicy,
+                canExportReconciliationAllExpenses,
             );
             const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
             const availableCustomTemplates = shouldHideTemplateExports
@@ -2891,7 +2903,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
         doAllSelectedItemsBelongToCADPolicies,
-        hasCardEnabledAdminPolicy,
+        canExportReconciliationAllExpenses,
         openSearchReportSubmitToPopover,
         firstTransactionReport,
         styles.textWrap,

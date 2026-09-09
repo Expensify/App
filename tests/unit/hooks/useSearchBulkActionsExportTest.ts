@@ -282,6 +282,8 @@ const REPORT_ID = 'report1';
 const POLICY_ID = 'policy1';
 const REPORT_ID_2 = 'report2';
 const POLICY_ID_2 = 'policy2';
+const IOU_REPORT_ID = 'iouReport1';
+const PERSONAL_POLICY_ID = 'personalPolicy1';
 const NETSUITE_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 const QBO_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.QBO];
 const IES_FRIENDLY_NAME = CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
@@ -372,6 +374,15 @@ function makeSnapshotReport(reportID: string = REPORT_ID, policyID: string = POL
         stateNum: CONST.REPORT.STATE_NUM.APPROVED,
         statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+    };
+}
+
+/** A P2P (IOU) report from the search API. Personal expenses are reported under the user's personal policy, not a workspace. */
+function makeIOUSnapshotReport(): Report {
+    return {
+        ...makeSnapshotReport(IOU_REPORT_ID, PERSONAL_POLICY_ID),
+        reportName: 'IOU report',
+        type: CONST.REPORT.TYPE.IOU,
     };
 }
 
@@ -1612,6 +1623,56 @@ describe('useSearchBulkActions - export options', () => {
 
             mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
             mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template when a selected row is a P2P expense', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            // The personal policy a P2P expense is reported under is a real policy, so the row carries a policyID like any other
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, {id: PERSONAL_POLICY_ID, type: CONST.POLICY.TYPE.PERSONAL});
+
+            const iouReport = makeIOUSnapshotReport();
+            mockCurrentSearchResults = makeSearchResults([iouReport]);
+            mockSelectedReports = [makeSelectedReport({reportID: IOU_REPORT_ID, policyID: PERSONAL_POLICY_ID, type: CONST.REPORT.TYPE.IOU})];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: IOU_REPORT_ID, policyID: PERSONAL_POLICY_ID, report: iouReport})};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template for a P2P expense whose report is only in live Onyx', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, makeIOUSnapshotReport());
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            // The selection entry carries no report, so the type has to come from the Onyx lookup
+            mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: IOU_REPORT_ID, policyID: PERSONAL_POLICY_ID})};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template when a workspace row and a P2P row are selected together', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+            const iouReport = makeIOUSnapshotReport();
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), iouReport]);
+            mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: IOU_REPORT_ID, policyID: PERSONAL_POLICY_ID, type: CONST.REPORT.TYPE.IOU})];
             mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
             renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
