@@ -8,7 +8,7 @@ import CONFIG from '@src/CONFIG';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
 import {getAuthServerEndpoints} from './AuthServerMetadata';
-import {getOAuthRedirectURI, getQAOrigin} from './Config';
+import {getOAuthRedirectURI, getQAResource} from './Config';
 
 /** A hung token endpoint would otherwise hold the cross-tab refresh lock indefinitely */
 const TOKEN_ENDPOINT_TIMEOUT_MS = 10_000;
@@ -81,7 +81,7 @@ async function buildAuthorizeURL({state, codeChallenge}: {state: string; codeCha
     url.searchParams.set('code_challenge', codeChallenge);
     url.searchParams.set('code_challenge_method', 'S256');
     // RFC 8707. Cloudflare binds the issued token to this resource, and omitting it breaks the exchange
-    url.searchParams.set('resource', getQAOrigin());
+    url.searchParams.set('resource', getQAResource());
     return url.toString();
 }
 
@@ -94,7 +94,7 @@ function exchangeCode({code, codeVerifier}: {code: string; codeVerifier: string}
     // Must byte-match the redirect_uri sent in the authorize request
     body.set('redirect_uri', getOAuthRedirectURI());
     body.set('client_id', CONFIG.QA_AUTH.CLIENT_ID);
-    body.set('resource', getQAOrigin());
+    body.set('resource', getQAResource());
     return postTokenEndpoint(body);
 }
 

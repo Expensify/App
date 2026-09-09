@@ -1,7 +1,3 @@
-/**
- * PKCE encoding pinned to the RFC 7636 Appendix B vector, the config security boundary
- * (isQAServerRequest), and the OAuth client's request/response contract.
- */
 import type * as AuthServerMetadataModule from '@libs/CloudflareAccess/AuthServerMetadata';
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
@@ -22,19 +18,19 @@ jest.mock('@libs/CloudflareAccess/AuthServerMetadata', () => ({
     getAuthServerEndpoints: jest.fn(),
 }));
 
-// Mutable QA config the '@src/CONFIG' mock closes over. Tests tweak fields per case.
-// The `mock` prefix is what lets the hoisted jest.mock factory reference it.
-const mockQAAuth = {
+const mockDefaultQAAuth = {
     API_ROOT: 'https://qa.example.com/',
+    SECURE_API_ROOT: 'https://qa-secure.example.com/',
     TEAM_DOMAIN: 'team.cloudflareaccess.com',
     CLIENT_ID: 'client-123',
-    CHECK_PATH: 'api/CloudflareAuthProbe',
 };
+// The `mock` prefix is what lets the hoisted jest.mock factory reference it
+const mockQAAuth = {...mockDefaultQAAuth};
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
 
-// Jest resolves getWebCrypto/index.native.ts (the throwing stub) under the jest-expo preset,
-// so the provider is mocked. The default implementation is Node's real WebCrypto.
+// Jest resolves getWebCrypto/index.native.ts under the jest-expo preset, so the provider is mocked.
+// The default implementation is Node's real WebCrypto.
 jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
     __esModule: true,
     default: {
@@ -45,8 +41,7 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 
 // Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
-// The web implementation explicitly. Jest resolves platform-split modules to their native variant
-const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
+const {getQAOrigins, getQAResource, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
 const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
 const {getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
@@ -54,10 +49,7 @@ const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/Clou
 const getWebCrypto = require<{default: {getRandomValues: jest.Mock; sha256: jest.Mock}}>('@libs/CloudflareAccess/getWebCrypto').default;
 
 function resetQAAuthConfig() {
-    mockQAAuth.API_ROOT = 'https://qa.example.com/';
-    mockQAAuth.TEAM_DOMAIN = 'team.cloudflareaccess.com';
-    mockQAAuth.CLIENT_ID = 'client-123';
-    mockQAAuth.CHECK_PATH = 'api/CloudflareAuthProbe';
+    Object.assign(mockQAAuth, mockDefaultQAAuth);
 }
 
 beforeEach(() => {
@@ -136,6 +128,8 @@ describe('pkce', () => {
 describe('config', () => {
     it.each([
         ['the exact configured origin', 'https://qa.example.com/api/OpenApp', true],
+        ['the configured secure origin', 'https://qa-secure.example.com/api/Authenticate', true],
+        ['a lookalike of the secure origin', 'https://qa-secure.example.com.evil.com/api/Authenticate', false],
         ['a lookalike origin', 'https://evil-qa.example.com/api/OpenApp', false],
         ['the http scheme on the right host', 'http://qa.example.com/api/OpenApp', false],
         ['a different port on the right host', 'https://qa.example.com:444/api/OpenApp', false],
@@ -151,7 +145,6 @@ describe('config', () => {
         mockQAAuth.API_ROOT = '';
         mockQAAuth.TEAM_DOMAIN = '';
         mockQAAuth.CLIENT_ID = '';
-        mockQAAuth.CHECK_PATH = '';
         // When configuration is checked, then both the feature flag and the request gate must read off, so no code path can attach a token
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
@@ -167,13 +160,6 @@ describe('config', () => {
     it('treats a partial config as not configured — missing client ID', () => {
         // Given a config missing only the client ID. When checked, then the entire feature must disable, because a flow with no client identity can never be authorized
         mockQAAuth.CLIENT_ID = '';
-        expect(isQAAuthConfigured()).toBe(false);
-        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
-    });
-
-    it('treats a partial config as not configured — missing auth check path', () => {
-        // Given a config missing only the auth check path. When checked, then the entire feature must disable, because without a probe there is no way to verify access
-        mockQAAuth.CHECK_PATH = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
@@ -198,7 +184,23 @@ describe('config', () => {
 
     it('derives the RFC 8707 resource in origin form (no trailing slash)', () => {
         // Given the configured API root, when the resource indicator is derived, then it must be the bare origin. RFC 8707 resource values are matched literally, so a trailing slash would name a different resource
-        expect(getQAOrigin()).toBe('https://qa.example.com');
+        expect(getQAResource()).toBe('https://qa.example.com');
+        expect(getQAOrigins()).toStrictEqual(['https://qa.example.com', 'https://qa-secure.example.com']);
+    });
+
+    it('drops the secure origin from the allowlist when it is not configured', () => {
+        // Given a config with no secure root. When the allowlist is read, then it must carry only the primary origin and reject the unconfigured host
+        mockQAAuth.SECURE_API_ROOT = '';
+        expect(isQAAuthConfigured()).toBe(true);
+        expect(getQAOrigins()).toStrictEqual(['https://qa.example.com']);
+        expect(isQAServerRequest('https://qa-secure.example.com/api/Authenticate')).toBe(false);
+    });
+
+    it.each(['http://qa-secure.example.com/', 'not a url at all'])('a malformed secure root (%s) disables the whole feature', (secureRoot) => {
+        // Given a malformed secure root. When checked, then the entire feature must disable
+        mockQAAuth.SECURE_API_ROOT = secureRoot;
+        expect(isQAAuthConfigured()).toBe(false);
+        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 });
 
@@ -322,7 +324,6 @@ describe('oAuthClient', () => {
         expect(request?.init.method).toBe('POST');
         expect(request?.init.credentials).toBe('omit');
         expect(request?.init.headers).toEqual([['Content-Type', 'application/x-www-form-urlencoded']]);
-        // A hung endpoint must not hold the cross-tab refresh lock forever
         expect(request?.init.signal).toBeInstanceOf(AbortSignal);
         expect(bodyParams(request?.init)).toEqual(
             Object.fromEntries([
@@ -355,8 +356,7 @@ describe('oAuthClient', () => {
 });
 
 describe('authServerMetadata', () => {
-    // The real Cloudflare response shape, captured from a live team. Built from entries because the
-    // protocol uses snake_case keys, which the naming-convention lint rule forbids as literal properties.
+    // The real Cloudflare response shape, captured from a live team
     const VALID_METADATA_ENTRIES: Array<[string, unknown]> = [
         ['issuer', 'https://team.cloudflareaccess.com'],
         ['authorization_endpoint', 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization'],
