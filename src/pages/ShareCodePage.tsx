@@ -54,7 +54,6 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareCodePageOnyxProps = {
-    /** The report currently being looked at */
     report?: OnyxEntry<Report>;
 
     /** The policy for the report currently being looked at */

@@ -349,6 +349,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     harvestReport?: OnyxEntry<ReportType>;
     harvestReportOriginalID?: string;
@@ -1013,6 +1014,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 translate,
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 formatPhoneNumber,
                 harvestReport,
                 harvestReportOriginalID,
@@ -1057,6 +1059,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReport,
                         movedToReport,
                         policyTags,
+                        currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
@@ -1438,12 +1441,17 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, dateFnsLocale, reportAction, getLocalDateFromDatetime, convertToDisplayString));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
+                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction, convertToDisplayString, convertToDisplayStringWithoutCurrency));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isActionableJoinRequest(reportAction)) {
-                    const displayMessage = getJoinRequestMessage(translate, policy, reportAction);
+                    const displayMessage = getJoinRequestMessage(
+                        translate,
+                        policy?.name ?? '',
+                        reportAction,
+                        getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails),
+                    );
                     Clipboard.setString(displayMessage);
                 } else if (
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
