@@ -2,6 +2,7 @@ import toggleTestToolsModal from '@libs/actions/TestTool';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -51,7 +52,7 @@ describe('actions/TestTool', () => {
 
         expect(Navigation.goBack).toHaveBeenCalledWith();
 
-        jest.advanceTimersByTime(801);
+        jest.advanceTimersByTime(CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME + 1);
         jest.mocked(Navigation.goBack).mockClear();
         jest.spyOn(getMockNavigationRef(), 'canGoBack').mockReturnValue(false);
 
