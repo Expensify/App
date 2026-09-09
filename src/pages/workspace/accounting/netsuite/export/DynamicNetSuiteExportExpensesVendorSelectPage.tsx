@@ -41,7 +41,21 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path);
 
     const config = policy?.connections?.netsuite?.options.config;
-    const netsuiteVendorOptions = useMemo<SelectorType[]>(() => getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor), [config?.defaultVendor, policy]);
+    const vendorOptions = useMemo<SelectorType[]>(() => getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor), [config?.defaultVendor, policy]);
+    const clearOption: SelectorType = useMemo(
+        () => ({
+            value: '',
+            text: translate('common.none'),
+            keyForList: '',
+            isSelected: !config?.defaultVendor,
+        }),
+        [translate, config?.defaultVendor],
+    );
+    const shouldShowClearOption = !!config?.defaultVendor || vendorOptions.length > 0;
+    const netsuiteVendorOptions = useMemo<SelectorType[]>(
+        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
+        [shouldShowClearOption, clearOption, vendorOptions],
+    );
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);
 
