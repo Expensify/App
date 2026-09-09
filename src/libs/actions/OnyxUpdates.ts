@@ -199,7 +199,9 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
-                if (lastFailedUpdateID && isCatchUpRequest && Number(lastUpdateID) >= lastFailedUpdateID) {
+                const doesResponseCoverFailedRange = isCatchUpRequest || isFullReconnectRequest || isOpenAppRequest;
+
+                if (lastFailedUpdateID && doesResponseCoverFailedRange && Number(lastUpdateID) >= lastFailedUpdateID) {
                     lastFailedUpdateID = 0;
                 }
 

@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -498,6 +498,53 @@ describe('OnyxUpdatesTest', () => {
             await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.catchup-ok'));
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
+        });
+
+        it('advances the watermark again once a full reconnect covers the failed range', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.full-reconnect-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.full-reconnect-ok', () => Promise.resolve());
+
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.full-reconnect-failed')).catch(() => {});
+
+            const reportID = NumberUtils.rand64();
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 0,
+                lastUpdateID: 500,
+                request: {command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, data: {}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(500);
+
+            await OnyxUpdates.apply(pusherUpdate(510, 'test.pusher.full-reconnect-ok'));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(510);
+        });
+
+        it('advances the watermark again once OpenApp covers the failed range', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.openapp-failed', () => Promise.reject(new Error('handler failed')));
+
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.openapp-failed')).catch(() => {});
+
+            const reportID = NumberUtils.rand64();
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 0,
+                lastUpdateID: 500,
+                request: {command: WRITE_COMMANDS.OPEN_APP, data: {}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(500);
         });
 
         it('applies same-tick Pusher updates in enqueue order', async () => {
