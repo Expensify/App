@@ -67,7 +67,24 @@ function DynamicSageIntacctDefaultVendorPage() {
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
+    const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
+    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    const clearOption: SelectorType = useMemo(
+        () => ({
+            value: CLEAR_DEFAULT_VENDOR,
+            text: translate('common.none'),
+            keyForList: CLEAR_DEFAULT_VENDOR,
+            isSelected: !defaultVendor,
+        }),
+        [translate, defaultVendor],
+    );
+    const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(
+        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
+        [shouldShowClearOption, clearOption, vendorOptions],
+    );
 
     const listHeaderComponent = useMemo(
         () => (
