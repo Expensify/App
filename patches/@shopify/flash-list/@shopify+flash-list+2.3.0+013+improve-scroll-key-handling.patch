@@ -56,10 +56,10 @@ index 3b69234..a9474c1 100644
 -                layoutManager.getLayout(index).isWidthMeasured);
 +            const isFullyMeasured = (index) => layoutManager.getLayout(index).isHeightMeasured &&
 +                layoutManager.getLayout(index).isWidthMeasured;
-+            // With an explicit initialScrollIndex, also wait for the drawDistance buffer to be measured before
-+            // completing the first layout, so estimate-driven layout shifts converge before anything is on screen.
++            // When scrolling to a positive initialScrollIndex, also wait for the drawDistance buffer to be measured before
++            // completing the first layout, so estimate-driven layout shifts converge before anything is on screen. Index 0 offsets by at most the list header, and the -1 sentinel does not scroll at all, so both keep stock progressive render.
 +            let targetIndices = visibleIndices;
-+            if (this.propsRef.initialScrollIndex !== undefined && visibleIndices.length > 0 && visibleIndices.every(isFullyMeasured)) {
++            if ((this.propsRef.initialScrollIndex ?? 0) > 0 && visibleIndices.length > 0 && visibleIndices.every(isFullyMeasured)) {
 +                const windowSize = this.propsRef.horizontal ? this.getWindowSize().width : this.getWindowSize().height;
 +                const viewportStart = this.engagedIndicesTracker.scrollOffset;
 +                // Cover the worst-case one-sided buffer the engaged tracker can mount after
