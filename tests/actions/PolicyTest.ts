@@ -7598,6 +7598,7 @@ describe('actions/Policy', () => {
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 hasOwnedPaidPolicy,
+                currentUserDisplayName: undefined,
             });
             await waitForBatchedUpdates();
 
