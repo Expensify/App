@@ -54,7 +54,6 @@ function PersonalCardUpgradePage() {
             introSelected,
             policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-            policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
