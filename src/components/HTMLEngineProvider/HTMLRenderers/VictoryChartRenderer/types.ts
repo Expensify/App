@@ -123,7 +123,6 @@ type LabelItem = {
     /** Text horizontal anchor  */
     textAnchor?: TextAnchor;
 
-    /** Text vertical anchor  */
     verticalAnchor?: TextAnchor;
 };
 
@@ -134,22 +133,11 @@ type LegendItemEntry = {
     /** The color of the text */
     color?: Color;
 
-    /** Font size */
     fontSize?: number;
-
-    /** Font weight */
     fontWeight?: 'normal' | 'bold';
-
-    /** Font family */
     fontFamily?: string;
-
-    /** Font style */
     fontStyle?: string;
-
-    /** The color of the symbol */
     symbolColor?: Color;
-
-    /** Symbol size */
     symbolSize?: number;
 };
 
@@ -160,7 +148,6 @@ type LegendItem = {
     /** Position on the Y-axis */
     y: number;
 
-    /** Legend entries */
     entries: LegendItemEntry[];
 
     /** Space between entries */
