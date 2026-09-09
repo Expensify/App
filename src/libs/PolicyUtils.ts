@@ -1516,6 +1516,7 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
         CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
         CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
