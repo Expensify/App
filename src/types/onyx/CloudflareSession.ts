@@ -6,7 +6,7 @@ type CloudflareSession = {
     /** Rotates on every refresh, so it must always be persisted atomically together with accessToken */
     refreshToken: string;
 
-    /** Epoch ms when accessToken expires (computed from the token response's expires_in at issue time) */
+    /** Epoch ms when accessToken expires */
     expiresAt: number;
 };
 

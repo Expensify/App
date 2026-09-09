@@ -6,9 +6,10 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
-import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import CONST from '@src/CONST';
 import '@libs/Navigation/AppNavigator/AuthScreens';
 
+import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -236,6 +237,24 @@ describe('actions/App', () => {
                 ]),
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+        });
+    });
+
+    describe('KEYS_TO_PRESERVE', () => {
+        it('carries the QA server pointer through the sign-out clear but drops its Cloudflare credential', async () => {
+            // Given a build pointed at the QA server with a live Cloudflare Access session
+            await Onyx.multiSet({
+                [ONYXKEYS.ACTIVE_SERVER]: CONST.SERVER.QA,
+                [ONYXKEYS.CLOUDFLARE_SESSION]: {accessToken: 'oauth:token', refreshToken: 'oauth:refresh', expiresAt: 1_700_000_000_000},
+            });
+
+            // When the user signs out
+            await Onyx.clear(App.KEYS_TO_PRESERVE);
+            await waitForBatchedUpdates();
+
+            // Then the server pointer survives, while the Cloudflare identity is dropped so the next QA request re-authorizes
+            await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBe(CONST.SERVER.QA);
+            await expect(getOnyxValue(ONYXKEYS.CLOUDFLARE_SESSION)).resolves.toBeUndefined();
         });
     });
 

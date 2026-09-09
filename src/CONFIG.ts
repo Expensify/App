@@ -150,6 +150,7 @@ export default {
     // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
     QA_AUTH: {
         API_ROOT: qaExpensifyURL,
+        SECURE_API_ROOT: qaSecureExpensifyURL,
         TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
         CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
         // Which Access-protected endpoint the test tool calls to verify auth is a property of the

@@ -54,7 +54,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             // Never settles. Nothing below runs
             await redirectToCloudflareSignIn();
         } else if (isSessionNearExpiry(session)) {
-            const refreshResult = await refreshCloudflareSession();
+            const refreshResult = await refreshCloudflareSession(session.accessToken);
             if (refreshResult === 'reauth-required') {
                 if (shouldRedirectOnReauthRequired) {
                     await redirectToCloudflareSignIn();
