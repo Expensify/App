@@ -610,6 +610,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
 };
 
@@ -638,6 +639,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription = false,
     } = params;
 
@@ -678,6 +680,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             isAnnualSubscription,
         });
 
@@ -718,6 +721,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
     } = params;
 
     createDraftInitialWorkspace({
@@ -747,6 +751,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
     });
 }
 
@@ -769,6 +774,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
 };
 
@@ -794,6 +800,7 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
     isAnnualSubscription = false,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
@@ -816,6 +823,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription,
     });
 }
@@ -848,6 +856,7 @@ type SetUpPoliciesAndNavigateParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     policyOwnerAccountID: number | undefined;
     policyOwnerDisplayName: string | undefined;
+    hasOwnedPaidPolicy: boolean;
 };
 
 function setUpPoliciesAndNavigate({
@@ -858,6 +867,7 @@ function setUpPoliciesAndNavigate({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
     lastWorkspaceNumber,
     translate,
     conciergeChat,
@@ -898,6 +908,7 @@ function setUpPoliciesAndNavigate({
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         return;
     }
