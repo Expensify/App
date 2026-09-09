@@ -2489,7 +2489,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticazione a due fattori richiesta',
         twoFactorAuthIsRequiredForAdminsTitle: 'Abilita l’autenticazione a due fattori',
         twoFactorAuthIsRequiredXero: 'La tua connessione contabile Xero richiede l’autenticazione a due fattori.',
-        twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori.',
+        twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori (2FA).',
         twoFactorAuthCannotDisable: "Impossibile disabilitare l'autenticazione a due fattori",
         twoFactorAuthRequired: 'Per la connessione a Xero è richiesta l’autenticazione a due fattori (2FA) e non può essere disattivata.',
         replaceDevice: 'Sostituisci dispositivo',
@@ -2502,6 +2502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadCodes: 'Scarica codici',
         copyCodes: 'Copia codici',
         twoFactorAuthIsRequiredNetSuiteDescription: 'Per motivi di sicurezza, NetSuite richiede l’autenticazione a due fattori per collegare l’integrazione.',
+        enable2FA: 'Abilita',
     },
     recoveryCodeForm: {
         error: {

@@ -2554,7 +2554,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: 'Απαιτείται έλεγχος ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredForAdminsTitle: 'Παρακαλούμε ενεργοποιήστε τον έλεγχο ταυτότητας δύο παραγόντων',
         twoFactorAuthIsRequiredXero: 'Η σύνδεσή σας με το λογιστικό σύστημα Xero απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
-        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων.',
+        twoFactorAuthIsRequiredCompany: 'Η εταιρεία σας απαιτεί έλεγχο ταυτότητας δύο παραγόντων (2FA).',
         twoFactorAuthCannotDisable: 'Δεν είναι δυνατή η απενεργοποίηση του 2FA',
         twoFactorAuthRequired: 'Η επαλήθευση δύο παραγόντων (2FA) είναι υποχρεωτική για τη σύνδεσή σας με το Xero και δεν μπορεί να απενεργοποιηθεί.',
         replaceDevice: 'Αντικατάσταση συσκευής',
@@ -2565,6 +2565,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceTitle: 'Ρύθμιση νέας συσκευής',
         verifyNewDeviceDescription: 'Σαρώστε τον κωδικό QR με τη νέα σας συσκευή και κατόπιν εισαγάγετε τον κωδικό για να ολοκληρώσετε τη ρύθμιση.',
         twoFactorAuthIsRequiredNetSuiteDescription: 'Για λόγους ασφαλείας, το NetSuite απαιτεί έλεγχο ταυτότητας δύο παραγόντων για τη σύνδεση της ενοποίησης.',
+        enable2FA: 'Ενεργοποίηση',
     },
     recoveryCodeForm: {
         error: {
