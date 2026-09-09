@@ -87,7 +87,7 @@ jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
 
 jest.mock('@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem', () => jest.fn(() => null));
 
-function makePolicy(id: string, type: Policy['type'], isPolicyExpenseChatEnabled: boolean): Policy {
+function makePolicy(id: string, type: Policy['type']): Policy {
     return {
         id,
         name: `${id} workspace`,
@@ -97,15 +97,14 @@ function makePolicy(id: string, type: Policy['type'], isPolicyExpenseChatEnabled
         owner: 'user@test.com',
         ownerAccountID: 1,
         employeeList: {},
-        isPolicyExpenseChatEnabled,
         isJoinRequestPending: false,
     } as Policy;
 }
 
 function setupUseOnyx() {
-    const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL, true);
-    const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM, true);
-    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT, true);
+    const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL);
+    const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM);
+    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT);
     const values = new Map<string, unknown>([
         [ONYXKEYS.NVP_ACTIVE_POLICY_ID, personalPolicy.id],
         [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy],

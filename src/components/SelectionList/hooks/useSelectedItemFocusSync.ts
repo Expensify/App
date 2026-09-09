@@ -6,7 +6,6 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items to search in */
     data: TData[];
 
-    /** Key of the item to focus initially */
     initiallyFocusedItemKey: string | null | undefined;
 
     /** Function to check if an item is selected */
@@ -18,7 +17,6 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Current search value - if present, don't sync focus */
     searchValue: string | undefined;
 
-    /** Function to set the focused index */
     setFocusedIndex: (index: number, shouldScrollHint?: boolean) => void;
 };
 

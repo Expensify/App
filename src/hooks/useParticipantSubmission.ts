@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
-import useCommuterExclusionGuard from './useCommuterExclusionGuard';
+import useBlockDistanceRequest from './useBlockDistanceRequest';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
@@ -53,7 +53,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         role: policy.role,
         owner: policy.owner,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
 
@@ -105,7 +104,7 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
-    const blockDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isDistanceRequest: isDistanceRequest(initialTransaction),
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
@@ -261,32 +260,44 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-            // If not moving the transaction from track expense, select the default rate automatically.
-            // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-            if (drafts.length > 0) {
-                for (const transaction of drafts) {
-                    const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                        reportID: firstParticipantReportID,
-                        isPolicyExpenseChat,
-                        policy,
-                        lastSelectedDistanceRates: distanceRates,
-                        expenseDate: transaction.created,
-                    });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
+        const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
+        const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
+        const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
+            if (!isDistanceRequest(transaction)) {
+                return true;
+            }
+            const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
+        };
+
+        if (drafts.length > 0) {
+            for (const transaction of drafts) {
+                if (isMovingToPolicyExpenseChat && shouldKeepTrackExpenseRate(transaction)) {
+                    continue;
                 }
-            } else {
-                // Fallback to using initialTransactionID directly
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: firstParticipantReportID,
                     isPolicyExpenseChat,
                     policy,
                     lastSelectedDistanceRates: distanceRates,
+                    expenseDate: transaction.created,
                 });
-                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
-                // and no transaction is passed here, so the currency is never read.
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
+                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                    continue;
+                }
+                setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
             }
+        } else if (!isMovingToPolicyExpenseChat) {
+            // Fallback to using initialTransactionID directly
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: firstParticipantReportID,
+                isPolicyExpenseChat,
+                policy,
+                lastSelectedDistanceRates: distanceRates,
+            });
+            // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+            // and no transaction is passed here, so the currency is never read.
+            setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
         }
 
         // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
@@ -373,10 +384,10 @@ function useParticipantSubmission({
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
-            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
+            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
-                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDetails.displayName),
                 currentUserAccountID: userDetails.accountID,
                 currentUserEmail: email,
                 currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

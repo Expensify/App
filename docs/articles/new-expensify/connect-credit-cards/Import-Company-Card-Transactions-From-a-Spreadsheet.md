@@ -1,8 +1,8 @@
 ---
 title: Import Company Card Transactions From a Spreadsheet 
 description: Learn how Workspace Admins can upload company card transactions manually from a spreadsheet file.
-keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
-internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds. Does not cover personal card imports or Plaid connections.
+keywords: [New Expensify, import company card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, card feed, company card feed, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import, unique ID, duplicate transactions, duplicate expenses, re-import csv, reupload csv]
+internalScope: Audience is Workspace Admins. Covers how to import, update, and delete company card CSV feeds, including mapping Unique ID to avoid duplicate transactions on re-import. Does not cover personal card imports or Plaid connections.
 ---
 
 # Import Company Card Transactions From a Spreadsheet 
@@ -17,36 +17,56 @@ If your bank does support a direct connection, you can connect your account to a
 
 Only **Workspace Admins** can import transactions for company cards.
 
-**Company Cards** must be enabled in the workspace before you can import transactions. If you don't see **Company Cards**, enable it under **More features > Company Cards**.
+**Company cards** must be enabled in the workspace before you can import transactions. If you don't see **Company cards**, enable it under **More features > Company cards**.
 
 ---
 
 ## How to import company card transactions from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**. 
-2. Select **Company Cards**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**, then select your workspace.
+2. Select **Company cards**.
 3. Select **Add cards**.
- - If you already have a company card feed set up, select the feed name, then select **Add cards**.
+ - If you already have a company card feed set up, select the feed name to see **Add cards**.
 4. Choose the country where your bank is located, then select **Next**.
-5. Select **Import transactions from file**.
-5. Select an existing **Company card layout name**, or enter a name for a new layout.
-8. Select **Next**.
-9. Select **Choose file** and choose the CSV, TXT, XLS, or XLSX file containing the transactions you want to import.
- - **Note**: Select **Download our template** to download an example CSV with the recommended columns and formatting for company card transaction imports.
-10. Map the transaction fields. You must map:
+5. Select **Import transactions from file**, then select **Next**.
+6. Select **Company card layout name**.
+7. Enter a name for the card feed on the page that opens.
+8. Select **Save**.
+9. Select **Next**.
+10. Select **Choose file** and choose the CSV, TXT, XLS, or XLSX file containing the transactions you want to import.
+11. Map the transaction fields. You must map:
  - Either **Card number** or **Card name**
  - **Date**
  - **Merchant**
  - **Amount**
  - **Currency**
-11. Assign each card to a Workspace member based on the transactions in the file.
-12. Select **Import**.
+12. Map **Unique ID** to a column that holds a unique reference for each transaction, if your file has one.
+13. Assign each card to a Workspace member based on the transactions in the file.
+14. Select **Import**.
 
 You must map at least one card-identity column — a **Card number** or a **Card name** — so each transaction can be grouped under a card.
 
-![Company cards page with Add Card highlighted]({{site.url}}/assets/images/Companycards_add_cards.png){:width="100%"}
+**Note:** Select **Download our template** on the **Import transactions from file** step to download an example CSV with the recommended columns and formatting for company card transaction imports.
+
+![Company cards page with Add cards highlighted]({{site.url}}/assets/images/Companycards_add_cards.png){:width="100%"}
 
 ![Company cards import options with file import highlighted]({{site.url}}/assets/images/Companycards_file_import.png){:width="100%"}
+
+---
+
+## How to use Unique ID to prevent duplicate transactions
+
+**Unique ID** is an optional column mapping that tells Expensify how to recognize a transaction it has already imported. Map it to a column in your file that holds a unique reference for each transaction, such as the bank's own transaction ID or reference number.
+
+When you map **Unique ID** and later upload a file that repeats some of the same rows, Expensify skips the rows it has already imported and only adds the new ones. This lets you upload overlapping files — for example, a full month-to-date export each week — without creating duplicate expenses.
+
+If you don't map **Unique ID**, Expensify treats every row in the file as a new transaction. Re-uploading the same file creates a duplicate expense for each row.
+
+For **Unique ID** to work, the values in that column must be unique within the file and stay the same for the same transaction across uploads. If the column repeats the same value on different transactions, Expensify treats them as the same transaction and skips the later ones.
+
+Each **Unique ID** value must also be more than 5 characters long. A value of 5 characters or fewer is too short to reliably identify a transaction, so Expensify ignores it and imports the row again every time you re-upload the file. If your file numbers transactions with short values such as `1`, `2`, and `3`, map **Unique ID** to a longer reference column instead.
+
+You must map **Unique ID** yourself on every import. Unlike the other field mappings, it is never filled in for you.
 
 ---
 
@@ -60,21 +80,21 @@ You must map at least one card-identity column — a **Card number** or a **Card
 
 ## How to upload additional transactions to an existing card feed
 
-1. Go to **Workspaces > Company Cards**.
+1. Go to **Workspaces > Company cards**.
 2. Select the name of the card feed you want to update.
 3. Click **Settings**.
 4. Choose **Import spreadsheet**.
 5. Choose the CSV, TXT, XLS, or XLSX file you want to upload. 
-6. Review and confirm the field mappings.
+6. Review and confirm the field mappings, and map **Unique ID** again if your file has a unique reference column.
 7. Click **Import**.
 
-**Note:** Previously mapped fields will auto-fill to save time.
+**Note:** Previously mapped fields auto-fill to save time, with one exception: **Unique ID** is never restored, so map it again on every upload to keep Expensify from importing duplicate transactions.
 
 ---
 
 ## How to delete a company card CSV feed
 
-1. Go to **Workspaces > Company Cards**.
+1. Go to **Workspaces > Company cards**.
 2. Select the name of the card feed you want to delete. 
 3. Click **Settings**.
 4. Select **Remove card feed**.
@@ -102,6 +122,8 @@ Your file must include a way to identify each card so transactions can be matche
 - Amount
 - Currency (optional but recommended)
 
+**Unique ID** is optional, but map it whenever your file has a unique reference for each transaction so re-uploading the file doesn't create duplicates.
+
 ## How does matching transactions by card name work?
 
 Instead of a **Card number**, you can map a **Card name** column, and Expensify groups each transaction under the card identified by that name. After you upload the file, those cards appear as entries you can assign to Workspace members — the name doesn't need to match a card you've already assigned. You only need one card-identity column, so map a **Card number** column instead if you'd rather identify cards by number.
@@ -116,7 +138,23 @@ If you map a required field such as **Date**, **Merchant**, or **Amount** — or
 
 ## Can I change field mappings after importing transactions?
 
-Yes. When importing new transactions, previous mappings will be suggested, but you can change them as needed.
+Yes. When importing new transactions, previous mappings will be suggested, but you can change them as needed. **Unique ID** is the one mapping that is never suggested — set it again each time.
+
+## Why do I get duplicate expenses when I upload the same file again?
+
+Expensify only recognizes a repeat transaction when you map **Unique ID**. If you upload a file with no **Unique ID** mapping, every row imports as a new transaction, so overlapping rows become duplicate expenses. Map **Unique ID** to the column that holds each transaction's unique reference and re-import.
+
+## Why is Unique ID blank when I upload another file to the same feed?
+
+Expensify deliberately doesn't restore a saved **Unique ID** mapping. The saved mapping can't be told apart from an automatically generated one, so restoring it could point **Unique ID** at the wrong column of your new file and cause valid transactions to be skipped. Map it by hand on each upload.
+
+## What happens to rows with a blank Unique ID?
+
+Expensify imports them. A row with an empty **Unique ID** cell gets a generated ID instead, so it always imports and won't be matched against a later upload.
+
+## Is there a minimum length for Unique ID?
+
+Yes. A **Unique ID** value must be more than 5 characters long. Expensify ignores any value of 5 characters or fewer because it's too short to reliably identify a transaction, so those rows create duplicates on a re-upload even though **Unique ID** is mapped. Map **Unique ID** to a column with longer references, such as the bank's own transaction ID.
 
 ## Do imported company card transactions sync across web and mobile?
 
