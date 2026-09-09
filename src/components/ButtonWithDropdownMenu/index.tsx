@@ -69,9 +69,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         disabledStyle,
         size = CONST.BUTTON_SIZE.MEDIUM,
         anchorAlignment = defaultAnchorAlignment,
+        shouldSwitchPositionIfOverflow = false,
         buttonRef,
         onPress,
-        onPrimaryPress,
         options,
         onOptionSelected,
         onSubItemSelected,
@@ -90,9 +90,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
+        headerTextStyles,
         stayNormalOnDisable = false,
         brickRoadIndicator,
         sentryLabel,
+        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
@@ -165,11 +167,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     setIsMenuVisible(!isMenuVisible);
                     return;
                 }
-                if (onPrimaryPress) {
-                    onPrimaryPress();
-                } else if (selectedItem?.onSelected) {
-                    selectedItem.onSelected();
-                } else if (selectedItem?.value) {
+                if (selectedItem?.value) {
                     onPress(e, selectedItem.value);
                 }
             } else {
@@ -196,13 +194,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!isSplitButton) {
             setIsMenuVisible(!isMenuVisible);
-        } else if (onPrimaryPress) {
-            onPrimaryPress();
-        } else if (selectedItem?.onSelected) {
-            // Honor the item's own handler (as the dropdown menu does) so the main split-button press performs the exact
-            // action of the defaulted item — e.g. paying directly with a specific bank account — instead of the generic
-            // value-based path, which would lose the item's context (like a `methodID`) and route through a fallback flow.
-            selectedItem.onSelected();
         } else if (selectedItem?.value) {
             onPress(event, selectedItem.value);
         }
@@ -348,11 +339,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
+                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pt4}
                     anchorAlignment={anchorAlignment}
+                    shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     enableEdgeToEdgeBottomSafeAreaPadding
                     headerText={menuHeaderText}
@@ -381,6 +374,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             shouldCallAfterModalHide: true,
                         })),
                     }))}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>
