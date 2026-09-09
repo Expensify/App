@@ -558,9 +558,12 @@ describe('WorkspaceMembers', () => {
         it('should sort by approver, reverse, and keep members without an approver last in both directions', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
-            await screen.findByText(ADMIN_OPTION);
 
-            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.approver')));
+            // Anchor on the column header rather than a member name. Names appear twice once the column renders, once
+            // as the member and once as another row's approver.
+            const approverHeader = await screen.findByLabelText(TestHelper.translateLocal('common.approver'));
+
+            fireEvent.press(approverHeader);
             await waitForBatchedUpdatesWithAct();
 
             const ascending = getRowLabels();
@@ -570,14 +573,15 @@ describe('WorkspaceMembers', () => {
             // The two self-approving members carry no approver, so they trail the sorted rows.
             expect(ascending.slice(3).every((label) => !approverNameOf(label))).toBe(true);
 
-            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.approver')));
+            fireEvent.press(approverHeader);
             await waitForBatchedUpdatesWithAct();
 
             const descending = getRowLabels();
 
             expect(descending.map(approverNameOf).filter(Boolean)).toEqual(['Approver: Owner User', 'Approver: Member User', 'Approver: Admin User']);
 
-            // Blanks stay at the bottom rather than flipping to the top, which is what the unmultiplied 1 / -1 buys.
+            // Blanks stay at the bottom rather than flipping to the top, which is why the comparator returns a fixed
+            // 1 or -1 for them instead of scaling by the sort direction.
             expect(descending.slice(3).every((label) => !approverNameOf(label))).toBe(true);
 
             unmount();

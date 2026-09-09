@@ -364,7 +364,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByTestId('member-approver-menu-item'));
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, adminPayerEmail, invitedEmail));
@@ -390,7 +390,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(await screen.findByTestId('member-approver-menu-item'));
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
         // The owner sits at the top of their own chain, so the row reads as having no approver. Opening the workflow
