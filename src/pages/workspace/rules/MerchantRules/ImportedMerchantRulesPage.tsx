@@ -114,6 +114,20 @@ function buildImportedCategoryLookup(policyCategories: OnyxEntry<PolicyCategorie
     return lookup;
 }
 
+/**
+ * A spreadsheet author knows vendors by name, but a rule stores the active integration's external vendorID, so
+ * imported cells are matched against a trimmed, case-insensitive name lookup. A name shared by more than one
+ * active vendor maps to `null` so the importer treats it as ambiguous instead of guessing which one was meant.
+ */
+function buildImportedVendorLookup(policy: OnyxEntry<Policy>): Map<string, string | null> {
+    const lookup = new Map<string, string | null>();
+    for (const vendor of getMatchingVendors(policy)) {
+        const normalizedName = vendor.name.trim().toLowerCase();
+        lookup.set(normalizedName, lookup.has(normalizedName) ? null : vendor.id);
+    }
+    return lookup;
+}
+
 /** Parses a CSV cell into a boolean, or undefined when the cell is empty or unrecognized so the field is left unset */
 function parseCsvBooleanValue(raw: string | undefined): boolean | undefined {
     const trimmed = raw?.trim().toLowerCase() ?? '';
