@@ -437,9 +437,6 @@ function SubmitExpenseOrchestrator({
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
-        // Nothing dismisses here, so runAfterDismiss never runs - drop the signal explicitly rather
-        // than leaving it to the safety timeout.
-        pendingWrite?.settleAfterSubmit(false);
         handleDefaultSubmit(locationPermissionGranted);
     };
 
