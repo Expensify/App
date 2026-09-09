@@ -35,7 +35,7 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
 
     // The backend links to the private personal details page without a field to focus, so point the link at
-    // Address line 1 to match the CTA below. This action's HTML only ever holds that one link.
+    // Address line 1
     const messageHtml = (getReportActionHtml(action) || getReportActionText(action)).replaceAll(
         ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
         ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1),
