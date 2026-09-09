@@ -134,19 +134,11 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
         return;
     }
 
-    let task: string | undefined;
-    if (contentType === 'validateEmail') {
-        task = CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL;
-    } else if (contentType === 'joinWorkspace') {
-        task = CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE;
-    }
-
     API.write(
         WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
         {
-            contentType: task ? 'task' : 'message',
+            event: contentType === 'empty' ? 'noWorkspaces' : contentType,
             data: JSON.stringify(onboardingData.guidedSetupData),
-            task,
             domain: companyDomain,
         },
         {

@@ -1,8 +1,7 @@
 type CreateJoinWorkspaceOnboardingContentParams = {
-    contentType: 'task' | 'message';
+    event: 'validateEmail' | 'joinWorkspace' | 'noWorkspaces';
     data: string;
-    task?: string;
-    domain: string;
+    domain?: string;
 };
 
 export default CreateJoinWorkspaceOnboardingContentParams;
