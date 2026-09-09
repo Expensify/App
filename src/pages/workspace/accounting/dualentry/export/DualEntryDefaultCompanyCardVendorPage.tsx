@@ -76,7 +76,11 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     );
 
     const selectDefaultVendor = (item: VendorListItem) => {
-        if (item.value !== defaultCompanyCardVendorID && policyID) {
+        const isAlreadySelected = item.value === defaultCompanyCardVendorID || (!item.value && !defaultCompanyCardVendorID);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateDualEntryDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
         }
         Navigation.goBack(backPath);
