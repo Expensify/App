@@ -1117,8 +1117,7 @@ function getSecondaryReportActions({
     }
 
     if (
-        // TODO: Pass reportOwnerLogin — PR 4c (getSecondaryReportActions must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, undefined, policy, parentReport) &&
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, submitterLogin, policy, parentReport) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1213,6 +1212,7 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin,
     currentUserAccountID,
     parentReport,
+    parentReportOwnerLogin,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1227,6 +1227,12 @@ function getSecondaryTransactionThreadActions({
     currentUserLogin: string;
     currentUserAccountID: number;
     parentReport: Report;
+    /**
+     * Login of the parent report owner. Optional so the existing test callers keep compiling, because
+     * isAwaitingFirstLevelApproval still falls back to allPersonalDetails when it is omitted.
+     * See https://github.com/Expensify/App/issues/66413.
+     */
+    parentReportOwnerLogin?: string;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1254,8 +1260,7 @@ function getSecondaryTransactionThreadActions({
     }
 
     if (
-        // TODO: Pass reportOwnerLogin — PR 4c (getSecondaryTransactionThreadActions must take it first) (https://github.com/Expensify/App/issues/66413); isAwaitingFirstLevelApproval falls back to allPersonalDetails
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, undefined, policy, grandParentReport) &&
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, parentReportOwnerLogin, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(parentReport, [reportTransaction], reportAction ? [reportAction] : [], originalTransaction, currentUserAccountID)
     ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
