@@ -368,9 +368,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
+    const isVendorListReady = !isVendorFeatureAvailable || isMatchingVendorListLoaded(policy);
+
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories), [spreadsheet, containsHeader, policy, policyCategories]);
+    const parsedRules = useMemo(
+        () => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, isVendorListReady),
+        [spreadsheet, containsHeader, policy, policyCategories, isVendorListReady],
+    );
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
@@ -378,8 +383,10 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const areCategoriesReady = !policy?.areCategoriesEnabled || !!policyCategories;
 
     // The import short-circuits locally (no API call) only when every row was skipped, so that's the only case
-    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated categories.
-    const canImportOffline = willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0);
+    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated
+    // categories or vendors.
+    const canImportOffline =
+        willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0) && (isVendorListReady || parsedRules.invalidVendorNames.size === 0);
 
     const importRules = async () => {
         setIsValidationEnabled(true);
@@ -388,10 +395,10 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             return;
         }
 
-        const {rules, skippedDuplicateCount, invalidCategoryNames} = parsedRules;
+        const {rules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames} = parsedRules;
 
         setIsImportingRules(true);
-        // When every row was skipped (duplicate rules and/or unknown categories), skip the API call and confirm that nothing was added
+        // When every row was skipped (duplicate rules and/or unknown categories/vendors), skip the API call and confirm that nothing was added
         const importFinalModal: ImportFinalModal = canImportOffline
             ? {
                   titleKey: 'spreadsheet.importSuccessfulTitle',
@@ -401,8 +408,12 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                       pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
                       pendingMessageKeyParams: {count: invalidCategoryNames.size},
                   }),
+                  ...(invalidVendorNames.size > 0 && {
+                      secondaryPendingMessageKey: isOnXero ? 'spreadsheet.importMerchantRulesSkippedSuppliers' : 'spreadsheet.importMerchantRulesSkippedVendors',
+                      secondaryPendingMessageKeyParams: {count: invalidVendorNames.size},
+                  }),
               }
-            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size);
+            : await importMerchantRulesSpreadsheet(policyID, rules, invalidCategoryNames.size, invalidVendorNames.size, isOnXero);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
