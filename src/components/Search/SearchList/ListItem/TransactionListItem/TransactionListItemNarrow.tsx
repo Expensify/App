@@ -101,7 +101,6 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     styles.mh5,
                     styles.flex1,
                     StyleUtils.getSearchRowBackgroundStyle(isSelected),
-                    styles.br0,
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
