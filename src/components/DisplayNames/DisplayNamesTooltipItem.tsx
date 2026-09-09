@@ -18,7 +18,6 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     /** The function to get a distance to shift the tooltip horizontally */
     getTooltipShiftX?: (index: number) => number;
 
-    /** The Account ID for the tooltip */
     accountID?: number;
 
     /** The name to display in bold */

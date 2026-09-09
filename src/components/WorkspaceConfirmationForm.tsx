@@ -63,13 +63,11 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
     /** Go back function */
     onBackButtonPress?: () => void;
 
-    /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
 
     /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */

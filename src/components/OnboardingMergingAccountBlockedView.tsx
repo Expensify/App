@@ -19,10 +19,9 @@ import BlockingView from './BlockingViews/BlockingView';
 import Button from './ButtonComposed';
 
 type OnboardingMergingAccountBlockedViewProps = {
-    // Work email to display in the subtitle
+    /** Work email to display in the subtitle */
     workEmail: string | undefined;
 
-    // Whether the user is a VSB
     isVsb: boolean | undefined;
 };
 

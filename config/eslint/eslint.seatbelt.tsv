@@ -418,7 +418,6 @@
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/hooks/useAccountIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useAdvancedSearchFilters.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/hooks/useAssignCard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutocompleteSuggestions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutoCreateTrackWorkspace.ts"	"no-restricted-imports"	1
@@ -456,7 +455,6 @@
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useMarkdownStyle.ts"	"rulesdir/no-raw-typography"	3
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
-"../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useOtherFeedsForFeedSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -561,13 +559,11 @@
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitExpenseItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
-"../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
@@ -1247,7 +1243,7 @@
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
