@@ -1,7 +1,7 @@
 import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
-import type LegendListModuleType from '@legendapp/list/react-native';
+import type * as LegendListModule from '@legendapp/list/react-native';
 import type React from 'react';
 import type {ReactNode} from 'react';
 import type {FlatList, FlatListProps, NativeSyntheticEvent, NativeScrollEvent} from 'react-native';
@@ -38,7 +38,7 @@ mockFSLibrary();
 jest.mock('@legendapp/list/react-native', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
     const FlatListActual = jest.requireActual<typeof ReactNativeModuleType>('react-native').FlatList;
-    const LegendListModuleActual = jest.requireActual<typeof LegendListModuleType>('@legendapp/list/react-native').LegendList;
+    const LegendListModuleActual = jest.requireActual<typeof LegendListModule>('@legendapp/list/react-native');
 
     type MockLegendListProps = Omit<FlatListProps<unknown>, 'data' | 'initialScrollIndex' | 'maintainVisibleContentPosition' | 'onScroll'> & {
         alignItemsAtEnd?: boolean;

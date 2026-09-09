@@ -49,7 +49,7 @@ let capturedListProps: CapturedListProps = {};
 // Whether the captured LegendList configuration enables data-based maintain-visible-content-position.
 function isMvcpEnabled() {
     const config = capturedListProps.maintainVisibleContentPosition;
-    return typeof config === 'object' && config.data;
+    return config === true || (typeof config === 'object' && config.data);
 }
 
 jest.mock('@legendapp/list/react-native', () => {

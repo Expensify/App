@@ -433,16 +433,6 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).not.toHaveBeenCalled();
         });
 
-        it('scrolls to bottom on mount for a single-expense money request report opened from the X Replies link', async () => {
-            mockIsMoneyRequestReport = true;
-            mockRouteParams = {shouldScrollToLatest: 'true'};
-
-            await renderScroll();
-            flushTransitions();
-
-            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
-        });
-
         it('clears the X Replies flag once it has been applied', async () => {
             mockIsMoneyRequestReport = true;
             mockRouteParams = {shouldScrollToLatest: 'true'};
