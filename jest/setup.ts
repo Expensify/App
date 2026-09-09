@@ -62,6 +62,9 @@ jest.mock('@legendapp/list/react-native', () => {
                     maintainScrollAtEnd,
                     maintainScrollAtEndThreshold,
                     maintainVisibleContentPosition,
+                    onEndReached,
+                    onEndReachedThreshold = 0,
+                    onScroll,
                     recycleItems,
                     ...props
                 },
@@ -72,12 +75,21 @@ jest.mock('@legendapp/list/react-native', () => {
                 const flashListInitialScrollIndexParams = initialScrollAtEnd
                     ? {viewPosition: 1}
                     : initialScrollConfig && {viewOffset: initialScrollConfig.viewOffset, viewPosition: initialScrollConfig.viewPosition};
+                const handleScroll: NonNullable<FlashListModule.FlashListProps<unknown>['onScroll']> = (event) => {
+                    onScroll?.(event);
+                    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+                    const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+                    if (distanceFromEnd <= layoutMeasurement.height * (onEndReachedThreshold ?? 0)) {
+                        onEndReached?.();
+                    }
+                };
 
                 return ReactActual.createElement(FlashListActual<unknown>, {
                     ...props,
                     data,
                     initialScrollIndex: flashListInitialScrollIndex,
                     initialScrollIndexParams: flashListInitialScrollIndexParams,
+                    onScroll: handleScroll,
                     ref,
                 });
             },
