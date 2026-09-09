@@ -23,7 +23,7 @@ Adding a work email is optional. If Expensify can’t add the address you entere
 
 ## What happens if the address is already an Expensify login
 
-If the address is a login on an ordinary Expensify account, Expensify shows **Verify your work email** and sends a magic code to that address. Enter the code and Expensify merges the account you just created into the work account, then signs you in to it.
+If the address is a login on an ordinary Expensify account, Expensify shows **Verify your work email** and sends a security code to that address. Enter the code and Expensify merges the account you just created into the work account, then signs you in to it.
 
 Some existing accounts can’t be merged this way: accounts with Two-Factor Authentication (2FA) or SSO/SAML enabled, closed accounts, and domain controlled logins. Sign in to the existing account directly instead.
 
