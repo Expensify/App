@@ -9,7 +9,7 @@ It only ever comments, collapses, or edits comments. It never assigns a job, and
 It runs when a comment is created or edited, and does nothing unless all of these are true:
 
 - The issue is open and has the `Help Wanted` label.
-- The comment is not from a bot.
+- The comment is not from an internal bot.
 - The comment author is not assigned to the issue.
 - For an edit, the comment body actually changed.
 
@@ -24,7 +24,7 @@ A comment counts as a proposal when it contains the word "Proposal" plus both ma
 | **Asks for the job with no technical content** — "assign me", "I applied on Upwork" | The comment is collapsed as spam and you get a reply asking for a proposal. |
 | **Anything else** — questions, retest results, feedback on someone else's proposal, takeover coordination | Nothing. Ordinary discussion is not touched. |
 
-Members of `expensify-expensify`, `contributor-plus`, or `contributor-plus-backend`, and anyone who says they are from Callstack, Margelo, or Software Mansion, can offer their services on a job without posting a proposal and won't be flagged as spam.
+Members of `expensify-expensify`, `contributor-plus`, or `contributor-plus-backend`, and anyone who says they are from agencies Expensify works with, can offer their services on a job without posting a proposal and won't be flagged as spam.
 
 ## Duplicate proposals
 
