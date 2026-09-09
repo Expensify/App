@@ -7,7 +7,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type OnboardingInterestedFeaturesProps = PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.INTERESTED_FEATURES>;
 
 type BaseOnboardingInterestedFeaturesProps = OnboardingInterestedFeaturesProps & {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 };
 

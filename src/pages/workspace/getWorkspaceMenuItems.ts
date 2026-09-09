@@ -105,9 +105,7 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowEnterCredentialsError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
-    /** Whether the Rules revamp beta is enabled. */
     isRulesRevampBetaEnabled?: boolean;
-    /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;

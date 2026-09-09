@@ -132,10 +132,7 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
 
-    /** Whether the Rules Revamp beta is enabled for the current user. */
     isRulesRevampBetaEnabled: boolean;
-
-    /** Whether the Vendor Matching beta is enabled for the current user. */
     isVendorMatchingBetaEnabled: boolean;
 
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
