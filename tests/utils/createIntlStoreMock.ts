@@ -55,3 +55,39 @@ export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlSt
         hasLocale: (requestedLocale: Locale) => cache.has(requestedLocale),
     };
 }
+
+/** Adds the seed, which is how a cold-start suite lands the table it deliberately started without. */
+type ColdMockedIntlStore = MockedIntlStore & Pick<typeof IntlStore, 'seedForTests'>;
+
+/**
+ * Like {@link createIntlStoreMock}, but nothing is loaded until the suite calls `seedForTests`, so it can assert what
+ * renders during the load window and again after. `load` is inert, leaving the arrival for the test to schedule.
+ */
+function createColdIntlStoreMock(locale: Locale = 'en'): ColdMockedIntlStore {
+    const cache = new Map<Locale, FlatTranslationsObject>();
+    const listeners = new Set<() => void>();
+    let snapshot = {locale, isCurrentLocaleLoaded: false};
+
+    return {
+        getCurrentLocale: () => locale,
+        load: () => Promise.resolve(),
+        get: <TPath extends TranslationPaths>(key: TPath, requestedLocale?: Locale) => cache.get(requestedLocale ?? locale)?.[key] ?? null,
+        subscribe: (listener: () => void) => {
+            listeners.add(listener);
+            return () => {
+                listeners.delete(listener);
+            };
+        },
+        getSnapshot: () => snapshot,
+        hasLocale: (requestedLocale: Locale) => cache.has(requestedLocale),
+        seedForTests: (seededLocale: Locale, translations: FlatTranslationsObject) => {
+            cache.set(seededLocale, translations);
+            snapshot = {locale, isCurrentLocaleLoaded: cache.has(locale)};
+            for (const listener of listeners) {
+                listener();
+            }
+        },
+    };
+}
+
+export {createColdIntlStoreMock};

@@ -40,6 +40,7 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: CONST.LOCALES.EN,
+    isCurrentLocaleLoaded: true,
 };
 const mockEmoji: Emoji = {code: '😄', name: 'smile', hexcode: '1F604', types: []};
 

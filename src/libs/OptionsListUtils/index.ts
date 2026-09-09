@@ -1146,9 +1146,9 @@ function createFilteredOptionList(
         visibleReportActionsData,
         isTrackIntentUser,
         conciergeReportID,
-        // Option building translates strings and formats dates, so both the active locale and the
-        // date-fns locale are part of the output.
+        // Option building translates strings, and a cold start reads the same locale before and after its table lands.
         activeLocale,
+        IntlStore.hasLocale(activeLocale),
         options.preferredLocale,
         // Money-request previews format amounts with this function; the provider memoizes it on the
         // currency list and locale, so a new reference signals the formatting inputs changed.

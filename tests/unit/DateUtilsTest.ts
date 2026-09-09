@@ -1213,23 +1213,24 @@ describe('DateUtils', () => {
             constructorSpy.mockRestore();
         });
 
-        it('a device timezone change rebuilds formatters that were cached without one', () => {
+        it('a device timezone change reaches formatters that were cached without an explicit zone', () => {
             clearIntlFormatterCaches();
-            const instant = new Date('2026-01-15T20:30:00Z');
-            // Jest does not propagate `process.env.TZ` to V8, so the device zone is moved through the offsets the cache key reads.
-            const offsetSpy = jest.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(300);
-            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
+            jest.useFakeTimers();
+            // Athens and Cairo share both solstice offsets and diverge only through April, so a sampled offset cannot tell them apart.
+            const instant = new Date('2024-04-10T12:00:00Z');
+            // Jest does not propagate `process.env.TZ` to V8, so the device zone is moved where the cache key reads it.
+            const resolved = new Intl.DateTimeFormat().resolvedOptions();
+            const zoneSpy = jest.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({...resolved, timeZone: 'Europe/Athens'});
+            // Each advance clears the window the resolved zone is reused for, without clearing the formatter cache the assertion is about.
+            jest.advanceTimersByTime(60 * 1000);
+            expect(DateUtils.formatToLocalTime(instant, CONST.LOCALES.EN)).toBe('3:00 PM');
 
-            const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
-            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
-            expect(constructorSpy).not.toHaveBeenCalled();
+            zoneSpy.mockReturnValue({...resolved, timeZone: 'Africa/Cairo'});
+            jest.advanceTimersByTime(60 * 1000);
+            expect(DateUtils.formatToLocalTime(instant, CONST.LOCALES.EN)).toBe('2:00 PM');
 
-            offsetSpy.mockReturnValue(-540);
-            DateUtils.formatToMediumDate(instant, CONST.LOCALES.EN);
-            expect(constructorSpy).toHaveBeenCalledTimes(1);
-
-            offsetSpy.mockRestore();
-            constructorSpy.mockRestore();
+            zoneSpy.mockRestore();
+            jest.useRealTimers();
             clearIntlFormatterCaches();
         });
 

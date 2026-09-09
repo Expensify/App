@@ -56,6 +56,7 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     localeCompare: (first: string, second: string) => first.localeCompare(second),
     formatTravelDate: () => '',
     preferredLocale: CONST.LOCALES.EN,
+    isCurrentLocaleLoaded: true,
 };
 
 let mockPersonalDetails: PersonalDetailsList = {};

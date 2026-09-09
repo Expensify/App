@@ -61,6 +61,9 @@ type LocaleContextProps = {
 
     /** The user's preferred locale e.g. 'en', 'es' */
     preferredLocale: Locale;
+
+    /** Whether that locale's translations are in memory. A cold `en` start reads `en` either way, so consumers that memoize on the locale need this to know the strings changed. */
+    isCurrentLocaleLoaded: boolean;
 };
 
 type LocalizedTranslate = LocaleContextProps['translate'];
@@ -78,6 +81,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
+    isCurrentLocaleLoaded: false,
 });
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -165,6 +169,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         localeCompare,
         formatTravelDate,
         preferredLocale: currentLocale,
+        isCurrentLocaleLoaded,
     };
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
