@@ -1,4 +1,3 @@
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@navigation/Navigation';
@@ -12,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
-import React, {useState} from 'react';
+import React from 'react';
 
 import BaseDomainGroupPreferredWorkspacePage from './BaseDomainGroupPreferredWorkspacePage';
 
@@ -20,8 +19,6 @@ type DomainGroupPreferredWorkspacePageProps = PlatformStackScreenProps<SettingsN
 
 function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspacePageProps) {
     const {domainAccountID, groupID} = route.params;
-
-    const {translate} = useLocalize();
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: selectGroupByID(groupID),
@@ -31,36 +28,23 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
         selector: domainSecurityGroupSettingPendingActionSelector('deleteGroup', groupID),
     });
 
-    const currentPolicyID = group?.restrictedPrimaryPolicyID;
-
-    const [draftPolicyID, setDraftPolicyID] = useState<string>();
-    const currentSelection = draftPolicyID ?? currentPolicyID;
-
-    const saveWorkspace = () => {
-        if (!group || !currentSelection) {
-            return;
-        }
-        updateDomainSecurityGroup(domainAccountID, groupID, group, {restrictedPrimaryPolicyID: currentSelection}, 'restrictedPrimaryPolicyID');
-        Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
-    };
-
     return (
         <BaseDomainGroupPreferredWorkspacePage
             domainAccountID={domainAccountID}
             testID="DomainGroupPreferredWorkspacePage"
-            selectedPolicyID={currentPolicyID}
-            draftPolicyID={draftPolicyID}
+            selectedPolicyID={group?.restrictedPrimaryPolicyID}
             shouldBeBlocked={!group || !!deleteGroupPendingAction}
             fullPageNotFoundViewProps={{
                 onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)),
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID))}
-            onSelectWorkspace={setDraftPolicyID}
-            confirmButtonOptions={{
-                showButton: true,
-                text: translate('common.save'),
-                onConfirm: saveWorkspace,
-                isDisabled: currentSelection === currentPolicyID,
+            shouldConfirmSelection
+            onSelectWorkspace={(policyID: string) => {
+                if (!group) {
+                    return;
+                }
+                updateDomainSecurityGroup(domainAccountID, groupID, group, {restrictedPrimaryPolicyID: policyID}, 'restrictedPrimaryPolicyID');
+                Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
             }}
         />
     );
