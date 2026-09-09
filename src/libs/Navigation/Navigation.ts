@@ -834,11 +834,11 @@ function waitForProtectedRoutes() {
                 return;
             }
 
-            const unsubscribe = navigationRef.current?.addListener('state', () => {
+            const unsubscribe = navigationRef.addListener('state', () => {
                 if (!navContainsProtectedRoutes(navigationRef.getRootState())) {
                     return;
                 }
-                unsubscribe?.();
+                unsubscribe();
                 resolve();
             });
         });
