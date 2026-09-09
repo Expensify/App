@@ -115,11 +115,11 @@ function useDistanceRequestState({
 
     // How much of a trip the home and office method excludes is decided server-side and arrives on the route
     // response, so a route held without the matching verdict has a distance and an amount that are about to
-    // change. Report those as pending rather than showing figures the commute has not come off yet. Requiring a
-    // route and no route error keeps this to the states the verdict can still arrive in.
+    // change. Report those as pending rather than showing figures the commute has not come off yet.
     const isCommuterExclusionPreviewPending =
         isPolicyExpenseChat &&
         policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+        DistanceRequestUtils.isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType) &&
         hasRoute &&
         !transaction?.errorFields?.route &&
         transaction?.commuterExclusionPreview?.policyID !== policy.id;

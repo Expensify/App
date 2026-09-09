@@ -26,6 +26,7 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
             };
         },
         convertToDistanceInMeters: (distance: number): number => distance,
+        isCommuterExclusionApplicableToRequestType: (iouRequestType: string | undefined): boolean => iouRequestType !== 'distance-manual' && iouRequestType !== 'distance-odometer',
     },
 }));
 
@@ -62,6 +63,8 @@ describe('useDistanceRequestState', () => {
         ],
         ['stops waiting when the route errored, so no verdict can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
         ['does not wait for a personal expense, which no workspace exclusion governs', {}, false, false],
+        ['does not wait for a manually entered distance, which describes no route to recognize a commute in', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, true, false],
+        ['does not wait for an odometer distance either', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, true, false],
     ])('%s', (_caseName, transactionOverrides, isPolicyExpenseChat, expected) => {
         const {result} = renderHook(() =>
             useDistanceRequestState({
