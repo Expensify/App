@@ -20,7 +20,19 @@ import {View} from 'react-native';
 
 type WorkspaceTaxTableRowData = TableData & {
     name: string;
+
+    /** The rate's value and default indicator on one line, rendered on narrow layouts where the columns collapse */
     alternateText: string;
+
+    /** The rate's value, rendered in its own column on wide layouts */
+    taxRateValue: string;
+
+    /** The rate's tax code, empty when the workspace has no code for it */
+    taxCode: string;
+
+    /** The "Workspace currency default" / "Foreign currency default" indicator, empty when the rate is not a default */
+    defaultLabel: string;
+
     enabled: boolean;
     isLocked: boolean;
     isSwitchDisabled?: boolean;
@@ -38,9 +50,12 @@ type WorkspaceTaxesTableRowProps = {
 
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
+
+    /** Whether the tax code column is visible on wide layouts or not */
+    shouldShowTaxCodeColumn: boolean;
 };
 
-function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspaceTaxesTableRowProps) {
+function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowTaxCodeColumn}: WorkspaceTaxesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,7 +65,17 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
-    const accessibilityLabel = [item.name, item.alternateText, enabledStatusLabel].filter(Boolean).join(', ');
+    const accessibilityLabel = [
+        item.name,
+        item.alternateText,
+        shouldShowTaxCodeColumn && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null,
+        enabledStatusLabel,
+    ]
+        .filter(Boolean)
+        .join(', ');
+
+    // On wide layouts the rate value moves into its own column, so the name only carries the default indicator.
+    const nameSupportingText = shouldUseNarrowTableLayout ? item.alternateText : item.defaultLabel;
 
     return (
         <Table.Row
@@ -79,16 +104,44 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 text={item.name}
                                 style={styles.optionDisplayName}
                             />
-                            {!!item.alternateText && (
+                            {!!nameSupportingText && (
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
-                                    text={item.alternateText}
+                                    text={nameSupportingText}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             )}
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.taxRateValue}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowTaxCodeColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.taxCode}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[styles.justifyContentCenter, styles.alignItemsEnd]}

@@ -34,6 +34,8 @@ import {
     canDisableOrDeleteTaxRate as canDisableOrDeleteTaxRateUtil,
     getConnectedIntegration,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isControlPolicy,
+    isTaxCodeCustomized,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -133,22 +135,31 @@ function WorkspaceTaxesPage({
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
+    const getDefaultLabel = useCallback(
+        (taxID: string): string => {
+            if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
+                return translate('common.default');
+            }
+            if (taxID === defaultExternalID) {
+                return translate('workspace.taxes.workspaceDefault');
+            }
+            if (taxID === foreignTaxDefault) {
+                return translate('workspace.taxes.foreignDefault');
+            }
+            return '';
+        },
+        [defaultExternalID, foreignTaxDefault, translate],
+    );
+
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {
-            let suffix;
-            if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                suffix = translate('common.default');
-            } else if (taxID === defaultExternalID) {
-                suffix = translate('workspace.taxes.workspaceDefault');
-            } else if (taxID === foreignTaxDefault) {
-                suffix = translate('workspace.taxes.foreignDefault');
-            }
+            const suffix = getDefaultLabel(taxID);
             if (suffix) {
                 return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
             }
             return `${taxRate.value}`;
         },
-        [defaultExternalID, foreignTaxDefault, translate],
+        [getDefaultLabel],
     );
 
     const updateWorkspaceTaxEnabled = useCallback(
@@ -187,6 +198,11 @@ function WorkspaceTaxesPage({
                 keyForList: key,
                 name: value.name,
                 alternateText: textForDefault(key, value),
+                taxRateValue: value.value,
+                // The record is keyed by the tax code, but only a customized code is a code the admin set, so the rest
+                // are internal ids that would mean nothing in the column. This matches what WorkspaceEditTaxPage shows.
+                taxCode: isTaxCodeCustomized(key, policy) ? key : '',
+                defaultLabel: getDefaultLabel(key),
                 enabled: !value.isDisabled,
                 disabled: isDeleting || !canDisableOrDeleteTaxRateUtil(policy, key),
                 isLocked: !canDisableOrDeleteTaxRate,
@@ -201,7 +217,11 @@ function WorkspaceTaxesPage({
 
             return acc;
         }, []);
-    }, [canWriteTaxes, isOffline, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+    }, [canWriteTaxes, getDefaultLabel, isOffline, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+
+    // Tax codes are a Control feature, and a Collect workspace is sent to the upgrade path instead of an editable code,
+    // so the column has nothing to show there.
+    const shouldShowTaxCodeColumn = !shouldUseNarrowLayout && isControlPolicy(policy) && taxRows.some((taxRow) => !!taxRow.taxCode);
 
     const hasVisibleTaxes = taxRows.length > 0;
     const isLoading = !isOffline && !policy?.taxRates;
@@ -413,6 +433,7 @@ function WorkspaceTaxesPage({
                         taxes={taxRows}
                         selectionEnabled={canWriteTaxes}
                         selectedKeys={selectedTaxesIDs}
+                        shouldShowTaxCodeColumn={shouldShowTaxCodeColumn}
                         onRowSelectionChange={setSelectedTaxesIDs}
                         headerComponent={hasVisibleTaxes ? headerContent : undefined}
                     />
