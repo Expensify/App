@@ -55,6 +55,7 @@ import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
+import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -81,7 +82,6 @@ type WorkspaceDetails = {
 };
 
 type ConnectionWithLastSyncData = {
-    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
 
@@ -818,6 +818,12 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
+/**
+ * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
+ */
+const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
+    (isPolicyAdmin(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
+
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
@@ -1103,6 +1109,53 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
 }
 
 /**
+ * Checks whether a policy tag is selectable under a given parent tag path.
+ * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
+ * while tags without a filter apply everywhere.
+ */
+function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
+    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+}
+
+/**
+ * Finds the policy tag at a single tag list level that matches a tag name.
+ * Dependent tag lists can hold same-named child tags under different parents (stored under unique
+ * record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+ */
+function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+    const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+        if (!levelTag || levelTag.name !== tagName) {
+            return false;
+        }
+        return matchesParentTagPath(levelTag, parentTagPath);
+    };
+
+    const directMatch = levelTags[tagName];
+    return matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+}
+
+function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
+    if (!policyTags) {
+        return false;
+    }
+    const tagComponents = getTagArrayFromName(tagValue);
+    const sortedTagLists = getTagLists(policyTags);
+
+    return tagComponents.every((component, index) => {
+        if (!component) {
+            return true;
+        }
+        const levelTags = sortedTagLists.at(index)?.tags;
+        if (!levelTags) {
+            return false;
+        }
+        const tag = findPolicyTagAtLevel(levelTags, component, tagComponents.slice(0, index).join(':'));
+        return !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
+}
+
+/**
  * Checks if a policy has any custom categories (categories not in the default list)
  */
 function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boolean {
@@ -1113,6 +1166,16 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
     const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
+ * Checks whether a policy max expense amount (e.g. `maxExpenseAmountNoReceipt`) is actually configured.
+ *
+ * `0` is a valid limit meaning "always required", so a falsy check would wrongly treat an explicit $0.00 as unset.
+ * Only `undefined` and `CONST.DISABLED_MAX_EXPENSE_VALUE` mean the amount is not set.
+ */
+function isMaxExpenseAmountSet(value: number | undefined): value is number {
+    return value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
 /**
@@ -1273,20 +1336,7 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
                 return '';
             }
 
-            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
-            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
-            const parentTagPath = tagParts.slice(0, index).join(':');
-            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
-                if (!levelTag || levelTag.name !== tagName) {
-                    return false;
-                }
-                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
-                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
-            };
-
-            const directMatch = levelTags[tagName];
-            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            return getGLCodeFromPolicyTag(matchingTag);
+            return getGLCodeFromPolicyTag(findPolicyTagAtLevel(levelTags, tagName, tagParts.slice(0, index).join(':')));
         })
         .filter(Boolean)
         .join(', ');
@@ -1465,7 +1515,12 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1556,7 +1611,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -1596,6 +1651,16 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
  */
 function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
+ * Checks if the approval workflow configuration must stay hidden because the workspace's Dynamic External Workflow has
+ * "Hide People Table Columns" set. The backend only returns `dynamicExternalWorkflowHidePeople` when it is `true`, so an
+ * absent flag means "show". The approval mode is checked too, so a stale flag can't hide workflows on a policy that no
+ * longer uses a Dynamic External Workflow.
+ */
+function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boolean {
+    return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
 /**
@@ -1710,6 +1775,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) {
+        return policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -3152,8 +3220,12 @@ export {
     getTagListName,
     getTagLists,
     hasTags,
+    isTagInPolicy,
+    findPolicyTagAtLevel,
+    matchesParentTagPath,
     hasCustomCategories,
     hasConfiguredRules,
+    isMaxExpenseAmountSet,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -3190,6 +3262,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,
@@ -3309,6 +3382,7 @@ export {
     getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
+    shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,

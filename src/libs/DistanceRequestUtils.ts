@@ -796,6 +796,25 @@ function getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID: string 
 }
 
 /**
+ * Resolve a mileage rate from the supplied policy, falling back to any policy that owns an enabled rate with the same ID.
+ */
+function getRateByCustomUnitRateIDAcrossPolicies({
+    customUnitRateID,
+    policy,
+    policies,
+}: {
+    customUnitRateID: string | undefined;
+    policy?: OnyxEntry<Policy>;
+    policies?: OnyxCollection<Policy>;
+}): MileageRate | undefined {
+    if (!customUnitRateID) {
+        return undefined;
+    }
+
+    return getRateByCustomUnitRateID({customUnitRateID, policy}) ?? getEnabledRateByCustomUnitRateIDFromAnyPolicy(customUnitRateID, policies);
+}
+
+/**
  * Returns whether the selected custom unit rate is out of its valid date range for the given expense date.
  */
 function isCustomUnitRateOutOfDateRange({
@@ -902,6 +921,7 @@ export default {
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getRateByCustomUnitRateIDAcrossPolicies,
     getEnabledRateByCustomUnitRateIDFromAnyPolicy,
     getDistanceForDisplayLabel,
     convertDistanceUnit,

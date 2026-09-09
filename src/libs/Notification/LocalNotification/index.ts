@@ -37,7 +37,16 @@ function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, currentUserLogin, derivedReportName}: LocalNotificationModifiedExpenseParams) {
+function showModifiedExpenseNotification({
+    report,
+    reportAction,
+    movedFromReport,
+    movedToReport,
+    onClick,
+    currentUserAccountID,
+    currentUserLogin,
+    derivedReportName,
+}: LocalNotificationModifiedExpenseParams) {
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
     const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
@@ -50,6 +59,7 @@ function showModifiedExpenseNotification({report, reportAction, movedFromReport,
         usesIcon: true,
         policyTags,
         policy,
+        currentUserAccountID,
         currentUserLogin,
         derivedReportName,
     });
