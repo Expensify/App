@@ -237,7 +237,6 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
             if (!isMoneyRequestReport(item)) {
                 continue;
             }
-            // Rows being deleted never get a selection entry, so they are left out of the check here too, matching `getGroupCheckboxState`.
             const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
             const isSelected =
                 item.transactions.length === 0
