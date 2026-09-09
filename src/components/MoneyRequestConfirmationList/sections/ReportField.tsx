@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -70,8 +70,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
-        localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
+    // Sorted newest first, the same ordering the report picker and the expense creation flow use, so the report named
+    // here is the one the expense is actually added to when the chat has no `iouReportID` to point at.
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((report1, report2) =>
+        sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
     const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
