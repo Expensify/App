@@ -18,16 +18,12 @@ import Text from './Text';
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
-    /** The ID of the test to be used for testing */
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
