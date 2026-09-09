@@ -51,6 +51,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
 
     /** Optional content rendered below the row grid */
     rowFooter?: React.ReactNode;
+
+    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+    isGroupHeader?: boolean;
 };
 
 export default function TableRow({
@@ -65,6 +68,7 @@ export default function TableRow({
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    isGroupHeader = false,
     id,
     'aria-hidden': ariaHidden,
     focusable,
@@ -125,6 +129,14 @@ export default function TableRow({
         return null;
     }
 
+    // A group header only labels the rows below it, so it's shorter than a data row and keeps that height on every layout.
+    const rowHeightStyle = (() => {
+        if (isGroupHeader) {
+            return styles.tableGroupRowHeight;
+        }
+        return shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight;
+    })();
+
     const tableRowPressableStyles = [
         styles.mh5,
         styles.highlightBG,
@@ -132,7 +144,7 @@ export default function TableRow({
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
-        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+        rowHeightStyle,
     ];
 
     const tableRowContentContainerStyles = [
@@ -141,7 +153,7 @@ export default function TableRow({
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
+        shouldUseNarrowTableLayout && !isGroupHeader ? styles.pv4 : styles.pv2,
     ];
 
     const tableRowContentStyles = [

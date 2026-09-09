@@ -8,6 +8,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -21,13 +22,13 @@ import DomainAdminsTableRow from './DomainAdminsTableRow';
 type DomainAdminsTableColumnKey = 'admin' | 'actions';
 
 type DomainAdminGroupHeaderRowData = TableData & {
-    rowType: 'groupHeader';
+    rowType: typeof CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER;
     groupOrder: number;
     label: string;
 };
 
 type DomainAdminRequestRowData = TableData & {
-    rowType: 'request';
+    rowType: typeof CONST.DOMAIN.ADMINS.ROW_TYPE.REQUEST;
     groupOrder: number;
     accountID: number;
     name: string;
@@ -41,7 +42,7 @@ type DomainAdminRequestRowData = TableData & {
 };
 
 type DomainAdminRowData = TableData & {
-    rowType: 'admin';
+    rowType: typeof CONST.DOMAIN.ADMINS.ROW_TYPE.ADMIN;
     groupOrder: number;
     accountID: number;
     name: string;
@@ -83,9 +84,19 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
     const tableData: DomainAdminsTableRowData[] =
         requests.length > 0
             ? [
-                  {keyForList: 'group-requests', rowType: 'groupHeader', groupOrder: 0, label: translate('domain.admins.requests')},
+                  {
+                      keyForList: 'group-requests',
+                      rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER,
+                      groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.REQUESTS,
+                      label: translate('domain.admins.requests'),
+                  },
                   ...requests,
-                  {keyForList: 'group-admins', rowType: 'groupHeader', groupOrder: 1, label: translate('domain.admins.title')},
+                  {
+                      keyForList: 'group-admins',
+                      rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER,
+                      groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.ADMINS,
+                      label: translate('domain.admins.title'),
+                  },
                   ...admins,
               ]
             : admins;
@@ -94,7 +105,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
         if (item1.groupOrder !== item2.groupOrder) {
             return item1.groupOrder - item2.groupOrder;
         }
-        if (item1.rowType === 'groupHeader' || item2.rowType === 'groupHeader') {
+        if (item1.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER || item2.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER) {
             return 0;
         }
 
@@ -103,8 +114,10 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<DomainAdminsTableRowData> = (item, searchValue) => {
-        if (item.rowType === 'groupHeader') {
-            const groupRows = tableData.filter((row): row is DomainAdminRequestRowData | DomainAdminRowData => row.rowType !== 'groupHeader' && row.groupOrder === item.groupOrder);
+        if (item.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER) {
+            const groupRows = tableData.filter(
+                (row): row is DomainAdminRequestRowData | DomainAdminRowData => row.rowType !== CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER && row.groupOrder === item.groupOrder,
+            );
             return tokenizedSearch(groupRows, searchValue, (option) => [option.name, option.email]).length > 0;
         }
 
@@ -113,7 +126,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
     };
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainAdminsTableRowData>) => {
-        if (item.rowType === 'groupHeader') {
+        if (item.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.GROUP_HEADER) {
             return (
                 <DomainAdminsTableGroupHeaderRow
                     item={item}
@@ -122,7 +135,7 @@ export default function DomainAdminsTable({domainAccountID, admins, requests}: D
             );
         }
 
-        if (item.rowType === 'request') {
+        if (item.rowType === CONST.DOMAIN.ADMINS.ROW_TYPE.REQUEST) {
             return (
                 <DomainAdminRequestsTableRow
                     item={item}

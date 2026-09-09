@@ -26,12 +26,13 @@ export default function DomainAdminsTableGroupHeaderRow({item, rowIndex}: Domain
 
     return (
         <Table.Row
+            isGroupHeader
             interactive={false}
             rowIndex={rowIndex}
             accessibilityLabel={item.label}
         >
             <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
-                <Text style={styles.textStrong}>{item.label}</Text>
+                <Text style={styles.labelStrong}>{item.label}</Text>
             </View>
         </Table.Row>
     );

@@ -9645,6 +9645,18 @@ const CONST = {
                 MOVE_TO_GROUP: 'moveToGroup',
             },
         },
+
+        ADMINS: {
+            ROW_TYPE: {
+                GROUP_HEADER: 'groupHeader',
+                REQUEST: 'request',
+                ADMIN: 'admin',
+            },
+            GROUP_ORDER: {
+                REQUESTS: 0,
+                ADMINS: 1,
+            },
+        },
     },
 
     AUTO_COMPLETE_VARIANTS: {

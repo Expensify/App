@@ -119,8 +119,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
             return {
                 keyForList: String(accountID),
-                rowType: 'admin',
-                groupOrder: 1,
+                rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.ADMIN,
+                groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.ADMINS,
                 accountID,
                 name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
@@ -134,35 +134,34 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         });
 
     const requests: DomainAdminRequestRowData[] = isAdmin
-        ? (requesterAccountIDs ?? [])
-              .filter((accountID) => {
-                  const details = personalDetails?.[accountID];
-                  const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
-                  const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
+        ? (requesterAccountIDs ?? []).reduce<DomainAdminRequestRowData[]>((acc, accountID) => {
+              const details = personalDetails?.[accountID];
+              const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
+              const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
 
-                  return shouldShowPendingRow(details, pendingAction, errors, isOffline);
-              })
-              .map((accountID) => {
-                  const details = personalDetails?.[accountID];
-                  const login = details?.login ?? '';
-                  const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
-                  const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
+              if (!shouldShowPendingRow(details, pendingAction, errors, isOffline)) {
+                  return acc;
+              }
 
-                  return {
-                      keyForList: `request-${accountID}`,
-                      rowType: 'request',
-                      groupOrder: 0,
-                      accountID,
-                      name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
-                      email: formatPhoneNumber(login),
-                      disabled: !login,
-                      errors: getLatestError(errors),
-                      pendingAction,
-                      approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),
-                      deny: () => declineDomainAdminshipRequest(domainAccountID, accountID),
-                      dismissError: () => clearAdminshipRequesterError(domainAccountID, accountID),
-                  };
-              })
+              const login = details?.login ?? '';
+
+              acc.push({
+                  keyForList: `request-${accountID}`,
+                  rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.REQUEST,
+                  groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.REQUESTS,
+                  accountID,
+                  name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
+                  email: formatPhoneNumber(login),
+                  disabled: !login,
+                  errors: getLatestError(errors),
+                  pendingAction,
+                  approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),
+                  deny: () => declineDomainAdminshipRequest(domainAccountID, accountID),
+                  dismissError: () => clearAdminshipRequesterError(domainAccountID, accountID),
+              });
+
+              return acc;
+          }, [])
         : [];
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);

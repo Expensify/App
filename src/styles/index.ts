@@ -2769,6 +2769,10 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableRowHeight,
         },
 
+        tableGroupRowHeight: {
+            minHeight: variables.tableGroupRowHeight,
+        },
+
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
         },
