@@ -30,7 +30,7 @@ function GustoApprovalModePage({
         approvalModes: CONST.GUSTO.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
-        getHeaderTitle: () => translate('workspace.hr.approvalMode'),
+        getHeaderTitle: () => translate('workspace.merge.approvalMode'),
         handleSave: ({draftApprovalMode, currentApprovalMode}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 
