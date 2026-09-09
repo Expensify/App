@@ -34,7 +34,6 @@ type AttachmentPreviewProps = {
     /** Function to call when pressing thumbnail */
     onPress: () => void;
 
-    /** The attachment load error callback */
     onLoadError?: () => void;
 };
 

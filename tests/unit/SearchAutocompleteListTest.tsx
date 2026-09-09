@@ -178,6 +178,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     dateFnsLocale: undefined,
+    convertToDisplayString: TestHelper.convertToDisplayString,
     conciergeReportID: undefined,
     isSearching: true,
 });
@@ -461,6 +462,7 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
@@ -550,6 +552,7 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },

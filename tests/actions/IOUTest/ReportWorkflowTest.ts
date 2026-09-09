@@ -177,7 +177,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -188,6 +188,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
@@ -790,7 +791,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -801,6 +802,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
@@ -877,7 +879,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -889,6 +891,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -1176,7 +1179,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -1188,6 +1191,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -1406,7 +1410,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const policyID = generatePolicyID();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: 'Test Workspace with Dynamic External Workflow',
                 policyID,
@@ -1417,6 +1421,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
             return waitForBatchedUpdates()
@@ -1647,7 +1652,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 policyID,
@@ -1658,6 +1663,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
 
@@ -3632,82 +3638,6 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBeTruthy();
-        });
-
-        it('allows a non-payer admin to pay when a bank account is connected (reimburseYes)', async () => {
-            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
-            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(1),
-                id: 'AA',
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                role: CONST.POLICY.ROLE.ADMIN,
-                achAccount: {
-                    reimburser: DESIGNATED_PAYER_EMAIL,
-                    bankAccountID: 1,
-                    accountNumber: '1234567890',
-                    routingNumber: '987654321',
-                    addressName: 'Test Address',
-                    bankName: 'Test Bank',
-                },
-            };
-
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: 'AA',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                ownerAccountID: CARLOS_ACCOUNT_ID,
-                managerID: CARLOS_ACCOUNT_ID,
-                isWaitingOnBankAccount: false,
-                total: -100,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-
-            // Rory is an admin but not the designated reimburser, so the Pay option comes from canAdminPayReport rather than isPayer.
-            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBeFalsy();
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeTruthy();
-        });
-
-        it('does not allow a non-payer admin to pay when reimbursementChoice is not configured', async () => {
-            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
-            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(1),
-                id: 'AA',
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                reimbursementChoice: undefined,
-                role: CONST.POLICY.ROLE.ADMIN,
-                achAccount: {
-                    reimburser: DESIGNATED_PAYER_EMAIL,
-                    bankAccountID: 1,
-                    accountNumber: '1234567890',
-                    routingNumber: '987654321',
-                    addressName: 'Test Address',
-                    bankName: 'Test Bank',
-                },
-            };
-
-            const fakeReport: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: 'AA',
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                ownerAccountID: CARLOS_ACCOUNT_ID,
-                managerID: CARLOS_ACCOUNT_ID,
-                isWaitingOnBankAccount: false,
-                total: -100,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-
-            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {

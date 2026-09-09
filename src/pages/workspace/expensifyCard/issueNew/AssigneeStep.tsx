@@ -43,16 +43,11 @@ type AssigneeListItem = ListItem & {
 };
 
 type AssigneeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 };
 

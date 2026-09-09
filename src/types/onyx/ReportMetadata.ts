@@ -12,7 +12,6 @@ type PendingChatMember = {
     /** Action to be applied to the pending member of report */
     pendingAction: OnyxCommon.PendingAction;
 
-    /** Collection of errors to show to the user */
     errors?: OnyxCommon.Errors;
 };
 
@@ -20,10 +19,7 @@ type PendingChatMember = {
  *  are tracked in dedicated Onyx keys (RAM_ONLY_REPORT_LOADING_STATE, REPORT_PAGINATION_STATE,
  *  REPORT_LAST_VISIT_TIMES) and are NOT part of this type. */
 type ReportMetadata = {
-    /** Whether the current report is optimistic */
     isOptimisticReport?: boolean;
-
-    /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
 
     /** Whether the report has violations or errors */
@@ -32,7 +28,7 @@ type ReportMetadata = {
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
 
-    /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
+    /** Transactions just submitted/moved to this report, to highlight on first load. Keyed `${transactionID}:${flaggedAt}`. */
     pendingNewTransactionIDs?: Record<string, true | null>;
 };
 

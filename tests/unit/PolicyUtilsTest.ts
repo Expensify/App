@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
-    canAccessPolicyBankAccount,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -15,7 +14,6 @@ import {
     canMemberWrite,
     canSendInvoiceFromWorkspace,
     findVendorByID,
-    getAccessiblePolicyBankAccount,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -43,7 +41,10 @@ import {
     getSubmitToAccountID,
     getSubmitToEmail,
     getTagApproverRule,
+    findPolicyTagAtLevel,
     getTagGLCode,
+    isTagInPolicy,
+    matchesParentTagPath,
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
@@ -71,6 +72,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
     sortWorkspacesBySelected,
@@ -81,7 +83,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -1604,6 +1606,166 @@ describe('PolicyUtils', () => {
                 },
             };
             expect(getTagGLCode(tagListsWithNumberGLCode, 'Engineering')).toBe('1234');
+        });
+    });
+
+    describe('matchesParentTagPath', () => {
+        it('matches any parent tag path when the tag has no parent filter', () => {
+            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, '')).toBe(true);
+            expect(matchesParentTagPath({name: 'Roadshow', enabled: true}, 'California:100:South')).toBe(true);
+        });
+
+        it('matches only the parent tag path allowed by the parent filter', () => {
+            const tag = {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}};
+            expect(matchesParentTagPath(tag, 'California:100:North')).toBe(true);
+            expect(matchesParentTagPath(tag, 'California:100:South')).toBe(false);
+        });
+
+        it('reads the parent filter off the tag root when it is not nested under rules', () => {
+            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Marketing')).toBe(true);
+            expect(matchesParentTagPath({name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$'}, 'Engineering')).toBe(false);
+        });
+
+        it('prefers the parent filter nested under rules over the one on the tag root', () => {
+            const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
+            expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
+            expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+        });
+    });
+
+    describe('findPolicyTagAtLevel', () => {
+        // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
+        const dependentLevelTags: PolicyTags = {
+            'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},
+            'California:100:South:30': {name: '30', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:South$'}},
+        };
+
+        // Independent tag lists key their tags by name and carry no parent filter
+        const independentLevelTags: PolicyTags = {
+            Engineering: {name: 'Engineering', enabled: true},
+            Marketing: {name: 'Marketing', enabled: true},
+        };
+
+        it('returns undefined when no tag of the level carries the name', () => {
+            expect(findPolicyTagAtLevel(dependentLevelTags, 'Nonexistent', 'California:100:North')).toBeUndefined();
+        });
+
+        it('returns the tag matching the record key when the level has no parent filters', () => {
+            expect(findPolicyTagAtLevel(independentLevelTags, 'Engineering', '')?.name).toBe('Engineering');
+        });
+
+        it('resolves a dependent tag by name when the record key is the full tag path', () => {
+            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:North')?.name).toBe('20');
+            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:South')?.name).toBe('30');
+        });
+
+        it('returns undefined when the name exists at the level but under a different parent', () => {
+            expect(findPolicyTagAtLevel(dependentLevelTags, '20', 'California:100:South')).toBeUndefined();
+            expect(findPolicyTagAtLevel(dependentLevelTags, '30', 'California:100:North')).toBeUndefined();
+        });
+
+        it('tells same-named children of different parents apart', () => {
+            const sameNamedChildren: PolicyTags = {
+                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+            };
+
+            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Marketing')?.['GL Code']).toBe('1111');
+            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+            expect(findPolicyTagAtLevel(sameNamedChildren, 'Roadshow', 'Sales')).toBeUndefined();
+        });
+
+        it('skips a record key that collides with the name but fails the parent filter', () => {
+            // The record key equals the name here, so the direct key lookup must still be parent filtered
+            const collidingKey: PolicyTags = {
+                Roadshow: {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Marketing$'}},
+                'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '2222', rules: {parentTagsFilter: '^Engineering$'}},
+            };
+
+            expect(findPolicyTagAtLevel(collidingKey, 'Roadshow', 'Engineering')?.['GL Code']).toBe('2222');
+        });
+
+        it('matches a parent tag path holding escaped colons', () => {
+            // Parent tag paths keep the escaped colons of getTagArrayFromName, so a parent filter of a tag
+            // nested under a colon holding parent has to escape the backslash to match
+            const escapedParentTags: PolicyTags = {
+                'Sales\\:EMEA:Roadshow': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Sales\\\\:EMEA$'}},
+            };
+
+            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales\\:EMEA')?.name).toBe('Roadshow');
+            expect(findPolicyTagAtLevel(escapedParentTags, 'Roadshow', 'Sales')).toBeUndefined();
+        });
+    });
+
+    describe('isTagInPolicy', () => {
+        const dependentPolicyTagLists: PolicyTagLists = {
+            Department: {
+                name: 'Department',
+                orderWeight: 0,
+                required: false,
+                tags: {
+                    Engineering: {name: 'Engineering', enabled: true},
+                    Marketing: {name: 'Marketing', enabled: true},
+                },
+            },
+            Project: {
+                name: 'Project',
+                orderWeight: 1,
+                required: false,
+                tags: {
+                    Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                    'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}},
+                },
+            },
+        };
+
+        it('returns false when policy tags are undefined', () => {
+            expect(isTagInPolicy('Engineering', undefined)).toBe(false);
+        });
+
+        it('returns false when the tag list level is missing', () => {
+            expect(isTagInPolicy('Engineering:Roadshow:Extra', dependentPolicyTagLists)).toBe(false);
+        });
+
+        it('returns false when the tag is not in the policy', () => {
+            expect(isTagInPolicy('Nonexistent', dependentPolicyTagLists)).toBe(false);
+        });
+
+        it('returns true for every level of an existing multi-level tag', () => {
+            expect(isTagInPolicy('Engineering:Roadshow', dependentPolicyTagLists)).toBe(true);
+            expect(isTagInPolicy('Marketing:Roadshow', dependentPolicyTagLists)).toBe(true);
+        });
+
+        it('returns false when the dependent child matching the parent tag path is pending deletion', () => {
+            // Only the Engineering child is deleted, so the same-named Marketing child must not keep the tag alive
+            const tagListsWithDeletedChild: PolicyTagLists = {
+                ...dependentPolicyTagLists,
+                Project: {
+                    ...dependentPolicyTagLists.Project,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Engineering$'}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(isTagInPolicy('Engineering:Roadshow', tagListsWithDeletedChild)).toBe(false);
+            expect(isTagInPolicy('Marketing:Roadshow', tagListsWithDeletedChild)).toBe(true);
+        });
+
+        it('returns false when a non-dependent tag is pending deletion', () => {
+            const tagListsWithDeletedTag: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
+            };
+
+            expect(isTagInPolicy('Engineering', tagListsWithDeletedTag)).toBe(false);
         });
     });
 
@@ -4576,104 +4738,6 @@ describe('getDefaultWorkspacePlanType', () => {
     });
 });
 
-describe('canAccessPolicyBankAccount', () => {
-    const PAYER_EMAIL = 'payer@test.com';
-    const NON_PAYER_ADMIN_EMAIL = 'admin@test.com';
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    const policyWithBankAccount: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        role: CONST.POLICY.ROLE.ADMIN,
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1111',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: PAYER_EMAIL,
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-        employeeList: {
-            [PAYER_EMAIL]: {email: PAYER_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            [NON_PAYER_ADMIN_EMAIL]: {email: NON_PAYER_ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-        },
-    };
-
-    const bankAccountListWithPolicyAccount = {
-        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-    };
-
-    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
-    // button but never shared with them, so the backend debited a different account.
-    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
-    });
-
-    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
-    });
-
-    it('returns false when the bank account list only holds other accounts', () => {
-        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
-        expect(
-            canAccessPolicyBankAccount(policyWithBankAccount, {
-                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-            }),
-        ).toBe(false);
-    });
-
-    it('returns false when the workspace has no connected bank account', () => {
-        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-
-    it('returns false when there is no policy', () => {
-        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
-    });
-});
-
-describe('getAccessiblePolicyBankAccount', () => {
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-
-    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
-    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
-    // account other than the one the payment debits.
-    const policyWithStaleAccountNumber: Policy = {
-        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX9999',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: 'payer@test.com',
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-        },
-    };
-
-    const bankAccountList = {
-        [POLICY_BANK_ACCOUNT_ID]: {
-            methodID: POLICY_BANK_ACCOUNT_ID,
-            bankCurrency: CONST.CURRENCY.USD,
-            bankCountry: CONST.COUNTRY.US,
-            accountData: {accountNumber: 'XXXXXX1234'},
-        },
-    };
-
-    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
-    });
-
-    it('returns undefined when the workspace account is not shared with the user', () => {
-        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
-    });
-
-    it('returns undefined when the workspace has no connected bank account', () => {
-        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
-    });
-});
-
 describe('getPolicyApproverLogins', () => {
     it('returns an empty set when policy is undefined', () => {
         expect(getPolicyApproverLogins(undefined).size).toBe(0);
@@ -4729,5 +4793,27 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('shouldHideDynamicExternalWorkflowPeople', () => {
+    it('returns false when the policy is undefined', () => {
+        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+    });
+
+    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+    });
+
+    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+    it('returns false for a Dynamic External Workflow policy without the flag', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+    });
+
+    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
     });
 });

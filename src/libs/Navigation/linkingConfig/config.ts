@@ -848,6 +848,31 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.route,
+                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE]: DYNAMIC_ROUTES.WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE.path,
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_TYPE_SELECTOR]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_TYPE_SELECTOR.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_ADD_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
+                            path: ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
@@ -873,6 +898,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path,
 
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TRAVEL_BILLING_SELECT_FEED]: DYNAMIC_ROUTES.WORKSPACE_TRAVEL_BILLING_SELECT_FEED.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.route,
                         },
@@ -1980,6 +2006,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.route,
                             exact: true,
                         },
+                        [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: {
+                            path: ROUTES.MERGE_REPORTS_SEARCH_RHP.route,
+                            exact: true,
+                        },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: {
                             path: ROUTES.CHANGE_APPROVER_SEARCH_RHP.route,
                             exact: true,
@@ -1994,6 +2024,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: ROUTES.SEARCH_SAVE,
+                [SCREENS.RIGHT_MODAL.BETA_OVERRIDES]: ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES,
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
                     screens: {
                         [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: ROUTES.SEARCH_SAVED_SEARCH_RENAME.route,
@@ -2331,6 +2362,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.HR]: {
                                     path: ROUTES.WORKSPACE_HR.route,
+                                },
+                                [SCREENS.WORKSPACE.RECRUITING]: {
+                                    path: ROUTES.WORKSPACE_RECRUITING.route,
                                 },
                                 [SCREENS.WORKSPACE.TAGS]: {
                                     path: ROUTES.WORKSPACE_TAGS.route,

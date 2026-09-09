@@ -327,16 +327,12 @@ type ParticipantInfo = {
 };
 
 type OpenReportActionParams = {
-    /** The ID of the report to open */
     reportID: string | undefined;
-
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
 
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
 
-    /** The list of participants */
     participants?: ParticipantInfo[];
 
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
@@ -352,28 +348,22 @@ type OpenReportActionParams = {
     /** Whether or not this report is being opened from a deep link */
     isFromDeepLink?: boolean;
 
-    /** Whether this is a new thread being created */
     isNewThread?: boolean;
 
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
     parentReportID?: string;
 
-    /** Whether to add pending fields to the report */
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
     optimisticSelfDMReport?: Report;
 
-    /** The current user's login */
     currentUserLogin?: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
@@ -384,7 +374,6 @@ type OpenReportActionParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** Whether the report has report actions or not */
     hasReportActions: boolean | undefined;
 
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
@@ -462,10 +451,9 @@ type MergeReportsProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    allReports: OnyxCollection<Report>;
+    allReports?: OnyxCollection<Report>;
     allReportsTransactions?: Record<string, Transaction[]>;
-    sourceReportActions: Record<string, OnyxEntry<ReportActions>>;
-    sourceParentReportActions: Record<string, OnyxEntry<ReportAction>>;
+    allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
     isTrackIntentUser: boolean | undefined;
@@ -2395,13 +2383,8 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 }
 
 type CreateTransactionThreadReportParams = {
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
-
-    /** The current user's login */
     currentUserLogin: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Beta features list */
@@ -2416,7 +2399,6 @@ type CreateTransactionThreadReportParams = {
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The personal details of the participants */
@@ -2430,7 +2412,6 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 };
 
@@ -4058,13 +4039,21 @@ function updateReportField({
         isTrackIntentUser,
     });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const optimisticReportFieldValue = isInvoiceField ? null : reportField;
+    const failureReportFieldValue = isInvoiceField ? null : previousReportField;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: reportField,
+                    [fieldKey]: optimisticReportFieldValue,
                 },
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -4082,6 +4071,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: reportField,
+                [reportField.fieldID]: reportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4092,13 +4092,17 @@ function updateReportField({
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: previousReportField,
+                    [fieldKey]: failureReportFieldValue,
                 },
                 nextStep: report.nextStep ?? null,
                 pendingFields: {
@@ -4121,6 +4125,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: previousReportField,
+                [reportField.fieldID]: previousReportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown') {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4131,7 +4146,7 @@ function updateReportField({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -4155,6 +4170,21 @@ function updateReportField({
             },
         },
     ];
+
+    if (isInvoiceField) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: {
+                    pendingAction: null,
+                },
+                [reportField.fieldID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+    }
 
     const parameters = {
         reportID,
@@ -5087,7 +5117,7 @@ function showReportActionNotification(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, reportAttributes});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserAccountID, currentUserLogin, reportAttributes});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
     }
@@ -8536,8 +8566,7 @@ function mergeReports({
     allReportsTransactions,
     bankAccountList,
     allReports: allReportsParam,
-    sourceReportActions,
-    sourceParentReportActions,
+    allReportActions = {},
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8627,7 +8656,7 @@ function mergeReports({
         });
 
         // Mark comments on the source report as deleted
-        const reportActions = sourceReportActions[sourceReportID];
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
         deleteOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
@@ -8644,7 +8673,7 @@ function mergeReports({
         const parentReportID = sourceReport.parentReportID;
         const parentReportActionID = sourceReport.parentReportActionID;
         if (parentReportID && parentReportActionID) {
-            const parentReportAction = sourceParentReportActions[sourceReportID];
+            const parentReportAction = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
             const {
                 optimisticData: parentOptimisticData,
                 successData: parentSuccessData,
@@ -8673,6 +8702,14 @@ function mergeReports({
     if (hash) {
         const optimisticSnapshotData: SearchResultDataType = {};
         const failureSnapshotData: SearchResultDataType = {};
+        for (const transaction of transactionsToMove) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...transaction,
+                reportID: destinationReportID,
+            };
+
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
         for (const sourceReportID of sourceReportIDs) {
             const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
             if (sourceReport) {
@@ -8715,8 +8752,8 @@ function mergeReports({
     }
 
     const parameters: MergeReportsParams = {
-        destinationReportID,
-        sourceReportIDs,
+        reportID: destinationReportID,
+        sourceReportIDList: sourceReportIDs,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
 
