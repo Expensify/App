@@ -311,7 +311,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: createReport,
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -335,7 +335,7 @@ function EmptySearchViewContent({
                         };
                     } else if (!hasResults || !hasTransactions) {
                         content = {
-                            ...defaultViewItemHeader.folder,
+                            ...defaultViewItemHeader.expenses,
                             title: translate('search.searchResults.emptyExpenseResults.title'),
                             subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                             buttons: [
@@ -350,7 +350,7 @@ function EmptySearchViewContent({
                                 {
                                     buttonText: translate('iou.createExpense'),
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
-                                    success: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
                             ],
                         };
@@ -387,7 +387,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),

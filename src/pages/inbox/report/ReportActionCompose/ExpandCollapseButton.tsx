@@ -17,17 +17,11 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExpandCollapseButtonProps = ViewProps & {
-    /** Whether the full composer is available */
     isFullComposerAvailable: boolean;
-    /** Whether the composer is full size */
     isComposerFullSize: boolean;
-    /** The report ID */
     reportID: string;
-    /** Function to raise the scroll is likely layout triggered */
     raiseIsScrollLikelyLayoutTriggered: () => void;
-    /** Function to set the composer full size */
     setIsComposerFullSize: (reportID: string, isFullSize: boolean) => void;
-    /** Whether the button is disabled */
     disabled?: boolean;
 };
 
@@ -69,7 +63,7 @@ function ExpandCollapseButton({
                     }}
                     // Keep focus on the composer when Collapse/Expand button is clicked.
                     onMouseDown={(e) => e.preventDefault()}
-                    style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                    style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))]}
                     disabled={disabled}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={tooltipText}
@@ -77,7 +71,7 @@ function ExpandCollapseButton({
                 >
                     {({hovered, pressed}) => (
                         <Icon
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                             src={iconSrc}
                         />
                     )}

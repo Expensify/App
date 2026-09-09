@@ -46,7 +46,6 @@ type RoomMembersTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
     /** Callback when the active search string changes */

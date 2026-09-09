@@ -28,7 +28,7 @@ function useCancelSendMessageSpanOnSkeleton(reportID: string | undefined, skelet
         // `client.on` returns an unsubscribe function, used as the effect cleanup.
         return client.on('spanStart', (span) => {
             const {op, data} = Sentry.spanToJSON(span);
-            if ((op !== CONST.TELEMETRY.SPAN_SEND_MESSAGE && op !== CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE) || data[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID] !== reportID) {
+            if (op !== CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE || data[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID] !== reportID) {
                 return;
             }
             // Defer so activeSpans has registered the span (set right after the `startInactiveSpan` that emits this).

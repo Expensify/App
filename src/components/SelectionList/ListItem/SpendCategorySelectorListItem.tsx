@@ -29,8 +29,6 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
             onSelectRow={onSelectRow}
             isFocused={isFocused}
             showTooltip
-            keyForList={item.keyForList}
-            pendingAction={item.pendingAction}
         >
             <MenuItemWithTopDescription
                 shouldShowRightIcon

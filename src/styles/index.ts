@@ -1,7 +1,7 @@
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
@@ -27,6 +27,7 @@ import {interpolate} from 'react-native-reanimated';
 import type {ThemeColors} from './theme/types';
 
 import colors from './theme/colors';
+import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -360,12 +361,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emojiSuggestionsEmoji: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeEmojisWithinText,
             width: 51,
             textAlign: 'center',
         },
         emojiSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             flex: 1,
             ...wordBreak.breakWord,
             ...spacing.pr4,
@@ -376,7 +377,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
-        mentionSuggestionsAvatarContainer: {
+        compactAvatarContainer: {
             width: 24,
             height: 24,
             alignItems: 'center',
@@ -384,7 +385,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         mentionSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             ...spacing.ml2,
         },
 
@@ -478,6 +479,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -487,14 +492,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         label: {
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         themeTextColor: {
@@ -503,112 +508,106 @@ const staticStyles = (theme: ThemeColors) =>
 
         mutedTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         mutedNormalTextLabel: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: fontScale.label,
+            lineHeight: lineHeightScale.label,
         },
 
         textSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.micro,
         },
 
         textExtraSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeExtraSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.finePrint,
         },
 
         textMicro: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            ...textVariants.micro,
         },
 
         textMicroBold: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroBoldSupporting: {
+            ...textVariants.microStrong,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
+            ...textVariants.micro,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
         },
 
         textSupportingNormal: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
         },
 
+        // Not aliased to a token: `lineHeightXSmall` (11/17) is not `lineHeightScale.finePrint` (12), so swapping it shifts the layout. Needs a design call.
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
             lineHeight: variables.lineHeightXSmall,
         },
+        // Deliberate mismatch: `micro`'s size with `finePrint`'s 12 line height, which is what it always had.
         textDoubleDecker: {
-            fontSize: variables.fontSizeSmall,
+            fontSize: fontScale.micro,
             opacity: 0.8,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: 12,
+            lineHeight: lineHeightScale.finePrint,
         },
         noPaddingBottom: {
             paddingBottom: 0,
         },
         textNormal: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textNormalThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
         },
 
         textLarge: {
-            fontSize: variables.fontSizeLarge,
+            fontSize: fontScale.pageHeader,
         },
 
         textXLarge: {
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
         textXLargeThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
+        // Not aliased to a token: `fontScale` has no entry for 28 or 32/37. Needs a design call on whether to grow the scale or restyle the call sites.
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
 
         textXXXLarge: {
             fontSize: variables.fontSizeXXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHero: {
-            fontSize: variables.fontSizeHero,
-            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            lineHeight: variables.lineHeightHero,
+            ...textVariants.introHeadline,
         },
 
         textStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...fontFamilyScale.strong,
         },
 
         fontWeightNormal: {
@@ -616,35 +615,23 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textHeadline: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH2: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h2,
             color: theme.heading,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
-            ...headlineFont,
-            ...whiteSpace.preWrap,
+            ...textVariants.h1,
             color: theme.heading,
-            fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeH1,
         },
 
         exportDownloadTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            ...whiteSpace.preWrap,
+            ...textVariants.pageHeader,
             color: theme.heading,
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         textWhite: {
@@ -873,8 +860,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonExtraSmallText: {
-            fontSize: variables.fontSizeExtraSmall,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.finePrintStrong,
             textAlign: 'center',
         },
 
@@ -1155,6 +1141,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+            // It is needed to unset the lineHeight inherited from badgeText. Otherwise the 9px glyph is
+            // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
+            // too high. Unsetting it lets the text center on its own font metrics.
+            lineHeight: undefined,
+        },
+
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
         },
 
         badgeDefaultText: {
@@ -1604,9 +1598,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textInputLabel: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            ...fontFamilyScale.regular,
         },
 
         textInputLabelBackground: {
@@ -1688,15 +1682,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputPrefix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
         textInputSuffix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
@@ -1727,26 +1721,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         labelStrong: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightNormal,
+            ...textVariants.labelStrong,
         },
 
         textLabelSupporting: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
         textLabelSupportingEmptyValue: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
         },
 
         textLabelSupportingNormal: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
@@ -1991,34 +1983,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
-            ...headlineFont,
-        },
-
-        breadcrumbsContainer: {
-            minHeight: 24,
-        },
-
-        breadcrumb: {
-            color: theme.textSupporting,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbStrong: {
-            color: theme.text,
-            fontSize: variables.breadcrumbsFontSize,
-        },
-
-        breadcrumbSeparator: {
-            color: theme.icon,
-            fontSize: variables.breadcrumbsFontSize,
-            ...headlineFont,
-        },
-
-        breadcrumbLogo: {
-            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
+            fontSize: fontScale.h2,
+            lineHeight: lineHeightScale.h2,
+            ...fontFamilyScale.heading,
         },
 
         onboardingNavigatorOuterView: {
@@ -2245,6 +2212,11 @@ const staticStyles = (theme: ThemeColors) =>
         emptyDomainListStaticIllustrationStyle: {
             width: 274,
             height: 178,
+        },
+
+        domainAlreadyExistsIllustrationStyle: {
+            width: 180,
+            height: 164,
         },
 
         appContent: {
@@ -2797,6 +2769,11 @@ const staticStyles = (theme: ThemeColors) =>
         tableBottomRadius: {
             borderBottomLeftRadius: variables.componentBorderRadius,
             borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        tableBorder: {
+            borderWidth: 1,
+            borderColor: 'transparent',
         },
 
         tableRowHeightCompact: {
@@ -3499,8 +3476,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestConfirmationAmount: {
-            ...headlineFont,
-            fontSize: variables.fontSizeH1,
+            ...fontFamilyScale.heading,
+            fontSize: fontScale.h2,
         },
 
         moneyRequestMenuItem: {
@@ -3539,12 +3516,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
         moneyRequestPreviewParticipantsText: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -3916,7 +3890,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
-            paddingRight: 48,
+            paddingRight: 44,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4076,6 +4050,14 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
+        // Float above the receipt to avoid zooming with it.
+        receiptPageCountBadge: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            marginLeft: 0,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -4225,9 +4207,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
 
@@ -4722,11 +4702,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.mh5,
         },
 
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
-        },
-
         taskRightIconContainer: {
             width: variables.componentSizeNormal,
             marginLeft: 'auto',
@@ -4859,7 +4834,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorBadge: {
             minWidth: 18,
-            height: 16,
+            minHeight: 16,
             marginLeft: 8,
             justifyContent: 'center',
         },
@@ -4958,6 +4933,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
+        },
+
+        reportPreviewActionRow: {
+            height: variables.h40,
         },
 
         reportPreviewBox: {
@@ -5377,7 +5356,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
@@ -5388,6 +5367,11 @@ const staticStyles = (theme: ThemeColors) =>
             ...flex.flexRow,
             ...pointerEventsAuto,
             ...spacing.gap3,
+        },
+
+        menuItemLeading: {
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsCenter,
         },
 
         menuItemTrailing: {
@@ -5896,6 +5880,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sortingMachineRulesEmptyStateIllustrationHeight,
         },
 
+        spyPigeonRulesEmptyStateIllustration: {
+            width: variables.spyPigeonRulesEmptyStateIllustrationWidth,
+            height: variables.spyPigeonRulesEmptyStateIllustrationHeight,
+        },
+
         agentsRulesEmptyStateIllustration: {
             width: variables.agentsRulesEmptyStateIllustrationWidth,
             height: variables.agentsRulesEmptyStateIllustrationHeight,
@@ -6355,13 +6344,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
-        superWideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: animatedSuperWideRHPWidth,
-        },
-
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
             height: '100%',
@@ -6567,7 +6549,6 @@ const staticStyles = (theme: ThemeColors) =>
         commuterExclusionStaticIllustration: {
             width: 160,
             height: 140,
-            alignSelf: 'center',
         },
         helpStaticIllustration: {
             width: 174,
@@ -6614,9 +6595,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
         chartTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...textVariants.textStrong,
             color: theme.text,
         },
         chartTooltipWrapper: {
@@ -6699,6 +6678,17 @@ const dynamicStyles = (theme: ThemeColors) =>
             width: amountWidth,
             marginRight: 4,
         }),
+
+        // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
+        // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
+        // See https://github.com/Expensify/App/issues/99035
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+            ({
+                position: 'absolute',
+                height: '100%',
+                right: 0,
+                width,
+            }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
             ({
@@ -7286,6 +7276,15 @@ const plainStyles = (theme: ThemeColors) =>
             minHeight: COMPOSER_SIZE_BUTTON_SIZE,
         },
 
+        // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
+        // footprint and pushes the content underneath down.
+        conciergePromptBoxExceededLength: {
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+        },
+
         // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
         // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
         conciergePromptBoxPlaceholderProbe: {
@@ -7297,15 +7296,12 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
-            ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
-            }) satisfies ViewStyle,
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({

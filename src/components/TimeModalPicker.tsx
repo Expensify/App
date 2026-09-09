@@ -1,3 +1,4 @@
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -16,7 +17,6 @@ import ScreenWrapper from './ScreenWrapper';
 import TimePicker from './TimePicker/TimePicker';
 
 type TimeModalPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Callback when the list item is selected */
@@ -25,17 +25,15 @@ type TimeModalPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** Label for the picker */
     label: string;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const currentTime = value ? DateUtils.extractTime12Hour(value) : undefined;
+    const currentTime = value ? DateUtils.getTime12HourWithTranslatedPeriod(translate, value) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);

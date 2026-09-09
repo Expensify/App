@@ -34,14 +34,24 @@ type WorkspaceReportFieldListValuesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     /** Content rendered above the table header inside the scrollable list */
-    headerComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    isInvoicePage: boolean;
 };
 
-export default function WorkspaceReportFieldListValuesTable({listValues, selectionEnabled, selectedKeys, headerComponent, onRowSelectionChange}: WorkspaceReportFieldListValuesTableProps) {
+export default function WorkspaceReportFieldListValuesTable({
+    listValues,
+    selectionEnabled,
+    selectedKeys,
+    headerComponent,
+    onRowSelectionChange,
+    isInvoicePage,
+}: WorkspaceReportFieldListValuesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
+    const findFieldKey = isInvoicePage ? 'workspace.invoiceFields.findInvoiceField' : 'workspace.reportFields.findReportField';
+    const emptyValuesSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.emptyInvoiceFieldsValues.subtitle' : 'workspace.reportFields.emptyReportFieldsValues.subtitle';
 
     const columns: Array<TableColumn<ReportFieldListValueColumnKey>> = [
         {
@@ -90,7 +100,7 @@ export default function WorkspaceReportFieldListValuesTable({listValues, selecti
         />
     );
 
-    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.reportFields.findReportField')} />);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate(findFieldKey)} />);
 
     return (
         <Table
@@ -107,10 +117,10 @@ export default function WorkspaceReportFieldListValuesTable({listValues, selecti
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            {isInvoicePage ? <Table.FilterBar label={translate(findFieldKey)} /> : <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>}
             <Table.EmptyState
                 title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                subtitle={translate(emptyValuesSubtitleKey)}
                 headerMedia={illustrations.FolderWithPapers}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
