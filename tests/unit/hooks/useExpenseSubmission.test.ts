@@ -902,11 +902,12 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
         });
 
-        it('does not dismiss when a leftover receipt matches no transaction being submitted', async () => {
+        it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
             const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
-            // The receipt is keyed to a transaction that is no longer being submitted, so nothing is written.
-            const receiptFiles: Record<string, Receipt> = {'stale-transaction': {source: 'file://receipt.jpg'}};
+            const staleTransactionID = 'stale-transaction';
+            // The receipt is keyed to a transaction that is no longer being submitted, so there is no scan to write.
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
 
             const {result} = renderHook(() =>
                 useExpenseSubmission(
@@ -925,8 +926,9 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // No scan is written, and the submit is not swallowed by the scan branch, which would leave the confirm page stuck.
             expect(mockStartSplitBillAction).not.toHaveBeenCalled();
-            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
         it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {

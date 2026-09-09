@@ -998,14 +998,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        // receiptFiles can hold an entry for a transaction no longer being submitted, so anything with no scan to write falls through to the manual split below.
+        const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
-        if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
+        if (iouType === CONST.IOU.TYPE.SPLIT && scannedItems.length > 0) {
             const currentUserLogin = currentUserPersonalDetails.login;
-            // receiptFiles can hold an entry for a transaction no longer being submitted, so count actual writes rather than positions in transactions.
-            const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
-            if (currentUserLogin && scannedItems.length > 0) {
+            if (currentUserLogin) {
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
 
