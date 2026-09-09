@@ -328,4 +328,45 @@ describe('useMarkAsRead', () => {
 
         expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
     });
+
+    it('should resume tracking its own report after a concurrent list sharing its scope unmounts', () => {
+        const reportA = {reportID: 'A', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportAWithNewMessage = {...reportA, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report}) =>
+                useMarkAsRead({
+                    reportID: 'A',
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                    scopeKey: 'sharedScope',
+                }),
+            {initialProps: {report: reportA}},
+        );
+
+        // A second list of the same kind (e.g. the RHP over the central pane) takes over the scope, then closes.
+        const rhpList = renderHook(() =>
+            useMarkAsRead({
+                reportID: 'B',
+                report: reportB as OnyxEntry<OnyxTypes.Report>,
+                transactionThreadReport: undefined,
+                sortedVisibleReportActions: [],
+                isScrolledToEnd: true,
+                hasNewerActions: false,
+                scopeKey: 'sharedScope',
+            }),
+        );
+        rhpList.unmount();
+        readNewestAction.mockClear();
+
+        mockIsUnread = true;
+        rerender({report: reportAWithNewMessage});
+
+        expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
+    });
 });
