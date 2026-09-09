@@ -568,7 +568,7 @@ describe('OnyxUpdatesTest', () => {
     });
 
     describe('Pusher apply chain recovery', () => {
-        const pusherUpdate = (lastUpdateID: number, eventType: string, data: Array<OnyxServerUpdate<never>> = []): OnyxUpdatesFromServer<never> => ({
+        const pusherUpdate = <TKey extends OnyxKey>(lastUpdateID: number, eventType: string, data: Array<OnyxServerUpdate<TKey>> = []): OnyxUpdatesFromServer<TKey> => ({
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             previousUpdateID: lastUpdateID - 10,
             lastUpdateID,
@@ -674,9 +674,9 @@ describe('OnyxUpdatesTest', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
 
-            PusherUtils.subscribeToMultiEvent('test.pusher.openapp-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.open-app-failed', () => Promise.reject(new Error('handler failed')));
 
-            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.openapp-failed')).catch(() => {});
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.open-app-failed')).catch(() => {});
 
             const reportID = NumberUtils.rand64();
             await OnyxUpdates.apply({

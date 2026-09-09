@@ -209,8 +209,6 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
                 }
 
                 if (lastFailedUpdateID && Number(lastUpdateID) > lastFailedUpdateID) {
-                    // The gap-check marker would otherwise report this update as applied and hide the range the
-                    // watermark is deliberately held behind.
                     lastUpdateIDPendingPusherApply = 0;
 
                     Log.info('[OnyxUpdateManager] Not advancing past an update whose apply failed', false, {lastUpdateID, lastFailedUpdateID});

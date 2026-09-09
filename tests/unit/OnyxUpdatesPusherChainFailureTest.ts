@@ -60,9 +60,7 @@ describe('OnyxUpdates, when a Pusher apply fails', () => {
         await followerApply;
         await waitForBatchedUpdates();
 
-        // Then update 30 still applies, because a failed apply no longer poisons the chain for every update behind it.
-        // Nothing checks that update IDs are contiguous before advancing the watermark, so what keeps updates 11 to 20
-        // from being lost is the watermark being held behind the update that failed.
+        // Then update 30 still applies, and the watermark stays behind the update that failed
         expect(handlerCallCount).toBe(2);
         expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
 
