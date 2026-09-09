@@ -2592,7 +2592,7 @@ function navigateToAndOpenReport({
         // The server rejects chat creation during a support session, so block it here instead of letting the agent land on an
         // optimistic report that then fails with a generic error. This has to live inside the create closure (not before the
         // existing-vs-new branch below) because the shouldRevalidateExistingChat path re-enters it asynchronously for chats
-        // that only turn out to be notFound later — opening an existing chat stays allowed.
+        // that only turn out to be notFound later. Opening an existing chat stays allowed.
         if (isSupportalSession) {
             showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
             return;
