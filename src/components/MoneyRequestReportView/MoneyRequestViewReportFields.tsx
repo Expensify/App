@@ -1,16 +1,15 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSaveReportField from '@hooks/useSaveReportField';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {
     getFieldViolation,
     getFieldViolationTranslation,
@@ -26,15 +25,15 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+
+import ReportFieldInlineInput from './ReportFieldInlineInput';
 
 type MoneyRequestViewReportFieldsProps = {
     report: OnyxEntry<Report>;
@@ -54,40 +53,41 @@ type EnrichedPolicyReportField = {
     violationTranslation: string;
 } & PolicyReportField;
 
-function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
+function ReportFieldView(
+    reportField: EnrichedPolicyReportField,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    styles: ThemeStyles,
+    onSaveValue: (reportField: PolicyReportField, value: string) => void,
+    pendingAction?: PendingAction,
+) {
     return (
-        <OfflineWithFeedback
-            // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-            pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
-            errorRowStyles={styles.ph5}
-            key={`menuItem-${reportField.fieldKey}`}
-            onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
+        <View
+            key={`reportField-${reportField.fieldKey}`}
+            style={styles.flex1}
         >
-            <MenuItemWithTopDescription
-                description={Str.UCFirst(reportField.name)}
-                title={reportField.fieldValue}
-                onPress={() => {
-                    if (!report?.policyID) {
-                        return;
-                    }
-
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
-                }}
-                shouldShowRightIcon={!reportField.isFieldDisabled}
-                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                shouldGreyOutWhenDisabled={false}
-                numberOfLinesTitle={0}
-                interactive={!reportField.isFieldDisabled}
-                onSecondaryInteraction={() => {}}
-                titleWithTooltips={[]}
-                brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={reportField.violationTranslation}
-            />
-        </OfflineWithFeedback>
+            <OfflineWithFeedback
+                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+                onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
+            >
+                <ReportFieldInlineInput
+                    reportField={reportField}
+                    fieldKey={reportField.fieldKey}
+                    value={reportField.fieldValue}
+                    isDisabled={reportField.isFieldDisabled}
+                    errorText={reportField.violationTranslation}
+                    fieldList={policy?.fieldList}
+                    onSaveValue={(value) => onSaveValue(reportField, value)}
+                />
+            </OfflineWithFeedback>
+        </View>
     );
 }
 function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const saveReportField = useSaveReportField(report, policy);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -128,10 +128,33 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
         return null;
     }
 
+    const columnCount = shouldUseNarrowLayout ? 1 : CONST.REPORT_FIELDS_PER_ROW;
+    const fieldRows: EnrichedPolicyReportField[][] = [];
+    for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
+        fieldRows.push(sortedPolicyReportFields.slice(index, index + columnCount));
+    }
+
     return (
-        <View style={styles.mb3}>
-            {sortedPolicyReportFields.map((reportField) => {
-                return ReportFieldView(reportField, report, styles, pendingAction);
+        <View style={[styles.ph5, styles.mb3, styles.gap3]}>
+            {fieldRows.map((fieldRow) => {
+                const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
+
+                return (
+                    <View
+                        key={rowKey}
+                        testID="reportFieldsRow"
+                        style={[styles.flexRow, styles.gap3]}
+                    >
+                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, pendingAction))}
+                        {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
+                        {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
+                            <View
+                                key={`${rowKey}-spacer-${index}`}
+                                style={styles.flex1}
+                            />
+                        ))}
+                    </View>
+                );
             })}
         </View>
     );

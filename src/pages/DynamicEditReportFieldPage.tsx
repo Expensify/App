@@ -2,7 +2,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -12,10 +11,10 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useSaveReportField from '@hooks/useSaveReportField';
 
-import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
+import {deleteReportField} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -25,10 +24,8 @@ import {
     getReportFieldFromReportNameValuePairs,
     getReportFieldKey,
     getTitleFieldWithFallback,
-    hasViolations as hasViolationsReportUtils,
     isGroupPolicyExpenseReport,
     isInvoiceReport,
-    isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isReportFieldTargetMatchingReport,
@@ -38,9 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React from 'react';
 
@@ -58,7 +53,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const derivedReportName = useDerivedReportNameByReportID(reportID);
-    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+    const saveReportField = useSaveReportField(report, policy);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
     const reportFieldFromNVP = getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, route.params.fieldID);
@@ -75,20 +70,12 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const session = useSession();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
-    const hasOtherViolations =
-        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || !isReportFieldTargetMatchingReport(report, reportField) || isDisabled) {
         return (
@@ -139,27 +126,8 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
             return;
         }
 
-        if (isReportFieldTitle) {
-            updateReportName(report.reportID, value, report.reportName ?? '');
-            goBack();
-        } else {
-            if (value !== '') {
-                updateReportField({
-                    report: {...report, reportID: report.reportID},
-                    reportField: {...reportField, value},
-                    previousReportField: reportField,
-                    policy: policy as unknown as Policy,
-                    isASAPSubmitBetaEnabled,
-                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
-                    hasViolationsParam: hasViolations,
-                    recentlyUsedReportFields,
-                    shouldFixViolations: hasOtherViolations ?? false,
-                    isTrackIntentUser,
-                });
-            }
-            goBack();
-        }
+        saveReportField(reportField, value);
+        goBack();
     };
 
     const menuItems: PopoverMenuItem[] = [];

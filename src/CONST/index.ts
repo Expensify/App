@@ -6864,6 +6864,9 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
