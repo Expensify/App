@@ -453,6 +453,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
+        corpayPayModalTitle: 'Pagar informe',
+        corpayPayModalPrompt:
+            'Esta persona que envió el informe tiene una cuenta bancaria que no es en USD. Habilita los reembolsos globales para pagar el informe, o pídele que añada una cuenta bancaria en USD.',
         purchaseAmount: 'Importe de compra',
         originalAmount: 'Importe original',
         frequency: 'Frecuencia',
@@ -3073,6 +3076,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'No leído',
         markAllAsRead: 'Marcar todo como leído',
         markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+        markAllTodosAsReadConfirmationPrompt: '¿Seguro que quieres marcar como leídos todos los chats pendientes?',
     },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',

@@ -465,6 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
+        corpayPayModalTitle: 'Bericht bezahlen',
+        corpayPayModalPrompt:
+            'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
@@ -3165,6 +3168,7 @@ ${amount} für ${merchant} – ${date}`,
         unread: 'Ungelesen',
         markAllAsRead: 'Alle als gelesen markieren',
         markAllAsReadConfirmationPrompt: 'Möchtest du wirklich alle Chats als gelesen markieren?',
+        markAllTodosAsReadConfirmationPrompt: 'Möchtest du wirklich alle offenen Chats als gelesen markieren?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,

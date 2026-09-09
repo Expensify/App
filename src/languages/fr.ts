@@ -465,6 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
+        corpayPayModalTitle: 'Payer la note de frais',
+        corpayPayModalPrompt:
+            "Cette personne a un compte bancaire qui n'est pas en USD. Activez les remboursements globaux pour payer la note de frais, ou demandez-lui d'ajouter un compte bancaire en USD.",
         purchaseAmount: "Montant de l'achat",
         originalAmount: 'Montant initial',
         frequency: 'Fréquence',
@@ -3172,6 +3175,7 @@ ${amount} pour ${merchant} - ${date}`,
         unread: 'Non lu',
         markAllAsRead: 'Tout marquer comme lu',
         markAllAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer toutes les discussions comme lues ?',
+        markAllTodosAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer comme lues toutes les discussions à traiter ?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
