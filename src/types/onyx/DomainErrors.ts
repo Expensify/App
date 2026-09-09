@@ -7,9 +7,6 @@ import type * as OnyxCommon from './OnyxCommon';
  * Basic errors for domain members and admins
  */
 type GeneralDomainMemberErrors = {
-    /**
-     * Base errors
-     */
     errors: OnyxCommon.Errors;
 };
 
@@ -101,9 +98,6 @@ type DomainErrors = {
      */
     adminshipRequesterErrors?: Record<number, GeneralDomainMemberErrors>;
 
-    /**
-     * Errors related to the technical contact email
-     */
     technicalContactEmailErrors?: OnyxCommon.Errors;
 
     /**

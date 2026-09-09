@@ -21,10 +21,7 @@ import {View} from 'react-native';
 import type {DomainAdminRowData} from '.';
 
 type DomainAdminsTableRowProps = {
-    /** Data about the domain admin */
     item: DomainAdminRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
 };
 

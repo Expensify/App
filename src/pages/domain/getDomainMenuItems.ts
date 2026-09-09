@@ -45,7 +45,6 @@ type GetDomainMenuItemsParams = {
     /** Whether the domain has pending adminship requests awaiting review. */
     hasPendingAdminRequests?: boolean;
 
-    /** Icons used by the Domain menu items. */
     icons: DomainMenuIconMap;
 };
 
