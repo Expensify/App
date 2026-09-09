@@ -327,16 +327,12 @@ type ParticipantInfo = {
 };
 
 type OpenReportActionParams = {
-    /** The ID of the report to open */
     reportID: string | undefined;
-
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
 
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
 
-    /** The list of participants */
     participants?: ParticipantInfo[];
 
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
@@ -352,28 +348,22 @@ type OpenReportActionParams = {
     /** Whether or not this report is being opened from a deep link */
     isFromDeepLink?: boolean;
 
-    /** Whether this is a new thread being created */
     isNewThread?: boolean;
 
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
     parentReportID?: string;
 
-    /** Whether to add pending fields to the report */
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
     optimisticSelfDMReport?: Report;
 
-    /** The current user's login */
     currentUserLogin?: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
@@ -384,7 +374,6 @@ type OpenReportActionParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** Whether the report has report actions or not */
     hasReportActions: boolean | undefined;
 
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
@@ -2394,13 +2383,8 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 }
 
 type CreateTransactionThreadReportParams = {
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
-
-    /** The current user's login */
     currentUserLogin: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Beta features list */
@@ -2415,7 +2399,6 @@ type CreateTransactionThreadReportParams = {
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The personal details of the participants */
@@ -2429,7 +2412,6 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 };
 

@@ -14,7 +14,7 @@ import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
-import type * as OnyxCommon from './OnyxCommon';
+import type {PendingAction, Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
@@ -43,7 +43,6 @@ type SearchResultsInfo = {
     /** Current search results offset/cursor */
     offset: number;
 
-    /** Type of search */
     type: SearchDataTypes;
 
     /** The hash of the current search */
@@ -56,10 +55,7 @@ type SearchResultsInfo = {
      * whether they have created any invoice yet when the search type is invoice */
     hasResults: boolean;
 
-    /** Whether the search results are currently loading */
     isLoading: boolean;
-
-    /** The sort by of the current search */
     sortBy: SearchSortBy;
 
     /** The sort order of the current search */
@@ -146,7 +142,7 @@ type SearchGroupBase = {
     currency: string;
 
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
-    pendingAction?: OnyxCommon.PendingAction;
+    pendingAction?: PendingAction;
 };
 
 /** Model of member grouped search result */
@@ -184,7 +180,6 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
     /** Masked account number */
     accountNumber: string;
 
-    /** Bank name */
     bankName: BankName;
 
     /** When the withdrawal completed */
@@ -291,17 +286,14 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 
 /** Model of search results */
 type SearchResults = {
-    /** Current search results state */
     search: SearchResultsInfo;
-
-    /** Search results data */
     data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
 
     /** Whether search data fetch has failed */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 };
 
 export default SearchResults;
