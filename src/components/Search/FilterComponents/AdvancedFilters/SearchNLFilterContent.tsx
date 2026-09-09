@@ -53,8 +53,8 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
         }
         setIsLoading(true);
         setErrorMessage('');
-        const queryPolicyID = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID).value?.at(0);
-        const policyID = queryPolicyID ?? activePolicyID;
+        const {value: queryPolicyIDValues, isNegated: isPolicyIDNegated} = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+        const policyID = !isPolicyIDNegated && queryPolicyIDValues?.at(0) ? queryPolicyIDValues.at(0) : activePolicyID;
         parseExpenseFilters(trimmedQuery, policyID)
             .then((result) => {
                 setIsLoading(false);
