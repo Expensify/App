@@ -543,6 +543,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             }));
             // When Opening a thread report with the given details
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -651,6 +652,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When Opening a thread report with the given details
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -786,6 +788,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -933,6 +936,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -1261,6 +1265,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -1448,6 +1453,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,

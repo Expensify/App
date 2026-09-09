@@ -1079,6 +1079,8 @@ const translations: TranslationDeepObject<typeof en> = {
             inviteAccountant: '会計士を招待',
             customizeSpendCategories: '支出カテゴリをカスタマイズする',
             customizeSpendCategoriesSubText: '経費を整理して分類する',
+            customizeExpenseCategories: '経費カテゴリをカスタマイズ',
+            customizeExpenseCategoriesSubText: '会社のカテゴリを追加して経費を分類しましょう',
             createExpense: '経費を作成',
             createExpenseSubText: 'スキャンするか、ドラッグ＆ドロップするか、または＋ボタンから手入力して経費を追加します',
             linkPersonalCard: '個人カードをリンクする',
@@ -1257,6 +1259,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
+        pageCount: ({pageCount}: {pageCount: number}) => `${pageCount} ページ中 1 ページ`,
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -4915,7 +4918,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `${integrationName} に請求書をエクスポートする際は、この勘定科目を使用してください。`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `会社カードでの購入を${integrationName}へどのようにエクスポートするかを設定します。`,
             vendor: '取引先',
-            defaultVendorDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトのベンダーを設定します。',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `立替経費を ${integrationName} へどのようにエクスポートするかを設定します。`,
             exportCheckDescription: '以下の銀行口座から各Expensifyレポートごとに明細付きの小切手を作成し、送金します。',
             exportJournalEntryDescription: '各Expensifyレポートごとに明細付きの仕訳を作成し、以下の勘定科目に計上します。',
@@ -5075,8 +5077,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Xero にアカウントを追加して、もう一度同期してください',
-            defaultSupplier: 'デフォルト仕入先',
-            defaultSupplierDescription: 'エクスポート時にすべてのクレジットカード取引に適用されるデフォルトの仕入先を設定します。',
             noSuppliersFound: '仕入先が見つかりません',
             noSuppliersFoundDescription: 'Xero に仕入先を追加して、もう一度同期してください。',
             accountingMethods: {
@@ -6158,7 +6158,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
-            autoCategorizeNewExpenses: '新しい経費を自動分類する',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -6487,6 +6486,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             subtitle: 'レポートフィールドはすべての支出に適用され、追加情報の入力を促したい場合に便利です。',
             disableReportFields: 'レポート項目を無効にする',
             disableReportFieldsConfirmation: '本当に実行しますか？テキストと日付フィールドは削除され、リストは無効になります。',
+            cannotDisableImportedReportFields: '会計ソフト連携からインポートされたレポートフィールドは無効にすることができません。',
             importedFromAccountingSoftware: '以下のレポート項目は、次からインポートされます',
             textType: 'テキスト',
             dateType: '日付',
@@ -7152,11 +7152,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             exportCompanyCard: '法人カード経費のエクスポート形式',
             exportDate: 'エクスポート日',
             defaultVendor: 'デフォルトのベンダー',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。`
-                    : `自動照合されない経費は、デフォルトでこのベンダーに割り当てられます。それ以外は「Credit Card Misc」としてエクスポートされます。`,
-            defaultVendorSelectHeader: (connectionName: string) => `自動的に照合されない経費に対して使用する、デフォルトの ${connectionName} 仕入先を選択します。`,
+                    : `自動照合されない経費はデフォルトでこのベンダーに割り当てられます。それ以外は「${fallbackVendorName}.」としてエクスポートされます。`,
+            defaultVendorSelectHeader: `自動的に一致しない経費のためのデフォルトの取引先を選択します。`,
             defaultAccount: 'デフォルトのアカウント',
             autoSync: '自動同期',
             autoSyncDescription: 'NetSuite と Expensify を毎日自動で同期。確定したレポートをリアルタイムでエクスポート',
@@ -7176,6 +7176,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     `Continuous Reconciliation が正しく動作するように、この口座が、Consolidated Travel Billing の決済口座（末尾が ${lastFourPAN}）と一致していることをご確認ください。`,
             },
             syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7861,6 +7863,14 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
                 supplierUnavailable: 'サプライヤーを利用できません',
+                confirmErrorCategory: 'カテゴリを選択してください',
+                confirmErrorCategoryTax: '税率を選択してください',
+                confirmErrorCondition: '店舗名を入力してください',
+                confirmErrorConditionAndDefault: '取引先を入力し、少なくとも 1 つのデフォルトを適用してください',
+                turnOnTaxesFirstTitle: '先に税金を有効にしてください',
+                turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
+                categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
+                categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -8156,10 +8166,10 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: '申請者が何も操作しなくてもフィールドを更新する',
                 flagForReview: '確認のためにフラグを付ける',
                 flagForReviewDescription: '条件が満たされたときに通知します。',
-                requireFields: '必須項目',
+                requireFields: 'フィールドの必須条件を設定',
                 requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
-                createAgentRule: 'エージェントルール',
-                createAgentRuleDescription: '必要なときに実行できる柔軟なルールを設定します。',
+                createAgentRule: 'エージェントルールの説明',
+                createAgentRuleDescription: '必要なときに実行される柔軟なルールを作成できます。',
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -8170,6 +8180,7 @@ ${reportName}`,
                 update: '更新',
                 merchantIs: (merchant: string) => `加盟店名は「${merchant}」です`,
                 merchantTypeIs: (merchantType: string) => `加盟店タイプ: 「${merchantType}」`,
+                categoryIs: (category: string) => `カテゴリは「${category}」です`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {
@@ -8186,6 +8197,7 @@ ${reportName}`,
                 requireReceipt: '領収書を必須にする',
                 doNotRequireReceipt: '領収書を必須にしない',
                 doNotRequireItemizedReceipt: '明細付き領収書を必須にしない',
+                typeLabel: '必須',
             },
             requireFieldsEmptyState: {
                 title: '不足している詳細を事前に把握しましょう',
@@ -8234,6 +8246,15 @@ ${reportName}`,
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
             categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
+            expenseDefaultType: {
+                title: '経費のデフォルトを適用',
+                subtitle: 'このルールは何に一致させますか？',
+                merchant: '加盟店',
+                merchantDescription: '特定の加盟店の経費フィールドを更新',
+                category: 'カテゴリ',
+                categoryDescription: '特定のカテゴリにデフォルトの税率を設定する',
+            },
+            taxesDisabledEmptyState: {title: '税金は有効になっていません', subtitle: '税金を有効にして、対象となる税金を記録し還付請求できるようにします。', cta: '税金を有効にする'},
         },
         planTypePage: {
             planTypes: {
@@ -9959,38 +9980,42 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません。';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return '一時的な銀行側の問題により、レシートを自動照合できません。後でもう一度お試しください。';
+            }
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH) {
                 if (isPersonalCard) {
                     if (!connectionLink) {
                         return '銀行連携の再認証が必要なため、領収書を自動照合できません。';
                     }
                     return isMarkAsCash
-                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書と照合してください。`
+                        ? `銀行連携の再認証が必要なため、領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">再接続</a>して領収書を照合してください。`
                         : `銀行連携の再認証が必要なため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">再接続</a>してください。`;
                 }
                 return isAdmin
-                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
-                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、領収書と照合してください。';
+                    ? `銀行連携の再認証が必要です。<a href="${companyCardPageURL}">領収書と照合するために再接続する</a>`
+                    : '銀行連携の再認証が必要です。管理者に依頼して再接続し、レシートと照合してください。';
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return '銀行連携の不具合により、領収書を自動照合できません。';
                 }
                 return isMarkAsCash
-                    ? `カード連携の不具合により領収書を自動照合できません。無視するには現金としてマークするか、<a href="${connectionLink}">カードを修正</a>して領収書と照合してください。`
-                    : `カード連携が壊れているため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を解決</a>してください。`;
+                    ? `カード連携の不具合により、レシートを自動照合できません。無視する場合は現金としてマークするか、レシートを照合するには<a href="${connectionLink}">カード連携を修正</a>してください。`
+                    : `カード連携に問題があるため、領収書を自動照合できません。領収書を照合するには、<a href="${connectionLink}">カードの問題を修正</a>してください。`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
-                    ? `銀行連携が切断されました。<a href="${companyCardPageURL}">レシートと照合するために再接続</a>`
+                    ? `銀行との接続が切れています。<a href="${companyCardPageURL}">再接続して領収書を照合する</a>`
                     : '銀行連携が切断されています。管理者に依頼して再接続し、領収書と照合してください。';
             }
             if (!isTransactionOlderThan7Days) {
-                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との照合待ちです。';
+                return isAdmin ? `${member} に現金としてマークするよう依頼するか、7日待ってから再試行してください` : 'カード取引との統合待ちです。';
             }
             return '';
         },
         brokenConnection530Error: '銀行連携の不具合により領収書が保留されています',
+        brokenConnection531Error: '一時的な銀行側の問題により、レシートを自動照合できません。後でもう一度お試しください。',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>銀行接続の不具合により領収書が保留されています。<a href="${workspaceCompanyCardRoute}">会社カード</a>で解決してください。</muted-text-label>`,
         memberBrokenConnectionError: '銀行連携の不具合により領収書が保留されています。ワークスペース管理者に対応を依頼してください。',

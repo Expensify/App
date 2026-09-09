@@ -4035,6 +4035,14 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
+        // Float above the receipt to avoid zooming with it.
+        receiptPageCountBadge: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            marginLeft: 0,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,

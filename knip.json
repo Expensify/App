@@ -12,6 +12,7 @@
                 ".github/scripts/**/*.ts",
                 "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
+                "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
                 "eslint.changed.config.mjs",

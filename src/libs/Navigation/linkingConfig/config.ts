@@ -848,10 +848,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
                         },
-                        [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
-                            path: ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
                         },
@@ -1280,6 +1276,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_NEW]: {
                             path: ROUTES.RULES_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
+                            path: ROUTES.RULES_EXPENSE_DEFAULT_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
                         },
@@ -1387,6 +1386,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
                             path: ROUTES.RULES_MERCHANT_BILLABLE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
+                            path: ROUTES.RULES_CATEGORY_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
+                            path: ROUTES.RULES_CATEGORY_TAX_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_EDIT.route,
