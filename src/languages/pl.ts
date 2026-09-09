@@ -2247,6 +2247,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Wyświetlana nazwa',
         isShownOnProfile: 'Twoja nazwa wyświetlana jest widoczna na Twoim profilu.',
+        isShownOnMemberProfile: 'Nazwa wyświetlana będzie widoczna na profilu członka.',
     },
     timezonePage: {
         timezone: 'Strefa czasowa',
@@ -9186,6 +9187,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zgłoszenia`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `zaktualizował(-a) twoją wyświetlaną nazwę na ${newName} (poprzednio „${oldName}”). <a href="${editProfileURL}">Edytuj w swoim profilu</a>`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

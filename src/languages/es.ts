@@ -2140,11 +2140,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Llámame por mi nombre',
     },
-    displayNamePage: {
-        headerTitle: 'Nombre',
-        isShownOnProfile: 'Este nombre es visible en tu perfil.',
-        isShownOnMemberProfile: 'Este nombre será visible en el perfil del miembro.',
-    },
+    displayNamePage: {headerTitle: 'Nombre', isShownOnProfile: 'Este nombre es visible en tu perfil.', isShownOnMemberProfile: 'El nombre visible se mostrará en el perfil del miembro.'},
     timezonePage: {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
@@ -9032,7 +9028,7 @@ ${reportName}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
         updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
-            `actualizó tu nombre a ${newName} (Anteriormente "${oldName}"). <a href="${editProfileURL}">Editar en tu perfil</a>`,
+            `actualizó tu nombre para mostrar a ${newName} (previamente «${oldName}»). <a href="${editProfileURL}">Editar en tu perfil</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,

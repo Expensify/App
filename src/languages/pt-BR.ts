@@ -2206,6 +2206,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nome de exibição',
         isShownOnProfile: 'Seu nome de exibição é exibido no seu perfil.',
+        isShownOnMemberProfile: 'O nome de exibição será mostrado no perfil do membro.',
     },
     timezonePage: {
         timezone: 'Fuso horário',
@@ -9165,6 +9166,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `atualizou seu nome de exibição para ${newName} (Antes "${oldName}"). <a href="${editProfileURL}">Editar no seu perfil</a>`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

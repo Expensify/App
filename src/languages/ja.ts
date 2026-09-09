@@ -2195,10 +2195,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zeHirHirs: 'Ze / Hir',
         callMeByMyName: '私の名前で呼んでください',
     },
-    displayNamePage: {
-        headerTitle: '表示名',
-        isShownOnProfile: '表示名はあなたのプロフィールに表示されます。',
-    },
+    displayNamePage: {headerTitle: '表示名', isShownOnProfile: '表示名はあなたのプロフィールに表示されます。', isShownOnMemberProfile: '表示名はメンバーのプロフィールに表示されます。'},
     timezonePage: {
         timezone: 'タイムゾーン',
         isShownOnProfile: 'あなたのタイムゾーンはプロフィールに表示されています。',
@@ -9072,6 +9069,8 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `表示名を ${newName} に更新しました（以前は「${oldName}」でした）。<a href="${editProfileURL}">プロフィールで編集</a>`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
