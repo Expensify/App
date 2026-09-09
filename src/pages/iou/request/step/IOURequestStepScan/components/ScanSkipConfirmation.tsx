@@ -255,6 +255,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         getCurrencyDecimals,
                         ...splitBaseParams,
                         optimisticSplitChatReportID,
+                        isFirstSplitInBatch: true,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

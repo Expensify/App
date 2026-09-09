@@ -1177,6 +1177,7 @@ describe('split expense', () => {
 
         // Start a scan split bill
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
@@ -1562,6 +1563,7 @@ describe('split expense', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -1672,6 +1674,7 @@ describe('startSplitBill', () => {
         const optimisticSplitChatReportID = 'optimistic-scan-split-chat';
 
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1705,6 +1708,7 @@ describe('startSplitBill', () => {
         const optimisticSplitChatReportID = 'optimistic-scan-group-chat';
 
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1758,8 +1762,8 @@ describe('startSplitBill', () => {
         };
 
         // Fire back-to-back like the scan loop, before the first write lands. Awaiting between would mask the overwrite.
-        startSplitBill({...baseParams, comment: 'first scan'});
-        startSplitBill({...baseParams, comment: 'second scan'});
+        startSplitBill({...baseParams, comment: 'first scan', isFirstSplitInBatch: true});
+        startSplitBill({...baseParams, comment: 'second scan', isFirstSplitInBatch: false});
         await waitForBatchedUpdates();
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticSplitChatReportID}`);
@@ -1790,6 +1794,7 @@ describe('startSplitBill', () => {
 
         // When doing a split bill with a receipt
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1837,6 +1842,7 @@ describe('startSplitBill', () => {
 
         // When starting a split bill
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -1884,6 +1890,7 @@ describe('startSplitBill', () => {
 
         // When starting a split bill
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -10447,6 +10454,7 @@ describe('startSplitBill delegateAccountID forwarding', () => {
         const participantsPolicyTags = await getParticipantsPolicyTags(participants);
 
         startSplitBill({
+            isFirstSplitInBatch: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants,
             currentUserLogin: RORY_EMAIL,

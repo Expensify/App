@@ -983,6 +983,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (currentUserLogin) {
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
+                // Receipts without a file are skipped, so the first split is tracked here rather than by loop index.
+                let isFirstSplitInBatch = true;
                 for (const [index, item] of transactions.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     if (!transactionReceiptFile) {
@@ -1013,6 +1015,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxValue: transactionTaxValue,
                         shouldPlaySound: index === transactions.length - 1,
                         optimisticSplitChatReportID,
+                        isFirstSplitInBatch,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
@@ -1021,6 +1024,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         delegateAccountID,
                         formatPhoneNumber,
                     });
+                    isFirstSplitInBatch = false;
                 }
                 if (shouldHandleNavigation) {
                     dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);

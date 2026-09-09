@@ -198,6 +198,7 @@ type StartSplitBilActionParams = {
     taxValue?: string;
     shouldPlaySound?: boolean;
     optimisticSplitChatReportID?: string;
+    isFirstSplitInBatch: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -507,6 +508,7 @@ function startSplitBill({
     taxValue,
     shouldPlaySound = true,
     optimisticSplitChatReportID,
+    isFirstSplitInBatch,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     quickAction,
@@ -523,6 +525,7 @@ function startSplitBill({
         participants,
         participantAccountIDs,
         currentUserAccountID,
+        isFirstSplitInBatch,
         optimisticSplitChatReportID,
     );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
@@ -700,6 +703,8 @@ function startSplitBill({
         comment,
         receipt,
         existingSplitChatReportID,
+        // A retry re-runs this split on its own, so it is the first and only split of its batch.
+        isFirstSplitInBatch: true,
         billable,
         reimbursable,
         category,
@@ -1390,25 +1395,6 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
     });
 }
 
-/*
- * getAllReports lags Onyx by a tick, so within one synchronous split burst a later scan cannot see the new chat
- * an earlier scan just minted. Track the ids minted this tick so later scans add to that chat, not recreate it.
- */
-const splitChatReportIDsCreatedThisTick = new Set<string>();
-let isSplitChatLedgerResetScheduled = false;
-
-function rememberSplitChatReportCreatedThisTick(reportID: string) {
-    splitChatReportIDsCreatedThisTick.add(reportID);
-    if (isSplitChatLedgerResetScheduled) {
-        return;
-    }
-    isSplitChatLedgerResetScheduled = true;
-    queueMicrotask(() => {
-        splitChatReportIDsCreatedThisTick.clear();
-        isSplitChatLedgerResetScheduled = false;
-    });
-}
-
 function findExistingSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -1436,6 +1422,7 @@ function getOrCreateOptimisticSplitChatReport(
     participants: Participant[],
     participantAccountIDs: number[],
     currentUserAccountID: number,
+    isFirstSplitInBatch: boolean,
     optimisticSplitChatReportID?: string,
 ) {
     const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
@@ -1463,14 +1450,11 @@ function getOrCreateOptimisticSplitChatReport(
                   optimisticReportID: optimisticSplitChatReportID,
               });
 
-    // Already minted by an earlier scan this tick, so add to it instead of recreating it.
-    if (optimisticSplitChatReportID && splitChatReportIDsCreatedThisTick.has(optimisticSplitChatReportID)) {
+    // Later splits add to the chat the first one created, which they cannot see because its write has not reached getAllReports yet.
+    if (!isFirstSplitInBatch) {
         return {existingSplitChatReport: splitChatReport, splitChatReport};
     }
 
-    if (optimisticSplitChatReportID) {
-        rememberSplitChatReportCreatedThisTick(optimisticSplitChatReportID);
-    }
     return {existingSplitChatReport: null, splitChatReport};
 }
 
@@ -1533,6 +1517,8 @@ function createSplitsAndOnyxData({
         participants,
         participantAccountIDs,
         currentUserAccountID,
+        // A manual split writes one expense, so it is always the first and only split of its batch.
+        true,
         optimisticSplitChatReportID,
     );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
