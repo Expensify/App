@@ -7019,7 +7019,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return 'LançamentoDuplo';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Fogueira';
                     default: {
                         return '';
                     }
@@ -7100,9 +7102,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizando relatórios reembolsados e pagamentos de contas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando códigos de imposto';
+                            return 'Importando códigos de impostos';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Verificando conexão com ${integrationName}`;
+                            return `Verificando a conexão com ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
                             return `Importando dados de ${integrationName}`;
                         case 'startingImportXero':
@@ -7123,7 +7125,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Ainda sincronizando dados com o QuickBooks... Certifique-se de que o Web Connector está em execução';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizando dados do ${integrationName}`;
+                            return `Sincronizando dados de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -7155,7 +7157,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportTaxRates':
                             return 'Sincronizando taxas de imposto';
                         case 'xeroCheckConnection':
-                            return 'Verificando conexão com o Xero';
+                            return 'Verificando conexão com Xero';
                         case 'xeroSyncTitle':
                             return 'Sincronizando dados do Xero';
                         case 'netSuiteSyncConnection':
@@ -7204,7 +7206,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportTitle':
                             return 'Importando dados do Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Sincronizando dados do Certinia';
+                            return 'Sincronizando dados Certinia';
                         case 'financialForceSyncStep':
                             return 'Sincronizando conexão Certinia';
                         case 'financialForceSyncCategories':
@@ -7222,7 +7224,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensões';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando relatórios como reembolsados';
+                            return 'Marcar relatórios como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando dados do Rillet';
                         case 'rilletSyncConnection':
@@ -7238,11 +7240,23 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'dualEntrySyncPayments':
                             return 'Sincronizando pagamentos a fornecedores';
                         case 'dualEntrySyncCardSettlements':
-                            return 'Sincronizando liquidações do cartão';
+                            return 'Sincronizando liquidações de cartão';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Sincronizando acertos de viagem';
+                        case 'campfireSyncTitle':
+                            return 'Sincronizando dados do Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Inicializando conexão com o Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Carregando dados';
+                        case 'campfireSyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'campfireSyncCardSettlements':
+                            return 'Sincronizando liquidações de cartão';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         default: {
-                            return `Tradução ausente para etapa: ${stage}`;
+                            return `Tradução ausente para o estágio: ${stage}`;
                         }
                     }
                 },
@@ -7283,6 +7297,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
+            campfire: 'Fogueira',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -8514,6 +8529,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
             subtitle: 'Exija que os membros do seu domínio façam login via logon único, restrinja a criação de workspaces e muito mais.',
+        },
+        campfire: {
+            campfireSetup: 'Configuração do Campfire',
+            enterCredentials: 'Insira sua chave de API do Campfire',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Campfire</li><li>Vá para Configurações -> Chaves de API</li><li>Crie a chave de API</li><li>Cole a chave de API abaixo</li></ol>',
+            subsidiary: 'Subsidiária',
+            subsidiarySelectDescription: 'Escolha a subsidiária no Campfire da qual você gostaria de importar dados.',
+            noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
+            noSubsidiariesFoundDescription: 'Adicione uma entidade no Campfire e sincronize a conexão novamente',
         },
     },
     getAssistancePage: {

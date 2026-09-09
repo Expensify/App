@@ -7033,7 +7033,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return 'InserimentoDoppio';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Falò';
                     default: {
                         return '';
                     }
@@ -7105,16 +7107,16 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Importazione conti';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importazione di classi';
+                            return 'Importazione delle classi';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importazione sedi';
+                            return 'Importazione delle sedi';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Elaborazione dei dati importati';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizzazione dei report rimborsati e dei pagamenti delle fatture';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importazione dei codici IVA';
+                            return 'Importazione dei codici fiscali';
                         case 'quickbooksOnlineCheckConnection':
                             return `Verifica della connessione ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
@@ -7127,15 +7129,15 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'quickbooksDesktopImportMore':
                             return 'Importazione dei dati di QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
-                            return 'Titolo importazione';
+                            return "Titolo dell'importazione";
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Importazione del certificato di approvazione';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Importazione dimensioni';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Importazione della regola di risparmio';
+                            return 'Importazione della politica di salvataggio';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Sincronizzazione dei dati con QuickBooks in corso... Assicurati che il Web Connector sia in esecuzione';
+                            return 'Sincronizzazione dei dati con QuickBooks ancora in corso... Assicurati che il Web Connector sia in esecuzione';
                         case 'quickbooksOnlineSyncTitle':
                             return `Sincronizzazione dei dati di ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7153,17 +7155,17 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'jobDone':
                             return 'In attesa del caricamento dei dati importati';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizzazione del piano dei conti';
+                            return 'Sincronizzazione piano dei conti';
                         case 'xeroSyncImportCategories':
                             return 'Sincronizzazione categorie';
                         case 'xeroSyncImportCustomers':
                             return 'Sincronizzazione clienti';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Impostare i report Expensify come rimborsati';
+                            return 'Contrassegnare i report di Expensify come rimborsati';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Contrassegnare le fatture e le note di credito Xero come pagate';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Sincronizzazione delle categorie di monitoraggio';
+                            return 'Sincronizzazione delle categorie di tracciamento';
                         case 'xeroSyncImportBankAccounts':
                             return 'Sincronizzazione dei conti bancari';
                         case 'xeroSyncImportTaxRates':
@@ -7179,13 +7181,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'netSuiteSyncInitData':
                             return 'Recupero dei dati da NetSuite';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Importazione imposte';
+                            return 'Importazione delle imposte';
                         case 'netSuiteSyncImportItems':
                             return 'Importazione articoli';
                         case 'netSuiteSyncData':
-                            return 'Importazione di dati in Expensify';
+                            return 'Importazione dei dati in Expensify';
                         case 'netSuiteSyncAccounts':
-                            return 'Sincronizzazione account';
+                            return 'Sincronizzazione degli account';
                         case 'netSuiteSyncCurrencies':
                             return 'Sincronizzazione valute';
                         case 'netSuiteSyncCategories':
@@ -7193,11 +7195,11 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'netSuiteSyncReportFields':
                             return 'Importazione dei dati come campi del report Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importazione dei dati come tag Expensify';
+                            return 'Importazione dei dati come tag di Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Aggiornamento delle informazioni di connessione';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Impostare i report Expensify come rimborsati';
+                            return 'Contrassegnare i report di Expensify come rimborsati';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Contrassegnare le fatture e le note di addebito NetSuite come pagate';
                         case 'netSuiteImportVendorsTitle':
@@ -7207,7 +7209,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Importazione di elenchi personalizzati';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importazione filiali';
+                            return 'Importazione controllate';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importazione fornitori';
@@ -7216,11 +7218,11 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'intacctImportDimensions':
                             return 'Importazione delle dimensioni Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importazione dei dati da Sage Intacct';
+                            return 'Importazione dei dati Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Sincronizzazione dei dati Certinia';
                         case 'financialForceSyncStep':
-                            return 'Sincronizzazione connessione Certinia';
+                            return 'Sincronizzazione della connessione Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importazione categorie';
                         case 'financialForceSyncTags':
@@ -7238,7 +7240,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'financialForceMarkAsReimbursed':
                             return 'Contrassegnare i report come rimborsati';
                         case 'rilletSyncTitle':
-                            return 'Sincronizzazione dati Rillet';
+                            return 'Sincronizzazione dei dati Rillet';
                         case 'rilletSyncConnection':
                             return 'Inizializzazione della connessione a Rillet';
                         case 'rilletSyncImportData':
@@ -7252,11 +7254,23 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         case 'dualEntrySyncPayments':
                             return 'Sincronizzazione dei pagamenti ai fornitori';
                         case 'dualEntrySyncCardSettlements':
-                            return 'Sincronizzazione delle compensazioni della carta';
+                            return 'Sincronizzazione delle chiusure carta';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Sincronizzazione dei conguagli di viaggio';
+                        case 'campfireSyncTitle':
+                            return 'Sincronizzazione dei dati Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Inizializzazione della connessione a Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Caricamento dei dati';
+                        case 'campfireSyncPayments':
+                            return 'Sincronizzazione dei pagamenti ai fornitori';
+                        case 'campfireSyncCardSettlements':
+                            return 'Sincronizzazione delle chiusure carta';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Sincronizzazione dei conguagli di viaggio';
                         default: {
-                            return `Traduzione mancante per la fase: ${stage}`;
+                            return `Traduzione mancante per fase: ${stage}`;
                         }
                     }
                 },
@@ -7297,6 +7311,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlements: 'Sincronizza i regolamenti di fatturazione viaggio consolidata',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
+            campfire: 'Falò',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -8533,6 +8548,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
             subtitle: 'Richiedi ai membri del tuo dominio di accedere tramite accesso Single Sign-On, limita la creazione di space di lavoro e altro ancora.',
+        },
+        campfire: {
+            campfireSetup: 'Configurazione di Campfire',
+            enterCredentials: 'Inserisci la tua chiave API Campfire',
+            howToFindAPIKey:
+                '<strong>Trova la tua chiave API.</strong><ol><li>Accedi a Campfire</li><li>Vai a Impostazioni -> Chiavi API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
+            subsidiary: 'Consociata',
+            subsidiarySelectDescription: 'Scegli la consociata in Campfire da cui vuoi importare i dati.',
+            noSubsidiariesFound: 'Nessuna consociata trovata',
+            noSubsidiariesFoundDescription: "Aggiungi un'entità in Campfire e sincronizza di nuovo la connessione",
         },
     },
     getAssistancePage: {

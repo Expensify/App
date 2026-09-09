@@ -7042,7 +7042,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return 'Podwójny zapis';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Ognisko';
                     default: {
                         return '';
                     }
@@ -7121,7 +7123,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Przetwarzanie zaimportowanych danych';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Synchronizowanie zrefundowanych raportów i płatności rachunków';
+                            return 'Synchronizowanie rozliczonych raportów i płatności rachunków';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importowanie kodów podatkowych';
                         case 'quickbooksOnlineCheckConnection':
@@ -7142,7 +7144,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksDesktopImportDimensions':
                             return 'Importowanie wymiarów';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Importowanie zapisanej polityki';
+                            return 'Importowanie polityki zapisu';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Trwa nadal synchronizowanie danych z QuickBooks... Upewnij się, że Web Connector jest uruchomiony';
                         case 'quickbooksOnlineSyncTitle':
@@ -7160,7 +7162,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Aktualizowanie pól raportu';
                         case 'jobDone':
-                            return 'Oczekiwanie na wczytanie zaimportowanych danych';
+                            return 'Oczekiwanie na załadowanie zaimportowanych danych';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Synchronizowanie planu kont';
                         case 'xeroSyncImportCategories':
@@ -7168,7 +7170,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'xeroSyncImportCustomers':
                             return 'Synchronizowanie klientów';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zwrócone';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Oznaczanie rachunków i faktur Xero jako opłaconych';
                         case 'xeroSyncImportTrackingCategories':
@@ -7202,11 +7204,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'netSuiteSyncReportFields':
                             return 'Importowanie danych jako pola raportu Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importowanie danych jako tagów Expensify';
+                            return 'Importowanie danych jako tagi Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Aktualizowanie informacji o połączeniu';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zwrócone';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Oznaczanie rachunków i faktur w NetSuite jako opłaconych';
                         case 'netSuiteImportVendorsTitle':
@@ -7245,7 +7247,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'financialForceSyncDimensions':
                             return 'Importowanie wymiarów';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Oznaczanie raportów jako zwrócone';
+                            return 'Oznaczanie raportów jako rozliczone';
                         case 'rilletSyncTitle':
                             return 'Synchronizowanie danych Rillet';
                         case 'rilletSyncConnection':
@@ -7263,6 +7265,18 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Synchronizowanie rozliczeń karty';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Synchronizowanie rozliczeń podróży';
+                        case 'campfireSyncTitle':
+                            return 'Synchronizowanie danych Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Inicjowanie połączenia z Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'campfireSyncPayments':
+                            return 'Synchronizowanie płatności dla dostawców';
+                        case 'campfireSyncCardSettlements':
+                            return 'Synchronizowanie rozliczeń karty';
+                        case 'campfireSyncTravelSettlements':
                             return 'Synchronizowanie rozliczeń podróży';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
@@ -7305,6 +7319,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
+            campfire: 'Ognisko',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -8532,6 +8547,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
             subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
+        },
+        campfire: {
+            campfireSetup: 'Konfiguracja Campfire',
+            enterCredentials: 'Wpisz swój klucz API Campfire',
+            howToFindAPIKey:
+                '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Campfire</li><li>Przejdź do Ustawienia -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
+            subsidiary: 'Spółka zależna',
+            subsidiarySelectDescription: 'Wybierz spółkę zależną w Campfire, z której chcesz zaimportować dane.',
+            noSubsidiariesFound: 'Nie znaleziono żadnych spółek zależnych',
+            noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
         },
     },
     getAssistancePage: {

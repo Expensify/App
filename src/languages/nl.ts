@@ -7016,6 +7016,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Kampvuur';
                     default: {
                         return '';
                     }
@@ -7094,7 +7096,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Geïmporteerde gegevens verwerken';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Gerapporteerde terugbetalingen en rekeningbetalingen synchroniseren';
+                            return 'Bezig met synchroniseren van vergoede rapporten en rekeningbetalingen';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Belastingcodes importeren';
                         case 'quickbooksOnlineCheckConnection':
@@ -7111,13 +7113,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksDesktopImportTitle':
                             return 'Titel importeren';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Bezig met importeren van goedkeuringscertificaat';
+                            return 'Certificaat voor goedkeuring importeren';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Dimensies importeren';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Bezig met importeren van spaarbeleid';
+                            return 'Beleid voor opslaan importeren';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Data wordt nog steeds met QuickBooks gesynchroniseerd... Zorg ervoor dat de Web Connector actief is';
+                            return 'Gegevens worden nog steeds gesynchroniseerd met QuickBooks... Zorg ervoor dat de Web Connector actief is';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-gegevens synchroniseren`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7141,15 +7143,15 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'xeroSyncImportCustomers':
                             return 'Klanten synchroniseren';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensify-rapporten markeren als vergoed';
+                            return 'Expensify-rapporten als vergoed markeren';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Xero-facturen en -rekeningen als betaald markeren';
+                            return 'Xero-rekeningen en -facturen als betaald markeren';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Trackingcategorieën synchroniseren';
                         case 'xeroSyncImportBankAccounts':
                             return 'Bankrekeningen synchroniseren';
                         case 'xeroSyncImportTaxRates':
-                            return 'Belastingtarieven synchroniseren';
+                            return 'Belastingspercentages synchroniseren';
                         case 'xeroCheckConnection':
                             return 'Xero-verbinding controleren';
                         case 'xeroSyncTitle':
@@ -7165,21 +7167,21 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportItems':
                             return 'Items importeren';
                         case 'netSuiteSyncData':
-                            return 'Gegevens importeren in Expensify';
+                            return 'Gegevens in Expensify importeren';
                         case 'netSuiteSyncAccounts':
                             return 'Accounts synchroniseren';
                         case 'netSuiteSyncCurrencies':
-                            return "Valuta's synchroniseren";
+                            return 'Valuta’s synchroniseren';
                         case 'netSuiteSyncCategories':
                             return 'Categorieën synchroniseren';
                         case 'netSuiteSyncReportFields':
                             return 'Gegevens importeren als Expensify-rapportvelden';
                         case 'netSuiteSyncTags':
-                            return 'Gegevens importeren als Expensify-tags';
+                            return 'Data importeren als Expensify-tags';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Verbindingsinformatie bijwerken';
+                            return 'Verbindingsgegevens bijwerken';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensify-rapporten markeren als vergoed';
+                            return 'Expensify-rapporten als vergoed markeren';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-facturen en -rekeningen als betaald markeren';
                         case 'netSuiteImportVendorsTitle':
@@ -7189,12 +7191,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Aangepaste lijsten importeren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Subondernemingen importeren';
+                            return 'Dochterondernemingen importeren';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Leveranciers importeren';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct-verbinding controleren';
+                            return 'Verbinding met Sage Intacct controleren';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct-dimensies importeren';
                         case 'intacctImportTitle':
@@ -7218,7 +7220,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'financialForceSyncDimensions':
                             return 'Dimensies importeren';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Rapporten als terugbetaald markeren';
+                            return 'Rapporten als vergoed markeren';
                         case 'rilletSyncTitle':
                             return 'Rillet-gegevens synchroniseren';
                         case 'rilletSyncConnection':
@@ -7236,7 +7238,19 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Kaartafrekeningen synchroniseren';
                         case 'dualEntrySyncTravelSettlements':
-                            return 'Reisafrekeningen synchroniseren';
+                            return 'Reisverrekeningen synchroniseren';
+                        case 'campfireSyncTitle':
+                            return 'Campfire-gegevens synchroniseren';
+                        case 'campfireSyncConnection':
+                            return 'Verbinding met Campfire initialiseren';
+                        case 'campfireSyncImportData':
+                            return 'Gegevens laden';
+                        case 'campfireSyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'campfireSyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Reisverrekeningen synchroniseren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7279,6 +7293,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
+            campfire: 'Kampvuur',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -8508,6 +8523,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
+        campfire: {
+            campfireSetup: 'Campfire-configuratie',
+            enterCredentials: 'Voer je Campfire API-sleutel in',
+            howToFindAPIKey:
+                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Campfire</li><li>Ga naar Instellingen -> API-sleutels</li><li>Maak een API-sleutel aan</li><li>Plak de API-sleutel hieronder</li></ol>',
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
+            noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
+            noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+        },
     },
     getAssistancePage: {
         title: 'Hulp krijgen',

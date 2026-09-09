@@ -7087,7 +7087,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return 'Double saisie';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7154,7 +7156,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return 'Importation des employés';
+                            return 'Importation d’employés';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
                             return 'Importation de comptes';
@@ -7162,14 +7164,14 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksDesktopImportClasses':
                             return 'Importation de classes';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Importation des emplacements';
+                            return 'Importation des lieux';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Traitement des données importées';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Synchronisation des notes de frais remboursées et des paiements de factures';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importation des codes fiscaux';
+                            return 'Importation de codes fiscaux';
                         case 'quickbooksOnlineCheckConnection':
                             return `Vérification de la connexion ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
@@ -7180,7 +7182,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return `Importation des données ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
-                            return 'Importation des données QuickBooks Desktop';
+                            return 'Importation de données QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importation du titre';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -7202,7 +7204,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksOnlineSyncApplyCustomers':
                             return 'Mise à jour des clients/projets';
                         case 'quickbooksOnlineSyncApplyEmployees':
-                            return 'Mise à jour de la liste de personnes';
+                            return 'Mise à jour de la liste des personnes';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Mise à jour des champs de note de frais';
                         case 'jobDone':
@@ -7216,7 +7218,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marquer les notes de frais Expensify comme remboursées';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marquer les factures et notes de frais Xero comme payées';
+                            return 'Marquer les factures et avoirs Xero comme payés';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Synchronisation des catégories de suivi';
                         case 'xeroSyncImportBankAccounts':
@@ -7254,7 +7256,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marquer les notes de frais Expensify comme remboursées';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marquer les factures et notes de débit NetSuite comme payées';
+                            return 'Marquer les factures et notes de frais NetSuite comme payées';
                         case 'netSuiteImportVendorsTitle':
                             return 'Importation de fournisseurs';
                         case 'netSuiteImportCustomListsTitle':
@@ -7267,15 +7269,15 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'quickbooksDesktopImportVendors':
                             return 'Importation de fournisseurs';
                         case 'intacctCheckConnection':
-                            return 'Vérification de la connexion Sage Intacct';
+                            return 'Vérification de la connexion à Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Importation des dimensions Sage Intacct';
                         case 'intacctImportTitle':
-                            return 'Importation de données Sage Intacct';
+                            return 'Importation des données Sage Intacct';
                         case 'financialForceSyncTitle':
                             return 'Synchronisation des données Certinia';
                         case 'financialForceSyncStep':
-                            return 'Synchronisation de la connexion Certinia';
+                            return 'Synchronisation de la connexion à Certinia';
                         case 'financialForceSyncCategories':
                             return 'Importation de catégories';
                         case 'financialForceSyncTags':
@@ -7309,6 +7311,18 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Synchronisation des règlements de carte';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Synchronisation des règlements de voyage';
+                        case 'campfireSyncTitle':
+                            return 'Synchronisation des données Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Initialisation de la connexion à Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Chargement des données';
+                        case 'campfireSyncPayments':
+                            return 'Synchronisation des paiements fournisseurs';
+                        case 'campfireSyncCardSettlements':
+                            return 'Synchronisation des règlements de carte';
+                        case 'campfireSyncTravelSettlements':
                             return 'Synchronisation des règlements de voyage';
                         default: {
                             return `Traduction manquante pour l’étape : ${stage}`;
@@ -7352,6 +7366,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages consolidés',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',
@@ -8600,6 +8615,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
             subtitle: 'Obligez les membres de votre domaine à se connecter via l’authentification unique, restreignez la création d’espaces de travail, et plus encore.',
+        },
+        campfire: {
+            campfireSetup: 'Configuration de Campfire',
+            enterCredentials: 'Saisissez votre clé API Campfire',
+            howToFindAPIKey:
+                '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Campfire</li><li>Accédez à Paramètres -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
+            noSubsidiariesFound: 'Aucune filiale trouvée',
+            noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {

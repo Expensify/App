@@ -7067,7 +7067,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return 'Doppelte Buchung';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Lagerfeuer';
                     default: {
                         return '';
                     }
@@ -7128,7 +7130,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return 'Kunden werden importiert';
+                            return 'Kund:innen werden importiert';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -7139,24 +7141,24 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Konten werden importiert';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Klassen werden importiert';
+                            return 'Klassen importieren';
                         case 'quickbooksOnlineImportLocations':
                             return 'Standorte werden importiert';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Importierte Daten werden verarbeitet';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Synchronisieren von erstatteten Berichten und Rechnungszahlungen';
+                            return 'Synchronisierung erstatteter Berichte und Rechnungszahlungen';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Steuercodes werden importiert';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName}-Verbindung wird überprüft`;
+                            return `Überprüfe ${integrationName}-Verbindung`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importieren von ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportXero':
                             return 'Xero-Daten werden importiert';
                         case 'startingImportQBO':
-                            return `Importieren von ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop-Daten importieren';
@@ -7165,11 +7167,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Genehmigungszertifikat wird importiert';
                         case 'quickbooksDesktopImportDimensions':
-                            return 'Importieren von Dimensionen';
+                            return 'Dimensionen werden importiert';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Richtlinie zum Speichern importieren';
+                            return 'Richtlinie wird importiert gespeichert';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Daten werden noch mit QuickBooks synchronisiert … Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
+                            return 'Synchronisiere weiterhin Daten mit QuickBooks ... Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-Daten werden synchronisiert`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7179,19 +7181,19 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Kategorien werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Kunden/Projekte werden aktualisiert';
+                            return 'Kund:innen/Projekte werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Personenliste wird aktualisiert';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Berichts­felder werden aktualisiert';
+                            return 'Berichtsfelder werden aktualisiert';
                         case 'jobDone':
-                            return 'Warten auf das Laden der importierten Daten';
+                            return 'Warten, bis importierte Daten geladen sind';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Kontenplan wird synchronisiert';
                         case 'xeroSyncImportCategories':
                             return 'Kategorien werden synchronisiert';
                         case 'xeroSyncImportCustomers':
-                            return 'Kunden werden synchronisiert';
+                            return 'Kund:innen werden synchronisiert';
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Expensify-Berichte als erstattet markieren';
                         case 'xeroSyncExpensifyReimbursedReports':
@@ -7209,11 +7211,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncConnection':
                             return 'Verbindung zu NetSuite wird initialisiert';
                         case 'netSuiteSyncCustomers':
-                            return 'Kunden werden importiert';
+                            return 'Kund:innen werden importiert';
                         case 'netSuiteSyncInitData':
-                            return 'Daten werden aus NetSuite abgerufen';
+                            return 'Daten werden von NetSuite abgerufen';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Steuern werden importiert';
+                            return 'Steuern importieren';
                         case 'netSuiteSyncImportItems':
                             return 'Elemente werden importiert';
                         case 'netSuiteSyncData':
@@ -7227,7 +7229,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncReportFields':
                             return 'Daten als Expensify-Berichts­felder importieren';
                         case 'netSuiteSyncTags':
-                            return 'Import von Daten als Expensify-Tags';
+                            return 'Daten als Expensify-Tags importieren';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Verbindungsinformationen werden aktualisiert';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
@@ -7235,22 +7237,22 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-Rechnungen als bezahlt markieren';
                         case 'netSuiteImportVendorsTitle':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Import benutzerdefinierter Listen';
+                            return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Import benutzerdefinierter Listen';
+                            return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Import von Tochtergesellschaften';
+                            return 'Importieren von Tochtergesellschaften';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct-Verbindung wird überprüft';
+                            return 'Sage-Intacct-Verbindung wird überprüft';
                         case 'intacctImportDimensions':
-                            return 'Sage-Intacct-Dimensionen importieren';
+                            return 'Importieren von Sage Intacct-Dimensionen';
                         case 'intacctImportTitle':
-                            return 'Import von Sage-Intacct-Daten';
+                            return 'Sage Intacct-Daten werden importiert';
                         case 'financialForceSyncTitle':
                             return 'Certinia-Daten werden synchronisiert';
                         case 'financialForceSyncStep':
@@ -7260,7 +7262,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncTags':
                             return 'Tags werden importiert';
                         case 'financialForceSyncVendors':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'financialForceSyncContacts':
                             return 'Kontakte werden importiert';
                         case 'financialForceSyncCompanies':
@@ -7268,7 +7270,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncUsers':
                             return 'Benutzer importieren';
                         case 'financialForceSyncDimensions':
-                            return 'Importieren von Dimensionen';
+                            return 'Dimensionen werden importiert';
                         case 'financialForceMarkAsReimbursed':
                             return 'Berichte als erstattet markieren';
                         case 'rilletSyncTitle':
@@ -7278,19 +7280,31 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'rilletSyncImportData':
                             return 'Daten werden geladen';
                         case 'dualEntrySyncTitle':
-                            return 'Synchronisiere DualEntry-Daten';
+                            return 'Daten für DualEntry werden synchronisiert';
                         case 'dualEntrySyncConnection':
                             return 'Verbindung zu DualEntry wird initialisiert';
                         case 'dualEntrySyncImportData':
                             return 'Daten werden geladen';
                         case 'dualEntrySyncPayments':
-                            return 'Anbieterzahlungen werden synchronisiert';
+                            return 'Lieferantenzahlungen werden synchronisiert';
                         case 'dualEntrySyncCardSettlements':
                             return 'Kartenausgleiche werden synchronisiert';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Reiseabrechnungen werden synchronisiert';
+                        case 'campfireSyncTitle':
+                            return 'Campfire-Daten werden synchronisiert';
+                        case 'campfireSyncConnection':
+                            return 'Verbindung zu Campfire wird initialisiert';
+                        case 'campfireSyncImportData':
+                            return 'Daten werden geladen';
+                        case 'campfireSyncPayments':
+                            return 'Lieferantenzahlungen werden synchronisiert';
+                        case 'campfireSyncCardSettlements':
+                            return 'Kartenausgleiche werden synchronisiert';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Reiseabrechnungen werden synchronisiert';
                         default: {
-                            return `Übersetzung für Stufe fehlt: ${stage}`;
+                            return `Übersetzung fehlt für Stufe: ${stage}`;
                         }
                     }
                 },
@@ -7331,6 +7345,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
+            campfire: 'Lagerfeuer',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -8580,6 +8595,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
             subtitle: 'Verlangen Sie, dass Mitglieder in Ihrer Domain sich per Single Sign-On anmelden, schränken Sie das Erstellen von Arbeitsbereichen ein und mehr.',
+        },
+        campfire: {
+            campfireSetup: 'Campfire-Einrichtung',
+            enterCredentials: 'Geben Sie Ihren Campfire-API-Schlüssel ein',
+            howToFindAPIKey:
+                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Campfire an</li><li>Navigieren Sie zu Einstellungen -> API-Schlüssel</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
+            subsidiary: 'Tochtergesellschaft',
+            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
+            noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
+            noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {

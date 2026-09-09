@@ -6770,7 +6770,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'DualEntry';
+                        return '复式记账';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -6835,10 +6837,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
                         case 'quickbooksDesktopImportEmployees':
-                            return '导入员工';
+                            return '正在导入员工';
                         case 'quickbooksOnlineImportAccounts':
                         case 'quickbooksDesktopImportAccounts':
-                            return '导入账户';
+                            return '正在导入账户';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
                             return '导入类别';
@@ -6848,7 +6850,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在处理导入的数据';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return '正在同步已报销报表和账单付款';
+                            return '同步已报销报告和账单付款';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return '正在导入税码';
                         case 'quickbooksOnlineCheckConnection':
@@ -6871,7 +6873,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'quickbooksDesktopImportSavePolicy':
                             return '正在导入保存的策略';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return '仍在与 QuickBooks 同步数据…请确保 Web Connector 正在运行';
+                            return '仍在与 QuickBooks 同步数据……请确保 Web Connector 正在运行';
                         case 'quickbooksOnlineSyncTitle':
                             return `正在同步 ${integrationName} 数据`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -6915,7 +6917,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncInitData':
                             return '正在从 NetSuite 检索数据';
                         case 'netSuiteSyncImportTaxes':
-                            return '正在导入税费';
+                            return '正在导入税务数据';
                         case 'netSuiteSyncImportItems':
                             return '正在导入项目';
                         case 'netSuiteSyncData':
@@ -6929,13 +6931,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'netSuiteSyncReportFields':
                             return '将数据导入为 Expensify 报告字段';
                         case 'netSuiteSyncTags':
-                            return '将数据导入为 Expensify 标签';
+                            return '以 Expensify 标签的形式导入数据';
                         case 'netSuiteSyncUpdateConnectionData':
                             return '正在更新连接信息';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return '将 Expensify 报告标记为已报销';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return '将 NetSuite 账单和发票标记为已支付';
+                            return '将 NetSuite 账单和发票标记为已付款';
                         case 'netSuiteImportVendorsTitle':
                             return '正在导入供应商';
                         case 'netSuiteImportCustomListsTitle':
@@ -6988,11 +6990,23 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'dualEntrySyncPayments':
                             return '正在同步供应商付款';
                         case 'dualEntrySyncCardSettlements':
-                            return '正在同步卡片结算';
+                            return '正在同步信用卡结算';
                         case 'dualEntrySyncTravelSettlements':
-                            return '正在同步差旅报销';
+                            return '正在同步差旅结算';
+                        case 'campfireSyncTitle':
+                            return '正在同步 Campfire 数据';
+                        case 'campfireSyncConnection':
+                            return '正在初始化与 Campfire 的连接';
+                        case 'campfireSyncImportData':
+                            return '正在加载数据';
+                        case 'campfireSyncPayments':
+                            return '正在同步供应商付款';
+                        case 'campfireSyncCardSettlements':
+                            return '正在同步信用卡结算';
+                        case 'campfireSyncTravelSettlements':
+                            return '正在同步差旅结算';
                         default: {
-                            return `缺少阶段的翻译：${stage}`;
+                            return `阶段缺少翻译：${stage}`;
                         }
                     }
                 },
@@ -7028,6 +7042,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlements: '同步合并差旅结算',
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -8205,6 +8220,15 @@ ${reportName}`,
             syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
+        campfire: {
+            campfireSetup: '营火设置',
+            enterCredentials: '输入你的 Campfire API 密钥',
+            howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Campfire</li><li>前往“设置” -> “API 密钥”</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
+            subsidiary: '子公司',
+            subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
+            noSubsidiariesFound: '未找到子公司',
+            noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+        },
     },
     getAssistancePage: {
         title: '获取帮助',
