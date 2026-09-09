@@ -65,6 +65,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         if (shouldStartExpensifyCardEnrollment && canEnrollNewCardProgram) {
             Navigation.navigate(
                 getExpensifyCardEnrollmentRoute(policy.id, item.currencyCode, isUkEuCurrencySupported, bankAccountList, supportedCountriesByCurrency, reimbursementAccount?.achData),
+                {forceReplace: true},
             );
             return;
         }
