@@ -866,6 +866,44 @@ describe('getViolationsOnyxData', () => {
 
             expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
+
+        it('should preserve customUnitOutOfPolicy when the workspace rate was deleted', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy for FAKE_P2P_ID on a policy expense chat', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
     });
 
     describe('per diem rate validation', () => {

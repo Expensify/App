@@ -455,8 +455,8 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
 
 /**
  * Syncs the customUnitOutOfPolicy violation with the current policy rate enabled state.
- * Mirrors syncCustomUnitRateOutOfDateRangeViolation — keeps inbox/Spend previews in sync when
- * a workspace rate is disabled without waiting for Onyx to be recomputed.
+ * This mirrors syncCustomUnitRateOutOfDateRangeViolation. It keeps Inbox and Spend previews in sync
+ * when a workspace rate is disabled, without waiting for Onyx to recompute.
  */
 function syncCustomUnitOutOfPolicyViolation(
     violations: TransactionViolation[],
@@ -469,7 +469,7 @@ function syncCustomUnitOutOfPolicyViolation(
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
     }
 
-    // Per-diem customUnitOutOfPolicy is owned by the Onyx pipeline; leave it untouched.
+    // Per-diem customUnitOutOfPolicy is owned by the Onyx pipeline. Leave it untouched.
     if (isPerDiem) {
         return violations;
     }
@@ -490,29 +490,30 @@ function syncCustomUnitOutOfPolicyViolation(
     }
 
     const customRate = getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
-    const isRateDisabled = !!customRate && customRate.enabled === false;
 
-    if (!isRateDisabled && !hasViolation) {
+    // The rate does not resolve to a workspace rate, which happens when the rate was deleted or when a
+    // Track expense still holds its P2P rate on a workspace chat. Onyx owns the violation in those cases,
+    // so leave it exactly as it is rather than inventing or dropping one here.
+    if (!customRate) {
         return violations;
     }
 
-    if (!isRateDisabled && hasViolation) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
+    if (customRate.enabled === false) {
+        return hasViolation
+            ? violations
+            : [
+                  ...violations,
+                  {
+                      name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                      type: CONST.VIOLATION_TYPES.VIOLATION,
+                      showInReview: true,
+                  },
+              ];
     }
 
-    if (isRateDisabled && !hasViolation) {
-        return [
-            ...violations,
-            {
-                name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                showInReview: true,
-            },
-        ];
-    }
-
-    return violations;
+    return hasViolation ? violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) : violations;
 }
 
 const ViolationsUtils = {
