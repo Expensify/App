@@ -18,10 +18,9 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        // OXC compiles TS/JSX (and React Compiler on app sources). A small Babel pass then
-        // emits loose CommonJS, lowers import(), and hoists jest.mock so test files no
-        // longer need a babel-jest split. Native OXC stays fast under Reassure's
-        // `--max-opt=1` (V8 sparkplug only).
+        // App sources use OXC for TS/JSX and React Compiler, followed by a small Babel
+        // CommonJS pass. Test, setup, mock, and Flow files use babel-jest directly to avoid
+        // paying for two transforms where React Compiler is intentionally disabled.
         '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },

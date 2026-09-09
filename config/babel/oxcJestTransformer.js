@@ -46,7 +46,7 @@ function getLang(filename) {
 }
 
 function shouldUseOxc(filename) {
-    return !NODE_MODULES_RE.test(filename);
+    return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename);
 }
 
 function shouldRunReactCompiler(filename) {

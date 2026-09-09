@@ -56,7 +56,7 @@ describe('oxcTransformer', () => {
         `;
         const result = oxcTransformer.process(source, path.resolve(relativePath), transformOptions);
         expect(result.code).not.toMatch(/compiler-runtime|_c\(/);
-        expect(result.code).toContain('jsxDEV');
+        expect(result.code).toMatch(/_jsxRuntime\.(?:jsx|jsxDEV)/);
     });
 
     it('lowers const in jest.mock factories so circular imports do not TDZ', () => {
