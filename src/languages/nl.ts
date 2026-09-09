@@ -1658,11 +1658,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Keur alleen conforme uitgaven goed, of keur het hele rapport goed.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave is in de wacht gezet. Wil je toch goedkeuren?',
-            other: 'Deze declaraties staan in de wacht. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
@@ -3332,6 +3329,7 @@ ${amount} voor ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4727,6 +4725,7 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
+            recruiting: 'Werving',
             rooms: 'Kamers',
             findDomain: 'Domein zoeken',
             cardAdminAlternateText: 'Werkruimtekaarten beheren.',
@@ -6336,6 +6335,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
                         },
+                        setUpNewFeed: 'Nieuwe reiskoppeling instellen',
+                        feedSelectorIntro:
+                            'Je organisatie heeft al een Consolidated Travel Billing-feed ingesteld. Selecteer die om de reiskosten van deze workspace op dezelfde maandelijkse factuur te houden.',
                     },
                     disableModal: {
                         title: 'Samengevoegde reiskostenfacturatie uitschakelen?',
@@ -8365,37 +8367,26 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         hr: {
             title: 'HR',
-            connections: 'Verbindingen',
             connectionsSubtitle:
                 'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
-            connect: 'Verbinden',
-            syncNow: 'Nu synchroniseren',
-            disconnect: 'Ontkoppelen',
-            disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
-            disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
             alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
             alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
-            lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
-            syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
-            approvalMode: 'Goedkeuringsmodus',
             providerApprovalMode: (providerName: string) => `${providerName}-goedkeuringsmodus`,
-            finalApprover: 'Eindgoedkeurder',
             providerFinalApprover: (providerName: string) => `Laatste ${providerName}-fiatteur`,
-            notSet: 'Niet ingesteld',
+            syncing: 'Werknemers synchroniseren',
+            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
+            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             approvalModeDescription: (providerName: string) => `Leden en managers zijn ingesteld om te synchroniseren met ${providerName}.`,
             approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Weet je zeker dat je de goedkeuringsmodus voor deze werkruimte wilt wijzigen? Lees meer over de verschillende ${providerName}-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-site</a>.`,
             approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
-            approvalModes: {
-                basic: {label: 'Basisgoedkeuring', description: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.'},
-                manager: {
-                    label: 'Managergoedkeuring',
-                    description: (providerName: string) => `Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in ${providerName}.`,
-                },
-                custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.'},
+            approvalModeDescriptions: {
+                basic: 'Alle gebruikers dienen bij één persoon in voor verwerking en goedkeuring.',
+                manager: (providerName: string) => `Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in ${providerName}.`,
+                custom: 'Ik stel goedkeuringsworkflows handmatig in in Expensify.',
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -8435,22 +8426,50 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             zenefits: {
                 title: 'TriNet',
             },
-            syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
-            syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
-            syncing: 'Werknemers synchroniseren',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Configuratie voltooien',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Instellen voltooien</a>` : 'Configuratie voltooien'} om werknemers te importeren.</muted-text-label>`,
                 groups: {title: 'Groepen', description: 'Kies de groepen werknemers die je met deze workspace wilt synchroniseren'},
             },
+        },
+        recruiting: {
+            title: 'Werving',
+            connectionsSubtitle:
+                'Koppel je recruitmentsysteem om kandidaatgegevens te synchroniseren, vergoedingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
+            alreadyConnectedTitle: 'Kan niet met meerdere ATS-platformen verbinden',
+            alreadyConnectedPrompt: 'Je moet je huidige ATS loskoppelen voordat je een andere verbindt.',
+            syncing: 'Kandidaten synchroniseren',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Installatie voltooien</a>` : 'Voltooi installatie'} om kandidaten te importeren.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
+            importSettings: 'Importinstellingen',
+            defaultApprover: 'Standaardgoedkeurder',
+            approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+        },
+        merge: {
+            connections: 'Verbindingen',
+            connect: 'Verbinden',
+            findIntegration: 'Integratie zoeken',
+            syncNow: 'Nu synchroniseren',
+            disconnect: 'Ontkoppelen',
+            disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
+            disconnectPrompt: (providerName: string) => `Weet je zeker dat je ${providerName} wilt ontkoppelen?`,
+            lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
             notSync: 'Niet gesynchroniseerd',
+            syncError: (providerName: string) => `Kan geen verbinding maken met ${providerName}`,
             authenticationError: (providerName: string) => `Kan geen verbinding maken met ${providerName} vanwege een verlopen koppeling.`,
             reconnect: 'Opnieuw verbinden',
             reconnectLink: 'Opnieuw verbinden.',
-            findIntegration: 'Integratie zoeken',
-        },
-        merge: {
+            notSet: 'Niet ingesteld',
+            completeSetup: 'Configuratie voltooien',
+            approvalMode: 'Goedkeuringsmodus',
+            finalApprover: 'Eindgoedkeurder',
+            approvalModes: {
+                basic: 'Basisgoedkeuring',
+                manager: 'Managergoedkeuring',
+                custom: 'Aangepaste goedkeuring',
+                advanced: 'Geavanceerde goedkeuring',
+            },
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
@@ -9420,6 +9439,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         exportedTo: 'Geëxporteerd naar',
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
+            allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
             selectAllOnThisPage: 'Selecteer alles op deze pagina',
         },
         errors: {
@@ -9544,6 +9564,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `geëxporteerd naar ${translatedLabel}`;
@@ -10779,6 +10800,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         multipleTaxExport: 'Canadese export met meerdere belastingen',
+        reconciliationAllExpenses: 'Afstemming - Alle uitgaven',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',

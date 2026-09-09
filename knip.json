@@ -92,5 +92,5 @@
         "@babel/plugin-transform-modules-commonjs",
         "babel-plugin-jest-hoist"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
 }
