@@ -53,7 +53,17 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
-    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, convertToDisplayString, personalDetailsList, derivedReportName);
+    const reportName = getChatListItemReportName(
+        action,
+        report,
+        parentReport,
+        conciergeReportID,
+        linkedTransactions,
+        translate,
+        convertToDisplayString,
+        personalDetailsList,
+        derivedReportName ?? '',
+    );
 
     return (
         <View style={[styles.p4]}>

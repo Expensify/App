@@ -5107,8 +5107,8 @@ function showReportActionNotification(
     topmostOneTransactionThreadReportID: string | undefined,
     currentUserAccountID: number,
     currentUserLogin: string,
-    derivedReportName?: string,
-    derivedMovedFromReportName?: string,
+    derivedReportName: string,
+    derivedMovedFromReportName: string,
 ) {
     if (!shouldShowReportActionNotification(reportID, topmostOneTransactionThreadReportID, currentUserAccountID, reportAction)) {
         return;

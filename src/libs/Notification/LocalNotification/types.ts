@@ -11,7 +11,7 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName?: string) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
@@ -25,7 +25,7 @@ type LocalNotificationModifiedExpenseParams = {
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
-    derivedMovedFromReportName?: string;
+    derivedMovedFromReportName: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

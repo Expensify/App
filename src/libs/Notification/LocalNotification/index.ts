@@ -29,7 +29,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName?: string) {
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string) {
     BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, true, derivedReportName);
 }
 

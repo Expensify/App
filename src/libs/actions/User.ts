@@ -705,8 +705,8 @@ function triggerNotifications<TKey extends OnyxKey>(
                     topmostOneTransactionThreadReportID,
                     currentUserAccountID,
                     currentUserEmail,
-                    reportAttributes?.[reportID]?.reportName,
-                    derivedMovedFromReportName,
+                    reportAttributes?.[reportID]?.reportName ?? '',
+                    derivedMovedFromReportName ?? '',
                 );
             }
         }

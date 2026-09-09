@@ -143,7 +143,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false, derivedReportName?: string) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false, derivedReportName: string) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
