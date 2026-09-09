@@ -8,10 +8,11 @@ import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 import CONST from '@src/CONST';
 
+import type {LegendListRef} from '@legendapp/list/react-native';
 import type {ReactElement} from 'react';
 
+import {LegendList} from '@legendapp/list/react-native';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
@@ -37,7 +38,7 @@ function BaseAutoCompleteSuggestionsImpl({
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
-    const scrollRef = useRef<FlatList<unknown>>(null);
+    const scrollRef = useRef<LegendListRef>(null);
     /**
      * Render a suggestion menu item component.
      */
@@ -109,15 +110,15 @@ function BaseAutoCompleteSuggestionsImpl({
             }}
         >
             <ColorSchemeWrapper>
-                <FlatList
+                <LegendList
                     ref={scrollRef}
                     keyboardShouldPersistTaps="handled"
                     data={suggestions}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
-                    removeClippedSubviews={false}
+                    getFixedItemSize={() => CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
-                    extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    extraData={renderItem}
                     style={styles.overscrollBehaviorContain}
                 />
             </ColorSchemeWrapper>

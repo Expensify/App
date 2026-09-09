@@ -19,26 +19,26 @@ import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabiliti
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
+import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
 import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
+import type Animated from 'react-native-reanimated';
 
+import {AnimatedLegendList} from '@legendapp/list/reanimated';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 
 import type AttachmentCarouselViewProps from './types';
+
+import getAttachmentCarouselPageIndex from './getAttachmentCarouselPageIndex';
 
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
     itemVisiblePercentThreshold: 95,
 };
-
-const MIN_FLING_VELOCITY = 500;
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -79,7 +79,8 @@ function AttachmentCarouselView({
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
 
     const pagerRef = useRef<GestureType>(null);
-    const scrollRef = useAnimatedRef<Animated.FlatList<ListRenderItemInfo<Attachment>>>();
+    const listRef = useRef<LegendListRef>(null);
+    const scrollRef = useAnimatedRef<React.ComponentRef<typeof Animated.ScrollView>>();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
@@ -130,13 +131,13 @@ function AttachmentCarouselView({
             const nextIndex = page + deltaSlide;
             const nextItem = attachments.at(nextIndex);
 
-            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
+            if (!nextItem || nextIndex < 0 || !listRef.current) {
                 return;
             }
 
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+            listRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
+        [attachments, canUseTouchScreen, isFullScreen, page],
     );
 
     const extractItemKey = useCallback(
@@ -145,16 +146,6 @@ function AttachmentCarouselView({
                 ? `attachmentID-${item.attachmentID}`
                 : `source-${item.source}|${item.attachmentLink}`,
         [],
-    );
-
-    /** Calculate items layout information to optimize scrolling performance */
-    const getItemLayout = useCallback(
-        (data: ArrayLike<Attachment> | null | undefined, index: number) => ({
-            length: cellWidth,
-            offset: cellWidth * index,
-            index,
-        }),
-        [cellWidth],
     );
 
     const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
@@ -180,7 +171,7 @@ function AttachmentCarouselView({
 
     /** Defines how a single attachment should be rendered */
     const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<Attachment>) => (
+        ({item}: LegendListRenderItemProps<Attachment>) => (
             <View style={[styles.h100, {width: cellWidth}]}>
                 <CarouselItem
                     item={item}
@@ -214,18 +205,7 @@ function AttachmentCarouselView({
                         return;
                     }
 
-                    let newIndex;
-                    if (velocityX > MIN_FLING_VELOCITY) {
-                        // User flung to the right
-                        newIndex = Math.max(0, page - 1);
-                    } else if (velocityX < -MIN_FLING_VELOCITY) {
-                        // User flung to the left
-                        newIndex = Math.min(attachments.length - 1, page + 1);
-                    } else {
-                        // snap scroll position to the nearest cell (making sure it's within the bounds of the list)
-                        const delta = Math.round(-translationX / cellWidth);
-                        newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
-                    }
+                    const newIndex = getAttachmentCarouselPageIndex({cellWidth, itemCount: attachments.length, page, translationX, velocityX});
 
                     isPagerScrolling.set(false);
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
@@ -236,11 +216,11 @@ function AttachmentCarouselView({
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
-        if (attachments.length === 0 || scrollRef.current == null) {
+        if (attachments.length === 0 || listRef.current == null) {
             return;
         }
 
-        scrollRef.current.scrollToIndex({index: page, animated: false});
+        listRef.current.scrollToIndex({index: page, animated: false});
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cellWidth]);
@@ -275,20 +255,19 @@ function AttachmentCarouselView({
                                 canUseTouchScreen={canUseTouchScreen}
                                 gesture={pan}
                             >
-                                <Animated.FlatList
+                                <AnimatedLegendList
                                     keyboardShouldPersistTaps="handled"
                                     horizontal
                                     showsHorizontalScrollIndicator={false}
                                     // scrolling is controlled by the pan gesture
                                     scrollEnabled={false}
-                                    ref={scrollRef}
+                                    ref={listRef}
+                                    refScrollView={scrollRef}
                                     initialScrollIndex={page}
-                                    initialNumToRender={3}
-                                    windowSize={5}
-                                    maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                                     data={attachments}
+                                    extraData={renderItem}
                                     renderItem={renderItem}
-                                    getItemLayout={getItemLayout}
+                                    getFixedItemSize={() => cellWidth}
                                     keyExtractor={extractItemKey}
                                     viewabilityConfig={viewabilityConfig}
                                     onViewableItemsChanged={updatePage}

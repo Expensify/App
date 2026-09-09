@@ -30,12 +30,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
-import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 
 type TripRoomPreviewProps = {
     action: ReportAction;
@@ -154,7 +156,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
 
     const navigateToTrip = () => Navigation.navigate(getReportRouteForCurrentContext({reportID: chatReportID}));
-    const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
+    const renderItem = ({item}: LegendListRenderItemProps<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}
             onPress={navigateToTrip}
@@ -193,8 +195,9 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                             </Text>
                         </View>
                         {reservationsData.length > 0 && (
-                            <FlatList
+                            <LegendList
                                 data={reservationsData}
+                                extraData={renderItem}
                                 style={[styles.border, styles.borderRadiusComponentLarge, styles.p4, styles.flexGrow0]}
                                 contentContainerStyle={styles.gap4}
                                 renderItem={renderItem}

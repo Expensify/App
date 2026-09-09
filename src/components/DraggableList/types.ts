@@ -1,7 +1,10 @@
 import type React from 'react';
-import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
-type DraggableListRenderItemParams<T> = RenderItemParams<T> & {
+type DraggableListRenderItemParams<T> = {
+    item: T;
+    drag: () => void;
+    getIndex: () => number | undefined;
+    isActive: boolean;
     isFocused?: boolean;
 };
 
@@ -9,10 +12,11 @@ type DraggableListData<T> = {
     data: T[];
 };
 
-/**
- * Props for DraggableList are inspired by the `react-native-draggable-flatlist` library.
- * https://github.com/computerjazz/react-native-draggable-flatlist#props
- */
+type DraggableListRef = {
+    scrollToEnd: (options?: {animated?: boolean}) => void;
+};
+
+/** Props shared by the native LegendList drag implementation and the web sortable list. */
 type DraggableListProps<T> = {
     /** Unique key for each item (required) */
     keyExtractor: (item: T, index: number) => string;
@@ -50,4 +54,4 @@ type SortableItemProps = {
 };
 
 export default DraggableListProps;
-export type {SortableItemProps};
+export type {DraggableListRef, DraggableListRenderItemParams, SortableItemProps};
