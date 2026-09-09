@@ -37,7 +37,8 @@ let shouldFailAllRequests: boolean;
 const reportsWithProcessedOfflineComments = new Map<string, string>();
 const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
-// Use connectWithoutView since the queue reads this outside of render.
+// Read when a response resolves rather than during render, so there is no component to pass it in from
+// and no render pass for useOnyx to hook into.
 let hasLoadedApp = false;
 Onyx.connectWithoutView({
     key: ONYXKEYS.HAS_LOADED_APP,
