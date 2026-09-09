@@ -249,11 +249,16 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = async (paymentMethodType: PaymentMethodType | undefined, action: () => void) => {
-        if (await checkForNecessaryAction(paymentMethodType, action)) {
+    const runPaymentAction = async (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
+        // The verify-account gate stores the retry for later and cannot await it, so the promise is dropped there on purpose.
+        if (
+            await checkForNecessaryAction(paymentMethodType, () => {
+                action();
+            })
+        ) {
             return;
         }
-        action();
+        await action();
     };
 
     const shortFormPayElsewhereButton = {
@@ -549,7 +554,9 @@ function SettlementButton({
     return (
         <KYCWall
             ref={kycWallRef}
-            onSuccessfulKYC={(paymentType) => onPress({paymentType})}
+            onSuccessfulKYC={(paymentType) => {
+                onPress({paymentType});
+            }}
             enablePaymentsRoute={enablePaymentsRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}

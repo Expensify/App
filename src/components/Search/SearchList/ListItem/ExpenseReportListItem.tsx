@@ -520,9 +520,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isActionLoading={isActionLoading ?? isLoading}
                             canSelectMultiple={canSelectMultiple}
                             onCheckboxPress={handleSelectionButtonPress}
-                            onButtonPress={() => {
-                                handleOnButtonPress();
-                            }}
+                            onButtonPress={handleOnButtonPress}
                             chatReport={chatReport}
                             isSelectAllChecked={isSelected}
                             isIndeterminate={isIndeterminate}

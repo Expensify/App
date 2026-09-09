@@ -104,7 +104,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
-    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void;
+    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
@@ -314,7 +314,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const runOnButtonPress = async (event?: ModifiedMouseEvent) => {
+    const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
         const {introSelected, betas, isSelfTourViewed, amountOwed} = await getPaymentEventContext();
         handleActionButtonPress({
             getCurrencyDecimals,
@@ -355,10 +355,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             conciergeChat,
         });
     };
-    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
-        runOnButtonPress(event);
-    };
-
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow

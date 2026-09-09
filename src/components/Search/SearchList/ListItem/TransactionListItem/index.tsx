@@ -212,7 +212,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const runActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+    const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
         const {introSelected, betas, isSelfTourViewed, amountOwed} = await getPaymentEventContext();
         handleActionButtonPressUtil({
             getCurrencyDecimals,
@@ -253,10 +253,6 @@ function TransactionListItemInner<TItem extends ListItem>({
             allViolations,
             conciergeChat,
         });
-    };
-
-    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
-        runActionButtonPress(event);
     };
 
     const sharedProps = {

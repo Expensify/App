@@ -181,9 +181,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={(params) => {
-                    confirmPayment(params);
-                }}
+                onPress={confirmPayment}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}

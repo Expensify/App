@@ -135,7 +135,7 @@ function QuickCreationActionsBar() {
     );
 
     const handleReport = useCallback(
-        async () =>
+        () =>
             interceptAnonymousUser(async () => {
                 if (shouldNavigateToUpgradePath) {
                     const freshReportID = generateReportID();

@@ -21,7 +21,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    onButtonPress: (event?: ModifiedMouseEvent) => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void | Promise<void>;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
