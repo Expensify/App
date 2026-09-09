@@ -36,7 +36,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] = useMemo(
+    const vendorOptions: CardListItem[] = useMemo(
         () =>
             vendors?.map((vendor) => ({
                 value: vendor.id,
@@ -46,6 +46,18 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             })) ?? [],
         [nonReimbursableBillDefaultVendor, vendors],
     );
+
+    const clearOption: CardListItem = useMemo(
+        () => ({
+            value: '',
+            text: translate('common.none'),
+            keyForList: '',
+            isSelected: !nonReimbursableBillDefaultVendor,
+        }),
+        [translate, nonReimbursableBillDefaultVendor],
+    );
+    const shouldShowClearOption = !!nonReimbursableBillDefaultVendor || vendorOptions.length > 0;
+    const data: CardListItem[] = useMemo(() => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions), [shouldShowClearOption, clearOption, vendorOptions]);
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
