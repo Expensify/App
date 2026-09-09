@@ -97,7 +97,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {showConfirmModal} = useConfirmModal();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isRecruitingEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
+    const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -431,7 +431,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {isRecruitingEnabled && (
+                        {isRecruitingBetaEnabled && (
                             <MoreFeatureToggle
                                 icon={illustrations.NewUser}
                                 title={translate('workspace.recruiting.title')}
