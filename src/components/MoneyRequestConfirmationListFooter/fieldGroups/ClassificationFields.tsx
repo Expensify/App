@@ -137,7 +137,6 @@ function ClassificationFields({
                     isReadOnly={isReadOnly}
                     isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     formError={errorState.formError}
-                    clearFormErrors={errorState.clearFormErrors}
                     transactionID={transactionID}
                     action={action}
                     iouType={iouType}

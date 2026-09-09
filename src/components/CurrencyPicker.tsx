@@ -23,10 +23,7 @@ type CurrencyPickerProps = {
     /** Label for the input */
     label: string;
 
-    /** Current value of the selected item */
     value?: string;
-
-    /** Custom content to display in the header */
     headerContent?: ReactNode;
 
     /** Callback when the list item is selected */
@@ -35,7 +32,6 @@ type CurrencyPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
 
     /** Is the MenuItem disabled */
