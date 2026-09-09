@@ -158,9 +158,7 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     default: () => ({duplicateTransactions: {}, duplicateTransactionViolations: {}}),
 }));
 
-// Make TransitionTracker execute callbacks immediately (it can't wait for a real
-// modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
-// stall until MAX_TRANSITION_START_WAIT_MS).
+// Run TransitionTracker callbacks immediately, there is no real modal transition to wait for in a unit test.
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
     default: {
@@ -332,8 +330,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        // The live report carries a different name so the assertions prove the modal uses the Search snapshot
-        // name that the rows display. Report A's snapshot name is HTML-escaped the way the backend sends it.
+        // The live report name differs from the snapshot name to prove the modal uses the snapshot, as the rows do.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_A_ID}`, {reportID: REPORT_A_ID, policyID: POLICY_ID, reportName: 'Live A'});
         mockCurrentSearchResults = {
             data: {

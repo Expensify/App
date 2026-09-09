@@ -2341,8 +2341,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
-                    // hasOnlyPendingCardTransactions and hasOnlyHeldExpenses are per-report predicates, so
-                    // evaluate them per selected report.
+                    // The blocked-report checks are per report, so group the selected transactions by report.
                     const transactionsByReportID = new Map<string, Transaction[]>();
                     for (const transaction of allSelectedTransactionsList) {
                         if (!transaction.reportID) {
@@ -2369,9 +2368,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
                     const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    // The Submit option only appears for a submit-type workspace when exactly one report is selected, and that
-                    // report picks its manager in a popover. Skip the popover when the report is blocked so it falls through to
-                    // the modal below showing that the report could not be submitted.
+                    // A blocked report skips the submit-to popover and falls through to the modal below.
                     if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
                         const snapshotReport = getReportOrDraftReport(
                             reportIDForSubmit,
@@ -2418,9 +2415,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         }
                     }
 
-                    // Blocked reports are skipped rather than aborting the whole action, so list the ones that could not
-                    // be submitted. Take the name from the Search snapshot and normalize it the same way the rows do,
-                    // so the modal shows exactly what the user sees in the list.
+                    // List the skipped reports by the name the Search rows display.
                     if (blockedReportIDs.size > 0) {
                         const blockedReportNames: string[] = [];
                         for (const reportID of blockedReportIDs) {
@@ -2438,7 +2433,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             shouldEnablePromptScroll: true,
                         });
 
-                        // Nothing was submitted, so there is no report change for the search to pick up.
                         if (areAllSelectedReportsBlocked) {
                             return;
                         }
