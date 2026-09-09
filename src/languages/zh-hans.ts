@@ -8661,9 +8661,9 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
         commuterExclusions: {
-            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `将排除通勤方式更改为按每次报销的固定距离（之前为 ${previousMethod}）`,
-            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `已将排除通勤方式更改为按家庭和办公室计算（之前为 ${previousMethod}）`,
-            previousMethod: {disabled: '不要排除通勤', fixedDistance: '每次报销的固定距离', homeAndOffice: '家庭和办公室'},
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `已将排除通勤方式更改为按每次报销固定距离（之前为 ${previousMethod}）`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `将排除通勤方式更改为按家庭和办公室计算（之前为 ${previousMethod}）`,
+            previousMethod: {disabled: '不要排除通勤', fixedDistance: '每次报销的固定距离', homeAndOffice: '家庭与办公室'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `将每次报销的固定距离排除设置为 ${formattedDistance}`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `已将固定距离免除调整为每笔报销 ${formattedNewDistance}（之前为 ${formattedOldDistance}）`,

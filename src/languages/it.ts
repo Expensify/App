@@ -9011,10 +9011,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
-                `ha cambiato "escludi tragitti casa-lavoro" in una distanza fissa per rimborso (prima: ${previousMethod})`,
+                `ha modificato “escludi tragitti casa-lavoro” in una distanza fissa per richiesta (in precedenza ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
-                `ha modificato l’esclusione dei tragitti casa-lavoro per calcolarli in base a casa e ufficio (in precedenza ${previousMethod})`,
-            previousMethod: {disabled: 'non escludere gli spostamenti casa-lavoro', fixedDistance: 'distanza fissa per richiesta', homeAndOffice: 'casa e ufficio'},
+                `ha cambiato "escludi spostamenti casa-lavoro" per calcolare da casa e ufficio (in precedenza ${previousMethod})`,
+            previousMethod: {disabled: 'non escludere i tragitti casa-lavoro', fixedDistance: 'distanza fissa per richiesta', homeAndOffice: 'casa e ufficio'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione fissa di distanza di ${formattedDistance} per richiesta`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `ha modificato l’esclusione a distanza fissa a ${formattedNewDistance} per richiesta (in precedenza ${formattedOldDistance})`,

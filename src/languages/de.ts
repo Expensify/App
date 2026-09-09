@@ -9053,8 +9053,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         commuterExclusions: {
-            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `„Pendelfahrten ausschließen“ in „feste Entfernung pro Antrag“ geändert (zuvor ${previousMethod})`,
-            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `Pendelteilnahme geändert zu „nach Zuhause und Büro berechnen“ (zuvor ${previousMethod})`,
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `hat „Pendelfahrten ausschließen“ in „feste Entfernung pro Antrag“ geändert (zuvor ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `hat „Arbeitswege ausschließen“ auf Berechnung nach Wohnort und Büro geändert (zuvor ${previousMethod})`,
             previousMethod: {disabled: 'Pendelfahrten nicht ausschließen', fixedDistance: 'Feste Entfernung pro Antrag', homeAndOffice: 'Zuhause und Büro'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `feste Entfernungsausschlussgrenze von ${formattedDistance} pro Abrechnung festlegen`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>

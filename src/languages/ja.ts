@@ -8889,9 +8889,9 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         commuterExclusions: {
-            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分を除外する方法を、申請ごとの固定距離に変更しました（以前は${previousMethod}）。`,
-            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `通勤除外方法を自宅とオフィスで計算する方式に変更しました（以前の方式: ${previousMethod}）`,
-            previousMethod: {disabled: '通勤を除外しない', fixedDistance: '申請1件あたりの固定距離', homeAndOffice: '自宅とオフィス'},
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `通勤分の除外方法を、申請ごとの固定距離に変更しました（以前の方法：${previousMethod}）。`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `通勤除外方法を自宅とオフィスで算出する方式に変更しました（以前の方式：${previousMethod}）`,
+            previousMethod: {disabled: '通勤を除外しない', fixedDistance: '申請ごとの固定距離', homeAndOffice: '自宅とオフィス'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `請求ごとに固定距離の除外を ${formattedDistance} に設定します`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `1件あたりの固定距離控除を${formattedNewDistance}に変更しました（以前は${formattedOldDistance}）`,
