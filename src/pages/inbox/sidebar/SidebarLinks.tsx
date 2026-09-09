@@ -31,7 +31,6 @@ type SidebarLinksProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
 
-    /** List of options to display */
     optionListItems: Report[];
 
     /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */

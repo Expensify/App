@@ -111,7 +111,7 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 }
 
 function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -243,22 +243,26 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const filterWorkflow = (workflow: ApprovalWorkflow, searchInput: string) => {
         const searchableTexts: string[] = [];
 
+        const pushSearchableName = (value: string) => {
+            searchableTexts.push(value);
+            if (Str.isSMSLogin(value)) {
+                searchableTexts.push(Str.removeSMSDomain(value));
+                searchableTexts.push(formatPhoneNumber(value));
+            }
+        };
+
         if (workflow.isDefault) {
             searchableTexts.push(everyoneText);
         } else {
             for (const member of workflow.members) {
-                searchableTexts.push(member.displayName);
-                searchableTexts.push(Str.removeSMSDomain(member.displayName));
-                searchableTexts.push(member.email);
-                searchableTexts.push(Str.removeSMSDomain(member.email));
+                pushSearchableName(member.displayName);
+                pushSearchableName(member.email);
             }
         }
 
         for (const approver of workflow.approvers) {
-            searchableTexts.push(approver.displayName);
-            searchableTexts.push(Str.removeSMSDomain(approver.displayName));
-            searchableTexts.push(approver.email);
-            searchableTexts.push(Str.removeSMSDomain(approver.email));
+            pushSearchableName(approver.displayName);
+            pushSearchableName(approver.email);
         }
 
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;

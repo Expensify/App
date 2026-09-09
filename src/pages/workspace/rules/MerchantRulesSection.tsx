@@ -25,7 +25,7 @@ import {
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {RuleWithID} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import {lineHeightScale} from '@styles/typography';
@@ -35,7 +35,9 @@ import {clearMerchantRuleErrors} from '@userActions/Policy/Rules';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Rule} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -57,7 +59,13 @@ type FieldLabels = {
 /**
  * Generates a human-readable description of what a merchant rule does
  */
-function getRuleDescription(rule: Rule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels, policy: Policy | undefined): string {
+function getRuleDescription(
+    rule: Rule,
+    translate: ReturnType<typeof useLocalize>['translate'],
+    labels: FieldLabels,
+    policy: Policy | undefined,
+    policyTags: OnyxEntry<PolicyTagLists>,
+): string {
     const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
     const actions: string[] = [];
 
@@ -66,7 +74,8 @@ function getRuleDescription(rule: Rule, translate: ReturnType<typeof useLocalize
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', value));
         } else if (field === FIELD.CATEGORY && typeof value === 'string') {
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, getDecodedCategoryName(value)));
-        } else if (field === FIELD.TAG && typeof value === 'string') {
+        } else if (field === FIELD.TAG && typeof value === 'string' && isTagInPolicy(value, policyTags)) {
+            // A tag the admin has since deleted is left out rather than shown as a default that no longer applies.
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCommaSeparatedTagNameWithSanitizedColons(value)));
         } else if (field === FIELD.COMMENT && typeof value === 'string') {
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, value));
@@ -92,6 +101,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
@@ -168,7 +178,7 @@ function MerchantRulesSection({policyID, canWriteRules, showReadOnlyModal}: Merc
                         // still says what it matches instead of rendering an empty merchant.
                         const {merchants, isExactMatch} = getRuleMerchantMatchSummary(rule.filters);
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchants, isExactMatch);
-                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy);
+                        const ruleDescription = getRuleDescription(rule, translate, fieldLabels, policy, policyTags);
 
                         return (
                             <View key={ruleID}>
