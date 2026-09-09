@@ -1,6 +1,8 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
+        "tsBuildInfoFile": "./tsconfig.app.native.ts7.tsbuildinfo",
         // Empty on purpose. `types: ["react-native"]` would load
         // `@types/react-native@0.72` (a transitive leftover), which is not RN's
         // own types and is not the native type environment we want. RN types
@@ -22,6 +24,8 @@
         "src/**/*.web.tsx",
         "src/setup/addUtilsToWindow.ts",
         "src/hooks/useWebCamera.ts",
+        "src/hooks/useResponsiveLayoutOnWideRHP/index.ts",
+        "src/libs/getIsNarrowLayout/index.ts",
         "src/components/Attachments/AttachmentView/AttachmentViewPdf/index.tsx",
         "src/components/Composer/implementation/index.tsx",
         "src/components/PDFThumbnail/index.tsx",

@@ -1,8 +1,8 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "extends": "./tsconfig.json",
+    "extends": "./tsconfig.app.web.json",
     "compilerOptions": {
-        "moduleSuffixes": [".web", ""]
+        "tsBuildInfoFile": "./tsconfig.jest.ts7.tsbuildinfo"
     },
     "include": ["tests", "jest", "__mocks__", "src/**/__mocks__/**/*", "src/types/**/*.d.ts"],
     "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling", "modules/ExpensifyNitroUtils/**"]

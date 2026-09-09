@@ -13,7 +13,6 @@ import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import rulesdir from 'eslint-plugin-rulesdir';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
-import seatbelt from 'eslint-seatbelt';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
 import {createRequire} from 'node:module';
@@ -22,7 +21,6 @@ import {fileURLToPath} from 'node:url';
 import tseslint from 'typescript-eslint';
 
 import reportNameUtilsPlugin from './plugins/eslint-plugin-report-name-utils.mjs';
-import expensifyProcessor from './processors/eslint-processor-expensify.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -199,7 +197,7 @@ const restrictedReportNameImportPatterns = [
 ];
 
 // `isPaidGroupPolicy` is BILLING/paid-only (Collect/Control). Existing usages are grandfathered via
-// eslint-seatbelt; this only flags NEW imports so they make a conscious choice: for workspace feature
+// the seatbelt baseline; this only flags NEW imports so they make a conscious choice: for workspace feature
 // gating (violations, report fields, workspace chat, report creation, expense-workspace usability) use
 // `isGroupPolicy` / `isReportInGroupPolicy` instead, otherwise free group plans like Submit (submit2026)
 // are wrongly excluded and access bugs return.
@@ -240,34 +238,12 @@ const config = defineConfig([
             },
         },
     },
-    fileProgress.configs['recommended-ci'],
-
-    // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
-    // The processor runs React Compiler on each file and filters out redundant lint messages.
     {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
-        processor: expensifyProcessor,
-    },
-
-    // eslint-seatbelt config. The processor is stitched into `expensifyProcessor`
-    // above, so we only wire up the plugin, settings, and `configure` rule here.
-    {
+        ...fileProgress.configs['recommended-ci'],
         settings: {
-            seatbelt: {
-                seatbeltFile: path.join(dirname, 'eslint.seatbelt.tsv'),
-                threadsafe: true,
-                // Never persist TSV updates unless we're in CI. In CI, the ephemeral
-                // write is harmless on PR runs and essential on `push: main`, where
-                // OSBotify commits the tightened baseline back to main
-                // (see .github/workflows/lint.yml). SEATBELT_INCREASE overrides this.
-                readOnly: !process.env.CI,
+            progress: {
+                hide: process.env.CI === 'true' || process.env.LINT_PIPELINE === '1',
             },
-        },
-        plugins: {
-            'eslint-seatbelt': seatbelt,
-        },
-        rules: {
-            'eslint-seatbelt/configure': 'error',
         },
     },
 
@@ -304,7 +280,9 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.json'),
+                // The web app project, not the root solution: the solution owns no files, so typed linting
+                // has nothing to resolve against there. Native files override this below.
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
 
@@ -486,14 +464,16 @@ const config = defineConfig([
         },
     },
 
-    // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+    // Enforces every Onyx type to have a comment explaining its purpose. Per-property
+    // documentation is enforced by the AI reviewer (CONSISTENCY-10) instead,
+    // since a property with nothing non-obvious to say needs no comment.
     {
         files: ['src/types/onyx/**/*.ts'],
         rules: {
             'jsdoc/require-jsdoc': [
                 'error',
                 {
-                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'],
                 },
             ],
         },
@@ -690,6 +670,15 @@ const config = defineConfig([
         },
     },
 
+    // The styles layer composes tokens out of `variables`, so it reads them by name. Raw numeric literals stay banned.
+    {
+        files: ['src/styles/**'],
+        ignores: ['src/styles/typography.ts', 'src/styles/variables.ts'],
+        rules: {
+            'rulesdir/no-raw-typography': ['error', {allowVariablesReferences: true}],
+        },
+    },
+
     // Restrict `computeReportName` imports everywhere except the one file that
     // legitimately consumes it. This block overrides the main `no-restricted-imports`
     // for ts/tsx files, so we re-apply the main `restrictedImportPaths`/`restrictedImportPatterns`
@@ -741,6 +730,26 @@ const config = defineConfig([
     },
 
     {
+        files: ['src/**/*.native.ts', 'src/**/*.native.tsx', 'src/**/*.ios.ts', 'src/**/*.ios.tsx', 'src/**/*.android.ts', 'src/**/*.android.tsx', 'src/types/native/**/*.d.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['modules/background-task/src/**/*', 'modules/hybrid-app/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['types/env.d.ts'],
         languageOptions: {
             parserOptions: {
@@ -751,7 +760,10 @@ const config = defineConfig([
     },
 
     {
-        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
+        // `prompts` is not Bun code, but the Bun program is the one that owns it: `scripts`,
+        // `evals` and `tests/tooling` are its callers. (The Node program lists it too, for the
+        // Proposal Police GitHub Action.)
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts', 'prompts/**/*.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.bun.json'),
