@@ -2,7 +2,7 @@
 title: Statement Matching and Reconciliation
 description: Learn how to reconcile company card transactions in Expensify against your credit card statement.
 keywords: [New Expensify, company cards, statement matching, company card reconciliation, reconciliation, card statement, card feed, statement close date, statement mismatch, Reconciliation - All Expenses, export card transactions, reconciliation export template]
-internalScope: Audience is Workspace Admins and Card admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements, including exporting card transactions with the Reconciliation - All Expenses template. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
+internalScope: Audience is Workspace admins and Card admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements, including exporting card transactions with the Reconciliation - All Expenses template. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
 ---
 
 # Statement Matching and Reconciliation

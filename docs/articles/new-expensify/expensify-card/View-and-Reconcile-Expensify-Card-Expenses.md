@@ -52,7 +52,7 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 3. Select **Export**.
 4. Choose an export template to download the results as a CSV file.
 
-Workspace Admins and Card admins of a workspace with the Expensify Card enabled also see the **Reconciliation - All Expenses** template in this menu. It returns one row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status.
+Workspace admins and Card admins of a workspace with the Expensify Card enabled also see the **Reconciliation - All Expenses** template in this menu. It returns one row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status.
 
 ---
 
