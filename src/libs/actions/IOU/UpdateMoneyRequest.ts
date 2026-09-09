@@ -431,6 +431,7 @@ function updateMoneyRequestReimbursable({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
@@ -449,6 +450,7 @@ function updateMoneyRequestReimbursable({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
@@ -474,6 +476,7 @@ function updateMoneyRequestReimbursable({
         isOffline,
         delegateAccountID,
         isTrackIntentUser,
+        violations,
         getCurrencyDecimals,
         getCurrencySymbol,
     });
@@ -500,6 +503,7 @@ function updateMoneyRequestMerchant({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
@@ -520,6 +524,7 @@ function updateMoneyRequestMerchant({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
@@ -558,6 +563,7 @@ function updateMoneyRequestMerchant({
             hash,
             delegateAccountID,
             isTrackIntentUser,
+            violations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -839,6 +845,7 @@ type UpdateMoneyRequestTagParams = {
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
@@ -864,6 +871,7 @@ function updateMoneyRequestTag({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: UpdateMoneyRequestTagParams) {
@@ -889,6 +897,7 @@ function updateMoneyRequestTag({
         isOffline,
         delegateAccountID,
         isTrackIntentUser,
+        violations,
         getCurrencyDecimals,
         getCurrencySymbol,
     });
@@ -981,6 +990,7 @@ type UpdateMoneyRequestTaxRateParams = {
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
@@ -1003,6 +1013,7 @@ function updateMoneyRequestTaxRate({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: UpdateMoneyRequestTaxRateParams) {
@@ -1026,6 +1037,7 @@ function updateMoneyRequestTaxRate({
         isASAPSubmitBetaEnabled,
         delegateAccountID,
         isTrackIntentUser,
+        violations,
         getCurrencyDecimals,
         getCurrencySymbol,
     });
@@ -1058,6 +1070,7 @@ type UpdateMoneyRequestDistanceParams = {
     isTrackIntentUser: boolean | undefined;
     personalPolicyOutputCurrency: string | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
@@ -1087,6 +1100,7 @@ function updateMoneyRequestDistance({
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     reportPolicyTags,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: UpdateMoneyRequestDistanceParams) {
@@ -1133,6 +1147,7 @@ function updateMoneyRequestDistance({
             delegateAccountID,
             isTrackIntentUser,
             personalPolicyOutputCurrency,
+            violations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -1218,6 +1233,7 @@ function updateMoneyRequestCategory({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
@@ -1238,6 +1254,7 @@ function updateMoneyRequestCategory({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
@@ -1263,6 +1280,7 @@ function updateMoneyRequestCategory({
         hash,
         delegateAccountID,
         isTrackIntentUser,
+        violations,
         getCurrencyDecimals,
         getCurrencySymbol,
     });
@@ -1288,6 +1306,7 @@ function updateMoneyRequestDescription({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    violations,
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
@@ -1307,6 +1326,7 @@ function updateMoneyRequestDescription({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
@@ -1345,6 +1365,7 @@ function updateMoneyRequestDescription({
             hash,
             delegateAccountID,
             isTrackIntentUser,
+            violations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -1590,6 +1611,7 @@ function updateMoneyRequestAmountAndCurrency({
             hash,
             delegateAccountID,
             isTrackIntentUser,
+            violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -1645,6 +1667,9 @@ type UpdateMoneyRequestDataKeys =
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
 
+/**
+ * @param params.violations - pass all violations including those generated on the server. Otherwise, server violations will be lost in the local optimistic calculation.
+ */
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
         transactionID,

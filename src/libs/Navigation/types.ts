@@ -142,48 +142,38 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
-        /** cardID of selected card */
         cardID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
-        /** cardID of selected card */
         cardID: string;
 
         /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
         isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
-        /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
@@ -239,7 +229,6 @@ type SettingsNavigatorParamList = {
         action?: 'edit';
     };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-        /** Name of the currently displayed sub page */
         subPage?: string;
 
         /** Whether the user is editing one of the sub pages */
@@ -1376,14 +1365,12 @@ type SettingsNavigatorParamList = {
         role: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
-        /** cardID of selected card */
         cardID: string;
 
         /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
         isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
-        /** cardID of selected card */
         cardID: string;
 
         /** Reason for replacing the card */
@@ -1460,6 +1447,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TRAVEL_BILLING_SELECT_FEED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
@@ -2591,7 +2581,6 @@ type SplitDetailsNavigatorParamList = {
 
 type AddPersonalBankAccountNavigatorParamList = {
     [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: {
-        /** Name of the currently displayed sub page */
         subPage?: string;
 
         /** Whether the user is editing one of the sub pages */
@@ -3062,6 +3051,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TAGS]: {

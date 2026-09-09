@@ -1,5 +1,6 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -55,13 +56,11 @@ type UseSearchSelectorConfig = {
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
 
-    /** Whether to include current user */
     includeCurrentUser?: boolean;
 
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
-    /** Whether to include self DM */
     includeSelfDM?: boolean;
 
     /** Additional configuration for getValidOptions function */
@@ -76,7 +75,6 @@ type UseSearchSelectorConfig = {
     /** Initial selected options */
     initialSelected?: OptionData[];
 
-    /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 
     /** Additional contact options to merge (used by platform-specific implementations) */
@@ -85,7 +83,6 @@ type UseSearchSelectorConfig = {
     /** Whether to filter with recent attendees */
     recentAttendees?: Array<Partial<OptionData>>;
 
-    /** Whether to allow name-only options */
     shouldAllowNameOnlyOptions?: boolean;
 
     /** Whether to keep selected options in availableOptions instead of filtering them out */
@@ -102,13 +99,11 @@ type ContactState = {
     /** Contact options from device */
     contactOptions: Array<SearchOption<OnyxTypes.PersonalDetails>>;
 
-    /** Whether to show import UI */
     showImportUI: boolean;
 
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -116,7 +111,6 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
-    /** Debounced search term */
     debouncedSearchTerm: string;
 
     /** Function to update search term */
@@ -137,13 +131,11 @@ type UseSearchSelectorReturn = {
     /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
     selectedNonExistingOptions?: OptionData[];
 
-    /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
 
     /** Function to toggle selection state of an option */
     toggleSelection: (option: OptionData) => void;
 
-    /** Whether options are initialized */
     areOptionsInitialized: boolean;
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */
@@ -195,6 +187,7 @@ function useSearchSelectorBase({
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -290,6 +283,7 @@ function useSearchSelectorBase({
                     options: optionsWithContacts,
                     draftComments,
                     dateFnsLocale,
+                    convertToDisplayString,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -319,6 +313,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -354,6 +349,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -391,6 +387,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,
