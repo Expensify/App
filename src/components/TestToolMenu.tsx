@@ -1,4 +1,5 @@
 import useActiveServer from '@hooks/useActiveServer';
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -19,7 +20,7 @@ import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userAction
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ROUTES from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {Platform, View} from 'react-native';
@@ -50,6 +51,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
+    const {isProduction} = useEnvironment();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -149,6 +151,23 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             <Button.Text>{translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}</Button.Text>
                         </Button>
                     </TestToolRow>
+
+                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because this is not something regular users should reach, and forcing a beta on can leave the app half broken. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
+                            <Button
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                onPress={() => {
+                                    if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                                        Navigation.dismissModal();
+                                    }
+                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+                                }}
+                            >
+                                <Button.Text>{translate('common.view')}</Button.Text>
+                            </Button>
+                        </TestToolRow>
+                    )}
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}

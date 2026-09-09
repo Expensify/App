@@ -1657,11 +1657,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Tudo pronto!',
         noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',
-        confirmApprovalAmount: 'Aprove apenas as despesas em conformidade ou aprove o relatório inteiro.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Esta despesa está em espera. Deseja aprovar mesmo assim?',
-            other: 'Essas despesas estão em espera. Deseja aprovar mesmo assim?',
-        }),
+        confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
+        confirmApprovalAllHoldAmount: 'Todas as despesas estão em espera. Aprovar mesmo assim?',
         confirmPay: 'Confirmar valor do pagamento',
         confirmPayAmount: 'Pague o que não está retido ou pague o relatório inteiro.',
         confirmPayAllHoldAmount: () => ({
@@ -2292,6 +2289,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            betaOverrides: 'Substituições de betas',
+            betaOverridesDescription:
+                'As substituições se aplicam apenas a este dispositivo e afetam somente as verificações do frontend. Uma beta mantém uma substituição apenas enquanto ela difere das betas da sua conta, então alternar de volta remove a substituição. “Redefinir todas as substituições” restaura os valores da sua conta. Algumas betas também são controladas pelo backend, então podem falhar no nível da solicitação.',
+            resetAllOverrides: 'Redefinir todas as substituições',
+            overridden: 'Substituída',
             qaAuth: 'Autenticação de QA (Cloudflare)',
             qaAuthRunProbe: 'Executar sondagem',
             qaAuthSession: 'Sessão de autenticação de QA',
@@ -3329,6 +3331,7 @@ ${amount} para ${merchant} - ${date}`,
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
             workAccountClosedSubtitle:
                 'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} é um login controlado por domínio de uma conta existente do Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4597,6 +4600,7 @@ ${amount} para ${merchant} - ${date}`,
             reportFields: 'Campos do relatório',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
+            invoiceFields: 'Campos de fatura',
             taxes: 'Impostos',
             bills: 'Contas',
             invoices: 'Faturas',
@@ -6348,6 +6352,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                             sendInvoiceNowCta: 'Enviar fatura agora',
                         },
+                        setUpNewFeed: 'Configurar um novo feed de viagem',
+                        feedSelectorIntro:
+                            'Sua organização já tem um feed de Faturamento Consolidado de Viagens configurado. Selecione-o para manter os gastos de viagem deste workspace na mesma fatura mensal.',
                     },
                     disableModal: {
                         title: 'Desativar Faturamento Consolidado de Viagens?',
@@ -6603,6 +6610,29 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             unsupportedFormulaValueError: (value: string) => `Campo de fórmula ${value} não reconhecido`,
             reportFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
+        },
+        invoiceFields: {
+            subtitle: 'Os campos da fatura podem ser úteis quando você quiser incluir informações extras.',
+            importedFromAccountingSoftware: 'Os campos da fatura abaixo são importados do seu',
+            disableInvoiceFields: 'Desativar campos da fatura',
+            disableInvoiceFieldsConfirmation: 'Tem certeza? Os campos da fatura serão desativados nas faturas.',
+            delete: 'Excluir campo da fatura',
+            deleteConfirmation: 'Tem certeza de que deseja excluir este campo da fatura?',
+            findInvoiceField: 'Encontrar campo da fatura',
+            nameInputSubtitle: 'Escolha um nome para o campo da fatura.',
+            typeInputSubtitle: 'Escolha o tipo de campo da fatura que deseja usar.',
+            initialValueInputSubtitle: 'Insira um valor inicial para mostrar no campo da fatura.',
+            listValuesInputSubtitle: 'Esses valores aparecerão no menu suspenso do campo da fatura. Valores ativados podem ser selecionados pelos membros.',
+            listInputSubtitle: 'Esses valores aparecerão na lista do campo da fatura. Valores ativados podem ser selecionados pelos membros.',
+            emptyInvoiceFieldsValues: {
+                title: 'Ainda não há valores de lista',
+                subtitle: 'Adicione valores personalizados para aparecerem nas faturas.',
+            },
+            existingInvoiceFieldNameError: 'Já existe um campo da fatura com este nome',
+            invoiceFieldNameRequiredError: 'Insira um nome para o campo da fatura',
+            invoiceFieldTypeRequiredError: 'Escolha um tipo de campo da fatura',
+            invoiceFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo da fatura',
+            addField: 'Adicionar campo',
         },
         vendors: {
             emptyTitle: 'Ainda não há fornecedores',
@@ -7519,6 +7549,12 @@ ${reportName}`,
                 description: `Os campos de relatório permitem especificar detalhes no nível do cabeçalho, diferentes das tags que se aplicam às despesas em cada item individual. Esses detalhes podem incluir nomes específicos de projetos, informações sobre viagens de negócios, locais e mais.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Os campos de relatório estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: 'Campos de fatura',
+                description: `Os campos da fatura permitem incluir detalhes extras no nível da fatura.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Os campos da fatura estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',

@@ -1000,6 +1000,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalNamePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TRAVEL_BILLING_SELECT_FEED]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingFeedSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/spendRules/SpendRuleSelectionPage').default,
@@ -1036,6 +1038,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsInitialValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/TypeSelector/TypeSelectorPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsEditValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/CreateInvoiceFieldsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/invoices/DynamicInvoiceFieldsInitialListValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsSettingsPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsListValuesPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsAddListValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsValueSettingsPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsInitialValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsTypeSelectorPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsEditValuePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage').default,

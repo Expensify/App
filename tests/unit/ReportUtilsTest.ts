@@ -138,6 +138,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -210,6 +211,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
+    shouldDisplayReportFields,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldHideSingleReportField,
@@ -9209,6 +9211,34 @@ describe('ReportUtils', () => {
 
             expect(result.expenseChatReportID).toBe(providedExpenseReportID);
             expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
+        });
+
+        describe('#admins room pinning', () => {
+            const ownerEmail = 'workspace-owner@expensifail.com';
+
+            it('should pin the #admins room when the account owns no paid workspace yet', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should not pin the #admins room when the account already owns a paid workspace', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, true);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
+
+            it('should pin the #admins room when the flows that do not go through CreatePolicy omit the flag', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should never pin the #admins room for an Expensify employee', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, 'employee@expensify.com', undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
         });
     });
 
@@ -18954,6 +18984,57 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportFieldMaps', () => {
+        it('returns persisted invoice fields when the receiver has no policy field list', async () => {
+            const report = createMock<Report>({
+                reportID: 'invoiceReceiverWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
+                Object.fromEntries([
+                    ['expensify_invoice_field', invoiceField],
+                    ['invoice_field', invoiceField],
+                ]),
+            );
+            await waitForBatchedUpdates();
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+
+            expect(fieldValues).toEqual({client: 'Acme'});
+            expect(fieldsByName).toEqual({client: invoiceField});
+        });
+
+        it('does not use persisted invoice fields for an expense report', async () => {
+            const report = createMock<Report>({
+                reportID: 'expenseReportWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
+            await waitForBatchedUpdates();
+
+            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+        });
+    });
+
     describe('canEditReportTitle', () => {
         const getTitleField = (deletable: boolean): PolicyReportField => ({
             fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -19191,6 +19272,35 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
+    describe('shouldDisplayReportFields', () => {
+        it('returns true for an invoice when the receiver policy does not include the invoice fields feature flag', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.INVOICE});
+            const receiverPolicy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM});
+
+            expect(shouldDisplayReportFields(report, receiverPolicy)).toBe(true);
+        });
+
+        it('returns true for a workspace expense report when report fields are enabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: true,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(true);
+        });
+
+        it('returns false for a workspace expense report when report fields are disabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: false,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(false);
+        });
+    });
+
     describe('getMissingPaymentMethodForQueuedPayment', () => {
         const bankAccountListWithDepositAccount: BankAccountList = {
             123: {
