@@ -519,7 +519,6 @@ export type {
     SearchResultsActionsValue,
     SearchSelectionContextValue,
     SearchSelectionActionsValue,
-    PreviousSelectionSlices,
     SearchData,
     SearchRowSelectionActionsValue,
     SearchShiftRangeGroupsActions,

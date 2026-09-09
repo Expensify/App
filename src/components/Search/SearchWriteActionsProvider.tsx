@@ -522,8 +522,7 @@ function SearchWriteActionsProvider({
         return spelledOut;
     };
 
-    // Read on demand rather than subscribed, so asking whether a group is checked never re-renders this provider. An
-    // updater passes its own commit's slices instead, since pairing those with these would read one of them a commit late.
+    // Defaults for the gesture, where they are the committed values. An updater passes its own commit's slices instead.
     const groupSelectionParams = (
         groupKey: string | undefined,
         groupChildren: TransactionListItemType[],
