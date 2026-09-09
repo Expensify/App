@@ -85,12 +85,6 @@ type MoneyRequestReportActionsListContentProps = MoneyRequestReportListProps & {
     reportIDFromRoute: string | undefined;
 };
 
-/**
- * Renders the money-request report's unified list (transactions table + report actions). Composes the
- * view's data/behavior hooks (`useMoneyRequestReportVisibleActions`) with the hooks shared with the
- * chat list (`useUnreadMarker` / `useMarkAsRead`).
- * Mounted with `key={reportID}` by the wrapper below, so all hook state resets on report switch.
- */
 function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: MoneyRequestReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,7 +147,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
-    // The ref holds the report we already scrolled for, so the scroll fires only once per report open.
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
@@ -658,11 +651,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     );
 }
 
-/**
- * Public money-request report actions list. Thin wrapper that keys the content per report so all
- * hook state (unread marker time, pagination cursors, scroll refs) resets on report switch — the
- * same contract `ReportActionsList` gets from its `key={report.reportID}` consumers.
- */
 function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
