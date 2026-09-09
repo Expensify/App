@@ -9,15 +9,28 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {Route} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
 
 type RuleDeleteHeaderPropsParams = {
     /** Whether there is a rule to delete and the user may delete it. */
     canDelete: boolean;
 
-    /** Deletes the rule. Confirming, and leaving the page afterwards, is handled here. */
-    onDelete: () => void;
+    /**
+     * Deletes the rule. Confirming is handled here, and so is leaving the page, but only on a `true` return: a caller
+     * that bails out keeps the user where they are rather than sending them off a page whose rule is still there.
+     */
+    onDelete: () => boolean;
 
-    sentryLabel: string;
+    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.WORKSPACE.RULES>;
+
+    /**
+     * Where to land after deleting, for the editors that can be reached from more than one place. Category settings
+     * opens its own rules directly, so going back a screen from there would land on the New rule hub the user never
+     * saw. The save paths pass the same route for the same reason.
+     */
+    backTo?: Route;
 
     /** Overrides the confirmation copy for rule types that word it their own way. */
     titleKey?: TranslationPaths;
@@ -36,7 +49,7 @@ type RuleDeleteHeaderPropsParams = {
  * several read alike. It lives under `merchantRules` because that table had delete first, not because it is
  * merchant-specific.
  */
-function useRuleDeleteHeaderProps({canDelete, onDelete, sentryLabel, titleKey, promptKey}: RuleDeleteHeaderPropsParams) {
+function useRuleDeleteHeaderProps({canDelete, onDelete, sentryLabel, backTo, titleKey, promptKey}: RuleDeleteHeaderPropsParams) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
@@ -53,8 +66,11 @@ function useRuleDeleteHeaderProps({canDelete, onDelete, sentryLabel, titleKey, p
                 return;
             }
 
-            onDelete();
-            Navigation.goBack();
+            if (!onDelete()) {
+                return;
+            }
+
+            Navigation.goBack(backTo);
         });
     };
 
@@ -68,9 +84,15 @@ function useRuleDeleteHeaderProps({canDelete, onDelete, sentryLabel, titleKey, p
     ];
 
     return {
-        threeDotsMenuItems,
-        shouldShowThreeDotsButton: canDelete,
-        shouldMinimizeMenuButton: true,
+        /** Spread onto `HeaderWithBackButton`. */
+        deleteHeaderProps: {
+            threeDotsMenuItems,
+            shouldShowThreeDotsButton: canDelete,
+            shouldMinimizeMenuButton: true,
+        },
+
+        /** The same confirmation, for the pre-revamp footer button the two beta-gated pages still show. */
+        confirmDelete,
     };
 }
 

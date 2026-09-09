@@ -403,10 +403,16 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     // The rule is the set of field requirements on the category, so it only exists once one of them is on, and the
     // category's own pending state is the rule's: while a delete is in flight, deleting again would repeat the writes.
     const isRuleBeingDeleted = !!category && getRequireFieldsPendingActionForCategory(category) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const deleteHeaderProps = useRuleDeleteHeaderProps({
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
-        onDelete: () => deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? '')),
+        onDelete: () => {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''));
+            return true;
+        },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
+        // Category settings opens this rule itself, so going back a screen would land on the New rule hub the user
+        // never passed through. Same route the save path picks, for the same reason.
+        backTo: initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined,
     });
 
     if (isEditing && categoryName && !category) {

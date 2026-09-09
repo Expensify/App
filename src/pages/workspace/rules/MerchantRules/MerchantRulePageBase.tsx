@@ -441,7 +441,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
 
     const deleteRule = () => {
         if (!policy) {
-            return;
+            return false;
         }
         setIsClosing(true);
         if (editCategoryTaxRuleFor) {
@@ -449,13 +449,18 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         } else if (ruleID) {
             deletePolicyCodingRule(policy, ruleID);
         }
+        return true;
     };
 
     // A category tax rule is its category, so it carries no pending state of its own. Only a merchant rule can
     // already be on its way out. Declared above the not-found returns below, since a hook can't run conditionally.
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const deleteHeaderProps = useRuleDeleteHeaderProps({
-        canDelete: canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule),
+    const canDeleteRule = canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule);
+
+    // This page is reachable without the revamp beta, from the classic rules page, so the trashcan is gated the way
+    // the reset button beside it already is. Without the beta the labelled footer button below stays instead.
+    const {deleteHeaderProps, confirmDelete} = useRuleDeleteHeaderProps({
+        canDelete: canDeleteRule && isRulesRevampEnabled,
         onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE,
     });
@@ -633,6 +638,18 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
                         >
                             <Button.Text>{translate('workspace.rules.merchantRules.previewMatches')}</Button.Text>
+                        </Button>
+                    )}
+                    {/* Pre-revamp this delete was a labelled button here rather than the header trashcan, and this page
+                        is still reachable without the beta, so that is what those admins keep seeing. */}
+                    {canDeleteRule && !isRulesRevampEnabled && (
+                        <Button
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={confirmDelete}
+                            style={[styles.mb4]}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                        >
+                            <Button.Text>{translate('workspace.rules.merchantRules.deleteRule')}</Button.Text>
                         </Button>
                     )}
                 </>

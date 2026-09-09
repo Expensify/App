@@ -185,10 +185,16 @@ function FlagForReviewRulePageBase({
     // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
     // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
     const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const deleteHeaderProps = useRuleDeleteHeaderProps({
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
-        onDelete: () => deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories),
+        onDelete: () => {
+            deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories);
+            return true;
+        },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DELETE,
+        // Category settings opens this rule itself, so going back a screen would land on the New rule hub the user
+        // never passed through. Same route the save path picks, for the same reason.
+        backTo: initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined,
     });
 
     if (isEditing && categoryName && !category) {

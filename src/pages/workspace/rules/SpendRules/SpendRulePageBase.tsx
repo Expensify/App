@@ -1,3 +1,4 @@
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -247,16 +248,21 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
 
     const deleteRule = () => {
         if (!existingRule) {
-            return;
+            return false;
         }
 
         deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
         clearDraftSpendRule();
+        return true;
     };
 
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const deleteHeaderProps = useRuleDeleteHeaderProps({
-        canDelete: canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted,
+    const canDeleteRule = canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted;
+
+    // Wallet and the classic rules page both reach this editor without the revamp beta, so the trashcan waits for the
+    // beta and the labelled footer button below covers everyone else.
+    const {deleteHeaderProps, confirmDelete} = useRuleDeleteHeaderProps({
+        canDelete: canDeleteRule && isRulesRevampEnabled,
         onDelete: deleteRule,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
         titleKey: 'workspace.rules.spendRules.deleteRule',
@@ -520,6 +526,21 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        shouldRenderFooterAboveSubmit
+                        footerContent={
+                            /* Pre-revamp this delete was a labelled button here rather than the header trashcan, and
+                               Wallet still reaches this page without the beta, so that is what those users keep. */
+                            canDeleteRule && !isRulesRevampEnabled ? (
+                                <Button
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                    onPress={confirmDelete}
+                                    style={[styles.mb4]}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE}
+                                >
+                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
+                                </Button>
+                            ) : undefined
+                        }
                     />
                 )}
             </ScreenWrapper>
