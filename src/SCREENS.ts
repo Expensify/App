@@ -902,6 +902,7 @@ const SCREENS = {
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATES_UNIT: 'Distance_Rates_Unit',
         DISTANCE_RATES_COMMUTER_EXCLUSIONS: 'Distance_Rates_Commuter_Exclusions',
+        DISTANCE_RATES_WORK_ARRANGEMENT: 'Distance_Rates_Work_Arrangement',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_NAME_EDIT: 'Distance_Rate_Name_Edit',

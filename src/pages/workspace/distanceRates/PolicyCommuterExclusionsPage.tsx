@@ -2,10 +2,12 @@ import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import StartingWorkArrangementModal from '@components/StartingWorkArrangementModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
@@ -26,7 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {clearPolicyCommuterExclusionsErrors, disablePolicyCommuterExclusions, setPolicyCommuterExclusions} from '@userActions/Policy/DistanceRate';
+import {clearPolicyCommuterExclusionsErrors, disablePolicyCommuterExclusions, setPolicyCommuterExclusions, setPolicyWorkArrangement} from '@userActions/Policy/DistanceRate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +79,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             ? existingMethod
             : CONST.POLICY.COMMUTER_EXCLUSION_TYPE.DISABLED;
     const [selectedKey, setSelectedKey] = useState<ExclusionOptionKey>(initialSelectedKey);
-    const {showConfirmModal, closeModal} = useConfirmModal();
+    const confirmModal = useConfirmModal();
     const [fixedDistanceInput, setFixedDistanceInput] = useState<string>(() => (existingCommuterExclusions?.fixedDistance != null ? String(existingCommuterExclusions.fixedDistance) : ''));
     const [inlineError, setInlineError] = useState<string>('');
 
@@ -89,7 +91,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     };
 
     const goToWorkspaceOverview = () => {
-        closeModal();
+        confirmModal.closeModal();
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
@@ -98,7 +100,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
         if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
-            showConfirmModal({
+            confirmModal.showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
                 prompt: (
                     <Text>
@@ -109,6 +111,24 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 ),
                 confirmText: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.cta'),
                 shouldShowCancelButton: false,
+            });
+            return;
+        }
+
+        // The home and office method needs a work arrangement to reason about, so ask for one and save both
+        // together rather than letting the workspace switch method without one.
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+            confirmModal.showModal({
+                component: StartingWorkArrangementModal,
+                props: {
+                    initialIsOffice: existingCommuterExclusions?.isOfficeWorkArrangement ?? true,
+                    onApply: (isOffice: boolean) => {
+                        setSelectedKey(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
+                        setInlineError('');
+                        setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, existingCommuterExclusions);
+                        setPolicyWorkArrangement(policyID, isOffice, existingCommuterExclusions?.isOfficeWorkArrangement);
+                    },
+                },
             });
             return;
         }
@@ -190,6 +210,24 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         </View>
     );
 
+    const isHomeAndOfficeSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+
+    // Sits right below the home and office option, mirroring the fixed-distance input above, because the work
+    // arrangement only means anything for that method.
+    const workArrangementFooter = (
+        <MenuItemWithTopDescription
+            shouldShowRightIcon
+            title={translate(
+                (existingCommuterExclusions?.isOfficeWorkArrangement ?? true)
+                    ? 'workspace.distanceRates.commuterExclusions.workArrangement.officeBasedTitle'
+                    : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
+            )}
+            description={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
+            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID))}
+            wrapperStyle={[styles.ph5, styles.pt3]}
+        />
+    );
+
     const options: ExclusionOption[] = [
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionDisabledTitle'),
@@ -201,7 +239,8 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             text: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeTitle'),
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeHelp'),
             keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
-            isSelected: selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+            isSelected: isHomeAndOfficeSelected,
+            footerContent: isHomeAndOfficeSelected ? workArrangementFooter : null,
         },
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),
