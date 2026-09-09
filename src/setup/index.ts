@@ -2,6 +2,7 @@ import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
+import {startMainQueue} from '@libs/Network';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -106,6 +107,8 @@ export default function () {
     // picked up and the URL restored here, before React Navigation resolves the initial route. After
     // Onyx.init() because a completed exchange persists the session. No-op on every other load.
     finishCloudflareSignInFromURL();
+
+    startMainQueue();
 
     initOnyxDerivedValues();
 
