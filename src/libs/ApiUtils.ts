@@ -50,8 +50,10 @@ function resolveActiveServer(): ValueOf<typeof CONST.SERVER> {
     }
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
-    // turns the QA gate off, but leaves the old Onyx value behind
-    const server = storedServer === CONST.SERVER.QA && !isQAConfigured ? undefined : storedServer;
+    // turns the QA gate off, but leaves the old Onyx value behind. A production bundle is the same case,
+    // since it has no QA host to reach whatever is stored
+    const isQASelectable = isQAConfigured && envName !== CONST.ENVIRONMENT.PRODUCTION;
+    const server = storedServer === CONST.SERVER.QA && !isQASelectable ? undefined : storedServer;
 
     if (CONFIG.IS_USING_LOCAL_WEB && server !== CONST.SERVER.QA) {
         return CONST.SERVER.PRODUCTION;
