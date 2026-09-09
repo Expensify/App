@@ -5,7 +5,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
-import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -17,11 +16,12 @@ import SCREENS from '@src/SCREENS';
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 
+import createTabNavigator from './createTabNavigator';
+import HOME_TAB_SCREEN_OPTIONS from './HOME_TAB_SCREEN_OPTIONS';
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
@@ -72,7 +72,7 @@ const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
-const Tab = createBottomTabNavigator<TabNavigatorParamList>();
+const Tab = createTabNavigator();
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -118,6 +118,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePageScreen}
+                options={HOME_TAB_SCREEN_OPTIONS}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}

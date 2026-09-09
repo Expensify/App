@@ -26,6 +26,8 @@ function useNativePopoverMenuFocusManagement(
     const [restoreFocusTypeOverride, setRestoreFocusTypeOverride] = useState<BaseModalProps['restoreFocusType'] | null>(null);
     const [pendingClose, setPendingClose] = useState<PendingClose | null>(null);
     const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
+    const wasBackgroundInputFocusSuppressedAtCleanupRef = useRef(false);
+    const closedPendingCloseRef = useRef<PendingClose | null>(null);
     const isVisibleRef = useRef(isVisible);
     const shouldUseNewFocusManagement = shouldEnableNewFocusManagement ? true : isFocusHandoffEnabled && hasFocusRestoreSuppressionOption(menuItems);
     const effectiveRestoreFocusType = restoreFocusTypeOverride ?? restoreFocusType;
@@ -34,21 +36,32 @@ function useNativePopoverMenuFocusManagement(
         isVisibleRef.current = isVisible;
     }, [isVisible]);
 
+    // The close belongs to the request that produced it, and an effect remount over a request still held in state
+    // would close a second time, so the request this effect already closed for is remembered.
     useLayoutEffect(() => {
-        if (!pendingClose) {
+        if (!pendingClose || closedPendingCloseRef.current === pendingClose) {
             return;
         }
 
+        closedPendingCloseRef.current = pendingClose;
         close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
     }, [pendingClose]);
 
-    useEffect(
-        () => () => {
+    // The suppression outlives a selection, so an effect remount re-acquires the lease its own cleanup released,
+    // unless the modal finished hiding in between: that selection is over and its lease must stay released.
+    useEffect(() => {
+        const shouldReacquire = wasBackgroundInputFocusSuppressedAtCleanupRef.current && isVisibleRef.current;
+        wasBackgroundInputFocusSuppressedAtCleanupRef.current = false;
+        if (shouldReacquire) {
+            releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
+        }
+
+        return () => {
+            wasBackgroundInputFocusSuppressedAtCleanupRef.current = !!releaseBackgroundInputFocusSuppressionRef.current;
             releaseBackgroundInputFocusSuppressionRef.current?.();
             releaseBackgroundInputFocusSuppressionRef.current = null;
-        },
-        [],
-    );
+        };
+    }, []);
 
     const prepareForSelection = (item: FocusManagedMenuItem): boolean => {
         const shouldSuppressFocusRestore = isFocusHandoffEnabled && !!item.shouldSkipFocusRestore;
@@ -74,6 +87,8 @@ function useNativePopoverMenuFocusManagement(
 
         releaseBackgroundInputFocusSuppressionRef.current?.();
         releaseBackgroundInputFocusSuppressionRef.current = null;
+        // A lease released by a cover must not come back for a selection that finished while the screen was covered.
+        wasBackgroundInputFocusSuppressedAtCleanupRef.current = false;
         setRestoreFocusTypeOverride(null);
         setPendingClose(null);
     };

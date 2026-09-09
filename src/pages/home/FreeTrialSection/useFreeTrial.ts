@@ -61,15 +61,18 @@ function useFreeTrial(): FreeTrialState {
 
         return () => {
             clearInterval(intervalID);
-            setDiscountInfo(null);
         };
     }, [firstDayFreeTrial, showDiscount]);
+
+    // Whether the countdown belongs on screen follows the discount itself, so the interval's cleanup can leave the
+    // last value alone. Clearing it there would blank the banner every time the screen is covered and revealed.
+    const currentDiscountInfo = showDiscount ? discountInfo : null;
 
     if (!onFreeTrial || hasPaymentCard || !hasOwnedPaidPolicies) {
         return {shouldShowFreeTrialSection: false, discountType: null, daysLeft: 0, discountInfo: null};
     }
 
-    return {shouldShowFreeTrialSection: true, discountType: getDiscountType(showDiscount, discountInfo), daysLeft, discountInfo};
+    return {shouldShowFreeTrialSection: true, discountType: getDiscountType(showDiscount, currentDiscountInfo), daysLeft, discountInfo: currentDiscountInfo};
 }
 
 export default useFreeTrial;

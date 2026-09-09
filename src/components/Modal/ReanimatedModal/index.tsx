@@ -109,15 +109,15 @@ function ReanimatedModal({
         };
     }, [handleEscape, onBackButtonPressHandler]);
 
+    // Only the tracked transition is torn down here. Resetting the open state would be dead code at a real
+    // unmount, and an effect remount would close a modal that is still open.
     useEffect(
         () => () => {
-            if (transitionHandleRef.current) {
-                TransitionTracker.endTransition(transitionHandleRef.current);
-                transitionHandleRef.current = null;
+            if (!transitionHandleRef.current) {
+                return;
             }
-
-            setIsVisibleState(false);
-            setIsContainerOpen(false);
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         },
 
         [],
@@ -162,6 +162,11 @@ function ReanimatedModal({
     }, [onModalShow]);
 
     const onCloseCallBack = useCallback(() => {
+        // A remount replays the exit animation for a modal that is still open, and that replay must not report a close.
+        if (isVisible) {
+            return;
+        }
+
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (transitionHandleRef.current) {
@@ -175,7 +180,7 @@ function ReanimatedModal({
         if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
-    }, [onModalHide]);
+    }, [isVisible, onModalHide]);
 
     const modalStyle = useMemo(() => {
         return {zIndex: StyleSheet.flatten(style)?.zIndex};

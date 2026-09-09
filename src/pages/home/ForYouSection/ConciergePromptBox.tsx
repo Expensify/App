@@ -224,6 +224,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                 <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
                                                     <PressableWithoutFeedback
                                                         ref={actionButtonRef}
+                                                        testID="ConciergePromptBoxAddAttachmentButton"
                                                         accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                         role={CONST.ROLE.BUTTON}
                                                         sentryLabel="ConciergePromptBox-AddAttachment"
@@ -251,6 +252,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     </PressableWithoutFeedback>
                                                 </PopoverAnchorTooltip>
                                                 <PopoverMenu
+                                                    testID="ConciergePromptBoxMenu"
                                                     isVisible={isMenuVisible}
                                                     onClose={() => setIsMenuVisible(false)}
                                                     onItemSelected={() => {
@@ -272,6 +274,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                     menuItems={[
                                                         {
                                                             icon: icons.Paperclip,
+                                                            testID: 'ConciergePromptBoxMenuAddAttachment',
                                                             text: translate('reportActionCompose.addAttachment'),
                                                             shouldCallAfterModalHide: shouldUseNarrowLayout,
                                                         },
@@ -289,6 +292,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
                         <Composer
                             ref={setComposerRef}
+                            testID="ConciergePromptBoxInput"
                             style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                             value={value}
                             onChangeText={(text) => {
@@ -349,7 +353,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     </View>
                 </View>
                 {!!exceededMaxLength && (
-                    <View style={styles.conciergePromptBoxExceededLength}>
+                    <View
+                        testID="ConciergePromptBoxExceededLength"
+                        style={styles.conciergePromptBoxExceededLength}
+                    >
                         <ExceededCommentLength
                             maxCommentLength={exceededMaxLength}
                             isTaskTitle={isTaskTitle}

@@ -29,6 +29,19 @@ function wrapElementAsIcon(element: ReactElement): IconAsset {
     return WrappedIcon;
 }
 
+function buildAssetMap<TName extends string>(names: readonly TName[], getAsset: (name: TName) => IconAsset | undefined): Record<string, IconAsset> {
+    const assets: Record<string, IconAsset> = {};
+    for (const name of names) {
+        assets[name] = getAsset(name) ?? PlaceholderIcon;
+    }
+    return assets;
+}
+
+function isSameAssetMap(previous: Record<string, IconAsset>, next: Record<string, IconAsset>): boolean {
+    const nextNames = Object.keys(next);
+    return nextNames.length === Object.keys(previous).length && nextNames.every((name) => previous[name] === next[name]);
+}
+
 function resolveIconComponent(asset: IconAsset | undefined, fallback: IconAsset = PlaceholderIcon): IconAsset {
     if (asset == null) {
         return fallback;
@@ -159,6 +172,11 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
     useEffect(() => {
         // If already loaded synchronously, skip async load
         if (cachedChunk) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- a load that resolved after this effect last tore down was discarded, so the cached chunk is applied here instead of blanking the assets
+            setAssets((previous) => {
+                const loaded = buildAssetMap(namesList, (name) => cachedChunk.getIllustration(name));
+                return isSameAssetMap(previous, loaded) ? previous : loaded;
+            });
             return;
         }
 
@@ -235,6 +253,11 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
 
     useEffect(() => {
         if (cachedChunk) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- a load that resolved after this effect last tore down was discarded, so the cached chunk is applied here instead of blanking the assets
+            setAssets((previous) => {
+                const loaded = buildAssetMap(namesList, (name) => cachedChunk.getExpensifyIcon(name));
+                return isSameAssetMap(previous, loaded) ? previous : loaded;
+            });
             return;
         }
 

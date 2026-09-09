@@ -1,12 +1,15 @@
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
-import type {BottomTabNavigationOptions, BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
+import type {ReactElement} from 'react';
 
 import React, {useLayoutEffect, useRef} from 'react';
 
-import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from './types';
+import type {BottomTabScreenOptions, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} from './types';
+
+import ScreenActivityWrapper from './createPlatformStackNavigatorComponent/ScreenActivityWrapper';
 
 // The only navigation capability ScreenLayout actually needs, regardless of which navigator (stack, bottom-tabs, ...)
 // it's used with. Keeping this minimal means passing a real (properly-typed) navigation prop into it - e.g. from
@@ -26,18 +29,33 @@ function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBa
     );
 }
 
+// A tab is never covered by a screen of its own navigator, so it is not blurred in that sense. It counts as covered
+// while another tab is focused and while the whole tab navigator is behind another route, which the wrapper reads
+// from useIsFocused.
+function wrapBottomTabScreenContent(nonTopScreenBehavior: BottomTabScreenOptions['nonTopScreenBehavior'], children: ReactElement) {
+    if (nonTopScreenBehavior !== 'activity') {
+        return children;
+    }
+    return <ScreenActivityWrapper isScreenBlurred={false}>{children}</ScreenActivityWrapper>;
+}
+
 // Same as screenLayoutWrapper above, but for bottom-tab navigators. No cast needed here - `navigation` is already
 // properly typed as BottomTabNavigationProp, and its `addListener` structurally satisfies TransitionAwareNavigation.
-function bottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, BottomTabNavigationOptions, BottomTabNavigationProp<ParamListBase>>) {
+// The wrapper goes around the content only, so the transition listeners of ScreenLayout stay mounted while a hidden
+// Activity has its effects cleaned up.
+function bottomTabScreenLayoutWrapper({navigation, options, children, ...rest}: ScreenLayoutArgs<ParamListBase, string, BottomTabScreenOptions, BottomTabNavigationProp<ParamListBase>>) {
     return (
         <ScreenLayout
             {...rest}
+            options={options}
             navigation={navigation}
-        />
+        >
+            {wrapBottomTabScreenContent(options.nonTopScreenBehavior, children)}
+        </ScreenLayout>
     );
 }
 
-type ScreenLayoutProps = ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions, TransitionAwareNavigation>;
+type ScreenLayoutProps = ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabScreenOptions, TransitionAwareNavigation>;
 
 function ScreenLayout({children, navigation}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);

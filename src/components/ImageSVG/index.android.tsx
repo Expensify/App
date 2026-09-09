@@ -10,14 +10,6 @@ import type ImageSVGProps from './types';
 function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
     const isReactComponent = typeof src === 'function';
 
-    // Clear memory cache when unmounting images to avoid memory overload
-    useEffect(() => {
-        const clearMemoryCache = () => Image.clearMemoryCache();
-        return () => {
-            clearMemoryCache();
-        };
-    }, []);
-
     // Call onLoadEnd immediately for React components since they don't have a loading state
     useEffect(() => {
         if (!isReactComponent) {
@@ -57,6 +49,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             onLoadEnd={onLoadEnd}
             // Caching images to memory since some SVGs are being displayed with delay
             // See issue: https://github.com/Expensify/App/issues/34881
+            // Nothing flushes that cache here: Glide already trims it under memory pressure, and a per-icon flush emptied it for the whole app.
             cachePolicy="memory"
             contentFit={contentFit}
             source={src}

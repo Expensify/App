@@ -49,6 +49,8 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
 
     const shouldGenerate = !!sourceUri && isLocalFile && !cachedUri;
     const isGenerating = shouldGenerate && !resultForCurrentSource?.done;
+    const resolvedUri = resultForCurrentSource?.uri;
+    const hasResolvedCurrentSource = !!resultForCurrentSource?.done;
 
     // Retain / release the cache entry so it lives as long as at least one
     // mounted hook instance references it, and is cleaned up after the last
@@ -62,14 +64,31 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
         retainedUriRef.current = sourceUri;
 
         return () => {
+            const droppedUri = thumbnailCache.get(sourceUri);
             releaseUri(sourceUri);
             retainedUriRef.current = undefined;
+
+            // A cover runs this cleanup while the hook stays mounted, so state keeps the released entry and the effect below restores it on reveal. A real unmount discards this update.
+            if (droppedUri !== undefined) {
+                setAsyncResult({source: sourceUri, uri: droppedUri, done: true});
+            }
         };
     }, [sourceUri, isLocalFile]);
 
     // Fallback: generate if not already in cache (e.g. gallery pick path)
     useEffect(() => {
         if (!sourceUri || !isLocalFile || thumbnailCache.has(sourceUri)) {
+            return;
+        }
+
+        // The thumbnail this hook already resolved goes back into the cache, so a reveal reuses it instead of generating it again.
+        if (resolvedUri !== undefined) {
+            thumbnailCache.set(sourceUri, resolvedUri);
+            return;
+        }
+
+        // Generation already finished for this source and produced nothing, so a reveal must not run it a second time.
+        if (hasResolvedCurrentSource) {
             return;
         }
 
@@ -96,7 +115,7 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
         return () => {
             cancelled = true;
         };
-    }, [sourceUri, isLocalFile, startTransition]);
+    }, [sourceUri, isLocalFile, startTransition, resolvedUri, hasResolvedCurrentSource]);
 
     return {thumbnailUri, isGenerating};
 }

@@ -16,10 +16,11 @@ import SCREENS from '@src/SCREENS';
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
 
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
+import createTabNavigator from './createTabNavigator';
+import HOME_TAB_SCREEN_OPTIONS from './HOME_TAB_SCREEN_OPTIONS';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
@@ -28,7 +29,7 @@ import WorkspaceNavigator from './WorkspaceNavigator';
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
-const Tab = createBottomTabNavigator<TabNavigatorParamList>();
+const Tab = createTabNavigator();
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -102,6 +103,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
+                options={HOME_TAB_SCREEN_OPTIONS}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
