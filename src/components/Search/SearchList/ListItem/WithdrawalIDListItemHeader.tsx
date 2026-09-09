@@ -33,10 +33,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
-    /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -51,7 +48,6 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */

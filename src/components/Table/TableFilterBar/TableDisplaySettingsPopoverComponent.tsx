@@ -22,7 +22,6 @@ import {View} from 'react-native';
 const DIVIDER_HEIGHT = 25;
 
 type TableDisplaySettingsPopoverComponentProps = {
-    /** Function to call to close the overlay */
     closeOverlay: () => void;
 };
 
