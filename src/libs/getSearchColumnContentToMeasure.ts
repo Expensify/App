@@ -2,6 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {ExpenseReportListItemType, SearchListItem, TransactionListItemType, TransactionWithdrawalIDGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 
+import {textVariants} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -237,7 +238,7 @@ function getTransactionColumnContentToMeasure(
             return [
                 {
                     text: getReportStatusTranslation({stateNum: item.report?.stateNum, statusNum: item.report?.statusNum, isDeleted: isDeletedTransaction(item), translate}),
-                    font: {fontSize: variables.fontSizeExtraSmall},
+                    font: {fontSize: textVariants.finePrint.fontSize},
                 },
             ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
@@ -293,7 +294,7 @@ function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: 
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             // The status renders in a badge rather than the row's own text style, so it is measured in the badge's font.
-            return [{text: getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate}), font: {fontSize: variables.fontSizeExtraSmall}}];
+            return [{text: getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate}), font: {fontSize: textVariants.finePrint.fontSize}}];
         case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             return [{text: item.reportName}];
         case CONST.SEARCH.TABLE_COLUMNS.FROM:

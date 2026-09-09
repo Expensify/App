@@ -20,6 +20,7 @@ import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
 import {getSearchTableRowInsetWidth} from '@libs/SearchUIUtils';
 
+import {textVariants} from '@styles/typography';
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
 
@@ -57,7 +58,8 @@ function measureHeaderLabelWidth(column: SearchColumnType, translate: LocalizedT
         return 0;
     }
 
-    const width = measureTextWidth(translate(translationKey), {fontSize: variables.fontSizeSmall, fontWeight: '700'});
+    // The heading's own variant, so the measurement follows the typography scale rather than a copy of it.
+    const width = measureTextWidth(translate(translationKey), {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
 
     return width === null ? null : Math.ceil(width + sortIconWidth);
 }
