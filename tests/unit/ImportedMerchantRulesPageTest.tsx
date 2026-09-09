@@ -8,6 +8,7 @@ import * as Rules from '@libs/actions/Policy/Rules';
 
 import ImportedMerchantRulesPage, {
     buildImportedCategoryLookup,
+    buildImportedVendorLookup,
     normalizeImportedTag,
     parseSpreadsheetRules,
     willImportShortCircuitLocally,
@@ -16,10 +17,13 @@ import ImportedMerchantRulesPage, {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyCategories} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -114,6 +118,41 @@ function buildInvalidCategorySpreadsheet(): ImportedSpreadsheet {
         data: [
             ['Merchant is', 'Starbucks'],
             ['Updated category', 'Nonexistent category'],
+        ],
+        columns,
+        containsHeader: true,
+        isImportingMultiLevelTags: false,
+        isImportingIndependentMultiLevelTags: false,
+        isGLAdjacent: false,
+    };
+}
+
+// A QBO policy whose non-reimbursable export destination scopes vendor matching to QBO, mirroring AddVendorPageTest's
+// fixture. Passing `undefined` models the list not yet synced; `[]` models a loaded-but-empty list.
+function buildQBOPolicyWithVendors(vendors: Array<{id: string; name: string; currency: string}> | undefined): Policy {
+    return createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                data: vendors === undefined ? {} : {vendors},
+            },
+        }),
+    });
+}
+
+// A spreadsheet whose only mapped action is a Vendor cell, so vendor resolution can be tested independently
+// of the other action columns.
+function buildVendorSpreadsheet(vendorCellValue: string): ImportedSpreadsheet {
+    const mappedColumns = [CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS, CONST.CSV_IMPORT_COLUMNS.VENDOR];
+    const columns: Record<number, string> = {};
+    for (const [index, columnName] of mappedColumns.entries()) {
+        columns[index] = columnName;
+    }
+    return {
+        data: [
+            ['Merchant is', 'Starbucks'],
+            ['Updated vendor', vendorCellValue],
         ],
         columns,
         containsHeader: true,
@@ -247,28 +286,56 @@ describe('ImportedMerchantRulesPage', () => {
         });
     });
 
+    describe('buildImportedVendorLookup', () => {
+        const policy = buildQBOPolicyWithVendors([
+            {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+            {id: 'v-2', name: 'Duplicate Name', currency: 'USD'},
+            {id: 'v-3', name: 'Duplicate Name', currency: 'USD'},
+        ]);
+
+        it('resolves an exact vendor name to its external ID', () => {
+            expect(buildImportedVendorLookup(policy).get('acme co')).toBe('v-1');
+        });
+
+        it('resolves a cell case-insensitively and trimmed', () => {
+            expect(buildImportedVendorLookup(policy).get('  ACME CO  '.trim().toLowerCase())).toBe('v-1');
+        });
+
+        it('maps a name shared by more than one active vendor to null (ambiguous)', () => {
+            expect(buildImportedVendorLookup(policy).get('duplicate name')).toBeNull();
+        });
+
+        it('returns an empty lookup when the vendor list has not loaded', () => {
+            expect(buildImportedVendorLookup(buildQBOPolicyWithVendors(undefined)).size).toBe(0);
+        });
+    });
+
     describe('willImportShortCircuitLocally', () => {
         it('is true when no rule remains but rows were skipped as duplicates', () => {
-            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 2, invalidCategoryNames: new Set()})).toBe(true);
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 2, invalidCategoryNames: new Set(), invalidVendorNames: new Set()})).toBe(true);
         });
 
         it('is true when no rule remains but a category cell was invalid', () => {
-            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set(['travel'])})).toBe(true);
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set(['travel']), invalidVendorNames: new Set()})).toBe(true);
+        });
+
+        it('is true when no rule remains but a vendor cell was invalid', () => {
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set(), invalidVendorNames: new Set(['nonexistent vendor'])})).toBe(true);
         });
 
         it('is false when a net-new rule remains, even if some rows were skipped', () => {
             const rules = {ruleKey: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'}};
-            expect(willImportShortCircuitLocally({rules, skippedDuplicateCount: 3, invalidCategoryNames: new Set(['travel'])})).toBe(false);
+            expect(willImportShortCircuitLocally({rules, skippedDuplicateCount: 3, invalidCategoryNames: new Set(['travel']), invalidVendorNames: new Set()})).toBe(false);
         });
 
         it('is false when nothing was parsed at all', () => {
-            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set()})).toBe(false);
+            expect(willImportShortCircuitLocally({rules: {}, skippedDuplicateCount: 0, invalidCategoryNames: new Set(), invalidVendorNames: new Set()})).toBe(false);
         });
     });
 
     describe('parseSpreadsheetRules', () => {
         it('builds a net-new rule from a mapped row', () => {
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, true);
 
             expect(Object.keys(result.rules)).toHaveLength(1);
             expect(Object.values(result.rules).at(0)).toMatchObject({
@@ -277,6 +344,7 @@ describe('ImportedMerchantRulesPage', () => {
             });
             expect(result.skippedDuplicateCount).toBe(0);
             expect(result.invalidCategoryNames.size).toBe(0);
+            expect(result.invalidVendorNames.size).toBe(0);
         });
 
         it('skips a row that duplicates an existing coding rule', () => {
@@ -287,17 +355,81 @@ describe('ImportedMerchantRulesPage', () => {
                 },
             };
 
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect(result.skippedDuplicateCount).toBe(1);
         });
 
         it('drops a row whose category cell does not match a workspace category', () => {
-            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, true);
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect([...result.invalidCategoryNames]).toEqual(['nonexistent category']);
+        });
+
+        it('resolves a vendor cell to the matching vendor external ID', () => {
+            const policy = buildQBOPolicyWithVendors([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, true);
+
+            expect(Object.keys(result.rules)).toHaveLength(1);
+            expect(Object.values(result.rules).at(0)).toMatchObject({vendorID: 'v-1'});
+            expect(result.invalidVendorNames.size).toBe(0);
+        });
+
+        it('drops the vendor action and reports the cell when the vendor is unknown, but the row has another action', () => {
+            const policy = buildQBOPolicyWithVendors([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+            const mappedColumns = [CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS, CONST.CSV_IMPORT_COLUMNS.UPDATED_MERCHANT, CONST.CSV_IMPORT_COLUMNS.VENDOR];
+            const columns: Record<number, string> = {};
+            for (const [index, columnName] of mappedColumns.entries()) {
+                columns[index] = columnName;
+            }
+            const spreadsheet: ImportedSpreadsheet = {
+                data: [
+                    ['Merchant is', 'Starbucks'],
+                    ['Updated merchant', 'SBUX'],
+                    ['Updated vendor', 'Nonexistent Vendor'],
+                ],
+                columns,
+                containsHeader: true,
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
+
+            const result = parseSpreadsheetRules(spreadsheet, true, policy, undefined, true);
+
+            expect(Object.keys(result.rules)).toHaveLength(1);
+            expect(Object.values(result.rules).at(0)).toMatchObject({merchant: 'SBUX'});
+            expect(Object.values(result.rules).at(0)).not.toHaveProperty('vendorID');
+            expect([...result.invalidVendorNames]).toEqual(['nonexistent vendor']);
+        });
+
+        it('treats a name shared by more than one active vendor as unavailable rather than guessing', () => {
+            const policy = buildQBOPolicyWithVendors([
+                {id: 'v-1', name: 'Duplicate Name', currency: 'USD'},
+                {id: 'v-2', name: 'Duplicate Name', currency: 'USD'},
+            ]);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Duplicate Name'), true, policy, undefined, true);
+
+            expect(Object.keys(result.rules)).toHaveLength(0);
+            expect([...result.invalidVendorNames]).toEqual(['duplicate name']);
+        });
+
+        it('skips a row whose only action is an invalid vendor cell', () => {
+            const policy = buildQBOPolicyWithVendors([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Nonexistent Vendor'), true, policy, undefined, true);
+
+            expect(Object.keys(result.rules)).toHaveLength(0);
+            expect([...result.invalidVendorNames]).toEqual(['nonexistent vendor']);
+        });
+
+        it('does not flag any vendor cell invalid while the vendor list has not loaded yet', () => {
+            const policy = buildQBOPolicyWithVendors(undefined);
+            const result = parseSpreadsheetRules(buildVendorSpreadsheet('Acme Co'), true, policy, undefined, false);
+
+            expect(result.invalidVendorNames.size).toBe(0);
+            expect(Object.keys(result.rules)).toHaveLength(0);
         });
     });
 
