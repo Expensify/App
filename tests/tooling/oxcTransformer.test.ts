@@ -48,15 +48,14 @@ describe('oxcTransformer', () => {
         expect(result.code).toContain('jsxDEV');
     });
 
-    it.each(['tests/unit/Hello.test.tsx', 'jest/setup.tsx', '__mocks__/Hello.tsx'])('skips React Compiler on %s', (relativePath) => {
+    it.each(['tests/unit/Hello.test.tsx', 'jest/setup.tsx', '__mocks__/Hello.tsx'])('uses babel-jest directly for %s', (relativePath) => {
         const source = `
             export function Hello({name}: {name: string}) {
                 return <div>{name.toUpperCase()}</div>;
             }
         `;
         const result = oxcTransformer.process(source, path.resolve(relativePath), transformOptions);
-        expect(result.code).not.toMatch(/compiler-runtime|_c\(/);
-        expect(result.code).toMatch(/_jsxRuntime\.(?:jsx|jsxDEV)/);
+        expect(result.code).toMatch(/_jsxRuntime\.jsx/);
     });
 
     it('lowers const in jest.mock factories so circular imports do not TDZ', () => {

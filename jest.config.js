@@ -20,7 +20,7 @@ module.exports = {
     transform: {
         // App sources use OXC for TS/JSX and React Compiler, followed by a small Babel
         // CommonJS pass. Test, setup, mock, and Flow files use babel-jest directly to avoid
-        // paying for two transforms where React Compiler is intentionally disabled.
+        // paying for both OXC and Babel transforms.
         '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
