@@ -1071,6 +1071,7 @@ const CONST = {
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
+        INSIGHTS_PAGE: 'insightsPage',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
