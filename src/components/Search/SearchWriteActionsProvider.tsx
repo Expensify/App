@@ -787,9 +787,15 @@ function SearchWriteActionsProvider({
             }
 
             const selectableTransactions = groupTransactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
-            // Same map, not an equal one: the commit bails on identity, so a group with nothing to select must not re-render every row.
             if (selectableTransactions.length === 0) {
-                return selectedTransactions;
+                // Its rows have disproved the entry under its own key, and leaving it counts a row the checkbox does not show.
+                if (!groupKey || !selectedTransactions[groupKey]) {
+                    // Same map, not an equal one: the commit bails on identity, so this must not re-render every row.
+                    return selectedTransactions;
+                }
+                const withoutStaleGroupKey = {...selectedTransactions};
+                delete withoutStaleGroupKey[groupKey];
+                return withoutStaleGroupKey;
             }
             return {
                 ...selectedTransactions,

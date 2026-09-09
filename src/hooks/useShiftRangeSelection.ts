@@ -97,8 +97,8 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key)};
         },
         seedFullRange: () => {
-            // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
-            sessionRef.current = {kind: 'seeded', isMember: () => true};
+            // Resolved now, so a row filtered out before the next shift+click is still painted and still collapses.
+            sessionRef.current = seedRangeState(paramsRef.current, () => true) ?? IDLE;
         },
         clearAnchor: () => {
             sessionRef.current = IDLE;

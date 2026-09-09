@@ -419,6 +419,28 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: ['d', 'e']});
         });
 
+        it('collapses a row that was filtered out between Select All and the click, once it is back', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook((props: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({onApplyRange, items: props.items})), {initialProps: {items: ROWS}});
+
+            // Given Select All over the whole list, which paints every row present
+            act(() => result.current.seedFullRange());
+
+            // When a filter hides the tail and a shift+click narrows what is left
+            rerender({items: [ROW_A, ROW_B, ROW_C]});
+            act(() => {
+                result.current.applyShiftClick(ROW_B, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: ['c']});
+
+            // Then the rows that were hidden are still painted, so clearing the filter lets the next click collapse them
+            rerender({items: ROWS});
+            act(() => {
+                result.current.applyShiftClick(ROW_A, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a'], toDeselect: ['b', 'd', 'e']});
+        });
+
         it('spans only selectable rows, skipping excluded ones', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: MIXED, onApplyRange, isDisabledItem: (row) => !!row.isDisabled})));

@@ -1112,6 +1112,32 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions).toBe(before);
     });
 
+    it('drops a group’s own key once its rows arrive and none of them can be selected, so the footer stops counting it', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // Given a group selected while collapsed, whose only row then arrives being deleted
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header is pressed, on a checkbox that reads unchecked because nothing under it can be selected
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the key it was held under goes, rather than the press doing nothing while the footer still counts it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+    });
+
     it('turns select-all-matching off once every group has been unchecked', async () => {
         const {result} = renderSelection(SettledGroupWrapper);
 

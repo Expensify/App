@@ -40,12 +40,17 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
 
     const [selectionState, setSelectionState] = useState<SelectionState>(defaultSelectionState);
 
-    const [{actions: selectionActionsValue, sync}] = useState(() => createSelectionActions(setSelectionState, currentSearchHash));
+    const [{actions: selectionActionsValue, syncSelection, syncSearchHash}] = useState(() => createSelectionActions(setSelectionState, currentSearchHash));
 
     // Synced as one object, so a handler cannot read two slices of the selection at different freshness.
     useLayoutEffect(() => {
-        sync(selectionState, currentSearchHash);
+        syncSelection(selectionState);
     });
+
+    // Passive, so it lands after the page's own passive effect has cleared against the old hash.
+    useEffect(() => {
+        syncSearchHash(currentSearchHash);
+    }, [currentSearchHash, syncSearchHash]);
 
     const hasSelectedTransactions =
         (isExpenseSearch && selectionState.areAllMatchingItemsSelected) ||
@@ -69,7 +74,10 @@ type SelectionActions = {
     actions: SearchSelectionActionsValue;
 
     /** Pushes the latest render's values in, from the provider's layout effect */
-    sync: (selectionState: SelectionState, currentSearchHash: number) => void;
+    syncSelection: (selectionState: SelectionState) => void;
+
+    /** Separate from the selection, since the two are synced in different effects */
+    syncSearchHash: (currentSearchHash: number) => void;
 };
 
 /** Built once per provider, so a consumer may list any of these in an effect's dependencies. */
@@ -282,8 +290,10 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
             removeTransaction,
             selectAllMatchingItems,
         },
-        sync: (selectionState, currentSearchHash) => {
+        syncSelection: (selectionState) => {
             latestSelectionState = selectionState;
+        },
+        syncSearchHash: (currentSearchHash) => {
             latestSearchHash = currentSearchHash;
         },
     };
