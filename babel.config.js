@@ -168,7 +168,7 @@ const repack = {
 };
 
 module.exports = (api) => {
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('babel.config.js');
         console.debug('  - api.version:', api.version);
         console.debug('  - api.env:', api.env());
@@ -181,7 +181,7 @@ module.exports = (api) => {
     // For jest, it will be babel-jest
     // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('  - running in: ', runningIn);
     }
 
