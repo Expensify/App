@@ -3,6 +3,7 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -71,24 +72,6 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
     );
 });
 
-// Tag rows render through the highlightable variant, whose highlight animation needs the ScreenWrapper
-// transition context this harness doesn't provide. Mirror the mock above so tag rows stay queryable.
-jest.mock('@components/HighlightableMenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
-        <>
-            <RN.View testID={`menu-item-${description}`}>
-                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
-            </RN.View>
-            {title !== undefined && (
-                <RN.View testID={`menu-item-title-${description}`}>
-                    <RN.Text>{title}</RN.Text>
-                </RN.View>
-            )}
-        </>
-    );
-});
-
 // Mock MenuItem (used for some fields like billable)
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
@@ -118,23 +101,27 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
-            <MoneyRequestView
-                transactionThreadReport={threadReport}
-                parentReportID={expenseReportID}
-                expensePolicy={createMock<Policy>({
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    name: 'Test Policy',
-                    owner: currentUserEmail,
-                    outputCurrency: CONST.CURRENCY.USD,
-                    ...policy,
-                })}
-                shouldShowAnimatedBackground={false}
-            />
+            <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <MoneyRequestView
+                    transactionThreadReport={threadReport}
+                    parentReportID={expenseReportID}
+                    expensePolicy={createMock<Policy>({
+                        id: policyID,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        name: 'Test Policy',
+                        owner: currentUserEmail,
+                        outputCurrency: CONST.CURRENCY.USD,
+                        ...policy,
+                    })}
+                    shouldShowAnimatedBackground={false}
+                />
+            </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
     );
 
@@ -234,9 +221,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    // The expense has neither a category nor a tag selected, so both rows only appear when the policy's
-    // own categories and tags are read. Guards the scoped `policyCategories_<policyID>` and
-    // `policyTags_<policyID>` subscriptions against being keyed on the wrong policy.
     it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -264,8 +248,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    // The rows are driven by the policy the report belongs to, not by whatever categories and tags happen
-    // to exist elsewhere in Onyx.
     it('hides the Category and Tag rows when the categories and tags belong to a different policy', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
