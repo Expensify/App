@@ -6219,7 +6219,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
                 setFeedNameDescription: '为该卡片流水命名一个唯一名称，以便与其他区分',
-                setTransactionLiabilityDescription: '启用后，持卡人可以删除卡片交易。新的交易将遵循此规则。',
+                setTransactionLiabilityDescription: '持卡人可以删除交易。仅适用于新交易。',
                 emptyAddedFeedTitle: '此订阅源中没有卡片',
                 emptyAddedFeedDescription: '请确保在您银行的卡片交易流水中有可用的卡片。',
                 pendingFeedTitle: `我们正在审核你的请求…`,

@@ -6377,7 +6377,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 corporate: '取引の削除を制限',
                 personal: '取引の削除を許可',
                 setFeedNameDescription: '他と区別できるように、カードフィードに一意の名前を付けてください',
-                setTransactionLiabilityDescription: '有効にすると、カード保有者はカード取引を削除できるようになります。新しい取引にもこのルールが適用されます。',
+                setTransactionLiabilityDescription: 'カード保有者は取引を削除できます。新しい取引にのみ適用されます。',
                 emptyAddedFeedTitle: 'このフィードにはカードがありません',
                 emptyAddedFeedDescription: '銀行のカード明細フィードにカードが含まれていることを確認してください。',
                 pendingFeedTitle: `リクエストを確認しています…`,

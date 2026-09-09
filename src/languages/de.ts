@@ -6497,7 +6497,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 corporate: 'Löschen von Transaktionen einschränken',
                 personal: 'Löschen von Transaktionen erlauben',
                 setFeedNameDescription: 'Gib dem Karten-Feed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst',
-                setTransactionLiabilityDescription: 'Wenn aktiviert, können Karteninhaber Kartentransaktionen löschen. Neue Transaktionen folgen dieser Regel.',
+                setTransactionLiabilityDescription: 'Karteninhaber können Transaktionen löschen. Gilt nur für neue Transaktionen.',
                 emptyAddedFeedTitle: 'Keine Karten in diesem Feed',
                 emptyAddedFeedDescription: 'Stelle sicher, dass sich Karten im Kartenfeed deiner Bank befinden.',
                 pendingFeedTitle: `Wir überprüfen Ihre Anfrage …`,

@@ -6448,7 +6448,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 corporate: 'Beperken van het verwijderen van transacties',
                 personal: 'Verwijderen van transacties toestaan',
                 setFeedNameDescription: 'Geef de kaartfeed een unieke naam zodat je deze van de andere kunt onderscheiden',
-                setTransactionLiabilityDescription: 'Indien ingeschakeld kunnen kaarthouders kaarttransacties verwijderen. Nieuwe transacties zullen deze regel volgen.',
+                setTransactionLiabilityDescription: 'Kaarthouders kunnen transacties verwijderen. Geldt alleen voor nieuwe transacties.',
                 emptyAddedFeedTitle: 'Geen kaarten in deze feed',
                 emptyAddedFeedDescription: 'Controleer of er kaarten in de kaartfeed van je bank staan.',
                 pendingFeedTitle: `We beoordelen je aanvraag...`,

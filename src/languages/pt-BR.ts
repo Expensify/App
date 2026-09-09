@@ -6452,7 +6452,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 corporate: 'Restringir exclusão de transações',
                 personal: 'Permitir excluir transações',
                 setFeedNameDescription: 'Dê um nome exclusivo ao feed de cartão para diferenciá-lo dos demais',
-                setTransactionLiabilityDescription: 'Quando ativado, titulares de cartão podem excluir transações do cartão. Novas transações seguirão esta regra.',
+                setTransactionLiabilityDescription: 'Portadores do cartão podem excluir transações. Aplica-se apenas a novas transações.',
                 emptyAddedFeedTitle: 'Nenhum cartão neste feed',
                 emptyAddedFeedDescription: 'Verifique se há cartões no feed de cartões do seu banco.',
                 pendingFeedTitle: `Estamos analisando sua solicitação...`,
