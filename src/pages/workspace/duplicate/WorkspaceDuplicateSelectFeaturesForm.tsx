@@ -23,6 +23,7 @@ import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
+import {getRules} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -230,6 +231,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
         openDuplicatePolicyPage(policyID);
+        // Merchant rules live in their own collection, and the count decides whether the option is offered at
+        // all, so an unfetched collection would silently duplicate the workspace without them.
+        getRules();
     }, [policyID]);
 
     const confirmDuplicate = useCallback(() => {

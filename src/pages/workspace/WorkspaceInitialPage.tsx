@@ -146,15 +146,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     // changes (e.g., isWorkspacesTabFocused becomes false after StackActions.pop()).
     const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
     const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
-    const fetchPolicyData = () => {
+    const fetchPolicyData = (shouldForceRefetchRules = false) => {
         if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
         }
         openPolicyInitialPage(routePolicyID);
         // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever a workspace is opened.
-        getRules();
+        getRules(shouldForceRefetchRules);
     };
-    useNetwork({onReconnect: fetchPolicyData});
+    useNetwork({onReconnect: () => fetchPolicyData(true)});
     useFocusEffect(
         useCallback(() => {
             fetchPolicyData();

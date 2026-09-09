@@ -1458,7 +1458,12 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
  */
 function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
     const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
-    return Object.values(rule.triggers ?? {}).some((trigger) => approvalWorkflowTriggers.includes(trigger));
+    const triggers = Object.values(rule.triggers ?? {});
+
+    // Every trigger has to be a report event, not just one of them. A rule that also fires on transaction
+    // creation is an expense default and is listed as one, so treating it as a workflow here would delete it
+    // along with the workflows when approvals are turned off.
+    return triggers.length > 0 && triggers.every((trigger) => approvalWorkflowTriggers.includes(trigger));
 }
 
 /**

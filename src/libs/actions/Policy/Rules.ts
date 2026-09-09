@@ -32,8 +32,44 @@ import Onyx from 'react-native-onyx';
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
-/** Fetches every rule the user has access to. The response SETs the whole `rules_` collection. */
-function getRules() {
+/**
+ * How long a `GetRules` response is treated as fresh enough to skip a refetch.
+ *
+ * The command takes no parameters and its response SETs the whole collection, so every call re-downloads
+ * every rule in the account. Screens ask for it on mount and on focus, so without this, moving between
+ * workspaces pulls the lot each time. The window is short so a rule changed on another device still
+ * shows up quickly.
+ */
+const GET_RULES_FRESHNESS_MS = 30 * 1000;
+
+let lastGetRulesTimestamp = 0;
+
+// The freshness window is module state, so it outlives a sign out and would otherwise leave the next
+// account without rules until it expired. `connectWithoutView` is appropriate because this is only read
+// when an action fires, never during render.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (session?.accountID) {
+            return;
+        }
+        lastGetRulesTimestamp = 0;
+    },
+});
+
+/**
+ * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
+ *
+ * @param shouldForceRefetch - Ignore the freshness window. Used when reconnecting, where the local copy
+ * may have missed updates made while offline.
+ */
+function getRules(shouldForceRefetch = false) {
+    const now = Date.now();
+    if (!shouldForceRefetch && now - lastGetRulesTimestamp < GET_RULES_FRESHNESS_MS) {
+        return;
+    }
+
+    lastGetRulesTimestamp = now;
     API.read(READ_COMMANDS.GET_RULES, {});
 }
 

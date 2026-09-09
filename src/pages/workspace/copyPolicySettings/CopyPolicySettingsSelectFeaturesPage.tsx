@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {openDuplicatePolicyPage} from '@libs/actions/Policy/Policy';
+import {getRules} from '@libs/actions/Policy/Rules';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -143,6 +144,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         openDuplicatePolicyPage(sourcePolicyID);
+        // Merchant rules live in their own collection, and the count decides whether the option is offered at
+        // all, so an unfetched collection would silently copy the settings without them.
+        getRules();
     }, [sourcePolicyID]);
 
     const isPartIncompatible = (part: Part): boolean => {

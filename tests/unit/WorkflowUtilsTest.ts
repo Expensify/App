@@ -16,6 +16,7 @@ import {
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    isApprovalWorkflowRule,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -2137,6 +2138,42 @@ describe('WorkflowUtils', () => {
         it('returns an empty collection when there is no policy or no rules', () => {
             expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
             expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
+        });
+    });
+
+    describe('isApprovalWorkflowRule', () => {
+        // `Rule` types triggers as one kind or the other, so a rule mixing them can only arrive from the
+        // server. Building the collection untyped and asserting once is the only way to model that payload.
+        const ruleWithTriggers = (...triggers: string[]) => {
+            const rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index), trigger])),
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+                actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return rule as unknown as Rule;
+        };
+
+        it('is true for a rule that only fires on report events', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT))).toBe(true);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT, CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE))).toBe(true);
+        });
+
+        it('is false for an expense default rule', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION))).toBe(false);
+        });
+
+        it('is false for a rule that also fires on transaction creation, so disabling approvals cannot delete it', () => {
+            const mixed = ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT, CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION);
+
+            expect(isApprovalWorkflowRule(mixed)).toBe(false);
+        });
+
+        it('is false for a rule with no triggers at all', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers())).toBe(false);
         });
     });
 });
