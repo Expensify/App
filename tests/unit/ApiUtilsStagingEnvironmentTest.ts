@@ -45,7 +45,11 @@ Onyx.init({keys: ONYXKEYS});
 const ApiUtils = require<typeof ApiUtilsModule>('@libs/ApiUtils');
 
 async function setStagingToggle(value: boolean | null) {
-    await Onyx.set(ONYXKEYS.ACTIVE_SERVER, value === null ? null : value ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION);
+    if (value === null) {
+        await Onyx.set(ONYXKEYS.ACTIVE_SERVER, null);
+    } else {
+        await Onyx.set(ONYXKEYS.ACTIVE_SERVER, value ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION);
+    }
     await waitForBatchedUpdates();
 }
 
