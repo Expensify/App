@@ -78,12 +78,6 @@ type MoneyRequestReportActionsListContentProps = MoneyRequestReportListProps & {
     reportIDFromRoute: string | undefined;
 };
 
-/**
- * Renders the money-request report's unified list (transactions table + report actions). Composes the
- * view's data/behavior hooks (`useMoneyRequestReportVisibleActions` / `useMoneyRequestReportPagination`)
- * with the hooks shared with the chat list (`useUnreadMarker` / `useMarkAsRead`).
- * Mounted with `key={reportID}` by the wrapper below, so all hook state resets on report switch.
- */
 function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: MoneyRequestReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
