@@ -1,5 +1,6 @@
 import {clearVacationDelegateError, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -139,6 +140,40 @@ describe('actions/VacationDelegate', () => {
 
             // An error at any point would flash a red brick road on the profile page, so it must never be written at all.
             expect(errorStates.every(isEmptyObject)).toBe(true);
+
+            jest.restoreAllMocks();
+        });
+
+        it('clears the errors payload the backend ships in onyxData alongside a 305', async () => {
+            const policyDiff = {adminPolicies: [], nonAdminPolicies: ['79705898949FB240']};
+
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    creator: 'admin@test.com',
+                    delegate: 'delegate@test.com',
+                    previousDelegate: 'old@test.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                });
+                // Auth returns 305 so the client can prompt, but the same response carries an errors payload in
+                // onyxData, which the API layer applies before the caller ever sees the response.
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    // an ID map key is not a name!
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    errors: {1788970253939928: "Vacation delegate is not part of all of vacationer's policies."},
+                });
+                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff}};
+            });
+
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com', currentDelegate: 'old@test.com'});
+            await waitForBatchedUpdates();
+
+            // The confirmation step must not leave a red brick road behind on the profile page. While the payload is
+            // in flight getVacationDelegateErrors hides it, which getVacationDelegateErrors.test.ts covers.
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(getVacationDelegateErrors(vacationDelegate)).toBeUndefined();
+            expect(vacationDelegate?.policyDiff).toEqual(policyDiff);
+            expect(vacationDelegate?.delegate).toBe('delegate@test.com');
 
             jest.restoreAllMocks();
         });

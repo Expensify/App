@@ -100,6 +100,7 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
     if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING && response.data?.policyDiff) {
         // Keep the optimistic delegate so the flow can continue into the missing workspaces step.
         Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+            errors: null,
             policyDiff: response.data.policyDiff,
             pendingAction: null,
         });
@@ -149,6 +150,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
                 creator,
                 delegate,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
+                pendingAction: null,
             },
         },
     ];
