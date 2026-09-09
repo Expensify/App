@@ -38,7 +38,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
-import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -337,6 +337,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 };
 
 describe('IOURequestStepConfirmationPageTest', () => {
+    // Writes fired during render (e.g. UpdatePreferredLocale) must not hit the real network and leave retry backoff across tests
+    setupGlobalFetchMock();
+
     beforeEach(() => {
         jest.clearAllMocks();
         resetScreenFocusListeners();
@@ -1068,8 +1071,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                                 reportID: optimisticP2PReportID,
                                             },
                                         }}
-                                        // @ts-expect-error we don't need navigation param here.
-                                        navigation={undefined}
+                                        navigation={mockNavigation}
                                     />
                                 </LocaleContextProvider>
                             </CurrentUserPersonalDetailsProvider>
@@ -1103,6 +1105,78 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 submitWithDismissFirstSpy.mockRestore();
                 getChatByParticipantsSpy.mockRestore();
                 getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('keeps the IOU report as pre-mount destination when the flow starts from it, instead of the participant chat', async () => {
+            // Given an existing 1:1 chat and an IOU report under it, and a flow started from that IOU report to add another expense
+            const chatReportID = 'p2p-chat-1';
+            const iouReportID = 'p2p-iou-report-1';
+            const transactionID = 'tx-from-iou-report';
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                        reportID: chatReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        participants: {[ACCOUNT_ID]: {}, [PARTICIPANT_ACCOUNT_ID]: {}},
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+                        reportID: iouReportID,
+                        chatReportID,
+                        type: CONST.REPORT.TYPE.IOU,
+                        ownerAccountID: ACCOUNT_ID,
+                        managerID: PARTICIPANT_ACCOUNT_ID,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: iouReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: iouReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the pre-mount destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
+                expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
             }
         });

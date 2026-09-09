@@ -671,7 +671,13 @@ function IOURequestStepConfirmationContent({
     );
     const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: existingP2PChatSelector});
     const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
-    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? existingP2PDestinationReportID ?? destinationReportID;
+    // Trust `report` when it already belongs to this participant (their chat, or an IOU report under it), so a
+    // flow started from an IOU report keeps that report as destination instead of falling back to the chat.
+    const isReportParticipantChat = !!report?.reportID && report.reportID === existingP2PDestinationReportID;
+    const isReportUnderParticipantChat = !!report?.reportID && report.chatReportID === existingP2PDestinationReportID;
+    const isReportAlignedWithParticipant = isReportParticipantChat || isReportUnderParticipantChat;
+    const shouldPreferRouteDestination = isReportAlignedWithParticipant || !!backToReport;
+    const preMountDestinationReportID = optimisticP2PDestinationReportID ?? (shouldPreferRouteDestination ? destinationReportID : (existingP2PDestinationReportID ?? destinationReportID));
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
 
