@@ -28,7 +28,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -948,6 +948,58 @@ describe('MoneyRequestReportPreview', () => {
 
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
+        });
+
+        it('resolves the pressed expense through its live IOU action when the first match is one deleted by an offline split revert', async () => {
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            // Deploy blocker #100669: reverting a split offline leaves a deleted IOU action next to the live one for the
+            // restored expense, and the first-match lookup can return the deleted one, whose thread is torn down.
+            const deletedAction: ReportAction = {
+                ...mockAction,
+                reportActionID: 'deleted',
+                childReportID: 'dead_thread',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                originalMessage: {...mockAction, IOUTransactionID: mockSecondTransactionID},
+            };
+            const liveAction: ReportAction = {
+                ...mockAction,
+                reportActionID: 'live',
+                childReportID: `thread_${mockSecondTransactionID}`,
+                originalMessage: {...mockAction, IOUTransactionID: mockSecondTransactionID},
+            };
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(ReportActionUtils, 'getAllReportActions').mockReturnValue({deleted: deletedAction, live: liveAction});
+
+            await renderAndPopulateCarousel();
+            // The cards are rendered from the live action; the press is what runs into the deleted first match.
+            getIOUActionSpy.mockImplementation((reportID, transactionID) => (transactionID === mockSecondTransactionID ? deletedAction : buildActionWithThread(reportID, transactionID)));
+            await pressSecondTransaction();
+            await settleCascade();
+
+            expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('dead_thread'));
+        });
+
+        it('opens the parent report instead of the not-found page when every IOU action for the pressed expense was deleted', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const deletedAction: ReportAction = {
+                ...mockAction,
+                reportActionID: 'deleted',
+                childReportID: 'dead_thread',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                originalMessage: {...mockAction, IOUTransactionID: mockSecondTransactionID},
+            };
+            const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            jest.spyOn(ReportActionUtils, 'getAllReportActions').mockReturnValue({deleted: deletedAction});
+
+            await renderAndPopulateCarousel();
+            getIOUActionSpy.mockImplementation((reportID, transactionID) => (transactionID === mockSecondTransactionID ? deletedAction : buildActionWithThread(reportID, transactionID)));
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('dead_thread'));
         });
 
         it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
