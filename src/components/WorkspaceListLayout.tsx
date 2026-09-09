@@ -2,6 +2,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -81,6 +82,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
 
 function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -124,13 +126,13 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
                     </TopBarWithLoadingBar>
 
                     {content}
+                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                     {debugTabViewHeight > 0 && (
                         <View
-                            style={{height: debugTabViewHeight}}
+                            style={StyleUtils.getHeight(debugTabViewHeight)}
                             testID="DebugTabViewSpacer"
                         />
                     )}
-                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
         </ScreenWrapper>

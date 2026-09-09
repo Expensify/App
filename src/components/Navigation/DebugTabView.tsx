@@ -261,7 +261,7 @@ function DebugTabView({selectedTab}: Props) {
                     styles.flexRow,
                     styles.justifyContentBetween,
                     styles.alignItemsCenter,
-                    {minHeight: variables.debugTabViewHeight},
+                    StyleUtils.getMinimumHeight(variables.debugTabViewHeight),
                 ]}
             >
                 <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
