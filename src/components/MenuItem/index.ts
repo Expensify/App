@@ -5,7 +5,8 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the `Title`/`Description` text.
+ * The row's accessibility label is derived from the `Title`/`Description` text, followed by the
+ * hints trailing leaves register.
  *
  * @example Simple navigation row
  * ```tsx
@@ -34,8 +35,10 @@ import MenuItemTrailing from './layout/MenuItemTrailing';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
 import MenuItemDescription from './leaves/text/description/MenuItemDescription';
 import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
+import MenuItemLabel from './leaves/text/MenuItemLabel';
 import MenuItemTitle from './leaves/text/MenuItemTitle';
-import MenuItemChevron from './leaves/trailing/MenuItemChevron';
+import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
+import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
@@ -46,10 +49,12 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
+    Label: MenuItemLabel,
     Title: MenuItemTitle,
     Description: MenuItemDescription,
     DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
     Chevron: MenuItemChevron,
+    NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
 });
 

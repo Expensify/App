@@ -48,7 +48,6 @@ type UseReportActionsScrollParams = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions that should be visible to the user */
@@ -104,7 +103,6 @@ type UseReportActionsScrollResult = {
     /** Scrolls to the newest action and marks the report as read */
     scrollToBottomAndMarkReportAsRead: () => void;
 
-    /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
@@ -207,6 +205,8 @@ function useReportActionsScroll({
         reportID,
         introSelected,
         betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,

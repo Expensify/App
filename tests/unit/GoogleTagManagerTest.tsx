@@ -267,6 +267,7 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
+            isDraftChatReport: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {reportID: '123'},

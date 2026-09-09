@@ -209,6 +209,8 @@ function replaceReceipt({
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
         receiptTraceId,
+        // Clear the old count while the replacement is pending.
+        pageCount: null,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
     const retryParams: ReplaceReceiptRetryParams = {
