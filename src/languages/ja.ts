@@ -3179,6 +3179,7 @@ ${date} の ${merchant} への ${amount}`,
         timeExpiredAnnouncement: '時間切れです',
         error: {
             pleaseFillSecurityCode: 'セキュリティコードを入力してください',
+            tooManyAttempts: '試行回数が多すぎます。しばらくしてからもう一度お試しください。',
             incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
             pleaseFillTwoFactorAuth: '2 要素認証コードを入力してください',
         },

@@ -3212,6 +3212,7 @@ ${amount} per ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Il tempo è scaduto',
         error: {
             pleaseFillSecurityCode: 'Inserisci il tuo codice di sicurezza',
+            tooManyAttempts: 'Troppi tentativi. Riprova più tardi.',
             incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.',
             pleaseFillTwoFactorAuth: 'Inserisci il tuo codice di autenticazione a due fattori',
         },
