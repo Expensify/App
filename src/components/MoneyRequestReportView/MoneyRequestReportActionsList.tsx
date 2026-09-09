@@ -639,8 +639,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
             const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
+            // This value cannot be memoized, because it is based on the indexWithinReportActions which changes on every render.
+            // eslint-disable-next-line react/jsx-no-constructed-context-values
+            const reportActionIndexContextValue = {index: indexWithinReportActions, isNewest: indexWithinReportActions === visibleReportActions.length - 1};
+
             return (
-                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
+                <ReportActionIndexContext.Provider value={reportActionIndexContextValue}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
