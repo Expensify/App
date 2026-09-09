@@ -626,6 +626,38 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the vendor row on Sage Intacct without the vendorMatching beta because Intacct (R2) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'iv-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                    data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Intacct keeps the "Vendor" label and shows the vendor's display name, which Intacct stores in `value`.
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Intacct');
+        });
+    });
+
     it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),

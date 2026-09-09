@@ -3962,8 +3962,16 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Intacct CC Charge export is configured because Intacct (R2) is still pre-GA', () => {
-                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
+            it('returns true when beta is disabled and Intacct non-reimbursable export is Credit Card Charge because Intacct (R2) is generally available', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Intacct non-reimbursable export is Vendor Bill because GA did not widen the export mode gate', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and the Intacct non-reimbursable export destination is not set', () => {
+                expect(hasVendorFeature(buildIntacctPolicy(undefined), false)).toBe(false);
             });
 
             it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {

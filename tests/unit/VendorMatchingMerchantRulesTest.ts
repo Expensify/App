@@ -63,6 +63,18 @@ const buildQBOWithVendorBillExportPolicy = (vendors: Array<{id: string; name: st
         }),
     });
 
+/** Sage Intacct policy whose Credit Card Charge export scopes vendor matching to Intacct. */
+const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                data: {vendors},
+            },
+        }),
+    });
+
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
@@ -259,6 +271,10 @@ describe('Vendor matching on merchant rules', () => {
 
         it('is visible on QBO when the beta is off because QBO (R1) is generally available', () => {
             expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), false)).toBe(true);
+        });
+
+        it('is visible on Sage Intacct when the beta is off because Intacct (R2) is generally available', () => {
+            expect(hasVendorFeature(buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]), false)).toBe(true);
         });
 
         it('is hidden on Xero when the beta is off because Xero (R3) is still pre-GA', () => {

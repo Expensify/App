@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -3003,6 +3004,94 @@ describe('getViolationsOnyxData', () => {
 
             // Then the existing violation is not stripped — stripping it pre-hydration would briefly hide a legitimate violation
             expect(result.value).toContainEqual(inactiveVendorViolation);
+        });
+
+        describe('Sage Intacct (R2)', () => {
+            // Pass a `vendors` array to control the synced list, or `null` to simulate the list still
+            // hydrating. Intacct vendors carry the display name in `value`.
+            const policyWithIntacctVendorFeature = (
+                nonReimbursable: SageIntacctExportConfig['nonReimbursable'] = CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
+                vendors: Array<{id: string; name: string; value: string}> | null = [{id: 'iv-active', name: 'V001', value: 'Acme Intacct'}],
+            ) =>
+                createMock<Policy>({
+                    requiresTag: false,
+                    requiresCategory: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable}},
+                            data: vendors ? {vendors} : {},
+                        },
+                    },
+                });
+
+            it('adds the violation when the vendorMatching beta is disabled but Intacct is configured, because Intacct (R2) is generally available', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-missing', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                // Intacct is not a supplier source, so the plain vendor violation (no isSupplierViolation flag) is expected.
+                expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+            });
+
+            it('does not add the violation when the Intacct vendor is in the synced list', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature();
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-active', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('does not add the violation while the Intacct vendor list is still hydrating (vendors undefined)', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE, null);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-anything', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
+
+            it('removes an existing violation when the Intacct export switches to Vendor Bill with the beta disabled', () => {
+                isBetaEnabledSpy.mockImplementation(() => false);
+                policy = policyWithIntacctVendorFeature(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL);
+                transaction.comment = {...transaction.comment, vendor: {externalID: 'iv-missing', wasManuallySet: true}};
+                const result = ViolationsUtils.getViolationsOnyxData({
+                    ownerLogin: undefined,
+                    updatedTransaction: transaction,
+                    transactionViolations: [inactiveVendorViolation],
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    hasDependentTags: false,
+                    isInvoiceTransaction: false,
+                });
+                expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            });
         });
 
         describe('Xero (R4)', () => {
