@@ -29,9 +29,9 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
-    // A card imported from a spreadsheet is stored under the name the person gave it rather than an
-    // account number, and UploadOFX rejects a statement for one of those.
-    const isSpreadsheetCard = !!cardID && !!savedColumnLayouts?.[String(cardID)];
+    // Importing a spreadsheet stores the name the person gave the card where its account number goes,
+    // and UploadOFX rejects a statement for a card holding a name.
+    const hasImportedSpreadsheet = !!cardID && !!savedColumnLayouts?.[String(cardID)];
 
     const uploadStatement = async (file: FileObject) => {
         const importFinalModal = await uploadOFXStatement(file, importedSpreadsheet?.importTransactionSettings ?? {}, accountID, cardID ? Number(cardID) : undefined);
@@ -45,7 +45,7 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
 
     return (
         <ImportSpreadsheet
-            shouldAllowBankStatements={!isSpreadsheetCard}
+            shouldAllowBankStatements={!hasImportedSpreadsheet}
             onStatementPicked={uploadStatement}
             backTo={backTo}
             goTo={ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.getRoute(cardID ? Number(cardID) : undefined)}
