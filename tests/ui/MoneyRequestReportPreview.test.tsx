@@ -558,7 +558,7 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Wide layouts open the report first and the pressed expense on a short timer; let that timer run. Narrow layouts
+        // Wide layouts open the report first and the pressed expense on a short timer. Let that timer run. Narrow layouts
         // push both in the same tick, so this is a no-op there.
         const settleCascade = async () => {
             await act(async () => {
@@ -943,7 +943,7 @@ describe('MoneyRequestReportPreview', () => {
             jest.spyOn(ReportActionUtils, 'getAllReportActions').mockReturnValue({deleted: deletedAction, live: liveAction});
 
             await renderAndPopulateCarousel();
-            // The cards are rendered from the live action; the press is what runs into the deleted first match.
+            // The cards are rendered from the live action. The press is what runs into the deleted first match.
             getIOUActionSpy.mockImplementation((reportID, transactionID) => (transactionID === mockSecondTransactionID ? deletedAction : buildActionWithThread(reportID, transactionID)));
             await pressSecondTransaction();
             await settleCascade();

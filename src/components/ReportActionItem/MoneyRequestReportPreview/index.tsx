@@ -259,7 +259,7 @@ function MoneyRequestReportPreview({
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
                 // The thread report can carry the teardown too: the offline clean-up merges `reportID: null` into it
-                // rather than deleting it. An absent report is fine, the RHP loads it; a present one with no reportID is not.
+                // rather than deleting it. An absent report is fine, the RHP loads it. A present one with no reportID is not.
                 const existingThread = getReportOrDraftReport(childReportID);
                 if (existingThread && !existingThread.reportID) {
                     return undefined;
