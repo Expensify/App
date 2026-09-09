@@ -29,10 +29,7 @@ type BeneficialOwnersStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Name of the current sub page */
     currentSubPage?: string;
-
-    /** ID of current policy */
     policyID?: string;
 
     /** Back to URL for preserving navigation context */
@@ -98,7 +95,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     );
 
     const submit = () => {
-        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
+        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssn', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {

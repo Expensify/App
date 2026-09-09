@@ -386,6 +386,7 @@ export {
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    reconnectCoverageFrom,
     isFullDownloadRequest,
     isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
