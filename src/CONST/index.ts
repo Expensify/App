@@ -319,6 +319,7 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -415,6 +416,7 @@ const CONST = {
     AUTH_TOKEN_TYPES: {
         ANONYMOUS: 'anonymousAccount',
         SUPPORT: 'support',
+        DELEGATE: 'delegate',
     },
 
     AUTH_METHOD: {
@@ -693,7 +695,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -797,7 +799,6 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
-            IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -923,7 +924,7 @@ const CONST = {
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
-                LAST_4_SSN: 'last-4-ssn',
+                SSN: 'ssn',
                 DOCUMENTS: 'documents',
                 CONFIRMATION: 'confirmation',
             },
@@ -942,7 +943,7 @@ const CONST = {
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
-                SSN_LAST_4: 'ssnLast4',
+                SSN: 'ssn',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -1054,11 +1055,10 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
-        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
         DUALENTRY: 'dualEntry',
+        BUSINESS_CENTRAL: 'businessCentral',
         RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
@@ -1070,6 +1070,8 @@ const CONST = {
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
+        REPORT_MERGE: 'reportMerge',
+        INSIGHTS_PAGE: 'insightsPage',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1388,6 +1390,7 @@ const CONST = {
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
+    QA_NEW_EXPENSIFY_URL: 'https://qa.new.exops.io',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${CI.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
     CHASE_ACCOUNT_NUMBER_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account',
@@ -1396,6 +1399,7 @@ const CONST = {
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
+    QA_EXPENSIFY_URL: 'https://qa.exops.io',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-do-i-enable-camera-access-for-mobile-browsers-so-i-can-take-photos-of-my-receipts',
     BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL:
@@ -1658,6 +1662,9 @@ const CONST = {
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
+
+                // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
+                ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
@@ -2030,11 +2037,13 @@ const CONST = {
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
             MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
+            RECONCILIATION_ALL_EXPENSES: 'reconciliation_all_expenses',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
             MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
+            RECONCILIATION_ALL_EXPENSES: 'Reconciliation - All Expenses',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -3268,7 +3277,16 @@ const CONST = {
         APPROVAL_MODE: {
             BASIC: 'basic',
             MANAGER: 'manager',
+            ADVANCED: 'advanced',
             CUSTOM: 'custom',
+        },
+        ATS_APPROVER_FIELD: {
+            RECRUITER: 'recruiter',
+            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+        },
+        CATEGORY: {
+            HRIS: 'hris',
+            ATS: 'ats',
         },
         COOKIE_CLEAR_DELAY_MS: 500,
         SYNC_STATUS: {
@@ -3620,6 +3638,14 @@ const CONST = {
         VENDOR_BILL: 'bill',
     },
 
+    // The vendor-name portion for card expenses that don't match an existing vendor. It is untranslated on purpose
+    // so the rendered helper text names the vendor record the admin sees in QuickBooks Online or Sage Intacct.
+    // Translations own the sentence punctuation because the name can appear mid-sentence.
+    NON_REIMBURSABLE_FALLBACK_VENDOR_NAME: {
+        CREDIT_CARD: 'Credit Card Misc',
+        DEBIT_CARD: 'Debit Card Misc',
+    },
+
     QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
         CHECK: 'CHECK',
@@ -3753,7 +3779,6 @@ const CONST = {
         SUB_PAGE_NAMES: {
             PLAID_BANK_ACCOUNT: 'plaid',
             MANUAL_BANK_ACCOUNT_DETAILS: 'manual',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             LEGAL_NAME: 'legal-name',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
@@ -3805,8 +3830,15 @@ const CONST = {
     ENVIRONMENT: {
         DEV: 'development',
         STAGING: 'staging',
+        QA: 'qa',
         PRODUCTION: 'production',
         ADHOC: 'adhoc',
+    },
+
+    SERVER: {
+        PRODUCTION: 'production',
+        STAGING: 'staging',
+        QA: 'qa',
     },
 
     ENABLE_PAYMENTS: {
@@ -3933,6 +3965,12 @@ const CONST = {
         // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
         // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
         OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
+    },
+
+    CLOUDFLARE_ACCESS: {
+        // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
+        // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
+        NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
     },
 
     ONFIDO: {
@@ -4176,6 +4214,17 @@ const CONST = {
             FIELD_LIST_TITLE: 'text_title',
             TAX: 'tax',
         },
+        /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
+        EXPENSE_DEFAULTS_SECTION: {
+            CATEGORIES: 'categories',
+            MERCHANTS: 'merchants',
+            MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
+        },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
         DEFAULT_FIELD_LIST_TARGET: 'expense',
@@ -4320,6 +4369,7 @@ const CONST = {
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_INVOICE_FIELDS_ENABLED: 'areInvoiceFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_RECEIPT_PARTNERS_ENABLED: 'receiptPartners',
             ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
@@ -4333,6 +4383,7 @@ const CONST = {
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
+            IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -4525,8 +4576,26 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CATEGORY: {
+                HR: 'hr',
+                RECRUITING: 'recruiting',
+            },
             get ACCOUNTING_CONNECTION_NAMES() {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA, this.NAME.RILLET, this.NAME.DUALENTRY] as const;
+            },
+            // The `origin` the backend stamps on a report field imported by an accounting integration. These values
+            // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
+            get REPORT_FIELD_ORIGIN() {
+                return {
+                    [this.NAME.QBO]: 'qbo',
+                    [this.NAME.QBD]: 'qbd',
+                    [this.NAME.XERO]: 'xero',
+                    [this.NAME.NETSUITE]: 'netsuite',
+                    [this.NAME.SAGE_INTACCT]: 'intacct',
+                    [this.NAME.CERTINIA]: 'financialforce',
+                    [this.NAME.RILLET]: 'rillet',
+                    [this.NAME.DUALENTRY]: 'dualentry',
+                } as const;
             },
             get HR_CONNECTION_NAMES() {
                 return [this.NAME.GUSTO, this.NAME.ZENEFITS, this.NAME.MERGE_HR] as const;
@@ -6272,7 +6341,6 @@ const CONST = {
         TOOLBAR: 'toolbar',
         /** Use for navigation elements */
         NAVIGATION: 'navigation',
-        /** Use for Tooltips */
         TOOLTIP: 'tooltip',
         /** Use for dialog/modal elements */
         DIALOG: 'dialog',
@@ -6705,6 +6773,7 @@ const CONST = {
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
         BROKEN_CARD_CONNECTION_530: 'brokenCardConnection530',
+        BROKEN_CARD_CONNECTION_531: 'brokenCardConnection531',
         BROKEN_CARD_CONNECTION_REAUTH: 'brokenCardConnectionReauth',
         SEVEN_DAY_HOLD: 'sevenDayHold',
     },
@@ -6715,7 +6784,6 @@ const CONST = {
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
-    /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
         REPORT_ACTION: 'REPORT_ACTION',
@@ -6813,6 +6881,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
+
+    // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -7925,6 +7996,14 @@ const CONST = {
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
             },
+            invoiceFields: {
+                id: 'invoiceFields' as const,
+                alias: 'invoice-fields',
+                name: 'Invoice Fields',
+                title: 'workspace.upgrade.invoiceFields.title' as const,
+                description: 'workspace.upgrade.invoiceFields.description' as const,
+                icon: 'Pencil',
+            },
             policyPreventMemberChangingTitle: {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
@@ -8238,6 +8317,10 @@ const CONST = {
         LIST: 'dropdown',
         FORMULA: 'formula',
     },
+    REPORT_FIELD_TARGETS: {
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
+    },
 
     NAVIGATION_ACTIONS: {
         RESET: 'RESET',
@@ -8438,8 +8521,6 @@ const CONST = {
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
         ACCOUNT_HOLDER_COUNTRY_KEY: 'accountHolderCountry',
-        IBAN_LABEL_KEYWORD: 'iban',
-        SWIFT_LABEL_KEYWORD: 'swift',
         BANK_INFORMATION_FIELDS: ['bankName', 'bankAddressLine1', 'bankAddressLine2', 'bankCity', 'bankRegion', 'bankPostal', 'BeneficiaryBankBranchName'] as string[],
         ACCOUNT_HOLDER_FIELDS: [
             'accountHolderName',
@@ -8462,7 +8543,6 @@ const CONST = {
         PAGE_NAME: {
             COUNTRY: 'country',
             ACCOUNT_DETAILS: 'account-details',
-            INTERNATIONAL_BANK_ACCOUNT_DETAILS: 'international-bank-account-details',
             ACCOUNT_TYPE: 'account-type',
             BANK_INFORMATION: 'bank-information',
             ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
@@ -8473,12 +8553,11 @@ const CONST = {
             MAPPING: {
                 COUNTRY_SELECTOR: 0,
                 BANK_ACCOUNT_DETAILS: 1,
-                INTERNATIONAL_BANK_ACCOUNT_DETAILS: 2,
-                ACCOUNT_TYPE: 3,
-                BANK_INFORMATION: 4,
-                ACCOUNT_HOLDER_INFORMATION: 5,
-                CONFIRMATION: 6,
-                SUCCESS: 7,
+                ACCOUNT_TYPE: 2,
+                BANK_INFORMATION: 3,
+                ACCOUNT_HOLDER_INFORMATION: 4,
+                CONFIRMATION: 5,
+                SUCCESS: 6,
             },
         },
     },
@@ -9283,14 +9362,17 @@ const CONST = {
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
+                REQUIRE_FIELDS_RULE_DELETE: 'WorkspaceRules-RequireFieldsRuleDelete',
                 REQUIRE_FIELDS_RULE_CATEGORY: 'WorkspaceRules-RequireFieldsRuleCategory',
                 REQUIRE_FIELDS_RULE_FIELD_TOGGLE: 'WorkspaceRules-RequireFieldsRuleFieldToggle',
                 REQUIRE_FIELDS_RULE_DIRECTION_TOGGLE: 'WorkspaceRules-RequireFieldsRuleDirectionToggle',
                 FLAG_FOR_REVIEW_RULE_ITEM: 'WorkspaceRules-FlagForReviewRuleItem',
                 FLAG_FOR_REVIEW_RULE_SAVE: 'WorkspaceRules-FlagForReviewRuleSave',
+                FLAG_FOR_REVIEW_RULE_DELETE: 'WorkspaceRules-FlagForReviewRuleDelete',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
                 FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
+                CATEGORY_TAX_RULE_ITEM: 'WorkspaceRules-CategoryTaxRuleItem',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
@@ -9304,6 +9386,7 @@ const CONST = {
                 CURRENCY_SELECTOR: 'WorkspaceRules-CurrencySelector',
                 SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
                 SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
+                SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
                 SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
                 AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',
                 ADD_AGENT_RULE: 'WorkspaceRules-AddAgentRule',

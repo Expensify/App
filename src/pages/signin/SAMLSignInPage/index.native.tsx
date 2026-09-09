@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
+import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
@@ -22,6 +22,8 @@ import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 
 import {openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+
+import handleSAMLLoginError from './handleSAMLLoginError';
 
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

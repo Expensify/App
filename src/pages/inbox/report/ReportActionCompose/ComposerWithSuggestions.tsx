@@ -91,13 +91,8 @@ type SyncSelection = {
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsRef = ComposerRef & {
-    /** Focus the composer */
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
-
-    /** Replace the selection with text */
     replaceSelectionWithText: OnEmojiSelected;
-
-    /** Get the current text of the composer */
     getCurrentText: () => string;
 
     /**
@@ -106,19 +101,13 @@ type ComposerWithSuggestionsRef = ComposerRef & {
      */
     clearWorklet: () => void;
 
-    /** Reset the height of the composer */
     resetHeight: () => void;
 };
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
-        /** Report ID */
         reportID: string;
-
-        /** Callback to focus composer */
         onFocus: () => void;
-
-        /** Callback to blur composer */
         onBlur: (event: BlurEvent) => void;
 
         /** Callback when layout of composer changes */
@@ -130,19 +119,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Callback when the composer got cleared on the UI thread */
         onClear?: (text: string) => void;
 
-        /** Whether the composer is full size */
         isComposerFullSize: boolean;
-
-        /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
-        /** Whether the menu is visible */
         isMenuVisible: boolean;
-
-        /** The placeholder for the input */
         inputPlaceholder: string;
-
-        /** Callback when a file is pasted */
         onPasteFile: (file: FileObject | FileObject[]) => void;
 
         /** Whether the input is disabled, defaults to false */
@@ -151,31 +131,14 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** Whether the scroll is likely to trigger a layout */
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
-
-        /** Function to raise the scroll is likely layout triggered */
         raiseIsScrollLikelyLayoutTriggered: () => void;
-
-        /** The ref to the suggestions */
         suggestionsRef: React.RefObject<SuggestionsRef | null>;
-
-        /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
-        /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
-
-        /** policy ID of the report */
         policyID?: string;
-
-        /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 

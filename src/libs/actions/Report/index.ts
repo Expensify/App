@@ -327,16 +327,12 @@ type ParticipantInfo = {
 };
 
 type OpenReportActionParams = {
-    /** The ID of the report to open */
     reportID: string | undefined;
-
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
 
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
 
-    /** The list of participants */
     participants?: ParticipantInfo[];
 
     // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
@@ -352,28 +348,22 @@ type OpenReportActionParams = {
     /** Whether or not this report is being opened from a deep link */
     isFromDeepLink?: boolean;
 
-    /** Whether this is a new thread being created */
     isNewThread?: boolean;
 
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
     parentReportID?: string;
 
-    /** Whether to add pending fields to the report */
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
     optimisticSelfDMReport?: Report;
 
-    /** The current user's login */
     currentUserLogin?: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Whether the user has seen the self tour */
@@ -384,7 +374,6 @@ type OpenReportActionParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** Whether the report has report actions or not */
     hasReportActions: boolean | undefined;
 
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
@@ -393,8 +382,8 @@ type OpenReportActionParams = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
-    /** This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411 */
-    conciergeChat?: OnyxEntry<Report>;
+    /** The Concierge chat report used to build the guided setup onboarding data */
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type PregeneratedResponseParams = {
@@ -462,10 +451,9 @@ type MergeReportsProps = {
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
-    allReports: OnyxCollection<Report>;
+    allReports?: OnyxCollection<Report>;
     allReportsTransactions?: Record<string, Transaction[]>;
-    sourceReportActions: Record<string, OnyxEntry<ReportActions>>;
-    sourceParentReportActions: Record<string, OnyxEntry<ReportAction>>;
+    allReportActions?: Record<string, OnyxEntry<ReportActions>>;
     hash?: number;
     bankAccountList: OnyxEntry<BankAccountList>;
     isTrackIntentUser: boolean | undefined;
@@ -1691,7 +1679,6 @@ function openReport(params: OpenReportActionParams) {
     }
 
     const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
-    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
@@ -1992,6 +1979,7 @@ function openReport(params: OpenReportActionParams) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
             const isOptimisticAccount = !(personalDetails ?? allPersonalDetails)?.[accountID];
 
             if (!isOptimisticAccount) {
@@ -2126,18 +2114,31 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
  * @param introSelected The intro selected data for guided setup
  * @param avatar The avatar file to upload for the group chat (optional)
  */
-function createGroupChat(
-    reportID: string,
-    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    newReportObject: OptimisticChatReport,
-    currentUserLogin: string,
-    introSelected: OnyxEntry<IntroSelected>,
-    isSelfTourViewed: boolean,
-    hasCompletedGuidedSetupFlow: boolean,
-    betas: OnyxEntry<Beta[]>,
-    currentUserAccountID: number,
-    avatar?: File | CustomRNImageManipulatorResult,
-) {
+type CreateGroupChatParams = {
+    reportID: string;
+    participantsPersonalDetails: OnyxEntry<PersonalDetailsList>;
+    newReportObject: OptimisticChatReport;
+    currentUserLogin: string;
+    introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
+    hasCompletedGuidedSetupFlow: boolean;
+    conciergeChat: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    avatar?: File | CustomRNImageManipulatorResult;
+};
+
+function createGroupChat({
+    reportID,
+    participantsPersonalDetails,
+    newReportObject,
+    currentUserLogin,
+    introSelected,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    conciergeChat,
+    currentUserAccountID,
+    avatar,
+}: CreateGroupChatParams) {
     const participantLoginList = Object.values(participantsPersonalDetails ?? {})
         .map((participant) => participant?.login)
         .filter((login): login is string => !!login);
@@ -2323,8 +2324,7 @@ function createGroupChat(
     }
 
     // Preserve guided setup data when creating group chats
-    // Deferred: thread the real conciergeChat when the createGroupChat cascade is migrated (https://github.com/Expensify/App/issues/66411)
-    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, undefined, isSelfTourViewed, hasCompletedGuidedSetupFlow);
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected, currentUserAccountID, conciergeChat, isSelfTourViewed, hasCompletedGuidedSetupFlow);
     if (guidedSetup) {
         optimisticData.push(...guidedSetup.optimisticData);
         successData.push(...guidedSetup.successData);
@@ -2383,13 +2383,8 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 }
 
 type CreateTransactionThreadReportParams = {
-    /** The intro selected by the user */
     introSelected: OnyxEntry<IntroSelected>;
-
-    /** The current user's login */
     currentUserLogin: string;
-
-    /** The current user's account ID */
     currentUserAccountID: number;
 
     /** Beta features list */
@@ -2404,7 +2399,6 @@ type CreateTransactionThreadReportParams = {
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
-    /** The violations for the transaction, if any */
     transactionViolations?: TransactionViolations;
 
     /** The personal details of the participants */
@@ -2418,7 +2412,6 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 };
 
@@ -2618,7 +2611,17 @@ function navigateToAndOpenReport({
 
     if (!shouldRevalidateExistingChat) {
         if (isOnboardingPending) {
-            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+            openReport({
+                reportID: chat.reportID,
+                introSelected,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                betas,
+                personalDetails,
+                hasReportActions,
+                currentUserAccountID,
+                conciergeChat,
+            });
         }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
@@ -2646,7 +2649,7 @@ function navigateToAndOpenReport({
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
     // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -2658,7 +2661,7 @@ type NavigateToAndCreateGroupChatParams = {
     introSelected: OnyxEntry<IntroSelected>;
     isSelfTourViewed: boolean;
     hasCompletedGuidedSetupFlow: boolean;
-    betas: OnyxEntry<Beta[]>;
+    conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
@@ -2673,7 +2676,7 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
         avatarUri,
         avatarFile,
@@ -2685,18 +2688,18 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', currentUserAccountID, optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(
-        newChat.reportID,
+    createGroupChat({
+        reportID: newChat.reportID,
         participantsPersonalDetails,
-        newChat,
+        newReportObject: newChat,
         currentUserLogin,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
+        conciergeChat,
         currentUserAccountID,
-        avatarFile,
-    );
+        avatar: avatarFile,
+    });
 
     navigateToReport(newChat.reportID, {afterTransition: clearGroupChat});
 }
@@ -2784,7 +2787,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -2814,15 +2817,17 @@ function navigateToAndOpenChildReport(
         createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
     const backTo = Navigation.getActiveRoute();
 
-    // A money-request/expense child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in the
-    // Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
-    // ParentNavigationSubtitle. Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
+    // A money-request/expense/invoice child report must open in the wide/super-wide RHP (SEARCH_MONEY_REQUEST_REPORT in
+    // the Search context, EXPENSE_REPORT_RHP in the inbox), mirroring how report links are routed in Link.ts and
+    // ParentNavigationSubtitle. Invoice reports render in that same wide RHP, and the invoice preview card already opens
+    // them there, so they must pass this guard too.
+    // Other child reports keep the standard SEARCH_REPORT / REPORT_WITH_ID navigation.
     // These reports open scrolled to the top. Opening from the "X Replies" link should instead land on the latest
     // message, so we append the shouldScrollToLatest flag for the money-request branches.
-    const isMoneyRequest = isMoneyRequestReport(report);
+    const isMoneyRequestOrInvoice = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     if (isSearchTopmostFullScreenRoute()) {
-        if (isMoneyRequest) {
+        if (isMoneyRequestOrInvoice) {
             Navigation.navigate(appendParam(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: report.reportID, backTo}), REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST, 'true'));
         } else {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: report.reportID, backTo}));
@@ -2830,7 +2835,7 @@ function navigateToAndOpenChildReport(
         return;
     }
 
-    if (!isMoneyRequest) {
+    if (!isMoneyRequestOrInvoice) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
         return;
     }
@@ -3881,7 +3886,7 @@ function toggleSubscribeToChildReport({
     hasReportActions,
 }: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
+        openReport({reportID: childReportID, introSelected, betas, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -4044,13 +4049,21 @@ function updateReportField({
         isTrackIntentUser,
     });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const optimisticReportFieldValue = isInvoiceField ? null : reportField;
+    const failureReportFieldValue = isInvoiceField ? null : previousReportField;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: reportField,
+                    [fieldKey]: optimisticReportFieldValue,
                 },
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -4068,6 +4081,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: reportField,
+                [reportField.fieldID]: reportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4078,13 +4102,17 @@ function updateReportField({
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: previousReportField,
+                    [fieldKey]: failureReportFieldValue,
                 },
                 nextStep: report.nextStep ?? null,
                 pendingFields: {
@@ -4107,6 +4135,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: previousReportField,
+                [reportField.fieldID]: previousReportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown') {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4117,7 +4156,7 @@ function updateReportField({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -4141,6 +4180,21 @@ function updateReportField({
             },
         },
     ];
+
+    if (isInvoiceField) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: {
+                    pendingAction: null,
+                },
+                [reportField.fieldID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+    }
 
     const parameters = {
         reportID,
@@ -4825,11 +4879,11 @@ function navigateToConciergeChatAndDeleteReport(
     );
 }
 
-function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number) {
+function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number, optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>) {
     const personalDetailsToRemove: PersonalDetailsList = {};
 
     for (const accountID of Object.keys(report?.participants ?? {}).map(Number)) {
-        if (accountID === currentUserAccountID || !allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (accountID === currentUserAccountID || !optimisticPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         personalDetailsToRemove[accountID] = null;
@@ -4852,6 +4906,7 @@ function clearCreateChatError(
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
+    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -4861,7 +4916,7 @@ function clearCreateChatError(
     }
 
     if (report?.errorFields?.createChat && isOptimisticReport) {
-        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID);
+        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID, optimisticPersonalDetails);
     }
 
     navigateToConciergeChatAndDeleteReport(
@@ -5073,7 +5128,7 @@ function showReportActionNotification(
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin, reportAttributes});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserAccountID, currentUserLogin, reportAttributes});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick, reportAttributes);
     }
@@ -8520,8 +8575,7 @@ function mergeReports({
     allReportsTransactions,
     bankAccountList,
     allReports: allReportsParam,
-    sourceReportActions,
-    sourceParentReportActions,
+    allReportActions = {},
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
@@ -8611,7 +8665,7 @@ function mergeReports({
         });
 
         // Mark comments on the source report as deleted
-        const reportActions = sourceReportActions[sourceReportID];
+        const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`];
         deleteOptimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceReportID}`,
@@ -8628,7 +8682,7 @@ function mergeReports({
         const parentReportID = sourceReport.parentReportID;
         const parentReportActionID = sourceReport.parentReportActionID;
         if (parentReportID && parentReportActionID) {
-            const parentReportAction = sourceParentReportActions[sourceReportID];
+            const parentReportAction = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID];
             const {
                 optimisticData: parentOptimisticData,
                 successData: parentSuccessData,
@@ -8657,6 +8711,14 @@ function mergeReports({
     if (hash) {
         const optimisticSnapshotData: SearchResultDataType = {};
         const failureSnapshotData: SearchResultDataType = {};
+        for (const transaction of transactionsToMove) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...transaction,
+                reportID: destinationReportID,
+            };
+
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
         for (const sourceReportID of sourceReportIDs) {
             const sourceReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`];
             if (sourceReport) {
@@ -8699,8 +8761,8 @@ function mergeReports({
     }
 
     const parameters: MergeReportsParams = {
-        destinationReportID,
-        sourceReportIDs,
+        reportID: destinationReportID,
+        sourceReportIDList: sourceReportIDs,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
 

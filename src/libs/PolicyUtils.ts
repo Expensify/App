@@ -46,6 +46,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import {getQuickbooksOnlineIntegrationName} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
@@ -55,6 +56,7 @@ import {getCategoryApproverRule, hasAnyCategoryRules} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from './merge/HRUtils';
+import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -81,7 +83,6 @@ type WorkspaceDetails = {
 };
 
 type ConnectionWithLastSyncData = {
-    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
 
@@ -818,6 +819,12 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
+/**
+ * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
+ */
+const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
+    (isPolicyAdmin(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
+
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
@@ -1103,6 +1110,53 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
 }
 
 /**
+ * Checks whether a policy tag is selectable under a given parent tag path.
+ * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
+ * while tags without a filter apply everywhere.
+ */
+function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
+    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+}
+
+/**
+ * Finds the policy tag at a single tag list level that matches a tag name.
+ * Dependent tag lists can hold same-named child tags under different parents (stored under unique
+ * record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+ */
+function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+    const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+        if (!levelTag || levelTag.name !== tagName) {
+            return false;
+        }
+        return matchesParentTagPath(levelTag, parentTagPath);
+    };
+
+    const directMatch = levelTags[tagName];
+    return matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+}
+
+function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
+    if (!policyTags) {
+        return false;
+    }
+    const tagComponents = getTagArrayFromName(tagValue);
+    const sortedTagLists = getTagLists(policyTags);
+
+    return tagComponents.every((component, index) => {
+        if (!component) {
+            return true;
+        }
+        const levelTags = sortedTagLists.at(index)?.tags;
+        if (!levelTags) {
+            return false;
+        }
+        const tag = findPolicyTagAtLevel(levelTags, component, tagComponents.slice(0, index).join(':'));
+        return !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
+}
+
+/**
  * Checks if a policy has any custom categories (categories not in the default list)
  */
 function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boolean {
@@ -1283,20 +1337,7 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
                 return '';
             }
 
-            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
-            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
-            const parentTagPath = tagParts.slice(0, index).join(':');
-            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
-                if (!levelTag || levelTag.name !== tagName) {
-                    return false;
-                }
-                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
-                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
-            };
-
-            const directMatch = levelTags[tagName];
-            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            return getGLCodeFromPolicyTag(matchingTag);
+            return getGLCodeFromPolicyTag(findPolicyTagAtLevel(levelTags, tagName, tagParts.slice(0, index).join(':')));
         })
         .filter(Boolean)
         .join(', ');
@@ -1475,7 +1516,12 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1566,7 +1612,7 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
+function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
@@ -1606,6 +1652,16 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
  */
 function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
+/**
+ * Checks if the approval workflow configuration must stay hidden because the workspace's Dynamic External Workflow has
+ * "Hide People Table Columns" set. The backend only returns `dynamicExternalWorkflowHidePeople` when it is `true`, so an
+ * absent flag means "show". The approval mode is checked too, so a stale flag can't hide workflows on a policy that no
+ * longer uses a Dynamic External Workflow.
+ */
+function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boolean {
+    return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
 /**
@@ -1720,6 +1776,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) {
+        return policy?.isRecruitingEnabled === true || isAnyRecruitingConnected(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -2450,15 +2509,22 @@ function isXeroVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when Rillet is connected AND configured. Mirrors `Rillet::hasVendorFeature` on the PHP side.
+ */
+function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config?.isConfigured;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getMatchingVendors` (QBO → Intacct → Xero) so the UI labels, copy, and inactive-vendor
- * guardrail stay bound to whichever integration's vendor list is actually being consulted. Without
- * this scoping, a workspace with active QBO matching + a lingering Xero connection would render
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet) so the UI labels, copy, and
+ * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
+ * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
  */
 function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
-    return isXeroVendorMatchingActive(policy) && !isQBOVendorMatchingActive(policy) && !isIntacctVendorMatchingActive(policy);
+    return getActiveVendorMatchingIntegration(policy) === CONST.POLICY.CONNECTIONS.NAME.XERO;
 }
 
 /**
@@ -2468,10 +2534,11 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, and Rillet branches but not on QBO:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
- *   - Xero (R3) has no export destination enum, so a present connection is enough. Beta required
+ *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
+ *   - Rillet (R4) configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2480,12 +2547,12 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, or Xero) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, or Rillet) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2517,6 +2584,12 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isIntacctVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
     }
+    if (isXeroVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.XERO;
+    }
+    if (isRilletVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.RILLET;
+    }
     return undefined;
 }
 
@@ -2545,6 +2618,18 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
             return undefined;
         }
         return Object.values(xeroContacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+    }
+    if (isRilletVendorMatchingActive(policy)) {
+        const rilletVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors;
+        if (rilletVendors === undefined) {
+            return undefined;
+        }
+        return rilletVendors.map((vendor) => ({
+            id: vendor.id,
+            name: vendor.name,
+            currency: '',
+            email: vendor.email ?? '',
+        }));
     }
     return undefined;
 }
@@ -2617,6 +2702,15 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     if (xeroContact) {
         return {id: xeroContact.id, name: xeroContact.name, currency: '', email: xeroContact.email};
     }
+    const rilletVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (rilletVendor) {
+        return {
+            id: rilletVendor.id,
+            name: rilletVendor.name,
+            currency: '',
+            email: rilletVendor.email ?? '',
+        };
+    }
     return undefined;
 }
 
@@ -2637,8 +2731,40 @@ function getVendorRuleDisplayValue(policy: OnyxEntry<Policy>, vendorID: string, 
     }
 
     const historicalVendorName = findVendorByID(policy, vendorID)?.name;
-    const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
+    const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined;
     return historicalVendorName ?? (hasActiveVendorMatchingSource ? vendorID : unavailableLabel);
+}
+
+/**
+ * Source-specific empty state copy for the vendor selector when the active integration has zero vendors.
+ */
+function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): {title: string; subtitle: string} {
+    const activeIntegration = getActiveVendorMatchingIntegration(policy);
+    switch (activeIntegration) {
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return {
+                title: translate('workspace.sageIntacct.noAccountsFound'),
+                subtitle: translate('workspace.sageIntacct.noAccountsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return {
+                title: translate('workspace.xero.noSuppliersFound'),
+                subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+            return {
+                title: translate('workspace.rillet.noVendorsFound'),
+                subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+        default: {
+            const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
+            return {
+                title: translate('workspace.qbo.noAccountsFound'),
+                subtitle: translate('workspace.qbo.noAccountsFoundDescription', integrationName),
+            };
+        }
+    }
 }
 
 /**
@@ -3137,9 +3263,11 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,
     getXeroSuppliers,
+    isRilletVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
@@ -3162,6 +3290,9 @@ export {
     getTagListName,
     getTagLists,
     hasTags,
+    isTagInPolicy,
+    findPolicyTagAtLevel,
+    matchesParentTagPath,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,
@@ -3201,6 +3332,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,
@@ -3320,6 +3452,7 @@ export {
     getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
+    shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,

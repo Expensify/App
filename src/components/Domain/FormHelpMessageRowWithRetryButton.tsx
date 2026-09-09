@@ -20,7 +20,6 @@ type FormHelpMessageRowWithRetryButtonProps = {
     /** Callback function invoked when the retry button is clicked. */
     onRetry: () => void | Promise<void>;
 
-    /** The retry button's size. */
     size?: FormHelpMessageRowButtonSize;
 
     /** Visual variant of the retry button. */

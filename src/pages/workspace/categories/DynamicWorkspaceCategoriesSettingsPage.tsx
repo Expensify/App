@@ -24,7 +24,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setPolicyAutoCategorizeNewExpenses, setPolicyShowCategoryGLCodes, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {setPolicyShowCategoryGLCodes, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -60,13 +60,6 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
         [policyData],
     );
 
-    const updateAutoCategorizeNewExpenses = useCallback(
-        (value: boolean) => {
-            setPolicyAutoCategorizeNewExpenses(policyID, value);
-        },
-        [policyID],
-    );
-
     const updateShowCategoryGLCodes = (value: boolean) => {
         setPolicyShowCategoryGLCodes(policyID, value);
     };
@@ -89,6 +82,9 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+
+    // Under the revamp only the GL codes toggle is left here, so the page has nothing to show without it.
+    const shouldBlockEmptySettings = isRulesRevampEnabled && !policy?.glCodes;
 
     const onSelectItem = (item: ListItem) => {
         if (!item.groupID) {
@@ -115,6 +111,7 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            shouldBeBlocked={shouldBlockEmptySettings}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -141,17 +138,6 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                             shouldPlaceSubtitleBelowSwitch
                         />
                     )}
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.categories.autoCategorizeNewExpenses')}
-                        switchAccessibilityLabel={translate('workspace.categories.autoCategorizeNewExpenses')}
-                        isActive={policy?.autoCategorizeNewExpenses ?? true}
-                        onToggle={updateAutoCategorizeNewExpenses}
-                        pendingAction={policy?.pendingFields?.autoCategorizeNewExpenses}
-                        disabled={!policy?.areCategoriesEnabled || !hasEnabledCategories}
-                        wrapperStyle={[styles.pv2, styles.mh5]}
-                        errors={policy?.errorFields?.autoCategorizeNewExpenses ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policy?.id, 'autoCategorizeNewExpenses')}
-                    />
                     {!!policy?.glCodes && (
                         <ToggleSettingOptionRow
                             title={translate('workspace.categories.showCategoryGLCodes')}
