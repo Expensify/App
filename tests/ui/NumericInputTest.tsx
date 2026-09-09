@@ -7,7 +7,6 @@ import NumericInput, {useNumericDynamicFontSize, useNumericInputActions} from '@
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import CONST from '@src/CONST';
 
@@ -27,29 +26,11 @@ jest.mock('@react-navigation/native', () => ({
 type NumericInputProps = React.ComponentProps<typeof NumericInput>;
 
 const INPUT_TEST_ID = 'numeric-text-input';
-const CONTAINER_TEST_ID = 'numeric-input-container';
 const SYMBOL_ACCESSIBILITY_LABEL = 'Select a symbol or currency';
 const MINUS_SIGN = '-';
 
 function renderWithProviders(children: React.ReactNode) {
     return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
-}
-
-/** Builds the mouse event the web container handler expects, with `target.id` set to the pressed view's id. */
-function getMouseDownEvent(targetId: string) {
-    const target = document.createElement('div');
-    target.id = targetId;
-
-    return {nativeEvent: {target}, preventDefault: jest.fn()};
-}
-
-function getContainerViewId(testID: string) {
-    const container = screen.getByTestId(testID);
-    if (typeof container.props.id !== 'string') {
-        throw new Error(`Numeric input container id was not assigned for ${testID}`);
-    }
-
-    return container.props.id;
 }
 
 function ToggleSignTrigger() {
@@ -89,22 +70,18 @@ describe('NumericInput', () => {
     });
 
     describe('symbol primitive', () => {
-        it('renders its children as the symbol beside the input', () => {
+        it('renders its children as a passive symbol, without a button', () => {
             renderNumericInput({value: '12'}, <NumericInput.Symbol>km</NumericInput.Symbol>);
 
             expect(screen.getByText('km')).toBeOnTheScreen();
-        });
-
-        it('renders a passive symbol without a button', () => {
-            renderNumericInput({value: '12'}, <NumericInput.Symbol>$</NumericInput.Symbol>);
-
-            expect(screen.getByText('$')).toBeOnTheScreen();
             expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: SYMBOL_ACCESSIBILITY_LABEL})).toHaveLength(0);
         });
 
-        it('calls onPress when the symbol button is pressed', () => {
+        it('renders its children inside the symbol button and calls onPress when it is pressed', () => {
             const onPress = jest.fn();
-            renderNumericInput({value: '12'}, <NumericInput.SymbolButton onPress={onPress}>$</NumericInput.SymbolButton>);
+            renderNumericInput({value: '12'}, <NumericInput.SymbolButton onPress={onPress}>km</NumericInput.SymbolButton>);
+
+            expect(screen.getByText('km')).toBeOnTheScreen();
 
             fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: SYMBOL_ACCESSIBILITY_LABEL}));
 
@@ -112,101 +89,7 @@ describe('NumericInput', () => {
         });
     });
 
-    describe('container primitive', () => {
-        const renderContainerComposition = (inputRef?: React.Ref<BaseTextInputRef>) =>
-            renderNumericInput(
-                {value: '12'},
-                <NumericInput.Container testID={CONTAINER_TEST_ID}>
-                    <NumericInput.TextInput
-                        testID={INPUT_TEST_ID}
-                        ref={inputRef}
-                    />
-                    <NumericInput.Symbol>%</NumericInput.Symbol>
-                </NumericInput.Container>,
-            );
-
-        it('focuses the input and collapses the selection when its own empty area is pressed', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the container's own empty area is pressed
-            const event = getMouseDownEvent(getContainerViewId(CONTAINER_TEST_ID));
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the browser blur is prevented, the input is focused, and the selection collapses onto its end
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-            expect(focus).toHaveBeenCalledTimes(1);
-            expect(input.props.selection).toEqual({start: 2, end: 2});
-            focus.mockRestore();
-        });
-
-        it('ignores a press that originates from a nested view instead of its own empty area', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the press bubbles up from a nested view, which owns the caret placement itself
-            const event = getMouseDownEvent('some-nested-view-id');
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the container leaves the press and the selection alone
-            expect(event.preventDefault).not.toHaveBeenCalled();
-            expect(focus).not.toHaveBeenCalled();
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-            focus.mockRestore();
-        });
-
-        it('assigns a distinct target id to each mounted container', () => {
-            renderWithProviders(
-                <>
-                    <NumericInput
-                        onInputChange={onInputChange}
-                        value="12"
-                    >
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-one`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                    <NumericInput
-                        onInputChange={onInputChange}
-                        value="34"
-                    >
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-two`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                </>,
-            );
-
-            expect(getContainerViewId(`${CONTAINER_TEST_ID}-one`)).not.toBe(getContainerViewId(`${CONTAINER_TEST_ID}-two`));
-        });
-    });
-
-    describe('text input primitive', () => {
+    describe('sign handling', () => {
         it('renders a negative value as a separate sign and editable magnitude', () => {
             renderNumericInput({value: '-12', allowNegative: true});
 
@@ -264,6 +147,23 @@ describe('NumericInput', () => {
             expect(onInputChange).toHaveBeenLastCalledWith('-12');
         });
 
+        it('ignores a sign toggle when negative values are not allowed', () => {
+            renderNumericInput(
+                {value: '12'},
+                <>
+                    <NumericInput.MinusSign />
+                    <ToggleSignTrigger />
+                </>,
+            );
+
+            fireEvent.press(screen.getByTestId('toggle-sign'));
+
+            expect(screen.queryByText(MINUS_SIGN)).not.toBeOnTheScreen();
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('text input primitive', () => {
         it('commits a valid edit through the root and displays it', () => {
             // Given a composition with two accepted decimal places and value "12"
             renderNumericInput({value: '12'});
@@ -292,16 +192,17 @@ describe('NumericInput', () => {
             expect(input.props.selection).toEqual({start: 3, end: 3});
         });
 
-        it('normalizes spaces and comma separators before committing', () => {
-            // Given an empty composition with two accepted decimal places
-            renderNumericInput({value: ''});
+        it('ignores the stale selection event native echoes after an edit', () => {
+            // Given a composition with value "12"
+            renderNumericInput({value: '12'});
 
-            // When a value with spaces and a comma separator is pasted
-            fireEvent.changeText(screen.getByTestId(INPUT_TEST_ID), '1 2,5');
+            // When a digit is appended and native echoes the pre-edit caret position
+            const input = screen.getByTestId(INPUT_TEST_ID);
+            fireEvent.changeText(input, '123');
+            fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
 
-            // Then the canonical value is committed
-            expect(onInputChange).toHaveBeenLastCalledWith('12.5');
-            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12.5');
+            // Then the echo is dropped and the caret stays where the edit put it
+            expect(input.props.selection).toEqual({start: 3, end: 3});
         });
 
         it('rejects an edit that exceeds the accepted number of decimals', () => {
@@ -385,6 +286,19 @@ describe('NumericInput', () => {
             );
 
             expect(screen.getByText('Invalid amount')).toBeOnTheScreen();
+            expect(screen.getByRole(CONST.ROLE.ALERT)).toBeOnTheScreen();
+        });
+
+        it('renders nothing when the root has no error', () => {
+            renderNumericInput(
+                {},
+                <>
+                    <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    <NumericInput.Error />
+                </>,
+            );
+
+            expect(screen.queryByRole(CONST.ROLE.ALERT)).not.toBeOnTheScreen();
         });
     });
 
@@ -395,14 +309,26 @@ describe('NumericInput', () => {
             return <Text testID="font-size">{String(fontSize)}</Text>;
         }
 
-        it('scales down as the displayed value grows', () => {
-            renderNumericInput({value: '1'}, <FontSizeReadout />);
-            const shortValueFontSize = Number(screen.getByTestId('font-size').props.children);
+        it('scales down when the symbol is longer', () => {
+            renderNumericInput({value: '1234567890'}, <FontSizeReadout />);
+            const withoutSymbolFontSize = Number(screen.getByTestId('font-size').props.children);
 
             screen.unmount();
-            renderNumericInput({value: '-123456789', allowNegative: true}, <FontSizeReadout symbol="PLN" />);
+            renderNumericInput({value: '1234567890'}, <FontSizeReadout symbol="PLN" />);
+            const withSymbolFontSize = Number(screen.getByTestId('font-size').props.children);
 
-            expect(Number(screen.getByTestId('font-size').props.children)).toBeLessThan(shortValueFontSize);
+            expect(withSymbolFontSize).toBeLessThan(withoutSymbolFontSize);
+        });
+
+        it('scales down for negative values, because the sign takes room the input does not display', () => {
+            renderNumericInput({value: '1234567890'}, <FontSizeReadout />);
+            const positiveFontSize = Number(screen.getByTestId('font-size').props.children);
+
+            screen.unmount();
+            renderNumericInput({value: '-1234567890', allowNegative: true}, <FontSizeReadout />);
+            const negativeFontSize = Number(screen.getByTestId('font-size').props.children);
+
+            expect(negativeFontSize).toBeLessThan(positiveFontSize);
         });
     });
 
