@@ -138,6 +138,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
+    getReportFieldMaps,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -210,6 +211,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
+    shouldDisplayReportFields,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldHideSingleReportField,
@@ -296,7 +298,15 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {
+    convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
+    localeCompare,
+    translateLocal,
+} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type ClosedReportActionMessage = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>['message'];
@@ -377,6 +387,9 @@ const computeReportName = (
         currentUserAccountID: currentUserID,
         currentUserLogin: currentUserEmail,
         translate: translateLocal,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        getCurrencySymbol: getCurrencySymbolLocal,
         conciergeReportID,
         reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
@@ -586,9 +599,7 @@ describe('ReportUtils', () => {
                 routingNumber: '011401533',
                 addressName: 'Bank Workspace',
                 bankName: 'Test Bank',
-                // No designated payer, so every admin pays out of the workspace account and these cases can fall
-                // back to the policy's default reimbursement account.
-                reimburser: '',
+                reimburser: 'reimburser@example.com',
             },
         };
 
@@ -600,16 +611,16 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
         });
 
-        it('should use the passed policy (not module-level allPolicies) for the bank account last 4 digits', () => {
-            // Given a policy passed explicitly, with no matching policy read from Onyx
+        it('should use the passed ACH account number (not module-level allPolicies) for the bank account last 4 digits', () => {
+            // Given an ACH account number passed explicitly, with no matching policy read from Onyx
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            // Then the ACH last 4 digits are resolved from the passed policy alone
-            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            // Then the ACH last 4 digits are resolved from the passed account number alone
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(paidSystemMessage);
         });
 
         it('should show the bank account from the action accountNumber instead of the policy default', async () => {
@@ -625,7 +636,9 @@ describe('ReportUtils', () => {
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321');
 
             // Then the message shows the last 4 digits of that account, not the policy default
-            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank, undefined)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, actionWithAccountNumber, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                paidSystemMessage,
+            );
         });
 
         it('should show the cross-border FX message with the credited amount and both account last-4s', async () => {
@@ -649,7 +662,7 @@ describe('ReportUtils', () => {
                 debitBankAccount: '6789',
                 creditBankAccount: '3335',
             });
-            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank, undefined)).toBe(expectedMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, crossBorderAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expectedMessage);
         });
 
         it('should return received payment when submitter marked payment received', () => {
@@ -664,7 +677,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, paymentReceivedReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
                 translateLocal('iou.receivedPaymentReportAction'),
             );
         });
@@ -680,7 +693,9 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank, undefined)).toBe(translateLocal('iou.paidElsewhere'));
+            expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
 
         it('should return an empty string for a non-money-request action', () => {
@@ -689,10 +704,10 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank, undefined)).toBe('');
+            expect(getIOUReportActionDisplayMessage(translateLocal, createdAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe('');
         });
 
-        it('should use the passed policy for the last 4 digits of an automatic VBBA payment', () => {
+        it('should use the passed ACH account number for the last 4 digits of an automatic VBBA payment', () => {
             // Given an automatically-paid VBBA action with no accountNumber on the action itself
             const automaticVBBAAction = {
                 ...reportAction,
@@ -701,8 +716,8 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const expected = translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
-            // Then the workspace-rules message resolves the last 4 digits from the passed policy
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank, undefined)).toBe(expected);
+            // Then the workspace-rules message resolves the last 4 digits from the passed account number
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticVBBAAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(expected);
         });
 
         it('should return the workspace-rules message for an automatic Expensify payment', () => {
@@ -711,7 +726,7 @@ describe('ReportUtils', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, automaticAction: true},
             };
 
-            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank, undefined)).toBe(
+            expect(getIOUReportActionDisplayMessage(translateLocal, automaticExpensifyAction, convertToDisplayString, policyWithBank.achAccount?.accountNumber, undefined)).toBe(
                 translate(CONST.LOCALES.EN, 'iou.automaticallyPaidWithExpensify', ''),
             );
         });
@@ -859,24 +874,24 @@ describe('ReportUtils', () => {
 
     describe('prepareOnboardingOnyxData', () => {
         const REPORT_ID = '5';
+        const conciergeChatReport: Report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
         beforeEach(async () => {
             Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com'});
-
-            const chatReport: Report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`, conciergeChatReport);
         });
 
         it('provides test drive url to task title', () => {
             const title = jest.fn();
 
             prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -906,6 +921,7 @@ describe('ReportUtils', () => {
             const description = jest.fn();
 
             prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -938,6 +954,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -957,6 +974,7 @@ describe('ReportUtils', () => {
 
         it('should send the Submit message and tasks to the Concierge DM for EMPLOYER', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
@@ -969,6 +987,7 @@ describe('ReportUtils', () => {
 
         it('should send nothing to the Concierge DM for EMPLOYER when onboarding is handled elsewhere', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
@@ -987,6 +1006,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1006,6 +1026,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1025,6 +1046,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1044,6 +1066,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1063,6 +1086,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1082,6 +1106,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1103,6 +1128,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1121,6 +1147,7 @@ describe('ReportUtils', () => {
 
         it('should send tasks to server for MANAGE_TEAM without adding them to optimisticData', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1139,6 +1166,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1166,6 +1194,7 @@ describe('ReportUtils', () => {
             const mergeSpy = jest.spyOn(Onyx, 'merge');
 
             prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1207,6 +1236,7 @@ describe('ReportUtils', () => {
             const description = jest.fn();
 
             prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1239,6 +1269,7 @@ describe('ReportUtils', () => {
 
         it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1254,6 +1285,7 @@ describe('ReportUtils', () => {
 
         it('should not include sign-off message for LOOKING_AROUND intent', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1275,6 +1307,7 @@ describe('ReportUtils', () => {
 
         it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 onboardingMessage: {
@@ -1294,6 +1327,7 @@ describe('ReportUtils', () => {
 
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1321,6 +1355,7 @@ describe('ReportUtils', () => {
 
         it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1351,6 +1386,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
+                conciergeChat: conciergeChatReport,
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -9175,6 +9211,34 @@ describe('ReportUtils', () => {
 
             expect(result.expenseChatReportID).toBe(providedExpenseReportID);
             expect(result.expenseChatData.reportID).toBe(providedExpenseReportID);
+        });
+
+        describe('#admins room pinning', () => {
+            const ownerEmail = 'workspace-owner@expensifail.com';
+
+            it('should pin the #admins room when the account owns no paid workspace yet', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should not pin the #admins room when the account already owns a paid workspace', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail, undefined, true);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
+
+            it('should pin the #admins room when the flows that do not go through CreatePolicy omit the flag', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, ownerEmail);
+
+                expect(result.adminsChatData.isPinned).toBe(true);
+            });
+
+            it('should never pin the #admins room for an Expensify employee', () => {
+                const result = buildOptimisticWorkspaceChats(policyID, policyName, 909, 'employee@expensify.com', undefined, false);
+
+                expect(result.adminsChatData.isPinned).toBe(false);
+            });
         });
     });
 
@@ -18345,8 +18409,6 @@ describe('ReportUtils', () => {
 
         describe('settled report paid with a business bank account', () => {
             const settledPolicyID = '445';
-            const reimburserEmail = 'reimburser@example.com';
-            const reimburserAccountID = 445001;
             const settledPolicy: Policy = {
                 ...createRandomPolicy(Number(settledPolicyID), CONST.POLICY.TYPE.TEAM),
                 id: settledPolicyID,
@@ -18356,7 +18418,7 @@ describe('ReportUtils', () => {
                     routingNumber: '011401533',
                     addressName: 'Settled Workspace',
                     bankName: 'Test Bank',
-                    reimburser: reimburserEmail,
+                    reimburser: 'reimburser@example.com',
                 },
             };
             const settledReport: Report = {
@@ -18373,23 +18435,15 @@ describe('ReportUtils', () => {
                 amount: 10000,
                 currency: CONST.CURRENCY.USD,
             };
-            // The workspace account is only a valid fallback for a payment made by the designated payer, so the
-            // action has to come from the reimburser for these previews to name it.
             const payReportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(reimburserEmail),
-                actorAccountID: reimburserAccountID,
+                ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: payOriginalMessage,
             };
 
             beforeEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
-            });
-
-            afterEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -18415,39 +18469,6 @@ describe('ReportUtils', () => {
                 );
 
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
-            });
-
-            describe('when the payment names the bank account it came from', () => {
-                // A paying admin picks the account to pay from, so a workspace payment now carries a bankAccountID the
-                // same way an invoice payment does. That must not turn the preview into the invoice wording
-                // ("paid $100.00 with personal account 6281") — it is a workspace payment and reads "paid with bank
-                // account 6281", which is also what PaymentContent renders on the action itself.
-                const actionNamingAccount: ReportAction = {
-                    ...payReportAction,
-                    originalMessage: {...payOriginalMessage, bankAccountID: 6281001, accountNumber: 'XXXXXX6281'},
-                };
-
-                it('keeps the bank account wording in the localized preview', () => {
-                    const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: actionNamingAccount,
-                        originalReportAction: actionNamingAccount,
-                        policy: settledPolicy,
-                    });
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
-
-                it('keeps the bank account wording in the stored report action message', () => {
-                    const result = getReportPreviewReportActionMessage(
-                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
-                        getCurrencyDecimalsLocal,
-                    );
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
             });
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
@@ -18963,6 +18984,57 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportFieldMaps', () => {
+        it('returns persisted invoice fields when the receiver has no policy field list', async () => {
+            const report = createMock<Report>({
+                reportID: 'invoiceReceiverWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.INVOICE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
+                Object.fromEntries([
+                    ['expensify_invoice_field', invoiceField],
+                    ['invoice_field', invoiceField],
+                ]),
+            );
+            await waitForBatchedUpdates();
+
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+
+            expect(fieldValues).toEqual({client: 'Acme'});
+            expect(fieldsByName).toEqual({client: invoiceField});
+        });
+
+        it('does not use persisted invoice fields for an expense report', async () => {
+            const report = createMock<Report>({
+                reportID: 'expenseReportWithoutPolicyFields',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                fieldList: {},
+            });
+            const invoiceField = createMock<PolicyReportField>({
+                fieldID: 'invoice_field',
+                name: 'Client',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+                value: 'Acme',
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
+            await waitForBatchedUpdates();
+
+            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+        });
+    });
+
     describe('canEditReportTitle', () => {
         const getTitleField = (deletable: boolean): PolicyReportField => ({
             fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -19200,6 +19272,35 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
+    describe('shouldDisplayReportFields', () => {
+        it('returns true for an invoice when the receiver policy does not include the invoice fields feature flag', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.INVOICE});
+            const receiverPolicy = createMock<Policy>({type: CONST.POLICY.TYPE.TEAM});
+
+            expect(shouldDisplayReportFields(report, receiverPolicy)).toBe(true);
+        });
+
+        it('returns true for a workspace expense report when report fields are enabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: true,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(true);
+        });
+
+        it('returns false for a workspace expense report when report fields are disabled', () => {
+            const report = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+            const testPolicy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.TEAM,
+                areReportFieldsEnabled: false,
+            });
+
+            expect(shouldDisplayReportFields(report, testPolicy)).toBe(false);
+        });
+    });
+
     describe('getMissingPaymentMethodForQueuedPayment', () => {
         const bankAccountListWithDepositAccount: BankAccountList = {
             123: {
@@ -22188,7 +22289,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22202,7 +22303,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22212,7 +22313,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe('Custom Action Name');
         });
 
@@ -22222,7 +22323,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -22243,7 +22344,7 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -22263,7 +22364,7 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, undefined);
+            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, convertToDisplayString, undefined);
 
             expect(result).toBe('Invoice #42');
         });
@@ -22301,7 +22402,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -22316,7 +22417,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -22330,7 +22431,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, undefined);
+                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
@@ -22356,7 +22457,7 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, undefined);
+                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, convertToDisplayString, undefined);
 
                 expect(result).toBe('PayerOwesMarker');
             });
