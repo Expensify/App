@@ -69,10 +69,14 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
 
-    const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
-    // Derive the effective value instead of trusting the local state alone: if the domain loses its card feed while
-    // the page is open (e.g. the feed is removed from another device), the setting must not stay on. Otherwise the
-    // toggle would render on but locked, and the group would be created with a stale "on" value.
+    // Gate on hasAdminPolicies too so this toggle stays in sync with the Preferred Workspace toggle above: the card
+    // override is meaningless without a preferred workspace, and the Preferred Workspace toggle itself locks once the
+    // last admin workspace is gone. Otherwise, if the last admin workspace is removed from another device, this toggle
+    // would stay on and interactive while the Preferred Workspace toggle is locked.
+    const canEnableCardPreferredWorkspace = preferredWorkspace && hasAdminPolicies && isDomainUsingCard;
+    // Derive the effective value instead of trusting the local state alone: if the domain loses its card feed or its
+    // last admin workspace while the page is open (e.g. removed from another device), the setting must not stay on.
+    // Otherwise the toggle would render on but locked, and the group would be created with a stale "on" value.
     const isCardPreferredWorkspaceActive = expensifyCardPreferredWorkspace && canEnableCardPreferredWorkspace;
 
     useEffect(() => {

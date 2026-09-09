@@ -72,6 +72,7 @@ const setupAdminDomain = async () => {
         await Onyx.merge(domainKey, {[adminAccessKey]: currentUserAccountID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
     });
+    return policy;
 };
 
 beforeAll(() => {
@@ -169,6 +170,35 @@ describe('DomainGroupCreatePage Card preferred workspace toggle', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the toggle flips back off and locks, instead of staying on but locked (and creating the group with a stale value)
+        expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: lockedCardToggleName(), checked: false})).toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('turns the toggle off and re-locks it when the last admin workspace is removed after it was switched on', async () => {
+        // Given an admin who enabled the card preferred workspace toggle on a domain that has a company card feed
+        const policy = await setupAdminDomain();
+        await act(async () => {
+            await Onyx.merge(domainMemberKey, {settings: {companyCards: {[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {liabilityType: 'personal'}}}});
+        });
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(await screen.findByRole(CONST.ROLE.SWITCH, {name: preferredWorkspaceToggleName()}));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByRole(CONST.ROLE.SWITCH, {name: cardToggleName()}));
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: cardToggleName(), checked: true})).toBeOnTheScreen();
+
+        // When the last admin workspace is removed (e.g. from another device) while the create page is still open
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the card toggle flips back off and locks in sync with the now-locked Preferred Workspace toggle,
+        // instead of staying on and interactive
         expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: lockedCardToggleName(), checked: false})).toBeOnTheScreen();
 
         unmount();
