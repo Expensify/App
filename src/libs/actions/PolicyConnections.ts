@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {OpenPolicyAccountingPageParams, OpenPolicyHRPageParams} from '@libs/API/parameters';
+import type {OpenPolicyAccountingPageParams, OpenPolicyHRPageParams, OpenPolicyRecruitingPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -78,6 +78,34 @@ function openPolicyHRPage(policyID: string) {
     });
 }
 
+function openPolicyRecruitingPage(policyID: string) {
+    const hasConnectionsDataBeenFetchedKey = `${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}` as const;
+
+    const successData: Array<OnyxUpdate<typeof hasConnectionsDataBeenFetchedKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: hasConnectionsDataBeenFetchedKey,
+            value: true,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof hasConnectionsDataBeenFetchedKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: hasConnectionsDataBeenFetchedKey,
+            value: false,
+        },
+    ];
+
+    const parameters: OpenPolicyRecruitingPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_RECRUITING_PAGE, parameters, {
+        successData,
+        failureData,
+    });
+}
+
 function updateConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Policy.Connections[TConnectionName]['config']>>(
     policyID: string,
     connectionName: TConnectionName,
@@ -87,4 +115,4 @@ function updateConnectionConfig<TConnectionName extends ConnectionNameExceptNetS
     updateManyPolicyConnectionConfigs(policyID, connectionName, configUpdate, configCurrentData);
 }
 
-export {openPolicyAccountingPage, openPolicyHRPage, updateConnectionConfig, markPolicyConnectionsAsStale, clearPolicyConnectionsStaleMarker};
+export {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage, updateConnectionConfig, markPolicyConnectionsAsStale, clearPolicyConnectionsStaleMarker};
