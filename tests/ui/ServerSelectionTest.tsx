@@ -29,10 +29,11 @@ import createMock from '../utils/createMock';
 const mockQAServer = CONST.SERVER.QA;
 let mockActiveServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 let mockIsPinnedByEnvironment = false;
+let mockIsStagingIgnored = false;
 
 jest.mock('@hooks/useActiveServer', () => ({
     __esModule: true,
-    default: (): ActiveServerState => ({activeServer: mockActiveServer, isPinnedByEnvironment: mockIsPinnedByEnvironment}),
+    default: (): ActiveServerState => ({activeServer: mockActiveServer, isPinnedByEnvironment: mockIsPinnedByEnvironment, isStagingIgnored: mockIsStagingIgnored}),
 }));
 
 jest.mock('@libs/ApiUtils', () => ({
@@ -97,6 +98,8 @@ const getConfirmButtonOptions = () => {
     return confirmButtonOptions;
 };
 
+const getListedServers = () => getSelectionListProps().data.map((item) => item.keyForList);
+
 const pressBack = () => {
     const onBackButtonPress = jest.mocked(HeaderWithBackButton).mock.calls.at(-1)?.at(0)?.onBackButtonPress;
     if (!onBackButtonPress) {
@@ -133,6 +136,7 @@ describe('Server selection', () => {
     beforeEach(() => {
         mockActiveServer = CONST.SERVER.PRODUCTION;
         mockIsPinnedByEnvironment = false;
+        mockIsStagingIgnored = false;
         jest.clearAllMocks();
         jest.mocked(isQAAuthConfigured).mockReturnValue(false);
     });
@@ -171,9 +175,8 @@ describe('Server selection', () => {
             mockActiveServer = CONST.SERVER.STAGING;
             render(<ServerSelector />);
 
-            const {data} = getSelectionListProps();
-            expect(data.map((item) => item.keyForList)).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING]);
-            expect(data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SERVER.STAGING);
+            expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING]);
+            expect(getSelectionListProps().data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SERVER.STAGING);
         });
 
         it('keeps Save disabled until a different server is picked', () => {
@@ -211,7 +214,7 @@ describe('Server selection', () => {
             render(<ServerSelector />);
 
             const {data, isDisabled, customListHeaderContent} = getSelectionListProps();
-            expect(data.map((item) => item.keyForList)).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING, CONST.SERVER.QA]);
+            expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING, CONST.SERVER.QA]);
             expect(isDisabled).toBe(true);
             expect(data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SERVER.QA);
             expect(customListHeaderContent).toBeTruthy();
@@ -222,7 +225,20 @@ describe('Server selection', () => {
             jest.mocked(isQAAuthConfigured).mockReturnValue(true);
             render(<ServerSelector />);
 
-            expect(getSelectionListProps().data.map((item) => item.keyForList)).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING, CONST.SERVER.QA]);
+            expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING, CONST.SERVER.QA]);
+        });
+
+        it('drops staging where a stored staging is ignored, and still commits QA, which is not', () => {
+            mockIsStagingIgnored = true;
+            jest.mocked(isQAAuthConfigured).mockReturnValue(true);
+            render(<ServerSelector />);
+
+            expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.QA]);
+
+            act(() => getSelectionListProps().onSelectRow({keyForList: CONST.SERVER.QA}));
+            pressSave();
+
+            expect(setActiveServer).toHaveBeenCalledWith(CONST.SERVER.QA);
         });
     });
 

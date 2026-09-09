@@ -20,8 +20,6 @@ import React, {useState} from 'react';
 
 type ServerListItem = ListItem & {keyForList: Server};
 
-const ALWAYS_SELECTABLE_SERVERS = [CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING] as const;
-
 type ServerSelectorProps = {
     /** The test tools modal floats, so it leaves this off. */
     shouldAddBottomSafeAreaPadding?: boolean;
@@ -30,13 +28,13 @@ type ServerSelectorProps = {
 function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeServer, isPinnedByEnvironment} = useActiveServer();
+    const {activeServer, isPinnedByEnvironment, isStagingIgnored} = useActiveServer();
 
     // The resolved server arrives a tick after mount, so it cannot seed this state
     const [pickedServer, setPickedServer] = useState<Server>();
     const selectedServer = pickedServer ?? activeServer;
 
-    const offeredServers = [...ALWAYS_SELECTABLE_SERVERS, ...(isQAAuthConfigured() ? [CONST.SERVER.QA] : [])];
+    const offeredServers = [CONST.SERVER.PRODUCTION, ...(isStagingIgnored ? [] : [CONST.SERVER.STAGING]), ...(isQAAuthConfigured() ? [CONST.SERVER.QA] : [])];
 
     // A pinned build can be on a server the list would not otherwise offer
     const listedServers = offeredServers.includes(activeServer) ? offeredServers : [...offeredServers, activeServer];

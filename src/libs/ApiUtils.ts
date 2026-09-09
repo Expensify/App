@@ -18,11 +18,14 @@ type ActiveServerState = {
 
     /** When true, a stored ACTIVE_SERVER is inert. */
     isPinnedByEnvironment: boolean;
+
+    /** When true, a stored staging resolves to another server, so nothing reaches the staging hosts. */
+    isStagingIgnored: boolean;
 };
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
-let activeServerState: ActiveServerState = {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false};
+let activeServerState: ActiveServerState = {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false, isStagingIgnored: false};
 
 /**
  * The server a stored value and an environment resolve to. Pure, so `useActiveServer` can call it during
@@ -36,11 +39,11 @@ function resolveActiveServer(value: Server | undefined, envName: ValueOf<typeof 
     // The environment is baked into the bundle, and there is no meaningful way
     // to point qa.new.exops.io at production
     if (envName === CONST.ENVIRONMENT.QA && isQAConfigured) {
-        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true};
+        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true, isStagingIgnored: false};
     }
 
     if (envName === CONST.ENVIRONMENT.PRODUCTION) {
-        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: true};
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: true, isStagingIgnored: false};
     }
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
@@ -48,11 +51,11 @@ function resolveActiveServer(value: Server | undefined, envName: ValueOf<typeof 
     const storedServer = value === CONST.SERVER.QA && !isQAConfigured ? undefined : value;
 
     if (CONFIG.IS_USING_LOCAL_WEB && storedServer !== CONST.SERVER.QA) {
-        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false};
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false, isStagingIgnored: true};
     }
 
     const defaultServer = envName === CONST.ENVIRONMENT.STAGING || envName === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
-    return {activeServer: storedServer ?? defaultServer, isPinnedByEnvironment: false};
+    return {activeServer: storedServer ?? defaultServer, isPinnedByEnvironment: false, isStagingIgnored: false};
 }
 
 getEnvironment().then((envName) => {
