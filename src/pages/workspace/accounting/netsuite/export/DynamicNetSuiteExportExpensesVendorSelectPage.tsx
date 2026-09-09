@@ -68,7 +68,11 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (config?.defaultVendor !== value && policyID) {
+            const isAlreadySelected = value === config?.defaultVendor || (!value && !config?.defaultVendor);
+            if (isAlreadySelected) {
+                return;
+            }
+            if (policyID) {
                 updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
             }
             goBack();
