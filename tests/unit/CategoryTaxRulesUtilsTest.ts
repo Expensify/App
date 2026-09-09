@@ -1,4 +1,4 @@
-import {getCategoryTaxRulesTableData, isTaxRateOnPolicy} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, hasSelectableCategoryTaxRate, isSelectableTaxRate, isTaxRateOnPolicy} from '@libs/CategoryTaxRulesUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -56,6 +56,58 @@ describe('CategoryTaxRulesUtils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
+    });
+
+    describe('hasSelectableCategoryTaxRate', () => {
+        /** `hasSelectableCategoryTaxRate` reads tracking as well as the rates, so this states it rather than leaving it to the random policy. */
+        const buildTaxTrackingPolicy = (taxes: Record<string, TaxRate>, trackingEnabled = true): Policy =>
+            createMock<Policy>({
+                ...buildPolicy(taxes),
+                tax: {trackingEnabled},
+            });
+
+        it('is true when a rate other than the workspace default is enabled', () => {
+            const policy = buildTaxTrackingPolicy({
+                [DEFAULT_TAX_ID]: createMock<TaxRate>({name: 'Tax exempt', value: '0%'}),
+                [TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%'}),
+            });
+            expect(hasSelectableCategoryTaxRate(policy)).toBe(true);
+        });
+
+        it('is false when the workspace default is the only rate left', () => {
+            const policy = buildTaxTrackingPolicy({[DEFAULT_TAX_ID]: createMock<TaxRate>({name: 'Tax exempt', value: '0%'})});
+            expect(hasSelectableCategoryTaxRate(policy)).toBe(false);
+        });
+
+        it('is false when every other rate is disabled', () => {
+            const policy = buildTaxTrackingPolicy({
+                [DEFAULT_TAX_ID]: createMock<TaxRate>({name: 'Tax exempt', value: '0%'}),
+                [TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%', isDisabled: true}),
+            });
+            expect(hasSelectableCategoryTaxRate(policy)).toBe(false);
+        });
+
+        it('is false when every other rate is being deleted', () => {
+            const policy = buildTaxTrackingPolicy({
+                [DEFAULT_TAX_ID]: createMock<TaxRate>({name: 'Tax exempt', value: '0%'}),
+                [TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            });
+            expect(hasSelectableCategoryTaxRate(policy)).toBe(false);
+        });
+
+        it('is false with tax tracking off, whatever rates the workspace holds', () => {
+            const policy = buildTaxTrackingPolicy({[TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%'})}, false);
+            expect(hasSelectableCategoryTaxRate(policy)).toBe(false);
+        });
+    });
+
+    describe('isSelectableTaxRate', () => {
+        it('offers the workspace default to a merchant rule but not to a category rule', () => {
+            const policy = buildPolicy({[DEFAULT_TAX_ID]: createMock<TaxRate>({name: 'Tax exempt', value: '0%'})});
+            const defaultRate = createMock<TaxRate>({name: 'Tax exempt', value: '0%'});
+            expect(isSelectableTaxRate(policy, DEFAULT_TAX_ID, defaultRate, false)).toBe(true);
+            expect(isSelectableTaxRate(policy, DEFAULT_TAX_ID, defaultRate, true)).toBe(false);
+        });
     });
 
     describe('isTaxRateOnPolicy', () => {

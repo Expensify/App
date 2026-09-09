@@ -421,17 +421,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 }
                                 shouldParseHelperText
                             />
-                            {!!policy?.tax?.trackingEnabled && (
-                                <MenuItemWithTopDescription
-                                    title={defaultTaxRateText}
-                                    description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                    onPress={() => {
-                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
-                                    }}
-                                    interactive={canWriteCategories}
-                                    shouldShowRightIcon={canWriteCategories}
-                                />
-                            )}
+                            {/*
+                             * A category's tax default is a rule under the revamp, set from Rules > Expense defaults,
+                             * so it is deliberately not offered here. The two pickers also disagreed on what they
+                             * could offer: this one listed the workspace default rate, which the rule editor leaves
+                             * out because saving that rate is what deletes the rule.
+                             */}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (

@@ -284,7 +284,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
     // Writing the workspace default rate deletes the rule, so choosing it on a NEW rule means "no rule": ignore it
     // rather than let a save delete, which also covers a merchant draft carrying it in before a category condition is
-    // added. A saved rule is different — the rate it holds can become the workspace default later, and it is still the
+    // added. A saved rule is different. The rate it holds can become the workspace default later, and it is still the
     // rate that rule applies, so it has to keep showing rather than reading as unset.
     const isDraftTaxTheWorkspaceDefault = isCategoryRule && !isEditingCategoryTaxRule && form?.tax === policy?.taxRates?.defaultExternalID;
     const categoryTaxID = isDraftTaxTheWorkspaceDefault ? undefined : form?.tax;
