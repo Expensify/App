@@ -74,13 +74,11 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     const data: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
 
     const selectVendor = (row: CardListItem) => {
-        if (row.value === currentVendor) {
-            if (canClearByReSelecting) {
-                updateVendor(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE, currentVendor);
-            }
-        } else {
-            updateVendor(policyID, row.value, currentVendor);
+        const isAlreadySelected = row.value === currentVendor || (!row.value && !currentVendor);
+        if (isAlreadySelected) {
+            return;
         }
+        updateVendor(policyID, row.value, currentVendor);
         Navigation.goBack();
     };
 
