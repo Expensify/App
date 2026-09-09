@@ -135,7 +135,7 @@ function DynamicSageIntacctDefaultVendorPage() {
             displayName="SageIntacctDefaultVendorPage"
             data={vendorSelectorOptions ?? []}
             onSelectRow={updateDefaultVendor}
-            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={goBack}
             title="workspace.sageIntacct.defaultVendor"
