@@ -65,7 +65,7 @@ type NumericSymbolButtonProps = {
     children: ReactNode;
 
     /** Called when the symbol button is pressed. */
-    onPress?: () => void;
+    onPress: () => void;
 
     /** Style applied to the symbol text, appended to the primitive's defaults. */
     textStyle?: StyleProp<TextStyle>;
