@@ -37,7 +37,6 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
-    /** Whether the time value should be validated for future time only */
     shouldValidateFutureTime?: boolean;
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */

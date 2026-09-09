@@ -48,7 +48,7 @@ type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreen
 
 function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApprovalLimitPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
@@ -72,7 +72,9 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const approvalLimit = editedApprovalLimit?.approverEmail === approverEmail ? editedApprovalLimit.value : defaultApprovalLimit;
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
-    const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
+    const selectedApproverName = selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail;
+    const formattedApproverName = Str.isSMSLogin(selectedApproverName) ? formatPhoneNumber(selectedApproverName) : selectedApproverName;
+    const selectedApproverDisplayName = selectedApproverEmail ? formattedApproverName : '';
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
 
     const shouldShowNotFoundView =
@@ -82,7 +84,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         isAnyHRReadOnlyWorkflowMode(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
-    const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
+    const approverDisplayName = Str.isSMSLogin(currentApprover?.displayName ?? '') ? formatPhoneNumber(currentApprover?.displayName ?? '') : (currentApprover?.displayName ?? '');
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
     const areLimitFieldsDisabled = isEditFlow && !isApproverSelected;
 

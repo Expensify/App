@@ -15,7 +15,6 @@ import Modal from './Modal';
 import Text from './Text';
 
 type ProactiveAppReviewModalProps = {
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Callback for when user selects "Yeah!" */

@@ -25,7 +25,6 @@ type CopyableTextFieldProps = {
     /** Custom styles for the outer most View */
     style?: StyleProp<ViewStyle>;
 
-    /** Custom styles for the displayed text */
     textStyle?: StyleProp<TextStyle>;
 
     /** Whether the text field should be expandable */

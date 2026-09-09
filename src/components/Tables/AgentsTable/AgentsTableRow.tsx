@@ -24,10 +24,7 @@ type AgentsTableRowProps = {
     /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
     item: TableRow<AgentRowData>;
 
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

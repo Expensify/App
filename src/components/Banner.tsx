@@ -35,7 +35,6 @@ type BannerProps = {
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
 
-    /** Should this component render a close button? */
     shouldShowCloseButton?: boolean;
 
     /** Should this component render the text as HTML? */
@@ -56,7 +55,6 @@ type BannerProps = {
     /** Whether to display button in the banner */
     shouldShowButton?: boolean;
 
-    /** Callback called when pressing the button */
     onButtonPress?: () => void;
 
     /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */

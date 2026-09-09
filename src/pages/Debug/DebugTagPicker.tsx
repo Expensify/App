@@ -24,7 +24,6 @@ type DebugTagPickerProps = {
     /** The policyID we are getting tags for */
     policyID: string;
 
-    /** Current tag name */
     tagName?: string;
 
     /** Callback to submit the selected tag */

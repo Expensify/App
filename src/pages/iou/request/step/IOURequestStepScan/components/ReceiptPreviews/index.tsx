@@ -47,7 +47,6 @@ type ReceiptPreviewsProps = {
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
 
-    /** If a photo is currently being captured */
     isCapturingPhoto?: boolean;
 
     /** Whether the component is rendered in landscape orientation */

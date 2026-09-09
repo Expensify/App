@@ -53,7 +53,6 @@ type DecisionModalProps = {
     /** Callback when modal has fully disappeared */
     onModalHide?: () => void;
 
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Whether to handle browser navigation back to close the modal */

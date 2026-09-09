@@ -13,10 +13,7 @@ type ButtonTextProps = {
     /** The text to display */
     children: string;
 
-    /** The number of lines to display */
     numberOfLines?: number;
-
-    /** Additional text styles */
     style?: StyleProp<TextStyle>;
 
     /** Additional text styles to apply when the button is hovered. */

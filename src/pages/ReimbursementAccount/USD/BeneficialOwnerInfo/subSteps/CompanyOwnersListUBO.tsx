@@ -31,13 +31,8 @@ type CompanyOwnersListUBOProps = {
     /** Method called when user presses on one of UBOs to edit its data */
     handleUBOEdit: (value: string) => void;
 
-    /** List of UBO keys */
     beneficialOwnerKeys: string[];
-
-    /** Info is user UBO */
     isUserUBO: boolean;
-
-    /** Info about other existing UBOs */
     isAnyoneElseUBO: boolean;
 };
 

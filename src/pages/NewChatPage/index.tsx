@@ -64,7 +64,6 @@ type NewChatPageRef = {
 };
 
 type NewChatPageProps = {
-    /** Reference to the outer element */
     ref?: Ref<NewChatPageRef>;
 };
 

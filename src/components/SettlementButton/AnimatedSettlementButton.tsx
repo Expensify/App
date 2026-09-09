@@ -31,10 +31,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
 
-    // Whether this is a DEW approval that needs backend validation before showing "Approved"
+    /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
-    // The report id for which the button is displayed
     reportID?: string;
 };
 
