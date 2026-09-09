@@ -1,5 +1,5 @@
 import CenteredModalLayout from '@components/CenteredModalLayout';
-import FeatureTrainingContent from '@components/FeatureTrainingContent';
+import FeatureTraining from '@components/FeatureTraining';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
@@ -38,18 +38,23 @@ function TrackTrainingPage() {
 
     return (
         <CenteredModalLayout onBackdropPress={handleClose}>
-            <FeatureTrainingContent
-                shouldShowDismissModalOption
-                confirmText={translate('common.buttonConfirm')}
-                helpText={translate('common.learnMore')}
-                onHelp={onHelp}
+            <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
                 onWillShowAgainChange={(willShowAgain) => {
                     willShowAgainRef.current = willShowAgain;
                 }}
-                videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
-                illustrationAspectRatio={VIDEO_ASPECT_RATIO}
-            />
+            >
+                <FeatureTraining.Illustration
+                    videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
+                    aspectRatio={VIDEO_ASPECT_RATIO}
+                />
+                <FeatureTraining.Body>
+                    <FeatureTraining.DismissOption />
+                    <FeatureTraining.HelpButton onPress={onHelp}>{translate('common.learnMore')}</FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

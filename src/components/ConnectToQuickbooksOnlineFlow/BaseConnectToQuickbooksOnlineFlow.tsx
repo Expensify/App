@@ -12,7 +12,7 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 
 import {isAuthenticationError} from '@libs/actions/connections';
 
-import {useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -42,7 +42,7 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && environment === CONST.ENVIRONMENT.DEV && !isAuthError;
+    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const didInitialize = useRef(false);

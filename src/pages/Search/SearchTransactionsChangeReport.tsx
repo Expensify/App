@@ -7,6 +7,7 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -27,11 +28,10 @@ import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetails, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
-import Onyx from 'react-native-onyx';
+import React, {useMemo} from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -70,7 +70,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -114,44 +114,7 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
 
-    useEffect(() => {
-        const snapshotData = currentSearchResults?.data;
-        if (!snapshotData) {
-            return;
-        }
-
-        const onyxUpdates: Array<{
-            onyxMethod: typeof Onyx.METHOD.MERGE;
-            key: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
-            value: Report;
-        }> = [];
-
-        for (const key of Object.keys(snapshotData)) {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
-                continue;
-            }
-
-            const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
-            if (allReports?.[typedKey]) {
-                continue;
-            }
-
-            const report = snapshotData[typedKey];
-            if (report) {
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: typedKey,
-                    value: report,
-                });
-            }
-        }
-
-        if (onyxUpdates.length > 0) {
-            Onyx.update(onyxUpdates);
-        }
-        // Hydration should only run once on mount using the initial snapshot data
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(
@@ -189,6 +152,7 @@ function SearchTransactionsChangeReport() {
                 selfDMReportActions,
                 delegateAccountID,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
             clearSelectedTransactions();
         });
@@ -280,6 +244,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
     };
@@ -304,6 +269,7 @@ function SearchTransactionsChangeReport() {
             selfDMReportActions,
             delegateAccountID,
             getCurrencyDecimals,
+            getCurrencySymbol,
         });
         clearSelectedTransactions();
         Navigation.goBack();

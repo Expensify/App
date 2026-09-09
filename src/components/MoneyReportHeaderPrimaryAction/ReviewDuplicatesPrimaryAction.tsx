@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import type {SimpleActionProps} from './types';
@@ -33,6 +34,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
 
@@ -69,7 +73,16 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                                   iouReportAction: duplicateIOUAction,
                                   transaction: duplicateTransaction,
                               },
-                              {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails},
+                              {
+                                  introSelected,
+                                  betas,
+                                  conciergeChat,
+                                  isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                                  hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                                  currentUserEmail: email,
+                                  currentUserAccountID: accountID,
+                                  personalDetails,
+                              },
                           )
                         : undefined);
                 if (threadID) {

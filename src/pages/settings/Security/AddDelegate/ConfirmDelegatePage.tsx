@@ -1,8 +1,10 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,6 +24,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
@@ -37,7 +40,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const personalDetails = usePersonalDetailByLogin(login);
     const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
-    const displayName = personalDetails?.displayName ?? formattedLogin;
+    // An account that never set a name carries its login in `displayName`, which for SMS is the full
+    // `@expensify.sms` string. Format the resolved value so the title matches the description below it.
+    const displayName = formatPhoneNumber(personalDetails?.displayName ?? login ?? '');
 
     const submitButton = (
         <Button
@@ -66,21 +71,33 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <Text style={styles.ph5}>{translate('delegate.confirmCopilot')}</Text>
-                <MenuItem
-                    avatarID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    icon={avatarIcon}
-                    title={displayName}
-                    description={formattedLogin}
-                    interactive={false}
-                />
-                <MenuItemWithTopDescription
-                    title={translate('delegate.role', role)}
-                    description={translate('delegate.accessLevel')}
-                    helperText={translate('delegate.roleDescription', role)}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
-                    shouldShowRightIcon
-                />
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={avatarIcon}
+                                accountID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
+                            <MenuItem.Description>{formattedLogin}</MenuItem.Description>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                <View>
+                    <MenuItemField
+                        name={translate('delegate.accessLevel')}
+                        value={translate('delegate.role', role)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
+                    />
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('delegate.roleDescription', role)}
+                        style={[styles.mt0, styles.ph5]}
+                    />
+                </View>
             </DelegateNoAccessWrapper>
         </HeaderPageLayout>
     );

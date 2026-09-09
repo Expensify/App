@@ -73,6 +73,7 @@ function PolicyDistanceRatesPage({
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
 
     const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
+    const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit?.rates]);
 
     const selectableRates = useMemo(
@@ -88,12 +89,13 @@ function PolicyDistanceRatesPage({
 
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+            const reportIDs: Record<string, true> = {};
+            for (const report of Object.values(reports ?? {})) {
                 if (report?.policyID === policyID) {
-                    reportIDs.add(report.reportID);
+                    reportIDs[report.reportID] = true;
                 }
-                return reportIDs;
-            }, new Set<string>());
+            }
+            return reportIDs;
         },
         [policyID],
     );
@@ -111,11 +113,11 @@ function PolicyDistanceRatesPage({
                 (transactionsData, transaction) => {
                     if (
                         transaction?.reportID &&
-                        policyReports?.has(transaction.reportID) &&
+                        policyReports?.[transaction.reportID] &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
-                        transactionsData.transactionIDs.add(transaction.transactionID);
+                        transactionsData.transactionIDs.push(transaction.transactionID);
                         if (!transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]) {
                             // eslint-disable-next-line no-param-reassign
                             transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID] = [];
@@ -124,7 +126,7 @@ function PolicyDistanceRatesPage({
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+                {transactionIDs: [] as string[], rateIDToTransactionIDsMap: {} as Record<string, string[]>},
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
@@ -267,16 +269,16 @@ function PolicyDistanceRatesPage({
 
     const dismissErrorByID = useCallback(
         (rateID: string) => {
-            if (!customUnit?.customUnitID) {
+            if (!customUnitID) {
                 return;
             }
             if (customUnitRates[rateID]?.errors) {
-                clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
+                clearDeleteDistanceRateError(policyID, customUnitID, rateID);
                 return;
             }
-            clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
+            clearCreateDistanceRateItemAndError(policyID, customUnitID, rateID);
         },
-        [customUnit?.customUnitID, customUnitRates, policyID],
+        [customUnitID, customUnitRates, policyID],
     );
 
     const openRateDetailsByID = useCallback(
@@ -336,6 +338,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: icons.Trashcan,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (!canDisableOrDeleteSelectedRates) {
                         showWarningModal();
@@ -346,7 +349,7 @@ function PolicyDistanceRatesPage({
                         prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteRates();
@@ -361,6 +364,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: icons.Close,
+                shouldSkipFocusRestore: !canDisableOrDeleteSelectedRates,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
             });
         }
@@ -437,6 +441,12 @@ function PolicyDistanceRatesPage({
     ) : null;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const distanceRatesTableHeader =
+        ratesData.length > 0 ? (
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -476,21 +486,15 @@ function PolicyDistanceRatesPage({
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {ratesData.length > 0 && (
-                            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                            </View>
-                        )}
-                        <WorkspaceDistanceRatesTable
-                            policyID={policyID}
-                            ratesData={ratesData}
-                            selectedKeys={selectedDistanceRates}
-                            selectionEnabled={canWriteDistanceRates}
-                            onRowSelectionChange={setSelectedDistanceRates}
-                            canWriteDistanceRates={canWriteDistanceRates}
-                        />
-                    </>
+                    <WorkspaceDistanceRatesTable
+                        policyID={policyID}
+                        ratesData={ratesData}
+                        selectedKeys={selectedDistanceRates}
+                        selectionEnabled={canWriteDistanceRates}
+                        onRowSelectionChange={setSelectedDistanceRates}
+                        canWriteDistanceRates={canWriteDistanceRates}
+                        headerComponent={distanceRatesTableHeader}
+                    />
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
