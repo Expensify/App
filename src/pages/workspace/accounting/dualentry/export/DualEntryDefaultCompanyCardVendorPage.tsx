@@ -39,7 +39,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     const defaultCompanyCardVendorID = dualentryConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
+    const vendorOptions: VendorListItem[] =
         dualentryData?.vendors
             ?.filter((vendorItem) => vendorItem.isActive)
             .map((vendorItem) => ({
@@ -48,7 +48,15 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
                 keyForList: vendorItem.id,
                 isSelected: defaultCompanyCardVendorID === vendorItem.id,
             })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !defaultCompanyCardVendorID,
+    };
+    const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
+    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
+    const data: VendorListItem[] = shouldShowClearOption ? [clearOption, ...filteredVendorOptions] : filteredVendorOptions;
 
     const headerContent = (
         <View>
@@ -81,7 +89,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryDefaultCompanyCardVendorPage"
             title="workspace.dualEntry.defaultCompanyCardVendor.label"
-            data={filteredData}
+            data={data}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
