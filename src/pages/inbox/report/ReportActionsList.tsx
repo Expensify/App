@@ -615,6 +615,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                             ListHeaderComponent={olderListHeaderComponent}
                             ListFooterComponent={newerListFooterComponent}
                             ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
+                            estimatedHeaderSize={olderPaginationExtent}
                             keyboardShouldPersistTaps="handled"
                             onLayout={recordTimeToMeasureItemLayout}
                             onScroll={trackScrollPositionAndThreshold}

@@ -36,7 +36,8 @@ describe('ReportActionsPaginationLoadingIndicator', () => {
                 paddingTop: PAGINATION_LOADING_INDICATOR_TOP_PADDING,
             }),
         );
-        expect(PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING).toBe(PAGINATION_LOADING_INDICATOR_TOP_PADDING / 2);
+        expect(PAGINATION_LOADING_INDICATOR_TOP_PADDING).toBe(24);
+        expect(PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING).toBe(24);
         expect(screen.getByTestId(`${OLDER_TEST_ID}-spinner`, {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.queryByTestId(`${OLDER_TEST_ID}-skeleton`, {includeHiddenElements: true})).toBeNull();
 

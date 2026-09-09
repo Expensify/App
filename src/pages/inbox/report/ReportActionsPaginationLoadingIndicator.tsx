@@ -11,8 +11,8 @@ type ReportActionsPaginationLoadingIndicatorProps = {
     direction: PaginationDirection;
 };
 
-const PAGINATION_LOADING_INDICATOR_HEIGHT = 96;
-const PAGINATION_LOADING_INDICATOR_TOP_PADDING = 48;
+const PAGINATION_LOADING_INDICATOR_HEIGHT = 72;
+const PAGINATION_LOADING_INDICATOR_TOP_PADDING = 24;
 const PAGINATION_LOADING_INDICATOR_BOTTOM_PADDING = 24;
 
 const styles = StyleSheet.create({
