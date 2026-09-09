@@ -40,9 +40,30 @@ type PageEntry = {
     lastSubPage?: string;
 };
 
+function CountryPage({onBackButtonPress, onSubmit, stepNames, policyID}: USDPageProps) {
+    return (
+        <Country
+            onBackButtonPress={onBackButtonPress}
+            onSubmit={onSubmit}
+            stepNames={stepNames ?? CONST.BANK_ACCOUNT.STEP_NAMES}
+            policyID={policyID}
+        />
+    );
+}
+
+function BankInfoPage({onBackButtonPress, onSubmit, policyID}: USDPageProps) {
+    return (
+        <BankInfo
+            onBackButtonPress={onBackButtonPress}
+            onSubmit={onSubmit}
+            policyID={policyID}
+        />
+    );
+}
+
 const pages: PageEntry[] = [
-    {pageName: PAGE_NAMES.COUNTRY, component: Country as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>, firstSubPage: BANK_INFO_SUB_PAGES.PLAID, lastSubPage: BANK_INFO_SUB_PAGES.PLAID},
+    {pageName: PAGE_NAMES.COUNTRY, component: CountryPage},
+    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfoPage, firstSubPage: BANK_INFO_SUB_PAGES.PLAID, lastSubPage: BANK_INFO_SUB_PAGES.PLAID},
     {
         pageName: PAGE_NAMES.REQUESTOR,
         component: RequestorStep as React.ComponentType<USDPageProps>,
@@ -93,7 +114,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [currentPage]);
 
     const currentEntry = pages.at(currentPageIndex);
-    const CurrentPage = currentEntry?.component ?? (Country as React.ComponentType<USDPageProps>);
+    const CurrentPage = currentEntry?.component ?? CountryPage;
     const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
 
     const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
