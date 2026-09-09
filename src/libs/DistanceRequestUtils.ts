@@ -411,12 +411,18 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    // Preserve the commuter exclusion stored on the expense at creation time; fall back to the current
-    // policy setting only when there is no stored exclusion (i.e. a brand-new expense being created).
+    // A stored exclusion is the one the expense was created with. A fixed distance is a per-claim constant, so it
+    // stays frozen even if the workspace later changes it. A home and office exclusion was derived from where the
+    // trip started and ended
     const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
+    const commuterExclusionPreview = transaction?.commuterExclusionPreview;
+    const hasVerdictForThisPolicy = !!commuterExclusionPreview && !!policy?.id && commuterExclusionPreview.policyID === policy.id;
+    const isStoredExclusionDerivedFromTheTrip = storedCustomUnit?.commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const shouldReuseStoredExclusion = typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && hasVerdictForThisPolicy);
+
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
-    if (typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0) {
+    if (shouldReuseStoredExclusion) {
         const storedExclusionInRequestUnit = convertDistanceUnit(
             convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
             requestDistanceUnit,
@@ -427,15 +433,14 @@ function getTransactionCommuterExclusionData({
         // How much of a trip is the member's commute is decided against their home address and the workspace
         // address, which takes geocoding the backend does and the app can't, so the verdict rides along on the
         // route response.
-        const preview = transaction?.commuterExclusionPreview;
-        if (!preview?.hasExclusion || preview.policyID !== policy.id) {
+        if (!hasVerdictForThisPolicy || !commuterExclusionPreview?.hasExclusion) {
             commuterExclusion = 0;
-        } else if (preview.isWholeTripExcluded) {
+        } else if (commuterExclusionPreview.isWholeTripExcluded) {
             // The route distance here is the one to exclude, rather than the backend's copy of it, so the trip
             // still comes out at nothing reimbursable when the member picked a different alternate route.
             commuterExclusion = routeDistance;
         } else {
-            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(preview.commuteDistanceMeters, requestDistanceUnit));
+            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
         }
         commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     } else {

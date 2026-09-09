@@ -614,6 +614,60 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnit.reimbursableDistance).toBe(0);
         });
 
+        it('drops a stored home and office exclusion once the backend rules the edited trip is not a commute', () => {
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0},
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithHomeAndOfficeExclusion,
+                storedCustomUnit: {
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 4,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                },
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('keeps a stored home and office exclusion while no verdict for this workspace has arrived', () => {
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction: distanceTransaction,
+                policy: policyWithHomeAndOfficeExclusion,
+                storedCustomUnit: {
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                },
+            });
+
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.reimbursableDistance).toBe(3);
+        });
+
+        it('keeps a stored fixed distance exclusion even when a verdict for this workspace is present', () => {
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0},
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithHomeAndOfficeExclusion,
+                storedCustomUnit: {
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    commuterExclusion: 1,
+                    commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                },
+            });
+
+            expect(result?.customUnit.commuterExclusion).toBe(1);
+            expect(result?.customUnit.commuterExclusionMethod).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE);
+        });
+
         it('keeps the exclusion stored on an existing expense rather than re-deciding it against the home and office policy', () => {
             const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
                 transaction: distanceTransaction,
