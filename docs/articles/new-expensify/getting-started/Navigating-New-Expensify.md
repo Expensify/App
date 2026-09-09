@@ -1,7 +1,7 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, mark all as read, clear unread chats, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
@@ -82,6 +82,29 @@ Your selected tab is remembered, so the Inbox reopens to the same tab the next t
 Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with a count badge on Unread or To-dos
 Location: After the "How to filter your Inbox using tabs" section
 Purpose: Show users where the filter tabs appear and what the count badge looks like
+-->
+
+---
+
+## How to mark all Inbox chats as read
+
+You can clear your unread chats in bulk from any of the three Inbox tabs.
+
+1. Open the **Inbox** tab from the navigation tabs (on the left on web, on the bottom on mobile).
+2. Right-click the **All**, **Unread**, or **To-dos** tab on web, or long-press the tab on mobile.
+3. Select **Mark all as read**.
+4. Select **Mark all as read** again to confirm, or select **Cancel** to keep your chats unread.
+
+Which chats are marked as read depends on the tab you use:
+
+- **All** — Marks every unread chat as read.
+- **Unread** — Marks every unread chat as read.
+- **To-dos** — Marks only the chats listed under **To-dos** as read. Unread chats outside **To-dos** stay unread.
+
+<!-- SCREENSHOT:
+Suggestion: The Inbox tab row with the "Mark all as read" menu open above one of the tabs
+Location: After the "How to mark all Inbox chats as read" section
+Purpose: Show users how to open the Mark all as read menu from an Inbox tab
 -->
 
 ---
@@ -217,6 +240,10 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Does Mark all as read from the To-dos tab clear my other unread chats?
+
+No. **Mark all as read** from the **To-dos** tab only marks the chats listed under **To-dos** as read. Use the **All** or **Unread** tab to mark every unread chat as read.
 
 ## Where do I manage workspace settings?
 
