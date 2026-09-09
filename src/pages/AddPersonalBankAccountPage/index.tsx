@@ -255,6 +255,10 @@ function AddPersonalBankAccountPage() {
             return;
         }
         if (pageIndex === 0) {
+            if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
+                clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+                clearPersonalBankAccount({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+            }
             Navigation.goBack();
             return;
         }

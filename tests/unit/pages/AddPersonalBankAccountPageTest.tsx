@@ -11,6 +11,9 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
+import {clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -41,6 +45,11 @@ jest.mock('@userActions/BankAccounts', () => ({
     updatePersonalBankAccountCurrentPage: jest.fn(),
 }));
 
+jest.mock('@userActions/FormActions', () => ({
+    ...jest.requireActual('@userActions/FormActions'),
+    clearDraftValues: jest.fn(),
+}));
+
 jest.mock('@userActions/PaymentMethods', () => ({
     continueSetup: jest.fn(),
 }));
@@ -57,6 +66,7 @@ type TestRootParamList = {
 const RootStack = createRootStackNavigator<TestRootParamList>();
 const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
 const AddPersonalBankAccountStack = createPlatformStackNavigator<AddPersonalBankAccountNavigatorParamList>();
+let initialSubPage: ValueOf<typeof CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES> = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
 
 const getEmptyComponent = () => jest.fn();
 
@@ -82,14 +92,14 @@ function TestTabNavigator() {
     );
 }
 
-/** Renders the real page on its success substep, so pressing the primary button runs the flow's exit logic. */
+/** Renders the real page on the selected subpage. */
 function TestRightModalNavigator() {
     return (
         <AddPersonalBankAccountStack.Navigator>
             <AddPersonalBankAccountStack.Screen
                 name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
                 component={AddPersonalBankAccountPage}
-                initialParams={{subPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS}}
+                initialParams={{subPage: initialSubPage}}
             />
         </AddPersonalBankAccountStack.Navigator>
     );
@@ -135,6 +145,7 @@ describe('AddPersonalBankAccountPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -159,5 +170,28 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears an abandoned Wallet draft before returning from the first US setup page', async () => {
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        expect(clearPersonalBankAccount).toHaveBeenCalledWith({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+        expect(goBackSpy).toHaveBeenCalledWith();
     });
 });
