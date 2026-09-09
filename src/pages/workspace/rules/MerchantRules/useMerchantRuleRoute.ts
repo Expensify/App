@@ -48,7 +48,9 @@ function useMerchantRuleRoute(dynamicSuffix: DynamicRouteSuffix, policyID: strin
     // Only workspace settings can reach an edit. `ruleID` is absent on dynamic routes, and `undefined !== 'new'`
     // would otherwise read as editing.
     const isEditing = !isCreatedFromExpense && !!ruleID && ruleID !== ROUTES.NEW;
-    const dynamicBackToRoute = useDynamicBackPath(dynamicSuffix);
+    // Only the callout's own entry uses this, and the settings flow reaches every one of these pages too. Working the
+    // path out there would cost the same on each navigation event and then be thrown away.
+    const dynamicBackToRoute = useDynamicBackPath(dynamicSuffix, isCreatedFromExpense);
     const ruleRoute = isEditing && ruleID ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const getRuleRoute = (dynamicSuffixWithParams: string, staticRoute: Route) => (isCreatedFromExpense ? createDynamicRoute(dynamicSuffixWithParams) : staticRoute);

@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, PolicyCategories} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -45,6 +45,32 @@ function trackMerchantRuleSuggestion(
     });
 }
 
+/**
+ * The rollback for a tracked edit, to sit in an update's `failureData`. A rejected edit puts the old value back, and
+ * an offer left behind would seed a rule from a value the expense no longer holds. Forgetting the field is enough:
+ * once an expense has none left, it stops offering.
+ *
+ * @param editedTagLevels - the levels recorded alongside a tag edit, forgotten with it
+ */
+function getMerchantRuleSuggestionRollback(
+    transactionID: string | undefined,
+    field: MerchantRuleSuggestionField,
+    editedTagLevels?: number[],
+): OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION> | undefined {
+    if (!transactionID) {
+        return undefined;
+    }
+
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
+        value: {
+            editedFields: {[transactionID]: {[field]: null}},
+            ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, null]))}} : {}),
+        },
+    };
+}
+
 /** Records that the callout rendered, which is what makes leaving the expense retire the offer. */
 function markMerchantRuleSuggestionSeen() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {wasSeen: true});
@@ -73,4 +99,11 @@ function retireMerchantRuleSuggestion() {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
 }
 
-export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
+export {
+    trackMerchantRuleSuggestion,
+    dismissMerchantRuleSuggestion,
+    markMerchantRuleSuggestionSeen,
+    retireMerchantRuleSuggestion,
+    clearMerchantRuleSuggestionFields,
+    getMerchantRuleSuggestionRollback,
+};
