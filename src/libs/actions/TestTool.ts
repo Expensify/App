@@ -32,9 +32,7 @@ const throttledToggle = throttle(
                 Navigation.goBack(backTo);
                 return;
             }
-            // goBack() would only pop the topmost screen, leaving a pushed child such as the server selector
-            // showing the modal it was meant to dismiss. DISMISS_MODAL is no help: the public root stack is
-            // a plain platform stack and does not handle it.
+            // dismissModal() would not close this modal: the public root is a plain platform stack that never handles DISMISS_MODAL.
             const rootKey = navigationRef.current?.getRootState()?.key;
             if (rootKey) {
                 Navigation.pop(rootKey);
@@ -46,9 +44,7 @@ const throttledToggle = throttle(
         const openTestToolsModal = () => {
             setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(backToRoute)), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
-        // Dismiss any current modal before showing test tools modal
-        // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state
-        // Without this, the URL would revert to onboarding/test-drive or onboarding/test-drive/demo while the modal is already dismissed, leading to an unresponsive state
+        // The test drive modal needs goBack() to clean up its navigation state; close() alone leaves the URL on onboarding/test-drive with the modal gone, and the app unresponsive.
         if (currentRoute.includes('test-drive')) {
             Navigation.goBack();
             openTestToolsModal();

@@ -30,7 +30,6 @@ const mockQAServer = CONST.SERVER.QA;
 let mockActiveServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 let mockIsPinnedByEnvironment = false;
 
-// How the server resolves is `ApiUtilsTest` and its per-environment siblings; here it is an input.
 jest.mock('@hooks/useActiveServer', () => ({
     __esModule: true,
     default: (): ActiveServerState => ({activeServer: mockActiveServer, isPinnedByEnvironment: mockIsPinnedByEnvironment}),
