@@ -8,7 +8,12 @@ import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 import {updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 /**
  * Shared persistence helpers for inline editing of workspace policy items (categories, tags, distance
@@ -20,6 +25,7 @@ import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
  * Add new items as additional sections below rather than creating a file per item.
  */
 import {renamePolicyCategory} from './Category';
+import {updateWorkspaceMembersRole} from './Member';
 import {renamePolicyTag} from './Tag';
 
 // #region Categories
@@ -100,4 +106,37 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
 
 // #endregion Expensify Cards
 
-export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline};
+// #region Members
+
+function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
+    switch (role) {
+        case CONST.POLICY.ROLE.OWNER:
+        case CONST.POLICY.ROLE.ADMIN:
+        case CONST.POLICY.ROLE.AUDITOR:
+        case CONST.POLICY.ROLE.USER:
+        case CONST.POLICY.ROLE.EDITOR:
+        case CONST.POLICY.ROLE.CARD_ADMIN:
+        case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+        case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
+ * Changes a member's role from an inline table edit. Delegates to the canonical role action, which
+ * owns the optimistic Onyx write, the API call, and failure rollback. Silently no-ops when the role
+ * is unchanged or not a known policy role (matching the Spend inline-edit behavior).
+ */
+function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, accountID: number, currentRole: string | undefined, newRole: string): void {
+    if (!memberLogin || newRole === currentRole || !isPolicyRole(newRole)) {
+        return;
+    }
+
+    updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
+}
+
+// #endregion Members
+
+export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, updateMemberRoleInline};
