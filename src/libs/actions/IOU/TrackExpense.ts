@@ -51,7 +51,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -131,7 +130,6 @@ import {
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
@@ -1948,10 +1946,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
             };
         }
-    }
-
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
     if (deferredAPIWrite) {
