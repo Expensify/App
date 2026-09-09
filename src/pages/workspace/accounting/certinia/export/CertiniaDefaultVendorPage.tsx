@@ -77,7 +77,7 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
             data={dataOptions}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={exportConfig?.vendorAccount}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : exportConfig?.vendorAccount}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.accounting.defaultVendor"
             listEmptyContent={listEmptyContent}
