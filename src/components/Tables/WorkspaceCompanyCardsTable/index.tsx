@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
 import React, {useImperativeHandle, useRef, useState} from 'react';
@@ -348,7 +348,7 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<WorkspaceCompanyCardTableItemData>) => (
         <WorkspaceCompanyCardTableItem
             key={item.keyForList}
             item={item}

@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -98,7 +98,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         return matchingItems.length > 0;
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<ExpenseDefaultTableItem>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<ExpenseDefaultTableItem>) => (
         <WorkspaceExpenseDefaultsTableRow
             key={item.ruleID}
             item={item}

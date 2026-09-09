@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React, {useRef} from 'react';
 
@@ -67,7 +67,7 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
         return results.length > 0;
     };
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainAdminRowData>) => (
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<DomainAdminRowData>) => (
         <DomainAdminsTableRow
             item={item}
             rowIndex={index}

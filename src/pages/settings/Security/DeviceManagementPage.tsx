@@ -18,10 +18,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
 import type {Login} from '@src/types/onyx/Logins';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {FlashList} from '@shopify/flash-list';
+import {LegendList} from '@legendapp/list/react-native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -42,7 +42,7 @@ function DeviceManagementPage() {
         </View>
     );
 
-    const renderItem = ({item}: ListRenderItemInfo<Login>) => {
+    const renderItem = ({item}: LegendListRenderItemProps<Login>) => {
         const {deviceName, deviceVersion, os, osVersion} = item.additionalData ?? {};
         const displayName = getDeviceDisplayName(item, deviceName, deviceVersion, os, osVersion, translate('deviceManagementPage.unknownDevice'));
         return (
@@ -76,11 +76,12 @@ function DeviceManagementPage() {
                 title={translate('deviceManagementPage.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <FlashList
+            <LegendList
                 data={logins}
                 renderItem={renderItem}
+                extraData={renderItem}
                 keyExtractor={getLoginKey}
-                maintainVisibleContentPosition={{disabled: true}}
+                maintainVisibleContentPosition={false}
                 contentContainerStyle={[styles.ph5]}
                 ListHeaderComponent={listHeader}
             />

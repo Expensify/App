@@ -1,6 +1,5 @@
 import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
-import '@shopify/flash-list/jestSetup';
 import type * as LegendListModule from '@legendapp/list/react-native';
 import type {ReactNode} from 'react';
 import type React from 'react';

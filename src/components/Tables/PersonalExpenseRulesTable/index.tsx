@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -83,7 +83,7 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
         return results.length > 0;
     };
 
-    const renderPersonalExpenseRuleItem = ({item, index}: ListRenderItemInfo<PersonalExpenseRuleRowData>) => (
+    const renderPersonalExpenseRuleItem = ({item, index}: LegendListRenderItemProps<PersonalExpenseRuleRowData>) => (
         <PersonalExpenseRulesTableRow
             item={item}
             rowIndex={index}

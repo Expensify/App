@@ -24,7 +24,7 @@ import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {ListRenderItem} from '@shopify/flash-list';
+import type {LegendListProps} from '@legendapp/list/react-native';
 
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -320,8 +320,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
      * so that the sticky headers function properly.
      *
      */
-    const renderItem: ListRenderItem<EmojiPickerListItem> = useCallback(
-        ({item, index, target}) => {
+    const renderItem: NonNullable<LegendListProps<EmojiPickerListItem>['renderItem']> = useCallback(
+        ({item, index}) => {
             const code = item.code;
             const types = 'types' in item ? item.types : undefined;
 
@@ -336,11 +336,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         tabIndex={-1}
                         role={CONST.ROLE.HEADING}
                         onLayout={() => handleHeaderLayout(index)}
-                        style={[
-                            styles.emojiHeaderContainer,
-                            styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth),
-                            target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
-                        ]}
+                        style={[styles.emojiHeaderContainer, styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth)]}
                     >
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>

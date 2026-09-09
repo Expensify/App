@@ -7,10 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListProps, LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -112,7 +112,7 @@ function BaseSelectionListImpl({
     // Kept out of the destructuring default so the `!!` doesn't bail the component out of React Compiler.
     const shouldShowTextInput = shouldShowTextInputProp ?? !!textInputOptions?.label;
 
-    const listRef = useRef<FlashListRef<ListItem> | null>(null);
+    const listRef = useRef<LegendListRef | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
@@ -178,16 +178,11 @@ function BaseSelectionListImpl({
         shouldDebounceScrolling,
         scrollToIndex,
         debouncedScrollToIndex,
-        announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
 
-    // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
-    // Including data.length ensures FlashList resets its layout cache when the list size changes
-    // This prevents "index out of bounds" errors when filtering reduces the list size
-    const extraData = useMemo(() => [data.length], [data.length]);
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
@@ -296,7 +291,7 @@ function BaseSelectionListImpl({
         );
     };
 
-    const renderItem: ListRenderItem<ListItem> = ({item, index}: ListRenderItemInfo<ListItem>) => {
+    const renderItem: NonNullable<LegendListProps<ListItem>['renderItem']> = ({item, index}: LegendListRenderItemProps<ListItem>) => {
         const selected = isItemSelected(item);
         const isItemDisabled = isDisabled || (!!item.isDisabled && !selected);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
@@ -516,13 +511,13 @@ function BaseSelectionListImpl({
             ) : (
                 <>
                     {!shouldHeaderBeInsideList && header}
-                    <FlashList
+                    <LegendList
                         role={getListboxRole(canSelectMultiple)}
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item) => item.keyForList}
-                        extraData={extraData}
+                        extraData={renderItem}
                         ListFooterComponent={listFooterContent}
                         ListFooterComponentStyle={style?.listFooterContentStyle}
                         scrollEnabled={scrollEnabled}
@@ -536,7 +531,7 @@ function BaseSelectionListImpl({
                         contentContainerStyle={[styles.pb3, style?.contentContainerStyle]}
                         initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
                         onScrollBeginDrag={onScrollBeginDrag}
-                        maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
+                        maintainVisibleContentPosition={!disableMaintainingScrollPosition}
                         ListHeaderComponent={
                             <>
                                 {customListHeaderContent}

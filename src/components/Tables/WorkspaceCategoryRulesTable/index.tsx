@@ -10,7 +10,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -101,7 +101,7 @@ function WorkspaceCategoryRulesTableImpl({
         return matchingItems.length > 0;
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
+    const renderItem = ({item, index}: LegendListRenderItemProps<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
     const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);

@@ -15,7 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React, {useMemo} from 'react';
 
@@ -136,7 +136,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
         [translate],
     );
 
-    const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow
             key={item.rateID}
             item={item}

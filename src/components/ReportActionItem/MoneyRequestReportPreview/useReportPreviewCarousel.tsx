@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListProps, LegendListRef} from '@legendapp/list/react-native';
 import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -60,7 +60,7 @@ type UseReportPreviewCarouselParams = {
     newTransactionIDs?: Set<string>;
 
     /** Renders a single transaction preview item */
-    renderTransactionItem: ListRenderItem<Transaction>;
+    renderTransactionItem: NonNullable<LegendListProps<Transaction>['renderItem']>;
 };
 
 /**
@@ -126,11 +126,11 @@ function useReportPreviewCarousel({
     // value ensures that disabled state is applied instantly and not overridden by onViewableItemsChanged when scrolling
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
-    const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
+    const carouselRef = useRef<LegendListRef | null>(null);
 
     // Expose a callback ref instead of the ref object so the ref does not flow through the hook's return value
     // (React Compiler forbids reading/passing refs during render).
-    const setCarouselRef = useCallback((node: FlashListRef<Transaction> | null) => {
+    const setCarouselRef = useCallback((node: LegendListRef | null) => {
         carouselRef.current = node;
     }, []);
     const prevTransactionCountForScroll = useRef(carouselTransactions.length);
@@ -217,7 +217,7 @@ function useReportPreviewCarousel({
         }
         if (index < 0) {
             setOptimisticIndex(0);
-            carouselRef.current?.scrollToTop({animated: true});
+            carouselRef.current?.scrollToOffset({offset: 0, animated: true});
             return;
         }
         if (index === carouselTransactions.length - visibleItemsOnEndCount) {
@@ -232,7 +232,7 @@ function useReportPreviewCarousel({
         });
     };
 
-    const renderItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
+    const renderItem: NonNullable<LegendListProps<Transaction>['renderItem']> = (itemInfo) => {
         if (itemInfo.index > MAX_PREVIEWS_NUMBER - 1) {
             return (
                 <View
@@ -261,7 +261,7 @@ function useReportPreviewCarousel({
         ) {
             return;
         }
-        // Clears the transient optimistic index once the FlashList scroll (an external system) catches up to the
+        // Clears the transient optimistic index once the LegendList scroll (an external system) catches up to the
         // arrow-driven target, so the arrows fall back to reacting to the real scroll position.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOptimisticIndex(undefined);

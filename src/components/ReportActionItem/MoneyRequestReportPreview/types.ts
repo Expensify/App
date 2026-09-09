@@ -4,7 +4,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
-import type {ListRenderItem} from '@shopify/flash-list';
+import type {LegendListProps} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -90,7 +90,7 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Callback passed to Component wrapper view's onLayout */
         onWrapperLayout: (e: LayoutChangeEvent) => void;
 
-        renderTransactionItem: ListRenderItem<Transaction>;
+        renderTransactionItem: NonNullable<LegendListProps<Transaction>['renderItem']>;
 
         /** Called with the transactions in the order the carousel renders them */
         onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;

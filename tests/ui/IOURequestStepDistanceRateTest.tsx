@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
+import type * as LegendListModule from '@legendapp/list/react-native';
 import type ReactNative from 'react-native';
 
 import React from 'react';
@@ -42,17 +43,18 @@ jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
 // The dynamic step derives its back path from the root navigation state, which isn't set up in this test.
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
 
-// Render FlashList as a plain ScrollView that mounts every row, so the test can assert the full data
+// Render LegendList as a plain ScrollView that mounts every row, so the test can assert the full data
 // order instead of only the virtualized window (the real list scrolls to the focused rate on mount).
-jest.mock('@shopify/flash-list', () => {
+jest.mock('@legendapp/list/react-native', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
     const RN = jest.requireActual<typeof ReactNative>('react-native');
+    const LegendListActual = jest.requireActual<typeof LegendListModule>('@legendapp/list/react-native');
 
-    const FlashList = ReactLocal.forwardRef<
+    const LegendList = ReactLocal.forwardRef<
         {scrollToIndex: (params: {index: number}) => void},
         Omit<React.ComponentProps<typeof RN.ScrollView>, 'children'> & {
             data?: unknown[];
-            renderItem?: (info: {item: unknown; index: number; target: string}) => React.ReactNode;
+            renderItem?: (info: {item: unknown; index: number}) => React.ReactNode;
             keyExtractor?: (item: unknown, index: number) => string;
             ListHeaderComponent?: React.ReactNode;
             ListFooterComponent?: React.ReactNode;
@@ -87,15 +89,13 @@ jest.mock('@shopify/flash-list', () => {
                 RN.ScrollView,
                 scrollViewProps,
                 ListHeaderComponent ?? null,
-                ...(data ?? []).map((item, index) =>
-                    ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor?.(item, index) ?? String(index)}, renderItem?.({item, index, target: 'Cell'})),
-                ),
+                ...(data ?? []).map((item, index) => ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor?.(item, index) ?? String(index)}, renderItem?.({item, index}))),
                 ListFooterComponent ?? null,
             );
         },
     );
 
-    return {FlashList};
+    return {...LegendListActual, LegendList};
 });
 
 const ACCOUNT_ID = 1;

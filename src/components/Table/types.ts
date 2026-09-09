@@ -1,5 +1,5 @@
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren} from 'react';
+import type {LegendListProps, LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
+import type {PropsWithChildren, ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
@@ -135,24 +135,26 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
 
 /**
  * The ref handle type for the Table component.
- * Provides access to both FlashList methods and custom table control methods.
+ * Provides access to both LegendList methods and custom table control methods.
  *
  * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> &
+type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = LegendListRef &
     TableMethods<ColumnKey, FilterKey> & {
         /** Method to get all of the processed data after filtering, searching, and sorting have been applied. */
         getProcessedData: () => Array<TableRow<DataType>>;
     };
 
 /**
- * FlashList props with the 'data' prop omitted, as the Table manages data internally.
+ * LegendList data-mode props with the list-owned props omitted, as the Table manages data internally.
  *
  * @template DataType - The type of items in the table's data array.
  */
-type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>, 'data'>;
+type SharedListProps<DataType extends TableData> = Omit<LegendListProps<DataType>, 'children' | 'data' | 'renderItem'> & {
+    renderItem: (props: LegendListRenderItemProps<DataType>) => ReactNode;
+};
 
 /**
  * Props for the Table component.
