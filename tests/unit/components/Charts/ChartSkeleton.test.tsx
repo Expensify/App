@@ -1,7 +1,9 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ChartSkeleton, {BAR_TEST_ID, CHART_SKELETON_TEST_ID, LINE_TEST_ID, PIE_TEST_ID} from '@components/Charts/ChartSkeleton';
+import {CHART_CONTENT_MIN_HEIGHT, getCartesianChartHeight} from '@components/Charts/VictoryTheme';
 import type {ChartView} from '@components/Search/types';
+import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 
 import CONST from '@src/CONST';
 
@@ -14,6 +16,10 @@ const NARROW_CONTAINER_WIDTH = 60;
 function renderAtContainerWidth(view: ChartView, width = CONTAINER_WIDTH) {
     render(<ChartSkeleton view={view} />);
     fireEvent(screen.getByTestId(CHART_SKELETON_TEST_ID), 'layout', {nativeEvent: {layout: {width, height: 0}}});
+}
+
+function getSkeletonHeight() {
+    return Number(screen.UNSAFE_getByType(SkeletonViewContentLoader).props.height);
 }
 
 describe('ChartSkeleton', () => {
@@ -48,5 +54,18 @@ describe('ChartSkeleton', () => {
         expect(Number(screen.getByTestId(PIE_TEST_ID).props.r)).toBeGreaterThan(0);
         expect(screen.queryByTestId(BAR_TEST_ID)).toBeNull();
         expect(screen.queryByTestId(LINE_TEST_ID)).toBeNull();
+    });
+
+    it('should reserve the x-axis label strip for the cartesian views and not for the pie view', () => {
+        renderAtContainerWidth(CONST.SEARCH.VIEW.LINE);
+        expect(getSkeletonHeight()).toBe(getCartesianChartHeight());
+
+        screen.unmount();
+        renderAtContainerWidth(CONST.SEARCH.VIEW.BAR);
+        expect(getSkeletonHeight()).toBe(getCartesianChartHeight());
+
+        screen.unmount();
+        renderAtContainerWidth(CONST.SEARCH.VIEW.PIE);
+        expect(getSkeletonHeight()).toBe(CHART_CONTENT_MIN_HEIGHT);
     });
 });

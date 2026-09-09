@@ -17,7 +17,7 @@ import {
     useLabelHitTesting,
 } from '@components/Charts/hooks';
 import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {getCartesianChartHeight, getXAxisLabelSpace, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,17 +36,13 @@ import {CartesianChart, Line} from 'victory-native';
 
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
-/** Inner dot radius for line chart data points */
 const DOT_RADIUS = 4;
 
-/** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
 
-/** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 type LineChartProps = CartesianChartProps & {
-    /** Callback when a data point is pressed */
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
@@ -224,8 +220,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         );
     };
 
-    const labelSpace = VictoryTheme.axis.labelGap + (xAxisLabelHeight ?? 0);
-    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
+    const dynamicChartStyle = {height: getCartesianChartHeight(xAxisLabelHeight)};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,

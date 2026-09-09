@@ -13,7 +13,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Path} from 'react-native-svg';
 
-import {CHART_CONTENT_MIN_HEIGHT} from './VictoryTheme';
+import {CHART_CONTENT_MIN_HEIGHT, getCartesianChartHeight} from './VictoryTheme';
 
 const CHART_SKELETON_TEST_ID = 'chartSkeleton';
 const BAR_TEST_ID = 'chartSkeletonBar';
@@ -79,20 +79,22 @@ function renderPieShape(width: number) {
     );
 }
 
-const SHAPE_BY_VIEW: Record<ChartView, (width: number) => ReactNode> = {
-    [CONST.SEARCH.VIEW.BAR]: renderBarShape,
-    [CONST.SEARCH.VIEW.LINE]: renderLineShape,
-    [CONST.SEARCH.VIEW.PIE]: renderPieShape,
+// Each height is the box its chart draws into, so the box holds its size when the chart replaces the placeholder. The
+// pie chart's legend sits below that box and is not stood in for, so the pie card still grows by the legend.
+const PLACEHOLDER_BY_VIEW: Record<ChartView, {render: (width: number) => ReactNode; height: number}> = {
+    [CONST.SEARCH.VIEW.BAR]: {render: renderBarShape, height: getCartesianChartHeight()},
+    [CONST.SEARCH.VIEW.LINE]: {render: renderLineShape, height: getCartesianChartHeight()},
+    [CONST.SEARCH.VIEW.PIE]: {render: renderPieShape, height: CHART_CONTENT_MIN_HEIGHT},
 };
 
 type ChartSkeletonProps = {
-    /** Chart view type whose placeholder shape to draw */
     view: ChartView;
 };
 
 function ChartSkeleton({view}: ChartSkeletonProps) {
     const theme = useTheme();
     const {onLayout, containerWidth} = useContainerWidth();
+    const {render, height} = PLACEHOLDER_BY_VIEW[view];
 
     return (
         <View
@@ -101,12 +103,12 @@ function ChartSkeleton({view}: ChartSkeletonProps) {
         >
             <SkeletonViewContentLoader
                 animate
-                height={CHART_CONTENT_MIN_HEIGHT}
+                height={height}
                 width={containerWidth}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
             >
-                {SHAPE_BY_VIEW[view](containerWidth)}
+                {render(containerWidth)}
             </SkeletonViewContentLoader>
         </View>
     );
