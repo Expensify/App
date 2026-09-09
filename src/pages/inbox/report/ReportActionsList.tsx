@@ -259,7 +259,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
     const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
 
-    // Resolve the unread marker against the rendered actions because a synthetic Concierge draft can shift the FlatList indices.
     const unreadMarkerReportActionIndex = unreadMarkerReportActionID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const {
