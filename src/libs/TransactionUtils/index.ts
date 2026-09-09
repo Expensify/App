@@ -285,8 +285,8 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
 
 /**
  * Whether the user filled in every one of the amount / merchant / date fields the Scan confirmation reveals behind
- * "Show more". Each of them is optional — a field left blank is read off the receipt — so only once all three carry a
- * value of their own is the receipt submitted as `open`, where SmartScan never overwrites what the user typed.
+ * "Show more". Each of them is optional, since a field left blank is read off the receipt, so only once all three
+ * carry a value of their own is the receipt submitted as `open`, where SmartScan never overwrites what the user typed.
  */
 function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<Transaction>): boolean {
     return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;

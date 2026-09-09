@@ -114,7 +114,7 @@ function AmountField({
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
     // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
-    // the first keystroke — it would otherwise sit next to the caret promising to fill in what is being typed.
+    // the first keystroke. It would otherwise sit next to the caret promising to fill in what is being typed.
     const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !transactionSlice?.isAmountSet;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 

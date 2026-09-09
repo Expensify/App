@@ -614,6 +614,7 @@ function IOURequestStepConfirmationContent({
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportID,
         policy,

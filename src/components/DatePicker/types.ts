@@ -71,8 +71,8 @@ type DateInputWithPickerProps = DatePickerBaseProps &
         shouldDismissKeyboardBeforeShow?: boolean;
 
         /**
-         * Reports whether the calendar is open. Opening the picker blurs the input, so this — not `onFocus` — is the
-         * signal for "the user is on this field", and it is what drives the input's focused border.
+         * Reports whether the calendar is open. Opening the picker blurs the input, so this is the signal for "the
+         * user is on this field" rather than `onFocus`, and it is what drives the input's focused border.
          */
         onPickerVisibilityChange?: (isVisible: boolean) => void;
     };

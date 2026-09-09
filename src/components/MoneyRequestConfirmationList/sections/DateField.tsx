@@ -67,12 +67,12 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const transactionHasReceipt = dateState?.hasReceipt ?? false;
 
     // A draft is seeded with today's date, but in the Scan flow the date belongs to the receipt, not to today, so the
-    // picker stays empty until the user picks one — the same way the amount field starts empty.
+    // picker stays empty until the user picks one, the same way the amount field starts empty.
     const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
 
-    // Opening the calendar blurs the input, so the open picker — not focus — is this field's "the user is on it"
-    // signal, and it is what draws the focused border. The hint follows it so it can't sit next to an open calendar
-    // promising to fill in the date the user is picking. It stays tied to the empty value beyond that.
+    // Opening the calendar blurs the input, so the open picker is this field's "the user is on it" signal rather
+    // than focus, and it is what draws the focused border. The hint follows it so it can't sit next to an open
+    // calendar promising to fill in the date the user is picking. It stays tied to the empty value beyond that.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen;
 
@@ -86,7 +86,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         }
 
         // While the picker renders empty the persisted date is only a default, so a pick that matches it still has to
-        // be written — that write is what marks the date as chosen by the user.
+        // be written. That write is what marks the date as chosen by the user.
         if (newDate === iouCreated && !shouldShowEmptyDate) {
             return;
         }
@@ -137,7 +137,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
-                    // component whenever the clear button can appear — which it can't without a value to clear.
+                    // component whenever the clear button can appear, which it can't without a value to clear.
                     shouldHideClearButton={shouldShowEmptyDate}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     onPickerVisibilityChange={setIsDatePickerOpen}

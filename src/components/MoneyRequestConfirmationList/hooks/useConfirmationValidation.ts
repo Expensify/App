@@ -175,8 +175,8 @@ function useConfirmationValidation({
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
-    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more". Each is optional there —
-    // a field left blank is still read off the receipt — but one the user does fill in is subject to the same
+    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more". Each is optional there:
+    // a field left blank is still read off the receipt, but one the user does fill in is subject to the same
     // validation as a manually entered one.
     const shouldValidateEnteredAmount = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually;
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
@@ -195,7 +195,7 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // `isConfirmationAmountMissing` only applies to manually entered amounts — per diem, distance and time set the
+        // `isConfirmationAmountMissing` only applies to manually entered amounts. Per diem, distance and time set the
         // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
         if (isConfirmationAmountMissing(transaction)) {
             return {errorKey: 'common.error.fieldRequired'};

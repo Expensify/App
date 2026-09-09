@@ -1702,6 +1702,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         merchant,
         comment = '',
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -1918,7 +1919,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
                 receipt: isFileUploadable(receipt) ? receipt : undefined,
-                receiptState: receipt?.state,
+                receiptState: receiptState ?? receipt?.state,
                 category,
                 tag,
                 taxCode,
@@ -2484,6 +2485,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distance,
         modifiedDistance,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -2512,6 +2514,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
+    // The generic distance receipt above carries its own state, so only a real receipt takes the caller's override.
+    const trackedReceiptState = validWaypoints ? undefined : receiptState;
     const sanitizedWaypoints = validWaypoints ? stringifyWaypointsForAPI(validWaypoints) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
@@ -2875,7 +2879,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // Tracked expenses in the CREATE flow are unreported and not tied to a policy
                 policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
-                receiptState: trackedReceipt?.state,
+                receiptState: trackedReceiptState ?? trackedReceipt?.state,
                 reimbursable,
                 category,
                 tag,

@@ -130,6 +130,11 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     receipt?: Receipt;
+    /**
+     * Overrides the state carried on `receipt` when the caller derives it at submit time. The Scan confirmation does,
+     * because a receipt validated before the user finished typing carries a state that is a field behind.
+     */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     waypoints?: WaypointCollection;
     comment?: string;
     originalTransactionID?: string;
