@@ -753,6 +753,11 @@ describe('actions/IOU', () => {
             };
         }
 
+        /** The rail keys each flag by instance, so a test asks which transactions are flagged rather than indexing the record by ID. */
+        function getFlaggedTransactionIDs(pendingNewTransactionIDs: Record<string, unknown> | undefined) {
+            return Object.keys(pendingNewTransactionIDs ?? {}).map((flagKey) => parsePendingNewTransactionFlagKey(flagKey)?.transactionID);
+        }
+
         function getPendingNewTransactionIDsFromOnyx(reportID: string) {
             return new Promise<Record<string, unknown> | undefined>((resolve) => {
                 const connection = Onyx.connect({
