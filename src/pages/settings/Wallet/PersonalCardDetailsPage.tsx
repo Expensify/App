@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, hasCardConnectionIssue, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -74,7 +74,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    // Matches the wallet row, so a card the wallet says to fix also offers the fix here.
+    const isCardBroken = card ? hasCardConnectionIssue(card) : false;
     const isUserPersonalCard = !!(card && isPersonalCard(card));
 
     // Personal cards always belong to the current user, so fall back to the current user's personal details

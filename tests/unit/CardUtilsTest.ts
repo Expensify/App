@@ -58,10 +58,12 @@ import {
     getTranslationKeyForCardStatus,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
+    hasCardConnectionIssue,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
+    isCardConnectionBroken,
     isCardFrozen,
     isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
@@ -4433,6 +4435,35 @@ describe('CardUtils', () => {
         it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('hasCardConnectionIssue', () => {
+        it('returns true for a scrape status that is not ignored', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        // 434 is an ignored status so isCardConnectionBroken is false for it, but the server still records the error.
+        it('returns true for an ignored scrape status that carries a server error', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
+            expect(isCardConnectionBroken(card)).toBe(false);
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status with no error to show', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false for a successful scrape', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false while a scrape is pending', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
         });
     });
 

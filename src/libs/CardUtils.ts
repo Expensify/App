@@ -1424,6 +1424,26 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
+ * Whether a card's connection has a problem worth reflecting in its status. This is broader than
+ * `isCardConnectionBroken`, which ignores some scrape statuses so we do not prompt about them (e.g. 434). The server
+ * still records a connection error for those, so keying the status off the narrower check leaves the card reading
+ * Active with that error shown right underneath it. Requiring an error as well as a failed scrape keeps this to cards
+ * that are visibly reporting a problem.
+ *
+ * @param card the card to check
+ * @returns true if the card's connection has a problem to show, false otherwise
+ */
+function hasCardConnectionIssue(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
+    if (isCardConnectionBroken(card)) {
+        return true;
+    }
+    return !!card.lastScrapeResult && card.lastScrapeResult !== CONST.JSON_CODE.SUCCESS && !isEmptyObject(card.errors);
+}
+
+/**
  * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
  *
  * @param card the card to check
@@ -2223,6 +2243,7 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
+    hasCardConnectionIssue,
     doesCardConnectionNeedReauthentication,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
