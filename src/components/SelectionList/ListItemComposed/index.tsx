@@ -19,6 +19,7 @@
  * `ListItemComposed` to avoid the name collision.
  */
 import ListItemPressable from './ListItemPressable';
+import ListItemCompactAvatar from './primitives/ListItemCompactAvatar';
 import ListItemRBRIndicator from './primitives/ListItemRBRIndicator';
 import ListItemRightCaret from './primitives/ListItemRightCaret';
 import ListItemSubtitle from './primitives/ListItemSubtitle';
@@ -31,6 +32,7 @@ const ListItem = Object.assign(ListItemPressable, {
     RBRIndicator: ListItemRBRIndicator,
     TextColumn: ListItemTextColumn,
     RightCaret: ListItemRightCaret,
+    CompactAvatar: ListItemCompactAvatar,
 });
 
 export default ListItem;

@@ -1657,7 +1657,7 @@ function getChangeTransactionsReportOnyxData({
         let movedAction;
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
-        } else if (!isOpenReport(oldReport)) {
+        } else if (!isOpenReport(newReport)) {
             movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
         }
 

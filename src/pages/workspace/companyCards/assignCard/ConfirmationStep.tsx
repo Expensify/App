@@ -1,7 +1,7 @@
 import Button from '@components/ButtonComposed';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -80,6 +80,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
+
+    const cardNameTitle = maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName);
+
+    const transactionStartDateTitle =
+        cardToAssign?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : cardToAssign?.startDate;
 
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
@@ -183,10 +188,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 >
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.companyCards.card')}
-                        title={maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName)}
-                        interactive={false}
+                    <MenuItemField
+                        name={translate('workspace.companyCards.card')}
+                        value={cardNameTitle}
                     />
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
@@ -199,21 +203,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         testID={CONST.ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={
-                            cardToAssign?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING
-                                ? translate('workspace.companyCards.fromTheBeginning')
-                                : cardToAssign?.startDate
-                        }
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
+                        value={transactionStartDateTitle}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.companyCards.cardName')}
-                        title={cardToAssign?.customCardName}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.companyCards.cardName')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
+                        value={cardToAssign?.customCardName}
                     />
                     <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                         <OfflineWithFeedback
