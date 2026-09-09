@@ -138,7 +138,7 @@ describe('navigateToWorkspaceSettingsRoute', () => {
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', true, SCREENS.WORKSPACE.MEMBERS);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute, {skipInitialSplitNavigatorSidebar: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute, {shouldSkipInitialSplitNavigatorSidebar: true});
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });
 

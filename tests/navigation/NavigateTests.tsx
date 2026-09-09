@@ -170,7 +170,7 @@ describe('Navigate', () => {
             );
 
             act(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {skipInitialSplitNavigatorSidebar: true});
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
             });
 
             const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;

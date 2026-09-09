@@ -25,7 +25,7 @@ import getMinimalAction from './getMinimalAction';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
-    skipInitialSplitNavigatorSidebar: false,
+    shouldSkipInitialSplitNavigatorSidebar: false,
 };
 
 /**
@@ -173,7 +173,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We know that the options are always defined because we have default options.
-    const {forceReplace, skipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
@@ -296,7 +296,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (skipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload && minimalAction.payload.params) {
+    if (shouldSkipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload && minimalAction.payload.params) {
         minimalAction.payload.params = addSkipInitialSidebarParam(minimalAction.payload.params);
     }
     if (
