@@ -2038,7 +2038,7 @@ function getDefaultP2PMileageRate() {
 }
 
 function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTypes | null>) {
-    return Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
+    return Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
 }
 
 function getDuplicateTransactionDetails(transactionID?: string) {

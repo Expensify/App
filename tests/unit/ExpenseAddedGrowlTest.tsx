@@ -59,7 +59,7 @@ function flush(mutate: () => unknown) {
 function seedExpense(transactionID: string, reportID: string, dataType: SearchDataTypes = EXPENSE) {
     return flush(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {transactionID, reportID});
-        await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, {[transactionID]: dataType});
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, {[transactionID]: dataType});
     });
 }
 
@@ -154,7 +154,7 @@ describe('ExpenseAddedGrowl', () => {
             const signal: Record<string, SearchDataTypes> = {};
             signal['1'] = EXPENSE;
             signal['2'] = EXPENSE;
-            await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
         });
 
         // Then exactly one growl shows for the batch
@@ -163,7 +163,7 @@ describe('ExpenseAddedGrowl', () => {
         // And the whole signal is consumed so it can't re-fire
         const remaining = await new Promise<Record<string, SearchDataTypes> | undefined>((resolve) => {
             const connection = Onyx.connect({
-                key: ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
+                key: ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
                 callback: (value) => {
                     Onyx.disconnect(connection);
                     resolve(value);
@@ -211,7 +211,7 @@ describe('ExpenseAddedGrowl', () => {
             });
             const signal: Record<string, SearchDataTypes> = {};
             signal['1'] = EXPENSE;
-            await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
         });
 
         // When View is pressed
@@ -236,7 +236,7 @@ describe('ExpenseAddedGrowl', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[actionR14932.reportActionID]: actionR14932});
             const signal: Record<string, SearchDataTypes> = {};
             signal[transactionID] = EXPENSE;
-            await Onyx.merge(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, signal);
         });
 
         // When View is pressed

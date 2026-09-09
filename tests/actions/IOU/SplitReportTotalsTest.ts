@@ -916,7 +916,7 @@ describe('actions/IOU', () => {
             updateSplitTransactionsFromSplitExpensesFlow(params);
             await waitForBatchedUpdates();
 
-            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
             expect(growlTransactionIDs?.['new-merged-tx']).toBeUndefined();
         });
     });

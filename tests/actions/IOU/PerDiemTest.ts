@@ -1205,7 +1205,7 @@ describe('PerDiem', () => {
             await waitForBatchedUpdates();
 
             // Then the new transaction is queued for the "Expense added" growl
-            const signal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
             expect(Object.values(signal ?? {})).toEqual([CONST.SEARCH.DATA_TYPES.EXPENSE]);
         });
 
@@ -1216,7 +1216,7 @@ describe('PerDiem', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is queued for the growl
-            const signal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            const signal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
             expect(signal).toBeUndefined();
         });
     });

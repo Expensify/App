@@ -9825,7 +9825,7 @@ describe('createDistanceRequest', () => {
 
         await waitForBatchedUpdates();
 
-        const growlSignal = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+        const growlSignal = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
         expect(growlSignal?.[result.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
     });
 

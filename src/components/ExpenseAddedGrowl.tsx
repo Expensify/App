@@ -49,7 +49,7 @@ type ExpenseAddedGrowlContentProps = {
 /** Watches the "an expense was just added" Onyx signal and shows an "Expense added" growl with a "View" action. */
 function ExpenseAddedGrowl() {
     const [active, setActive] = useState<ActiveGrowl | null>(null);
-    const [signal] = useOnyx(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+    const [signal] = useOnyx(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
     const transactionID = active?.transactionID ?? Object.keys(signal ?? {}).at(-1);
 
     if (!transactionID) {
