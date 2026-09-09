@@ -18,8 +18,9 @@ function useTimeSensitiveOverdueInvoice() {
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
 
+    // Intentionally omit the travel grace period: it is an independent, higher-priority status in getSubscriptionStatus
+    // and would otherwise mask the subscription-invoice reminder when an owner owes on both at once.
     const subscriptionStatus = getSubscriptionStatus(
         stripeCustomerID,
         retryBillingSuccessful,
@@ -29,7 +30,7 @@ function useTimeSensitiveOverdueInvoice() {
         billingStatus,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        ownerTravelBillingGracePeriodEnd,
+        undefined,
     );
 
     const shouldShowOverdueInvoice = subscriptionStatus?.status === PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING && !!ownerBillingGracePeriodEnd;

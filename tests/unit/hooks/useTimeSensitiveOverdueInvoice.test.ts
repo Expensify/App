@@ -51,17 +51,6 @@ describe('useTimeSensitiveOverdueInvoice', () => {
 
             expect(result.current.shouldShowOverdueInvoice).toBe(false);
         });
-
-        it('returns false when an overdue travel invoice takes precedence', async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
-            await waitForBatchedUpdates();
-
-            const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
-
-            expect(result.current.shouldShowOverdueInvoice).toBe(false);
-        });
     });
 
     describe('when the overdue invoice SHOULD be shown', () => {
@@ -75,6 +64,17 @@ describe('useTimeSensitiveOverdueInvoice', () => {
 
             expect(result.current.shouldShowOverdueInvoice).toBe(true);
             expect(result.current.ownerBillingGracePeriodEnd).toBe(gracePeriodEnd);
+        });
+
+        it('returns true even when a travel invoice is also present (travel does not mask the subscription reminder)', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
+
+            expect(result.current.shouldShowOverdueInvoice).toBe(true);
         });
     });
 
