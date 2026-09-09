@@ -18,16 +18,24 @@ import {StyleSheet, View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
+import type {SearchFooterCount} from './types';
 
-import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
+import SearchFooterPopup from './FilterDropdowns/SearchFooterPopup';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
 
 const noop = () => {};
 
 type SearchPageFooterProps = {
-    /** Number of expenses represented by the footer total */
+    /** Number of expenses or reports represented by the footer count */
     count: number | undefined;
+
+    /** Which count the footer is displaying. Undefined renders the count as static text with no selector, e.g. while
+     * the footer describes a selection rather than the whole search. */
+    countType: SearchFooterCount | undefined;
+
+    /** The count the count selector falls back to when it is reset */
+    defaultCountType: SearchFooterCount;
 
     /** Total amount to display in the footer */
     total: number | undefined;
@@ -43,9 +51,12 @@ type SearchPageFooterProps = {
 
     /** Function to call when the footer currency changes */
     onCurrencyChange: (currency: string) => void;
+
+    /** Function to call when the displayed count changes */
+    onCountChange: (countType: SearchFooterCount) => void;
 };
 
-function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange}: SearchPageFooterProps) {
+function SearchPageFooter({count, countType, defaultCountType, total, currency, defaultCurrency, isTotalLoading, onCurrencyChange, onCountChange}: SearchPageFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,7 +72,7 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the total button is focused,
-    // claim Enter at top priority without bubbling so Enter only opens the currency popover instead of also opening the expense.
+    // claim Enter at top priority without bubbling so Enter only opens the footer's display menu instead of also opening the expense.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, noop, {isActive: isTotalButtonFocused, shouldBubble: false, shouldPreventDefault: false});
 
     const handleCurrencyChange = (item: SingleSelectItem<string> | undefined) => {
@@ -77,16 +88,16 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
         onCurrencyChange(nextCurrency);
     };
 
-    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
-        <CurrencyPopup
-            key={currency ?? defaultCurrency}
-            value={currency}
+    const renderFooterPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
+        <SearchFooterPopup
+            countType={countType}
+            defaultCountType={defaultCountType}
+            currency={currency}
+            defaultCurrency={defaultCurrency}
+            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
-            onChange={handleCurrencyChange}
-            searchPlaceholder={translate('common.search')}
-            defaultValue={defaultCurrency}
-            shouldShowList={isExpanded}
-            shouldUseFixedPopoverHeight
+            onCountChange={onCountChange}
+            onCurrencyChange={handleCurrencyChange}
         />
     );
 
@@ -130,14 +141,14 @@ function SearchPageFooter({count, total, currency, defaultCurrency, isTotalLoadi
                 pointerEvents={isTotalLoading ? 'none' : undefined}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
+                    <Text style={styles.textLabelSupporting}>{`${translate(countType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses')}:`}</Text>
                     <Text style={valueTextStyle}>{count}</Text>
                 </View>
                 {typeof total === 'number' && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                         <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
                         <FilterPopupButton
-                            PopoverComponent={renderCurrencyPopup}
+                            PopoverComponent={renderFooterPopup}
                             renderButton={totalButton}
                             popoverAnchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

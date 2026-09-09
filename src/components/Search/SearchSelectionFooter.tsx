@@ -3,7 +3,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 
+import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -15,7 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
-import type {SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchFooterCount, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
@@ -103,7 +106,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 // footer — not SearchPage and the <Search> list it contains.
 function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
-    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
@@ -140,6 +143,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const metadata = searchResults?.search;
     const metadataCount = metadata?.count;
+    const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = metadata?.total;
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
@@ -265,6 +269,17 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
+
+    // Both counts come back on every search, so the selector is a client-side switch. It applies whenever the footer is
+    // describing the whole search — nothing selected, or everything selected with nothing excluded. A subset is only ever
+    // counted in expenses, and an exclusion cannot be taken off a server report count, so neither offers a choice.
+    //
+    // A to-do search is excluded too: it recomputes its expense count from live Onyx data but carries no live report
+    // count, so the two would be measured against different result sets.
+    const isFooterDescribingWholeSearch = !hasPartialSelection && excludedTransactionsKeys.length === 0;
+    const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
+    const shouldShowCountSelector = isFooterDescribingWholeSearch && !shouldUseLiveData && (isExpenseType || isReportsSearch) && typeof metadataReportCount === 'number';
+    const footerCountType = shouldShowCountSelector ? (currentSearchQueryJSON?.footerCount ?? defaultFooterCountType) : undefined;
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
@@ -454,6 +469,21 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         [currentSearchHash, effectiveDefaultCurrency],
     );
 
+    // The count selection lives in the query (so it persists with the search) but is left out of the query hash, so
+    // applying it re-renders the footer from the counts this search already returned instead of running a new one.
+    //
+    // The query is rebuilt from the one being displayed rather than through the advanced-filters form: this footer is a
+    // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
+    // policy collection. The form is written from the query by useSearchFilterSync, so it still follows this change.
+    const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
+        if (!currentSearchQueryJSON) {
+            return;
+        }
+
+        const nextQuery = buildSearchQueryString({...currentSearchQueryJSON, footerCount: nextCountType});
+        close(() => Navigation.setParams({q: nextQuery, rawQuery: undefined}));
+    };
+
     const footerData = useMemo(() => {
         if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
             return {count: undefined, total: undefined, currency: undefined};
@@ -553,14 +583,19 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // but don't recalculate totals, so gate on offset 0.)
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
 
+    const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? metadataReportCount : footerData.count;
+
     return (
         <SearchPageFooter
-            count={footerData.count}
+            count={footerCount}
+            countType={footerCountType}
+            defaultCountType={defaultFooterCountType}
             total={footerData.total}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}
             isTotalLoading={isFooterTotalLoading}
             onCurrencyChange={handleFooterCurrencyChange}
+            onCountChange={handleFooterCountChange}
         />
     );
 }

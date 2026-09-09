@@ -2194,7 +2194,7 @@ describe('SearchQueryUtils', () => {
             expect(junk?.hash).toEqual(noSelection?.hash);
         });
 
-        it('uppercases the footer currency, so the same currency in either case shares one snapshot', () => {
+        it('normalizes the footer currency to upper case, so the same currency in either case shares one snapshot', () => {
             const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
             const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
 
@@ -3613,12 +3613,16 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as Record<string, unknown>;
+            const serialized: unknown = JSON.parse(serializeQueryJSONForBackend(queryJSON));
 
-            expect(serialized.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
-            expect(serialized.footerTotal).toEqual(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
-            expect(serialized.footerCurrency).toEqual('EUR');
-            expect(serialized.filters).toBeNull();
+            expect(serialized).toEqual(
+                expect.objectContaining({
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE,
+                    footerCurrency: 'EUR',
+                    filters: null,
+                }),
+            );
         });
     });
 
