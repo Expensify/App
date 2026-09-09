@@ -49,9 +49,10 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
         const requestedResumeFieldsKey = resumeFieldsKey;
         requestedResumeFieldsKeyRef.current = requestedResumeFieldsKey;
         fetchCorpayFields(draftValues.bankCountry, draftValues.bankCurrency, false, false, {preserveExistingDraft: true}).finally(() => {
-            if (requestedResumeFieldsKeyRef.current === requestedResumeFieldsKey) {
-                setCompletedResumeFieldsKey(requestedResumeFieldsKey);
+            if (requestedResumeFieldsKeyRef.current !== requestedResumeFieldsKey) {
+                return;
             }
+            setCompletedResumeFieldsKey(requestedResumeFieldsKey);
         });
     }, [draftValues?.bankCountry, draftValues?.bankCurrency, isLoading, resumeFieldsKey, shouldRefreshResumeFields]);
 

@@ -12,6 +12,7 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
 import {clearPersonalBankAccount} from '@userActions/BankAccounts';
+import type * as FormActions from '@userActions/FormActions';
 import {clearDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -46,7 +47,7 @@ jest.mock('@userActions/BankAccounts', () => ({
 }));
 
 jest.mock('@userActions/FormActions', () => ({
-    ...jest.requireActual('@userActions/FormActions'),
+    ...jest.requireActual<typeof FormActions>('@userActions/FormActions'),
     clearDraftValues: jest.fn(),
 }));
 
