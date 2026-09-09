@@ -27,7 +27,6 @@ type BeneficialOwnersListProps = {
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
 
-    /** List of owner keys */
     ownerKeys: string[];
 };
 

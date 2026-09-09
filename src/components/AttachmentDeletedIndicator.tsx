@@ -13,7 +13,6 @@ import {View} from 'react-native';
 import Icon from './Icon';
 
 type AttachmentDeletedIndicatorProps = {
-    /** Additional styles for container */
     containerStyles?: StyleProp<ViewStyle>;
 };
 
