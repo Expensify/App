@@ -2,10 +2,9 @@ import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
 import type * as LegendListModule from '@legendapp/list/react-native';
+import type * as FlashListModule from '@shopify/flash-list';
 import type React from 'react';
 import type {ReactNode} from 'react';
-import type {FlatList, FlatListProps, NativeSyntheticEvent, NativeScrollEvent} from 'react-native';
-import type ReactNativeModuleType from 'react-native';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
 
@@ -33,26 +32,27 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 setupMockImages();
 mockFSLibrary();
 
-// LegendList relies on native layout measurements that Jest does not produce. FlatList gives full-app tests
-// a deterministic renderer while preserving the scroll callbacks used by the report list.
+// LegendList relies on native layout measurements that Jest does not produce. FlashList's Jest setup supplies
+// deterministic layouts while keeping performance tests virtualized in the same way as the previous list.
 jest.mock('@legendapp/list/react-native', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
-    const FlatListActual = jest.requireActual<typeof ReactNativeModuleType>('react-native').FlatList;
+    const FlashListActual = jest.requireActual<typeof FlashListModule>('@shopify/flash-list').FlashList;
     const LegendListModuleActual = jest.requireActual<typeof LegendListModule>('@legendapp/list/react-native');
 
-    type MockLegendListProps = Omit<FlatListProps<unknown>, 'data' | 'initialScrollIndex' | 'maintainVisibleContentPosition' | 'onScroll'> & {
+    type MockLegendListProps = Omit<FlashListModule.FlashListProps<unknown>, 'data' | 'initialScrollIndex' | 'initialScrollIndexParams' | 'maintainVisibleContentPosition'> & {
         alignItemsAtEnd?: boolean;
-        data?: ArrayLike<unknown>;
+        data?: readonly unknown[];
         initialScrollAtEnd?: boolean;
-        initialScrollIndex?: number | {index: number};
+        initialScrollIndex?: number | {index: number; viewOffset?: number; viewPosition?: number};
         maintainScrollAtEnd?: unknown;
+        maintainScrollAtEndThreshold?: number;
         maintainVisibleContentPosition?: unknown;
-        onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+        recycleItems?: boolean;
     };
 
     return {
         ...LegendListModuleActual,
-        LegendList: ReactActual.forwardRef<FlatList<unknown>, MockLegendListProps>(
+        LegendList: ReactActual.forwardRef<FlashListModule.FlashListRef<unknown>, MockLegendListProps>(
             (
                 {
                     alignItemsAtEnd,
@@ -60,24 +60,26 @@ jest.mock('@legendapp/list/react-native', () => {
                     initialScrollAtEnd,
                     initialScrollIndex,
                     maintainScrollAtEnd,
+                    maintainScrollAtEndThreshold,
                     maintainVisibleContentPosition,
-                    onEndReached,
-                    onEndReachedThreshold = 0,
-                    onScroll,
+                    recycleItems,
                     ...props
                 },
                 ref,
             ) => {
-                const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                    onScroll?.(event);
-                    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
-                    const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
-                    if (distanceFromEnd <= layoutMeasurement.height * (onEndReachedThreshold ?? 0)) {
-                        onEndReached?.({distanceFromEnd});
-                    }
-                };
+                const initialScrollConfig = typeof initialScrollIndex === 'number' ? {index: initialScrollIndex} : initialScrollIndex;
+                const flashListInitialScrollIndex = initialScrollAtEnd && data.length > 0 ? data.length - 1 : initialScrollConfig?.index;
+                const flashListInitialScrollIndexParams = initialScrollAtEnd
+                    ? {viewPosition: 1}
+                    : initialScrollConfig && {viewOffset: initialScrollConfig.viewOffset, viewPosition: initialScrollConfig.viewPosition};
 
-                return ReactActual.createElement(FlatListActual<unknown>, {...props, data, initialNumToRender: data.length, onScroll: handleScroll, ref});
+                return ReactActual.createElement(FlashListActual<unknown>, {
+                    ...props,
+                    data,
+                    initialScrollIndex: flashListInitialScrollIndex,
+                    initialScrollIndexParams: flashListInitialScrollIndexParams,
+                    ref,
+                });
             },
         ),
     };
