@@ -4,10 +4,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
-import {getRules} from '@libs/actions/Policy/Rules';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +39,6 @@ import {hasIssuedExpensifyCardSelector} from '@selectors/Card';
 import {createHasExpenseDefaultRulesSelector} from '@selectors/Rule';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useEffect} from 'react';
 
 const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
@@ -78,15 +77,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
 
-    // Home never opens a workspace, so nothing else fetches the rules collection that `hasMerchantRules`
-    // reads. Gated on the same condition as the checklist item so this only runs where the item is shown.
-    const shouldFetchRules = !!activePolicyID && arePolicyRulesEnabled(policy, policyCategories);
-    useEffect(() => {
-        if (!shouldFetchRules) {
-            return;
-        }
-        getRules();
-    }, [shouldFetchRules]);
+    // The checklist reads the rules collection, and nothing on Home opens a workspace to populate it.
+    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const [allCardFeeds] = useCardFeeds(activePolicyID);
     const workspaceAccountID = useWorkspaceAccountID(activePolicyID);
 

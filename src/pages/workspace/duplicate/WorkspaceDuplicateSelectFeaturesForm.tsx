@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getExpenseDefaultRuleCount} from '@libs/ExpenseDefaultRuleUtils';
@@ -23,7 +24,6 @@ import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
-import {getRules} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +48,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const {showConfirmModal} = useConfirmModal();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    useRulesPrefetch();
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const taxesLength = Object.values(policy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
@@ -231,9 +232,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
         openDuplicatePolicyPage(policyID);
-        // Merchant rules live in their own collection, and the count decides whether the option is offered at
-        // all, so an unfetched collection would silently duplicate the workspace without them.
-        getRules();
     }, [policyID]);
 
     const confirmDuplicate = useCallback(() => {

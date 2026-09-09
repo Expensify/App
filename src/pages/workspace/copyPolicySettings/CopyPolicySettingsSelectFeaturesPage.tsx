@@ -12,12 +12,12 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {openDuplicatePolicyPage} from '@libs/actions/Policy/Policy';
-import {getRules} from '@libs/actions/Policy/Rules';
 import {
     areAllTargetsAccountingCompatible,
     areAllTargetsCompatibleForAccountingPart,
@@ -76,6 +76,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
     const [codingRulesCount = 0] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createExpenseDefaultRuleCountSelector(sourcePolicyID)});
+    useRulesPrefetch();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
@@ -144,9 +145,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         openDuplicatePolicyPage(sourcePolicyID);
-        // Merchant rules live in their own collection, and the count decides whether the option is offered at
-        // all, so an unfetched collection would silently copy the settings without them.
-        getRules();
     }, [sourcePolicyID]);
 
     const isPartIncompatible = (part: Part): boolean => {

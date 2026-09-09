@@ -32,9 +32,29 @@ import Onyx from 'react-native-onyx';
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
-/** Fetches every rule the user has access to. The response SETs the whole `rules_` collection. */
+/**
+ * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
+ *
+ * The flag lets screens that only consume the collection fetch it once rather than on every mount. It
+ * lives in Onyx rather than in this module so it is cleared along with the rest of the data on sign out.
+ */
 function getRules() {
-    API.read(READ_COMMANDS.GET_RULES, {});
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            value: true,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            value: false,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_RULES, {}, {successData, failureData});
 }
 
 /**
