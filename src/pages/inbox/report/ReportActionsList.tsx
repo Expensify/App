@@ -77,10 +77,7 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** The Concierge chat report */
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-
-    /** Callback executed on list layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 

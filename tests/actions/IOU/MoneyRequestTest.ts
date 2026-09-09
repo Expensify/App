@@ -158,6 +158,7 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            isDraftChatReport: false,
             formatPhoneNumber,
             rules: undefined,
         };
@@ -786,6 +787,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
+            isDraftChatReport: false,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
@@ -1880,7 +1882,7 @@ describe('MoneyRequest', () => {
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
-            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // When reportDraft is undefined, getReportOrDraftReport falls back to the deprecatedAllReportsDraft collection,
             // and since no draft is set, isDisabled should be false
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });

@@ -1273,6 +1273,7 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
@@ -1335,6 +1336,7 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
@@ -1932,6 +1934,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
@@ -2784,6 +2787,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved with a stale local receipt file
                 trackExpense({
+                    isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
@@ -2855,6 +2859,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved before its upload response is processed
                 trackExpense({
+                    isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
@@ -3107,6 +3112,7 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
@@ -3176,6 +3182,7 @@ describe('actions/IOU', () => {
                 transactionID: 'create-transaction-tx',
             };
             return {
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
                 conciergeChat: undefined,

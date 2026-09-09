@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resolveReportFieldValue} from '@libs/Formula';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,10 +32,10 @@ import {
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
-    isGroupPolicyExpenseReport as isGroupPolicyExpenseReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
     isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -58,7 +59,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type MoneyReportViewProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** Policy that the report belongs to */
@@ -67,12 +67,8 @@ type MoneyReportViewProps = {
     /** Indicates whether the iou report is a combine report */
     isCombinedReport?: boolean;
 
-    /** Indicates whether the total should be shown */
     shouldShowTotal?: boolean;
-
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
-
     pendingAction?: PendingAction;
 
     /** Whether we should display the animated banner above the component */
@@ -100,6 +96,7 @@ function MoneyReportView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
@@ -140,19 +137,17 @@ function MoneyReportView({
     ];
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
-        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
+        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
         const sorted = Object.values(byName)
-            .filter((field) => field.target === report?.type)
+            .filter((field) => isReportFieldTargetMatchingReport(report, field))
             .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
         return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
-    }, [policy?.fieldList, report]);
+    }, [policy?.fieldList, report, reportNameValuePairs]);
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
-    const isGroupPolicyExpenseReport = isGroupPolicyExpenseReportUtils(report, policy?.type);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && !isOnlyTitleFieldEnabled;
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
+    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
@@ -179,8 +174,7 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {(isGroupPolicyExpenseReport || isInvoiceReport) &&
-                            !!policy?.areReportFieldsEnabled &&
+                        {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
