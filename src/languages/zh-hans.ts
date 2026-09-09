@@ -460,6 +460,8 @@ const translations: TranslationDeepObject<typeof en> = {
         none: '无',
         unstableInternetConnection: '网络连接不稳定。请检查您的网络后重试。',
         enableGlobalReimbursements: '启用全球报销',
+        corpayPayModalTitle: '支付报告',
+        corpayPayModalPrompt: '此提交者使用的是非美元银行账户。请启用全球报销以支付该报告，或请其添加美元银行账户。',
         purchaseAmount: '购买金额',
         originalAmount: '原始金额',
         frequency: '频率',
