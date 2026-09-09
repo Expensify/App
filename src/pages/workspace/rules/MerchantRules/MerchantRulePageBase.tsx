@@ -30,7 +30,7 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import {canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -577,6 +577,12 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     };
 
     if (ruleID && !existingRule && !isClosing) {
+        return <NotFoundPage />;
+    }
+
+    // The rules collection is shared across workspaces and rule kinds, so a stale link can resolve a ruleID that
+    // this editor must not write to. Saving would replace it with a merchant rule and drop whatever it holds.
+    if (ruleID && !!existingRule && !isClosing && !canEditMerchantRule(existingRule, policyID)) {
         return <NotFoundPage />;
     }
 

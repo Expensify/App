@@ -1,5 +1,6 @@
 import {
     buildMerchantRule,
+    canEditMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
@@ -281,6 +282,46 @@ describe('ExpenseDefaultRuleUtils', () => {
 
         it('is false when no rule carries an error', () => {
             expect(hasExpenseDefaultRuleErrors({[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody)}, POLICY_ID)).toBe(false);
+        });
+    });
+
+    describe('canEditMerchantRule', () => {
+        it('allows a representable rule scoped to the policy', () => {
+            expect(canEditMerchantRule(asStoredRule(merchantRuleBody), POLICY_ID)).toBe(true);
+        });
+
+        it('refuses a rule belonging to another policy', () => {
+            expect(canEditMerchantRule(asStoredRule(merchantRuleBody, OTHER_POLICY_ID), POLICY_ID)).toBe(false);
+        });
+
+        it('refuses an account scoped rule', () => {
+            expect(canEditMerchantRule(asStoredRule(merchantRuleBody, POLICY_ID, CONST.RULES.SCOPE.ACCOUNT), POLICY_ID)).toBe(false);
+        });
+
+        it('refuses an approval workflow rule that happens to share the ruleID', () => {
+            const approvalWorkflowRule = asStoredRule(
+                buildRuleWithOverrides({
+                    triggers: toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]),
+                    actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'a@b.com'}]),
+                }),
+            );
+
+            expect(canEditMerchantRule(approvalWorkflowRule, POLICY_ID)).toBe(false);
+        });
+
+        it('refuses a rule the form cannot represent, so saving cannot overwrite it', () => {
+            const nested = asStoredRule(
+                buildRuleWithOverrides({
+                    filters: {left: merchantFilter, operator: AND, right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'}},
+                }),
+            );
+
+            expect(canEditMerchantRule(nested, POLICY_ID)).toBe(false);
+        });
+
+        it('refuses without a rule or without a policy', () => {
+            expect(canEditMerchantRule(undefined, POLICY_ID)).toBe(false);
+            expect(canEditMerchantRule(asStoredRule(merchantRuleBody), undefined)).toBe(false);
         });
     });
 

@@ -106,7 +106,7 @@ function WorkspaceExpenseDefaultsTableRow({item, rowIndex, shouldUseNarrowTableL
             <Table.Row
                 interactive
                 rowIndex={rowIndex}
-                disabled={isDeleting}
+                disabled={isDeleting || !!item.disabled}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={SECTION_SENTRY_LABELS[item.section]}
                 offlineWithFeedback={{

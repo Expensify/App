@@ -445,9 +445,23 @@ function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): bo
     return !!getMerchantRuleFormValues(rule);
 }
 
+/**
+ * Whether the merchant rule editor is allowed to open this rule for the given policy.
+ *
+ * The `rules_` collection holds every kind of rule for every workspace the user can see, so a ruleID from a
+ * stale link or a bookmark can resolve to another policy's rule or to an approval workflow. Saving from the
+ * editor writes a freshly built merchant rule over that same ruleID, so anything it can't represent has to be
+ * refused rather than opened. Editability already implies the expense default shape, because the form only
+ * accepts `CreateTransaction` triggers and `Set` actions.
+ */
+function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefined): boolean {
+    return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
+}
+
 export type {MerchantRuleFormValues, RuleWithID};
 export {
     buildCopiedExpenseDefaultRules,
+    canEditMerchantRule,
     buildMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
