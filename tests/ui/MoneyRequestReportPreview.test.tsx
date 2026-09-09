@@ -968,7 +968,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('opens the parent report instead of the not-found page when the pressed expense thread was torn down', async () => {
-            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}thread_${mockSecondTransactionID}`, {reportID: null, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
@@ -976,9 +976,10 @@ describe('MoneyRequestReportPreview', () => {
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
+            await settleCascade();
 
-            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
-            expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining(`thread_${mockSecondTransactionID}`));
+            expect(navigateSpy).toHaveBeenLastCalledWith(narrowReportRoute());
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
         });
 
         it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
