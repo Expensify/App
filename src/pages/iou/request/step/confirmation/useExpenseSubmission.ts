@@ -379,6 +379,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 report,
                 fallbackOptimisticChatReportID,
                 action,
+                participantReportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {},
             });
         // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
         const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
