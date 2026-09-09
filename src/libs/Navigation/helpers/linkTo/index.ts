@@ -23,10 +23,10 @@ import type {ActionPayloadParams, LinkToOptions} from './types';
 
 import getMinimalAction from './getMinimalAction';
 
-const defaultLinkToOptions: LinkToOptions = {
+const defaultLinkToOptions = {
     forceReplace: false,
     shouldSkipInitialSplitNavigatorSidebar: false,
-};
+} satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar'>;
 
 /**
  * The split router reads `shouldSkipInitialSidebar` from the innermost screen params. The `getMinimalAction`
@@ -172,8 +172,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    // We know that the options are always defined because we have default options.
-    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options};
 
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;

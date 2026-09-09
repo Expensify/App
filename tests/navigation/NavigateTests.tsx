@@ -176,7 +176,10 @@ describe('Navigate', () => {
             const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
             expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
             expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-            expect(workspaceStateAfterNavigate?.routes.at(-1)?.state?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
+            const workspaceSplitState = workspaceStateAfterNavigate?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes).toHaveLength(1);
+            expect(workspaceSplitState?.routes.some((route) => route.name === SCREENS.WORKSPACE.INITIAL)).toBe(false);
+            expect(workspaceSplitState?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
 
             act(() => {
                 Navigation.goBack();
@@ -653,6 +656,7 @@ describe('Navigate', () => {
             const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
             const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
             expect(workspaceSplitState?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+            expect(workspaceSplitState?.routes.at(0)?.params).toEqual({policyID: 'workspace-a'});
             expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
             expect(workspaceSplitState?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
         });

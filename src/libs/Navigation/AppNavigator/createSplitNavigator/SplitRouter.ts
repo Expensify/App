@@ -58,7 +58,8 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         modified = true;
     }
 
-    // When initializing the app on a small screen with the center screen as the initial screen, the sidebar must also be split to allow users to swipe back.
+    // Despite the name, this is true for any navigation while TAB_NAVIGATOR is the only root route, not only during app startup.
+    // `shouldSkipInitialSidebar` lets a direct narrow-layout navigation opt out while wide layouts continue to keep the sidebar.
     const isInitialRoute = !rootState || rootState.routes.length === 1;
     const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 

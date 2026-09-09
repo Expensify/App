@@ -1680,8 +1680,10 @@ The purpose of the `adaptStateIfNecessary` function is to ensure that a given `S
 
 When is this function used:
 
--   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen.
+-   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen unless the navigation explicitly opts out on a narrow layout. Wide layouts always keep the sidebar.
 -   When we are on the sidebar on a small screen and we expand it to a wide layout, we have to push the central screen to fill the space on the screen.
+
+The initial-route condition can also apply during in-app navigation while `TAB_NAVIGATOR` is the only route in the root stack. A caller can use `shouldSkipInitialSplitNavigatorSidebar` to prevent a directly opened split destination from adding the sidebar as an intermediate Back destination on a narrow layout.
 
 > [!NOTE] 
 > `adaptStateIfNecessary` is called in the `getInitialState` and `getRehydratedState` methods in `src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts`.

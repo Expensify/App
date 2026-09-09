@@ -11,8 +11,10 @@ type ActionPayload = {
 type LinkToOptions = {
     // To explicitly set the action type to replace.
     forceReplace?: boolean;
-    // Prevents a directly opened split destination from adding its sidebar as an intermediate Back destination.
-    // Maps to the `shouldSkipInitialSidebar` route param read by SplitRouter
+    /**
+     * Prevents a directly opened split destination from adding its sidebar as an intermediate Back destination on narrow layouts.
+     * SplitRouter always keeps the sidebar when `getIsNarrowLayout()` is false, which can differ from a caller's responsive-layout predicate.
+     */
     shouldSkipInitialSplitNavigatorSidebar?: boolean;
     // Callback to execute after the navigation transition animation completes.
     afterTransition?: () => void;

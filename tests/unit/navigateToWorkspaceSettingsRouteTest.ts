@@ -142,6 +142,15 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });
 
+    it('does not skip the sidebar on wide layouts', () => {
+        const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
+
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(targetRoute, {shouldSkipInitialSplitNavigatorSidebar: true});
+    });
+
     it('navigates directly when the current page is not a Workspace setting', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false, SCREENS.WORKSPACE.MEMBERS);
