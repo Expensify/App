@@ -25,6 +25,7 @@ import type {Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
@@ -42,6 +43,7 @@ function AccountAvatarButton() {
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {status} = useAccountTabIndicatorStatus();
+    const isFocused = useIsFocused();
 
     const selectedTab = useRootNavigationState((rootState) => {
         const tabState = getTabState(rootState?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
@@ -53,7 +55,7 @@ function AccountAvatarButton() {
     const shouldRenderButton = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && !isAnonymousUserUtil(session);
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
-        shouldRenderButton,
+        shouldRenderButton && isFocused,
     );
 
     if (!shouldRenderButton) {
