@@ -94,6 +94,18 @@ type SearchResultsInfo = {
     /** The currency of the total spend */
     currency?: string;
 
+    /** The total spend of the matching reimbursable expenses. Returned only when the query asks for this aggregate. */
+    reimbursableTotal?: number;
+
+    /** The total spend of the matching non-reimbursable expenses. Returned only when the query asks for this aggregate. */
+    nonReimbursableTotal?: number;
+
+    /** The total spend of the matching billable expenses. Returned only when the query asks for this aggregate. */
+    billableTotal?: number;
+
+    /** The total spend of the matching non-billable expenses. Returned only when the query asks for this aggregate. */
+    nonBillableTotal?: number;
+
     /** The date from which violation snapshots are available for search */
     violationSnapshotStartedAt?: string;
 };

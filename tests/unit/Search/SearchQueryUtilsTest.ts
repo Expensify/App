@@ -318,6 +318,14 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
+        test('keeps the Spend footer selections when a typed query is rebuilt', () => {
+            const result = getQueryWithUpdatedValues('type:expense footer-count:reports footer-total:reimbursable footer-currency:eur');
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:reimbursable');
+            expect(result).toContain('footerCurrency:EUR');
+        });
+
         test('rebuilds a single value containing a comma as one value', () => {
             expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
             expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
@@ -877,6 +885,45 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        describe('Spend footer selections', () => {
+            test('includes every footer selection in the query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense-report footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+            });
+
+            test('omits footer selections that are not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense footerTotal:billable');
+            });
+
+            test('drops footer selections for a type that has no Spend footer', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.TRIP,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:trip');
+            });
+        });
+
         describe('view parameter', () => {
             test('with view parameter set to bar', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
@@ -1066,6 +1113,33 @@ describe('SearchQueryUtils', () => {
             expect(merchantFilter?.value).toBe('Lyft');
         });
 
+        test('renders the Spend footer selections in their user-friendly spelling, so an edited query keeps them', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                formatPhoneNumber,
+                reportAttributes: undefined,
+            });
+
+            expect(result).toContain('footer-count:reports');
+            expect(result).toContain('footer-total:non-reimbursable');
+            expect(result).toContain('footer-currency:EUR');
+        });
+
         test('includes limit in readable query string when present', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:25');
 
@@ -1220,6 +1294,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('reads the Spend footer selections back into the filter form', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                footerCurrency: 'EUR',
             });
         });
 
@@ -2059,6 +2149,67 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('Spend footer selection hashing', () => {
+        it('gives the footer count selection no effect on any hash, so switching it needs no new search', () => {
+            const expenses = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            const reports = buildSearchQueryJSON('type:expense-report footerCount:reports');
+            const noSelection = buildSearchQueryJSON('type:expense-report');
+
+            expect(expenses?.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
+            expect(reports?.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            expect(expenses?.hash).toEqual(reports?.hash);
+            expect(expenses?.hash).toEqual(noSelection?.hash);
+            expect(expenses?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('gives each footer total selection its own primary hash, since the backend computes the aggregate', () => {
+            const total = buildSearchQueryJSON('type:expense footerTotal:total');
+            const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
+
+            expect(total?.hash).not.toEqual(reimbursable?.hash);
+        });
+
+        it('gives each footer currency selection its own primary hash', () => {
+            const usd = buildSearchQueryJSON('type:expense footerCurrency:USD');
+            const eur = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(usd?.hash).not.toEqual(eur?.hash);
+        });
+
+        it('keeps the footer total and currency selections out of the recent and similar search hashes, since they change no result', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const withSelections = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
+
+            expect(withSelections?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(withSelections?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('drops a footer selection the footer cannot render, so it hashes as no selection at all', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const junk = buildSearchQueryJSON('type:expense footerCount:pandas footerTotal:whatever');
+
+            expect(junk?.footerCount).toBeUndefined();
+            expect(junk?.footerTotal).toBeUndefined();
+            expect(junk?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('uppercases the footer currency, so the same currency in either case shares one snapshot', () => {
+            const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
+            const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(lower?.footerCurrency).toEqual('EUR');
+            expect(lower?.hash).toEqual(upper?.hash);
+        });
+
+        it('leaves the hashes of a query carrying no footer selection unchanged, so existing saved searches keep theirs', () => {
+            // Captured before the footer keys existed. These hashes key saved searches and snapshots, so they must not drift.
+            expect(buildSearchQueryJSON('type:expense')?.hash).toEqual(959171759);
+            expect(buildSearchQueryJSON('type:expense-report')?.hash).toEqual(1657503970);
+            expect(buildSearchQueryJSON('type:expense merchant:Amazon')?.hash).toEqual(1692688529);
+        });
+    });
+
     describe('limit filter parsing', () => {
         it('parses limit value as a number', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:25');
@@ -2387,6 +2538,27 @@ describe('SearchQueryUtils', () => {
             const result = buildSearchQueryString(queryJSON);
 
             expect(result).toContain('view:table');
+        });
+
+        test('round-trips the Spend footer selections, normalizing the user-friendly spellings', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footer-count:reports footer-total:non-billable footer-currency:EUR');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:non-billable');
+            expect(result).toContain('footerCurrency:EUR');
+            expect(buildSearchQueryJSON(result)?.hash).toEqual(queryJSON?.hash);
+        });
+
+        test('omits the Spend footer selections a query does not carry', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('footerCount:');
+            expect(result).not.toContain('footerTotal:');
+            expect(result).not.toContain('footerCurrency:');
         });
 
         test('preserves view along with other filters', () => {
@@ -3432,6 +3604,23 @@ describe('SearchQueryUtils', () => {
         }
         return null;
     }
+
+    describe('Spend footer selections sent to the backend', () => {
+        it('serializes the footer selections as top-level keys, not as filters the backend matches rows on', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as Record<string, unknown>;
+
+            expect(serialized.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            expect(serialized.footerTotal).toEqual(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
+            expect(serialized.footerCurrency).toEqual('EUR');
+            expect(serialized.filters).toBeNull();
+        });
+    });
 
     describe('applyContainsOperatorToTextFields', () => {
         it('should transform merchant eq to contains', () => {

@@ -307,6 +307,12 @@ function peg$parse(input, options) {
   var peg$c120 = "\u201C";
   var peg$c121 = "\u201D";
   var peg$c122 = "\"";
+  var peg$c123 = "footercount";
+  var peg$c124 = "footer-count";
+  var peg$c125 = "footercurrency";
+  var peg$c126 = "footer-currency";
+  var peg$c127 = "footertotal";
+  var peg$c128 = "footer-total";
 
   var peg$r0 = /^[^ \t\r\n\xA0]/;
   var peg$r1 = /^[ \t\r\n\xA0,:=<>!]/;
@@ -469,6 +475,12 @@ function peg$parse(input, options) {
   var peg$e142 = peg$classExpectation([" ", "\t", "\n", "\r", "\xA0", ["a", "z"], ["A", "Z"]], false, false);
   var peg$e143 = peg$classExpectation([","], false, false);
   var peg$e144 = peg$classExpectation([" ", "\t", "\n", "\r", "\xA0", ","], false, false);
+  var peg$e145 = peg$literalExpectation("footerCount", true);
+  var peg$e146 = peg$literalExpectation("footer-count", true);
+  var peg$e147 = peg$literalExpectation("footerCurrency", true);
+  var peg$e148 = peg$literalExpectation("footer-currency", true);
+  var peg$e149 = peg$literalExpectation("footerTotal", true);
+  var peg$e150 = peg$literalExpectation("footer-total", true);
 
   var peg$f0 = function(filters) { return applyDefaults(filters); };
   var peg$f1 = function(head, tail) {
@@ -681,6 +693,9 @@ function peg$parse(input, options) {
   var peg$f117 = function(start, inner, end) {
     return [...start, '"', ...inner, '"'].join("");
 };
+  var peg$f118 = function() { return "footerCount"; };
+  var peg$f119 = function() { return "footerCurrency"; };
+  var peg$f120 = function() { return "footerTotal"; };
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
   var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -1370,6 +1385,15 @@ function peg$parse(input, options) {
               s1 = peg$parselimit();
               if (s1 === peg$FAILED) {
                 s1 = peg$parseview();
+                if (s1 === peg$FAILED) {
+                  s1 = peg$parsefooterCount();
+                  if (s1 === peg$FAILED) {
+                    s1 = peg$parsefooterCurrency();
+                    if (s1 === peg$FAILED) {
+                      s1 = peg$parsefooterTotal();
+                    }
+                  }
+                }
               }
             }
           }
@@ -5190,6 +5214,93 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  function peg$parsefooterCount() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 11);
+    if (s1.toLowerCase() === peg$c123) {
+      peg$currPos += 11;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e145); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 12);
+      if (s1.toLowerCase() === peg$c124) {
+        peg$currPos += 12;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e146); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f118();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
+  function peg$parsefooterCurrency() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 14);
+    if (s1.toLowerCase() === peg$c125) {
+      peg$currPos += 14;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e147); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 15);
+      if (s1.toLowerCase() === peg$c126) {
+        peg$currPos += 15;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e148); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f119();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
+  function peg$parsefooterTotal() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 11);
+    if (s1.toLowerCase() === peg$c127) {
+      peg$currPos += 11;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e149); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 12);
+      if (s1.toLowerCase() === peg$c128) {
+        peg$currPos += 12;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e150); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f120();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
   
   const GROUP_BY_DEFAULT_SORT = {
     from: "groupFrom",
@@ -5233,7 +5344,7 @@ function peg$parse(input, options) {
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
   ]);
 
   function isDefaultSortValue(sortBy) {

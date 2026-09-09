@@ -1519,6 +1519,54 @@ const limitTests = [
     },
 ];
 
+const footerSelectionTests = [
+    {
+        description: 'every footer selection in its canonical spelling',
+        query: 'type:expense-report footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR',
+        expected: {
+            type: 'expense-report',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            footerCount: 'reports',
+            footerTotal: 'non-reimbursable',
+            footerCurrency: 'EUR',
+            filters: null,
+        },
+    },
+    {
+        description: 'every footer selection in its user-friendly spelling, alongside a filter',
+        query: 'type:expense footer-count:expenses footer-total:billable footer-currency:USD merchant:Amazon',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            footerCount: 'expenses',
+            footerTotal: 'billable',
+            footerCurrency: 'USD',
+            filters: {
+                operator: 'eq',
+                left: 'merchant',
+                right: 'Amazon',
+            },
+        },
+    },
+    {
+        description: 'footer selections are case-insensitive',
+        query: 'type:expense FOOTER-TOTAL:reimbursable FooterCount:expenses',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            footerCount: 'expenses',
+            footerTotal: 'reimbursable',
+            filters: null,
+        },
+    },
+];
+
 function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknown> {
     const parsed: unknown = parse(query);
     if (!isRecord(parsed)) {
@@ -1548,6 +1596,12 @@ describe('search parser - view and groupBy defaults', () => {
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
+    });
+});
+
+describe('search parser - Spend footer selections', () => {
+    test.each(footerSelectionTests)('$description: $query', ({query, expected}) => {
         expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });

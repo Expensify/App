@@ -108,6 +108,8 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_FOOTER_COUNTS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_COUNT));
+const VALID_FOOTER_TOTALS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_TOTAL));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -664,6 +666,19 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
 
+    // The footer's total and currency selections decide which aggregate the backend computes, so each one needs its own
+    // snapshot and belongs in the primary hash. Both are appended conditionally so queries without them keep the hashes
+    // (and therefore the saved searches and snapshots) they already have.
+    //
+    // footerCount is deliberately absent from every hash: every search already returns both the expense and the report
+    // count, so switching between them is a client-side change that must not invalidate the snapshot or retrigger a search.
+    if (query.footerTotal) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL}:${query.footerTotal}`;
+    }
+    if (query.footerCurrency) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY}:${query.footerCurrency}`;
+    }
+
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
@@ -757,6 +772,19 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         if (result.limit !== undefined) {
             const num = Number(result.limit);
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
+        }
+
+        // Same for the footer selections: a hand-typed value the footer can't render is dropped rather than hashed and
+        // sent to the backend, so it behaves like no selection. The currency is uppercased so `footerCurrency:eur` and
+        // `footerCurrency:EUR` share one snapshot instead of splitting into two.
+        if (result.footerCount !== undefined && !VALID_FOOTER_COUNTS.has(result.footerCount)) {
+            result.footerCount = undefined;
+        }
+        if (result.footerTotal !== undefined && !VALID_FOOTER_TOTALS.has(result.footerTotal)) {
+            result.footerTotal = undefined;
+        }
+        if (result.footerCurrency !== undefined) {
+            result.footerCurrency = typeof result.footerCurrency === 'string' ? result.footerCurrency.toUpperCase() : undefined;
         }
 
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
@@ -925,7 +953,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -954,6 +982,19 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+    }
+
+    // Spend footer display selections. Emitted as root keys so they never reach the filters the backend matches rows on.
+    if (footerCount) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT}:${sanitizeSearchValue(footerCount)}`);
+    }
+
+    if (footerTotal) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL}:${sanitizeSearchValue(footerTotal)}`);
+    }
+
+    if (footerCurrency) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY}:${sanitizeSearchValue(footerCurrency)}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1688,6 +1729,18 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
     }
 
+    if (queryJSON.footerCount) {
+        filtersForm[FILTER_KEYS.FOOTER_COUNT] = queryJSON.footerCount;
+    }
+
+    if (queryJSON.footerTotal) {
+        filtersForm[FILTER_KEYS.FOOTER_TOTAL] = queryJSON.footerTotal;
+    }
+
+    if (queryJSON.footerCurrency) {
+        filtersForm[FILTER_KEYS.FOOTER_CURRENCY] = queryJSON.footerCurrency;
+    }
+
     return filtersForm;
 }
 
@@ -2018,7 +2071,7 @@ function buildUserReadableQueryString({
     reportAttributes,
     bankAccountList,
 }: BuildUserReadableQueryStringParams) {
-    const {type, groupBy, view, columns, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, groupBy, view, columns, rawFilterList, flatFilters: filters = [], limit, footerCount, footerTotal, footerCurrency} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -2095,6 +2148,20 @@ function buildUserReadableQueryString({
     if (columns && columns.length > 0) {
         const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
         title += ` columns:${columnValue}`;
+    }
+
+    // Rendered so a query edited from the search input keeps the footer selections it was displaying, the same way
+    // columns survives an edit. Values are already user-friendly, so they need no mapping.
+    if (footerCount) {
+        title += ` ${getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT)}:${footerCount}`;
+    }
+
+    if (footerTotal) {
+        title += ` ${getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL)}:${footerTotal}`;
+    }
+
+    if (footerCurrency) {
+        title += ` ${getUserFriendlyKey(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY)}:${footerCurrency}`;
     }
 
     for (const filterObject of filters) {

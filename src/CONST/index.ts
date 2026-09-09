@@ -7612,12 +7612,28 @@ const CONST = {
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            FOOTER_COUNT: 'footerCount',
+            FOOTER_TOTAL: 'footerTotal',
+            FOOTER_CURRENCY: 'footerCurrency',
         },
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
             PIE: 'pie',
+        },
+        /** Which of the counts every search returns the Spend footer displays. Applied client-side, so it never retriggers a search. */
+        FOOTER_COUNT: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+        },
+        /** Which aggregate the Spend footer displays as its total. Changing it retriggers the search, since the backend computes the aggregate. */
+        FOOTER_TOTAL: {
+            TOTAL: 'total',
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'non-reimbursable',
+            BILLABLE: 'billable',
+            NON_BILLABLE: 'non-billable',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7757,6 +7773,9 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            FOOTER_COUNT: 'footer-count',
+            FOOTER_TOTAL: 'footer-total',
+            FOOTER_CURRENCY: 'footer-currency',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
