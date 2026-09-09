@@ -902,6 +902,12 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
+        // Boolean marker (no report data) flagging that report_<id> is a speculative copy of reportDraft_<id>, written by
+        // preMountDraftReport so a pre-mounted destination can render before submit. Must persist (not RAM-only): the
+        // report_<id> row it points at lives in the persisted REPORT collection, and Onyx RAM-only applies per key or whole
+        // collection, not per row, so that row survives an app kill (where no unmount cleanup runs). A RAM-only marker would
+        // vanish while the row stays behind. The next launch uses this marker to find and delete it.
+        REPORT_PRE_MOUNTED_DRAFT: 'reportPreMountedDraft_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
         // Loading flags / pagination cursors / last-visit timestamp live in dedicated
@@ -1497,6 +1503,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
