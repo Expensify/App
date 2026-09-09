@@ -4,6 +4,8 @@ import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
+import * as APIActions from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -16,7 +18,7 @@ import DateUtils from '@src/libs/DateUtils';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, Policy, Report} from '@src/types/onyx';
+import type {IntroSelected, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -36,7 +38,8 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, translateLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, getRequiredOnyxUpdate, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
+import {readProperty, requireRecordArrayProperty, requireStringProperty} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -1321,7 +1324,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1582,6 +1585,266 @@ describe('actions/IOU/PayMoneyRequest', () => {
             });
 
             mockFetch?.resume?.();
+        });
+    });
+    describe('markReportPaymentReceived', () => {
+        const CURRENT_USER_ACCOUNT_ID = CARLOS_ACCOUNT_ID;
+        const CURRENT_USER_EMAIL = CARLOS_EMAIL;
+
+        const autoRejectedViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        let writeSpy: jest.SpiedFunction<typeof APIActions.write>;
+
+        beforeEach(() => {
+            writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        const getOnyxDataArg = () => getRequiredWriteCall(writeSpy.mock.calls, 0)[2];
+
+        /**
+         * Builds a policy expense chat holding two sibling expense reports:
+         * - `reimbursedReport` is the approved report that gets marked as paid.
+         * - `outstandingReport` is an OPEN sibling the current user still has to submit, which is what keeps the
+         *   chat's `hasOutstandingChildRequest` true. Its single transaction is the one an auto-rejected violation
+         *   can be attached to, so the tests can flip `hasOutstandingChildRequest` purely through the violations
+         *   argument without touching any other input.
+         */
+        async function setUpChatWithOutstandingSibling() {
+            const policy: Policy = {
+                ...createRandomPolicy(6),
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                harvesting: {
+                    enabled: false,
+                },
+            };
+            const chatReport: Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: policy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
+            const reimbursedReport: Report = {
+                ...createRandomReport(5, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                total: -100,
+                nonReimbursableTotal: 0,
+            };
+            const outstandingReport: Report = {
+                ...createRandomReport(6, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+            };
+            const reimbursedReportPreview: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: reimbursedReport.reportID,
+                },
+            };
+            const outstandingReportPreview: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: outstandingReport.reportID,
+                },
+            };
+            const outstandingTransaction: Transaction = {
+                ...createRandomTransaction(22),
+                reportID: outstandingReport.reportID,
+            };
+            const chatReportActions: ReportActions = {
+                [reimbursedReportPreview.reportActionID]: reimbursedReportPreview,
+                [outstandingReportPreview.reportActionID]: outstandingReportPreview,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, reimbursedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${outstandingTransaction.transactionID}`, outstandingTransaction);
+            await waitForBatchedUpdates();
+
+            return {chatReport, reimbursedReport, outstandingReport, outstandingTransaction, chatReportActions};
+        }
+
+        const getOptimisticChatReportValue = (chatReportID: string) =>
+            getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, Onyx.METHOD.MERGE, true).value;
+
+        it('does nothing when the chat report is missing', () => {
+            markReportPaymentReceived(
+                undefined,
+                {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.EXPENSE},
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+            );
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('does nothing when the IOU report is missing', () => {
+            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal);
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('marks the report as reimbursed and detaches it from the chat report', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+
+            // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
+            const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED);
+            expect(parameters.reportID).toBe(reimbursedReport.reportID);
+
+            const optimisticIOUReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticIOUReport).toMatchObject({
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                hasOutstandingChildRequest: false,
+            });
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({iouReportID: null});
+        });
+
+        it('adds an optimistic PAY report action carrying the "received payment" copy', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+
+            // Then a PAY action is added to the expense report, reported to the API and pending
+            const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const payActionID = requireStringProperty(parameters, 'reportActionID');
+            const optimisticReportActions = getRequiredOnyxUpdate(
+                getOnyxDataArg(),
+                'optimisticData',
+                `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reimbursedReport.reportID}`,
+                Onyx.METHOD.MERGE,
+                true,
+            ).value;
+            const payAction = optimisticReportActions[payActionID];
+            expect(readProperty(payAction, 'actionName')).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
+            expect(readProperty(readProperty(payAction, 'originalMessage'), 'type')).toBe(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            expect(readProperty(payAction, 'pendingAction')).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // And its message uses the "received payment" copy rather than the default "paid elsewhere" copy,
+            // so the chat and report previews that derive their last message from this action read correctly.
+            const [messageFragment] = requireRecordArrayProperty(payAction, 'message');
+            const receivedPaymentMessage = translateLocal('iou.receivedPaymentReportAction', undefined);
+            expect(requireStringProperty(messageFragment, 'text')).toBe(receivedPaymentMessage);
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                lastMessageText: receivedPaymentMessage,
+                lastMessageHtml: receivedPaymentMessage,
+            });
+        });
+
+        it('keeps the chat flagged as outstanding when the passed violations leave a sibling report actionable', async () => {
+            // Given a chat that still holds an OPEN sibling report the current user has to submit
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the payment is marked as received with no violations
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+
+            // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+        });
+
+        it('clears the chat outstanding flag when the passed violations auto-reject every sibling transaction', async () => {
+            // Given the sibling report's only transaction is auto-rejected, per the violations passed in
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the payment is marked as received with those violations
+            markReportPaymentReceived(
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation]},
+                getCurrencyDecimalsLocal,
+            );
+
+            // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: false});
+        });
+
+        it('reads violations from the passed argument and not from the global Onyx collection', async () => {
+            // Given Onyx holds the auto-rejected violation for the sibling transaction
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`, [autoRejectedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the payment is marked as received while an empty violations collection is passed in
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+
+            // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+        });
+
+        it('treats an undefined violations argument as no violations', async () => {
+            // Given a chat that still holds an OPEN sibling report, and Onyx holding an auto-rejected violation for it
+            const {chatReport, reimbursedReport, outstandingTransaction, chatReportActions} = await setUpChatWithOutstandingSibling();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`, [autoRejectedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the caller has no violations loaded yet and passes undefined
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal);
+
+            // Then it behaves like an empty collection rather than falling back to Onyx
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+        });
+
+        it('clears the report pending fields in successData and restores the previous reports in failureData', async () => {
+            // Given a chat report holding an approved expense report
+            const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
+
+            // When the submitter marks the payment as received
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+
+            // Then a server confirmation clears the pending fields
+            const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(successReport).toMatchObject({pendingFields: {preview: null, reimbursed: null, partial: null, nextStep: null}});
+
+            // And a server rejection rolls both reports back to what they were before the optimistic write
+            const failureIOUReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(failureIOUReport).toMatchObject({statusNum: reimbursedReport.statusNum, stateNum: reimbursedReport.stateNum});
+
+            const failureChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(failureChatReport).toMatchObject({hasOutstandingChildRequest: true});
         });
     });
 
