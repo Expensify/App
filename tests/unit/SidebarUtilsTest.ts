@@ -6,6 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {getLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
 import {
@@ -266,9 +267,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            // A connected accounting integration keeps the export error (export errors only apply to connected policies)
-            const {connections} = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, connections);
+            // getConnectedIntegration is mocked to return a connected integration, so the export error is kept
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -288,7 +288,7 @@ describe('SidebarUtils', () => {
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
 
-        it('drops the export error when the passed connections have no connected integration', () => {
+        it('drops the export error when the policy has no connected integration', () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
                 errorFields: {
@@ -299,12 +299,13 @@ describe('SidebarUtils', () => {
             };
 
             // When there is no connected accounting integration, the export error is not a real RBR reason
+            jest.mocked(getConnectedIntegration).mockReturnValueOnce(undefined);
             const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, undefined);
 
             expect(Object.keys(reportErrors)).toHaveLength(0);
         });
 
-        it('keeps the export error when the passed connections have a connected integration', () => {
+        it('keeps the export error when the policy has a connected integration', () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
                 errorFields: {
@@ -313,10 +314,10 @@ describe('SidebarUtils', () => {
                     },
                 },
             };
-            const {connections} = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
 
             // With a connected accounting integration, the export error is a real error and is preserved
-            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, connections);
+            jest.mocked(getConnectedIntegration).mockReturnValueOnce(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, undefined);
 
             expect(Object.keys(reportErrors)).toHaveLength(1);
         });

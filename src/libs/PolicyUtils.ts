@@ -2466,12 +2466,8 @@ function isAccountingConnectionName(connectionName?: ConnectionName): connection
     return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
 }
 
-function getConnectedIntegrationFromConnections(connections: Policy['connections'], connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return connectionNames.find((integration) => !!connections?.[integration]);
-}
-
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return getConnectedIntegrationFromConnections(policy?.connections, connectionNames);
+    return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
 
 /**
@@ -3194,7 +3190,6 @@ export {
     getTagListLabel,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
-    getConnectedIntegrationFromConnections,
     getConnectionExporters,
     findVendorByID,
     getActiveVendorMatchingIntegration,

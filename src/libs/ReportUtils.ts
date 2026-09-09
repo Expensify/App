@@ -152,7 +152,7 @@ import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, get
 import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
-    getConnectedIntegrationFromConnections,
+    getConnectedIntegration,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -10159,7 +10159,7 @@ function getAllReportErrors(
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
     currentUserAccountID: number,
-    connections: Policy['connections'],
+    policy: OnyxEntry<Policy>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): Errors {
@@ -10179,7 +10179,7 @@ function getAllReportErrors(
         ...reportActionErrors,
     };
 
-    if (reportErrorFields.export && !getConnectedIntegrationFromConnections(connections)) {
+    if (reportErrorFields.export && !getConnectedIntegration(policy)) {
         delete errorSources.export;
     }
 
@@ -13736,7 +13736,7 @@ function generateReportAttributes({
         reportActionsList,
         allTransactions,
         currentUserAccountID,
-        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.connections,
+        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`],
         isReportArchived,
         reports,
     );
