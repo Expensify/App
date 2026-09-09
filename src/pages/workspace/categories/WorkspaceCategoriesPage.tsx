@@ -13,7 +13,6 @@ import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCa
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 
-import useCategoryInlineEdit from '@hooks/useCategoryInlineEdit';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -36,6 +35,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -89,7 +89,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
-    const {canEditName, renameCategory} = useCategoryInlineEdit({policyData, canWriteCategories, showReadOnlyModal});
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
@@ -295,10 +294,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 errors: value.errors ?? undefined,
                 pendingAction: value.pendingAction,
                 isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
-                canEditName: canEditName && !isDisabled && !isSelectionModeActive,
+                canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
                 action: () => navigateToCategory(value),
                 onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
-                onRenameName: (newName: string) => renameCategory(value.name, newName),
+                onRenameName: (newName: string) => renameCategoryInline(policyData, value.name, newName),
                 dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
             });
 
@@ -310,9 +309,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         shouldShowApproverColumn,
         categoryApproverEmails,
         canWriteCategories,
-        canEditName,
         isSelectionModeActive,
-        renameCategory,
+        policyData,
         policy,
         policyCategories,
         navigateToCategory,
