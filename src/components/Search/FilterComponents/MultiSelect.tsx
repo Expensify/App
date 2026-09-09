@@ -56,6 +56,9 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     /** Called when the scroll position gets near the end of the list */
     onEndReached?: () => void;
 
+    /** How far from the end the bottom edge of the list must be to trigger onEndReached */
+    onEndReachedThreshold?: number;
+
     /** Called when the debounced search term changes */
     onSearchChange?: (searchTerm: string) => void;
 
@@ -81,6 +84,7 @@ function MultiSelect<T extends string>({
     footer,
     onChange,
     onEndReached,
+    onEndReachedThreshold,
     onSearchChange,
     isLoadingMore,
     isSearching,
@@ -203,6 +207,7 @@ function MultiSelect<T extends string>({
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footerContent}
                     onEndReached={onEndReached}
+                    onEndReachedThreshold={onEndReachedThreshold}
                     listEmptyContent={shouldShowSearchSpinner ? renderCenteredSpinner() : undefined}
                     shouldShowListEmptyContent={shouldShowSearchSpinner}
                 />

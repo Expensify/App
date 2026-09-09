@@ -115,6 +115,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
             footer={footer}
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
             onEndReached={hasMore && !shouldUseOfflineFallback ? loadMore : undefined}
+            onEndReachedThreshold={0.75}
             onSearchChange={searchTags}
             loading={isInitialLoading}
             isSearching={isSearching}
