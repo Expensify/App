@@ -967,6 +967,20 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining('dead_thread'));
         });
 
+        it('opens the parent report instead of the not-found page when the pressed expense thread was torn down', async () => {
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}thread_${mockSecondTransactionID}`, {reportID: null, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            await waitForBatchedUpdatesWithAct();
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''}));
+            expect(navigateSpy).not.toHaveBeenCalledWith(expect.stringContaining(`thread_${mockSecondTransactionID}`));
+        });
+
         it('seeds the optimistic transaction thread before opening an existing (possibly uncached) expense', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const seedSpy = jest.spyOn(ReportActions, 'setOptimisticTransactionThread').mockImplementation(() => {});

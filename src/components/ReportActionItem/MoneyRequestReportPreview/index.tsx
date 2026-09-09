@@ -39,7 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
@@ -57,6 +57,10 @@ const hasReportActionsSelector = (reportActions: OnyxEntry<ReportActions>) => Ob
 
 // The stagger between the report and the expense that design asked for: https://github.com/Expensify/App/pull/92546#issuecomment-4687440972
 const PRESSED_EXPENSE_CASCADE_DELAY = 180;
+
+function isLiveIOUAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction {
+    return !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -235,13 +239,8 @@ function MoneyRequestReportPreview({
     const resolveChildReportID = useCallback(
         (transaction: Transaction) => {
             let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (transactionIOUAction && (isDeletedAction(transactionIOUAction) || transactionIOUAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
-                const liveIOUAction = getIOUActionForTransactionID(
-                    Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(
-                        (reportAction) => !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    ),
-                    transaction.transactionID,
-                );
+            if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
+                const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
                 if (!liveIOUAction) {
                     return undefined;
                 }
