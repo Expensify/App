@@ -24,7 +24,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: s
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-        EnvelopeOpenStar: () => null,
+        CreditCard: () => null,
     })),
 }));
 
@@ -61,6 +61,7 @@ jest.mock('@hooks/useCardFeedErrors', () =>
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'test@example.com'})));
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+
 function TimeSensitiveSection() {
     return (
         <HomeTaskGroup
@@ -77,7 +78,7 @@ const renderTimeSensitiveSection = () =>
         </OnyxListItemProvider>,
     );
 
-describe('TimeSensitiveSection - ValidateAccount', () => {
+describe('TimeSensitiveSection - unvalidated account', () => {
     const mockedUseTimeSensitiveAddPaymentCard = jest.mocked(useTimeSensitiveAddPaymentCard);
 
     beforeAll(() => {
@@ -93,52 +94,30 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
         await waitForBatchedUpdates();
     });
 
-    it('shows ValidateAccount widget when account is not validated', async () => {
+    it('renders no Time sensitive rows for an unvalidated account with nothing else to fix', async () => {
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
         await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
 
-        expect(screen.getByText('homePage.timeSensitiveSection.validateAccount.title')).toBeTruthy();
+        // The group renders nothing without rows, so an unvalidated account on its own no longer produces a Home task.
+        expect(screen.queryByText('homePage.timeSensitiveSection.title')).toBeNull();
     });
 
-    it('hides ValidateAccount for anonymous users while keeping time sensitive section visible', async () => {
+    it('keeps the other rows for an unvalidated account without adding a validate row ahead of them', async () => {
         mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: true,
         });
 
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
         await waitForBatchedUpdates();
 
         renderTimeSensitiveSection();
 
+        expect(screen.getByText('homePage.timeSensitiveSection.title')).toBeTruthy();
         expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
-        expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
-    });
-
-    it('hides ValidateAccount when current login is already validated in login list', async () => {
-        const validatedEmail = 'test@example.com';
-
-        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
-            shouldShowAddPaymentCard: true,
-        });
-
-        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT, email: validatedEmail});
-        await Onyx.set(ONYXKEYS.LOGINS, {
-            [`1_${validatedEmail}`]: {
-                partnerID: 1,
-                partnerUserID: validatedEmail,
-                validatedDate: '2026-03-18 00:00:00.000',
-            },
-        });
-        await waitForBatchedUpdates();
-
-        renderTimeSensitiveSection();
-
-        expect(screen.getByText('homePage.timeSensitiveSection.addPaymentCard.title')).toBeTruthy();
-        expect(screen.queryByText('homePage.timeSensitiveSection.validateAccount.title')).toBeNull();
+        expect(screen.queryByText(/validateAccount/)).toBeNull();
     });
 });

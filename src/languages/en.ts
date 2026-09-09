@@ -1056,11 +1056,6 @@ const translations = {
                 subtitle: 'Expensify Card',
                 cta: 'Review',
             },
-            validateAccount: {
-                title: 'Validate your account',
-                subtitle: 'Account',
-                cta: 'Validate',
-            },
             addHomeAddress: {
                 title: 'Add your home address for distance tracking',
                 subtitle: 'Account',
