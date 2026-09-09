@@ -51,6 +51,7 @@ function SearchMergeReports() {
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -196,6 +197,10 @@ function SearchMergeReports() {
     const onSelection = (item: ListItem) => {
         setDestinationReportID(item.reportID);
     };
+
+    if (!isReportMergeBetaEnabled) {
+        return null;
+    }
 
     return (
         <StepScreenWrapper

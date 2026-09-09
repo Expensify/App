@@ -1237,6 +1237,10 @@ const DYNAMIC_ROUTES = {
         path: 'select-feed',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD],
     },
+    WORKSPACE_TRAVEL_BILLING_SELECT_FEED: {
+        path: 'travel-select-feed',
+        entryScreens: [SCREENS.WORKSPACE.TRAVEL],
+    },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         path: 'add-card-feed',
         entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS, SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED],
@@ -1608,6 +1612,10 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
         path: 'initial-list-value',
         entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
+    WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'invoice-initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE],
     },
     TRANSACTION_DUPLICATE_REVIEW: {
         // `reportID` is carried as the dynamic route's own path param (not inherited from the entry
@@ -3149,6 +3157,39 @@ const ROUTES = {
         route: 'workspaces/:policyID/invoices/company-website',
         getRoute: (policyID: string) => `workspaces/${policyID}/invoices/company-website` as const,
     },
+    WORKSPACE_INVOICE_FIELDS_CREATE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/newInvoiceField` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_LIST_VALUES: {
+        route: 'workspaces/:policyID/invoices/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/invoices/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/invoices/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_ADD_VALUE: {
+        route: 'workspaces/:policyID/invoices/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `workspaces/${policyID}/invoices/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_VALUE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/invoices/newInvoiceField/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+    },
     WORKSPACE_MEMBERS: {
         route: 'workspaces/:policyID/members',
         getRoute: (policyID: string | undefined) => {
@@ -3334,6 +3375,31 @@ const ROUTES = {
     WORKSPACE_HR_MERGE_GROUPS: {
         route: 'workspaces/:policyID/hr/merge/groups',
         getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
+    },
+    WORKSPACE_RECRUITING: {
+        route: 'workspaces/:policyID/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECRUITING route');
+            }
+            return `workspaces/${policyID}/recruiting` as const;
+        },
+    },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/recruiting/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approval-mode` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD: {
+        route: 'workspaces/:policyID/recruiting/merge/approver-field',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approver-field` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/recruiting/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/final-approver` as const,
     },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
