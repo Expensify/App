@@ -30,7 +30,7 @@ type UseMoneyRequestReportVisibleActionsParams = {
 };
 
 type UseMoneyRequestReportVisibleActionsResult = {
-    /** Actions to render in the unified list — oldest-first, because this view starts at the top and is not inverted */
+    /** Actions to render in the unified list. Oldest-first, because this view starts at the top and is not inverted. */
     visibleReportActions: OnyxTypes.ReportAction[];
 
     /** The same visible actions in the newest-first domain shared hooks like `useMarkAsRead` expect */
