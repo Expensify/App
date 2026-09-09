@@ -574,7 +574,7 @@ function requestDomainAdminship(domainAccountID: number, currentUserAccountID: n
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: domainErrorsKey,
-            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.domainAlreadyExists.requestAccessError')},
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.requestAccessError')},
         },
     ];
 

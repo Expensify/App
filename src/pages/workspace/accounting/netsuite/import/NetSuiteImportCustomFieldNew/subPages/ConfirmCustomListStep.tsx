@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -38,15 +38,14 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
         <View style={[styles.flex1, styles.mt3, bottomSafeAreaPaddingStyle]}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
-                <MenuItemWithTopDescription
+                <MenuItemField
                     key={fieldName}
-                    description={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
-                    title={
+                    name={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
+                    value={
                         fieldName === INPUT_IDS.MAPPING && values[fieldName]
                             ? translate(`workspace.netsuite.import.importTypes.${values[fieldName]}.label` as TranslationPaths)
                             : values[fieldName]
                     }
-                    shouldShowRightIcon
                     onPress={() => {
                         onMove(index);
                     }}

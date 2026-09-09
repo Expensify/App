@@ -1,5 +1,6 @@
 import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
+import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
 import HandleMovedScanFailedExpenses from './HandleMovedScanFailedExpenses';
 import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
@@ -25,6 +26,7 @@ export {
     Pagination,
     handleDeletedAccount,
     SupportalPermission,
+    GlobalReimbursementPayError,
     FraudMonitoring,
     LoadPostDataForOpenOrReconnect,
     SentryServerTiming,

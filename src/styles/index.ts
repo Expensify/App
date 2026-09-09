@@ -1147,6 +1147,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
+        },
+
         badgeDefaultText: {
             color: theme.text,
         },

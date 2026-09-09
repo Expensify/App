@@ -1,9 +1,10 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,6 +24,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
@@ -83,13 +85,19 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
                         </MenuItem.Content>
                     </MenuItem.Row>
                 </MenuItem.Root>
-                <MenuItemWithTopDescription
-                    title={translate('delegate.role', role)}
-                    description={translate('delegate.accessLevel')}
-                    helperText={translate('delegate.roleDescription', role)}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
-                    shouldShowRightIcon
-                />
+                <View>
+                    <MenuItemField
+                        name={translate('delegate.accessLevel')}
+                        value={translate('delegate.role', role)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
+                    />
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('delegate.roleDescription', role)}
+                        style={[styles.mt0, styles.ph5]}
+                    />
+                </View>
             </DelegateNoAccessWrapper>
         </HeaderPageLayout>
     );

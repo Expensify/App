@@ -14957,6 +14957,21 @@ describe('ReportUtils', () => {
             it('should return true for CREATE iouType with expense report', () => {
                 expect(shouldEnableNegative(expenseReport, personalPolicy, CONST.IOU.TYPE.CREATE)).toBe(true);
             });
+
+            it('should return false for CREATE iouType when a P2P recipient is selected', () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: false, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE, participants)).toBe(false);
+            });
+
+            it('should return true for CREATE iouType when the only participant is a policy expense chat', () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: true, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE, participants)).toBe(true);
+            });
+
+            it('should return true for CREATE iouType when the only participant is the sender', () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: false, isSender: true}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE, participants)).toBe(true);
+            });
         });
 
         describe('exclusion cases for SPLIT and INVOICE iouTypes', () => {

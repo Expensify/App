@@ -178,6 +178,8 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
                                 shouldDisplayReceipt
+                                // Split bill details never render an editable participant row (the transaction is not from global create), so there is nothing to open.
+                                onOpenParticipantPicker={() => {}}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields

@@ -2,7 +2,7 @@ import Button from '@components/ButtonComposed';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
@@ -159,11 +159,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.changeDomainSecurityGroupErrors)}
                     onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.members.domainGroup')}
-                        title={userSecurityGroup?.securityGroup?.name ?? ''}
+                    <MenuItemField
+                        name={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                        shouldShowRightIcon
+                        value={userSecurityGroup?.securityGroup?.name}
                     />
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem

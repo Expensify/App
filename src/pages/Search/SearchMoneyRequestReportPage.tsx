@@ -223,6 +223,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             introSelected,
             conciergeChat,
             betas,
+            personalDetails,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

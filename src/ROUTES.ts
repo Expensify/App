@@ -93,6 +93,16 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  * Avoid for: regular navigation, single-entry workflows
  *
  */
+const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
+    SCREENS.REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.HOME,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.WALLET.ROOT,
+] as const;
+
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
@@ -172,6 +182,46 @@ const DYNAMIC_ROUTES = {
                 shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
             }),
         queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
+        path: 'enable-global-reimbursements/business/:bankAccountID/:subPage/:action?',
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+        getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
+        path: 'enable-global-reimbursements/agreements/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/agreements/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
+        path: 'enable-global-reimbursements/sign/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/sign/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -2323,16 +2373,27 @@ const ROUTES = {
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
-        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit') =>
-            `settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}` as const,
+        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/agreements',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements` as const,
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/sign',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements/sign` as const,
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/sign`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
@@ -2496,6 +2557,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
+    SETTINGS_TROUBLESHOOT_BETA_OVERRIDES: 'settings/troubleshoot/beta-overrides',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
@@ -2510,7 +2572,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2524,6 +2586,9 @@ const ROUTES = {
             // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
             if (secureKey) {
                 queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
+            }
+            if (isPendingCreation) {
+                queryParams.push('isPendingCreation=true');
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
