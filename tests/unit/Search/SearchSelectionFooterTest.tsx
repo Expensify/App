@@ -179,11 +179,10 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 0}));
     });
 
-    it('nets a selected credit report against a selected expense report', async () => {
-        // Report rows carry no transaction of their own, so their displayAmount comes from the report's own total.
+    it('nets a selected credit against a selected expense when the amounts differ', async () => {
         mockSelectedTransactions.current = {
-            report1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
-            report2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -4000},
+            transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
+            transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -4000},
         };
 
         render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);

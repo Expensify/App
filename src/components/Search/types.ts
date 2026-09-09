@@ -69,7 +69,7 @@ type SelectedTransactionInfo = {
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
 
-    /** The transaction amount, in the raw stored sign convention */
+    /** The transaction amount as a magnitude, used for bulk pay. Signed only on the reconcile path. */
     amount: number;
 
     /** The signed amount the row displays */
