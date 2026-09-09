@@ -30,7 +30,6 @@ import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 
     /** Whether back button should be displayed in header */

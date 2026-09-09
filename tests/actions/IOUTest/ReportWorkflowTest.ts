@@ -177,7 +177,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -790,7 +790,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -877,7 +877,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -1176,7 +1176,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -1406,7 +1406,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const policyID = generatePolicyID();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: 'Test Workspace with Dynamic External Workflow',
                 policyID,
@@ -1647,7 +1647,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 policyID,
