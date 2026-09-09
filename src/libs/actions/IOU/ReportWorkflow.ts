@@ -1787,7 +1787,6 @@ type AddReportApproverOptions = {
     /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether the report currently has violations. */
     hasViolations: boolean;
 
     /** Whether ASAP Submit beta behavior is enabled. */

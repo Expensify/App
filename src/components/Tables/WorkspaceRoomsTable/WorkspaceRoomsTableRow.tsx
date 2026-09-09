@@ -19,7 +19,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceRoomRowData = TableData & {
-    /** The room reportID */
     reportID: string;
 
     /** The room display name */
@@ -33,13 +32,8 @@ type WorkspaceRoomRowData = TableData & {
 };
 
 type WorkspaceRoomsTableRowProps = {
-    /** The room data */
     item: WorkspaceRoomRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

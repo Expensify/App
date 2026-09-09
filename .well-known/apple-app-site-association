@@ -49,6 +49,10 @@
                         "comment": "Plaid setup"
                     },
                     {
+                        "/": "/oauth/native-callback",
+                        "comment": "Native-only Cloudflare Access OAuth callback, no web route"
+                    },
+                    {
                         "/": "/statements/*",
                         "comment": "Wallet statements"
                     },

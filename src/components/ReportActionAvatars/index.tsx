@@ -38,13 +38,11 @@ type ReportActionAvatarsProps = {
     /** How to order the avatars before rendering them. Only applies to a horizontal stack, where every avatar sits in an equivalent slot */
     sort?: SortingOptions | SortingOptions[];
 
-    /** Report ID for the report action avatars */
     reportID?: string;
 
     /** Report data for the report action avatars. When provided, this will be used as a fallback if the snapshot is undefined */
     report?: OnyxEntry<Report>;
 
-    /** Action for the report action avatars */
     action?: OnyxEntry<ReportAction>;
 
     /** Policy ID for the workspace avatar */
@@ -53,13 +51,11 @@ type ReportActionAvatarsProps = {
     /** Policy data for the workspace avatar. When provided, this will be used as a fallback if the snapshot is undefined */
     policy?: OnyxEntry<Policy>;
 
-    /** Single avatar container styles */
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Account IDs to display avatars for, it overrides the reportID and action props */
     accountIDs?: number[];
 
-    /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Whether avatars are displayed within a reportAction */
@@ -74,7 +70,6 @@ type ReportActionAvatarsProps = {
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
 
-    /** Size of the subscript card feed icon */
     subscriptCardFeedIconSize?: {width: number; height: number};
 
     /** Display name used as a fallback for avatar tooltip */

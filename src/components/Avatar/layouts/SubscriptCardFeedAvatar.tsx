@@ -25,13 +25,11 @@ import type {BaseAvatarProps} from './types';
 import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
-    /** The primary (main) avatar icon */
     primaryAvatar: IconType;
 
     /** Card feed to display as the subscript */
     cardFeed: CardFeed;
 
-    /** Size of the subscript card feed icon */
     cardFeedIconSize?: {width: number; height: number};
 
     /** Style for the avatar container */
