@@ -2,10 +2,15 @@ import {retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion
 import {isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleSuggestion} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+
+const selectIsSeenAndLive = (suggestion: OnyxEntry<MerchantRuleSuggestion>) => !!suggestion?.wasSeen && isMerchantRuleSuggestionLive(suggestion);
 
 /**
  * Ends the "Create a rule" offer once the user has seen it and left the report showing it.
@@ -18,10 +23,12 @@ import useOnyx from './useOnyx';
  * detail view under its own reportID, so matching here would never fire and the offer would outlive the page.
  */
 function useRetireMerchantRuleSuggestionOnLeave() {
-    const [suggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
-    const hasBeenSeenRef = useRef(false);
+    // Selected down to the one boolean this needs. The report actions list hosting this hook re-renders often, and
+    // subscribing to the whole record would wake it on every write the feature makes, in every report.
+    //
     // Tracks the live value rather than latching, so an offer dismissed on the way out is not retired as well.
-    const isSeenAndLive = !!suggestion?.wasSeen && isMerchantRuleSuggestionLive(suggestion);
+    const [isSeenAndLive = false] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {selector: selectIsSeenAndLive});
+    const hasBeenSeenRef = useRef(false);
 
     useEffect(() => {
         hasBeenSeenRef.current = isSeenAndLive;
