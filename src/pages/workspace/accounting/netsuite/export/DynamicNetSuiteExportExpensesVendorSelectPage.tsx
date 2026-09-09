@@ -57,7 +57,10 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
         [shouldShowClearOption, clearOption, vendorOptions],
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);
+    const initiallyFocusedOptionKey = useMemo(
+        () => (shouldShowClearOption ? clearOption.keyForList : netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList),
+        [shouldShowClearOption, clearOption, netsuiteVendorOptions],
+    );
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
