@@ -873,6 +873,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path,
 
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_TRAVEL_BILLING_SELECT_FEED]: DYNAMIC_ROUTES.WORKSPACE_TRAVEL_BILLING_SELECT_FEED.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.route,
                         },
@@ -2335,6 +2336,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.HR]: {
                                     path: ROUTES.WORKSPACE_HR.route,
+                                },
+                                [SCREENS.WORKSPACE.RECRUITING]: {
+                                    path: ROUTES.WORKSPACE_RECRUITING.route,
                                 },
                                 [SCREENS.WORKSPACE.TAGS]: {
                                     path: ROUTES.WORKSPACE_TAGS.route,
