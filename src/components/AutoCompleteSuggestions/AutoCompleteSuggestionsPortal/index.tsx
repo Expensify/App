@@ -28,9 +28,6 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     left = 0,
     width = 0,
     bottom = 0,
-    // keyboardHeight and isMenuAbove are only used on native platforms to adjust the bottom position
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    keyboardHeight = 0,
     resetSuggestions = () => {},
     isMenuAbove = false,
     ...props

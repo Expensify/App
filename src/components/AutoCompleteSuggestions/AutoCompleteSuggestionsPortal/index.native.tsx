@@ -1,14 +1,14 @@
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 
+import useKeyboardState from '@hooks/useKeyboardState';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimensionsForAutoCompleteSuggestions';
 
 import variables from '@styles/variables';
 
 import {Portal} from '@gorhom/portal';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
@@ -21,27 +21,22 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     left = 0,
     width = 0,
     bottom = 0,
-    keyboardHeight = 0,
     resetSuggestions = () => {},
     isMenuAbove = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
     const {height: windowHeight} = useWindowDimensionsForAutoCompleteSuggestions();
+    const {keyboardHeight} = useKeyboardState();
     const hostFrameRef = useRef<View>(null);
-    const [hostFrameBottom, setHostFrameBottom] = useState<number | null>(null);
 
-    // Re-base `bottom` (measured from the window bottom, offset by the keyboard) onto the portal host's own frame, which can sit higher on screens with bottom-docked content.
+    const [hostBottomInset, setHostBottomInset] = useState<number | null>(null);
+
     const measureHostFrame = () => {
-        hostFrameRef.current?.measureInWindow((x, y, frameWidth, height) => setHostFrameBottom(y + height));
+        hostFrameRef.current?.measureInWindow((x, y, frameWidth, height) => setHostBottomInset(windowHeight - y - height));
     };
-    useEffect(measureHostFrame, [windowHeight, keyboardHeight, bottom]);
 
-    const hostRelativeBottom = hostFrameBottom === null ? 0 : bottom + keyboardHeight - (windowHeight - hostFrameBottom);
-    const isHostFrameMeasured = hostFrameBottom !== null;
-    const bottomPadding = getBottomSuggestionPadding(isMenuAbove);
-    const containerStyle = StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: hostRelativeBottom + bottomPadding});
+    useEffect(measureHostFrame, [windowHeight, keyboardHeight]);
 
     if (!width) {
         return null;
@@ -53,16 +48,21 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
             <View
                 ref={hostFrameRef}
                 pointerEvents="none"
-                style={styles.fullScreen}
+                style={StyleSheet.absoluteFill}
                 onLayout={measureHostFrame}
             />
-            {isHostFrameMeasured && (
+            {hostBottomInset !== null && (
                 <>
                     <TransparentOverlay
                         onPress={resetSuggestions}
                         style={zIndexStyle}
                     />
-                    <View style={[containerStyle, zIndexStyle]}>
+                    <View
+                        style={[
+                            StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - hostBottomInset + getBottomSuggestionPadding(isMenuAbove)}),
+                            zIndexStyle,
+                        ]}
+                    >
                         <BaseAutoCompleteSuggestions<TSuggestion>
                             width={width}
                             {...props}

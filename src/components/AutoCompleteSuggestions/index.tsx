@@ -115,8 +115,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
             // Read in the same tick as the composer measurement above, so both describe the same layout state.
-            const viewportBottom = getSuggestionsViewportBottom(windowHeight);
-            let bottomValue = viewportBottom - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            const viewportBottom = getSuggestionsViewportBottom(windowHeight, keyboardHeight);
+            let bottomValue = viewportBottom - (cursorCoordinates.y - scrollValue + y);
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
@@ -162,7 +162,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
-                bottomValue = viewportBottom - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                bottomValue = viewportBottom - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
             }
 
             setSuggestionHeight(measuredHeight);
@@ -199,7 +199,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             left={containerState.left}
             width={containerState.width}
             bottom={containerState.bottom}
-            keyboardHeight={keyboardHeight}
             measuredHeightOfSuggestionRows={suggestionHeight}
             isMenuAbove={containerState.isMenuAbove}
         />

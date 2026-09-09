@@ -6,9 +6,6 @@ type AutoCompleteSuggestionsPortalProps<TSuggestion> = ExternalProps<TSuggestion
     left: number;
     width: number;
     bottom: number;
-
-    /** Keyboard height `bottom` was offset by, used on native to re-base `bottom` onto the portal host's frame */
-    keyboardHeight?: number;
     measuredHeightOfSuggestionRows: number;
 
     /** Whether the menu is rendered above the caret, which decides the gap kept between the menu and the caret */
