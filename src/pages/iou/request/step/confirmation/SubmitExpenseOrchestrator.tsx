@@ -15,7 +15,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import {clearPendingSubmitWriteWhenBarrierSettles, markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
@@ -245,13 +245,13 @@ function SubmitExpenseOrchestrator({
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        // Armed before the reveal, so the barrier attaches to the transition that reveal starts.
-        const writeBarrier = armTransitionBarrier().barrier;
+        // Armed before the reveal, so the barrier attaches to the transition that reveal starts. The pending-write
+        // signal clears from the barrier, once the write attaches, not when createTransaction returns.
         const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
+        const writeBarrier = clearPendingSubmitWriteWhenBarrierSettles(armTransitionBarrier().barrier, clearPendingWrite);
 
         const afterTransition = () => {
             createTransaction(locationPermissionGranted, false, writeBarrier);
-            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -266,7 +266,6 @@ function SubmitExpenseOrchestrator({
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
 
         let writeBarrier: WriteReadyBarrier | undefined;
-        let clearPendingWrite = () => {};
 
         if (shouldPreserveSearchWithPlaceholder) {
             // Search-destined submissions release on Search's own content layout, not on this dismiss
@@ -276,21 +275,14 @@ function SubmitExpenseOrchestrator({
         } else {
             // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
             // dismiss transition is starting, otherwise it would wait out an unrelated later one.
-            writeBarrier = armTransitionBarrier().barrier;
-            clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
+            // The pending-write signal clears from the barrier once the write attaches (the same point the
+            // old deferred-write flush dropped it), so a GPS lookup between dismiss and write keeps it up.
+            const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
+            writeBarrier = clearPendingSubmitWriteWhenBarrierSettles(armTransitionBarrier().barrier, clearPendingWrite);
         }
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false, writeBarrier);
-            // The barrier has already released by now, so the write goes out on the next microtask -
-            // the same point the old deferred-write flush used to drop this signal.
-            //
-            // This holds for the strategies that run us from TransitionTracker rather than from a
-            // dismiss callback (dismissNarrowWithReport) only because TransitionTracker flushes its
-            // pending callbacks in registration order, and the barrier above was armed before the
-            // strategy registered. Arming later than the dismiss call would clear this signal before
-            // the write is even issued, which shows up as an empty-state flash on the destination.
-            clearPendingWrite();
             setIsConfirming(false);
         };
 

@@ -1,3 +1,5 @@
+import type {WriteReadyBarrier} from './API/writeWhenReady';
+
 import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
 import Log from './Log';
 
@@ -58,6 +60,19 @@ function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
     startSafetyTimeout(reportID, generation);
 }
 
+/**
+ * Wraps `barrier` so `clearPendingWrite` runs once the write has attached to it and the barrier settles (or aborts),
+ * instead of when the caller's submit function returns. A zero-amount GPS submission returns before its write is
+ * even issued, so clearing on return would drop the signal mid-lookup and flash the destination's empty state.
+ */
+function clearPendingSubmitWriteWhenBarrierSettles(barrier: WriteReadyBarrier, clearPendingWrite: () => void): WriteReadyBarrier {
+    return (abortSignal) => {
+        // writeWhenReady's early-release paths abort without settling the barrier, so listen for that too.
+        abortSignal.addEventListener('abort', clearPendingWrite);
+        return Promise.resolve(barrier(abortSignal)).finally(clearPendingWrite);
+    };
+}
+
 /** Whether a submit write is pending for this specific report, scoped so an unrelated submission can't affect it. */
 function hasPendingSubmitWriteForReport(reportID: string | undefined): boolean {
     if (!reportID) {
@@ -77,4 +92,4 @@ function resetForTesting() {
     generation = 0;
 }
 
-export {markPendingSubmitWriteForReport, restartPendingSubmitWriteSafetyTimeout, hasPendingSubmitWriteForReport, resetForTesting};
+export {markPendingSubmitWriteForReport, restartPendingSubmitWriteSafetyTimeout, hasPendingSubmitWriteForReport, clearPendingSubmitWriteWhenBarrierSettles, resetForTesting};

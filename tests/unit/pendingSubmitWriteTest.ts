@@ -1,5 +1,11 @@
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
-import {hasPendingSubmitWriteForReport, markPendingSubmitWriteForReport, resetForTesting, restartPendingSubmitWriteSafetyTimeout} from '@libs/pendingSubmitWrite';
+import {
+    clearPendingSubmitWriteWhenBarrierSettles,
+    hasPendingSubmitWriteForReport,
+    markPendingSubmitWriteForReport,
+    resetForTesting,
+    restartPendingSubmitWriteSafetyTimeout,
+} from '@libs/pendingSubmitWrite';
 
 beforeEach(() => {
     resetForTesting();
@@ -136,5 +142,60 @@ describe('pendingSubmitWrite', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    describe('clearPendingSubmitWriteWhenBarrierSettles', () => {
+        it('keeps the signal up until the write attaches to the barrier', async () => {
+            // Given a pending submit write whose clear is tied to a write barrier
+            const clear = markPendingSubmitWriteForReport('report-A');
+            let releaseBarrier: () => void = () => {};
+            const barrier = () =>
+                new Promise<void>((resolve) => {
+                    releaseBarrier = resolve;
+                });
+            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(barrier, clear);
+
+            // When the submit function has returned but no write has attached yet (e.g. a GPS lookup is still running)
+            await Promise.resolve();
+
+            // Then the signal is still up, so the destination keeps its loading state instead of flashing empty
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+
+            // When the write attaches and the barrier settles
+            const pending = wrappedBarrier(new AbortController().signal);
+            releaseBarrier();
+            await pending;
+
+            // Then the signal clears at the point the write actually goes out
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+        });
+
+        it('clears the signal when the write is released early via abort', async () => {
+            // Given a pending submit write attached to a barrier that never settles on its own
+            const clear = markPendingSubmitWriteForReport('report-A');
+            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(() => new Promise<void>(() => {}), clear);
+            const abortController = new AbortController();
+            const pending = wrappedBarrier(abortController.signal);
+
+            // When writeWhenReady releases the write early (safety timeout or app background) by aborting
+            abortController.abort();
+
+            // Then the signal clears too, instead of waiting for its own safety timeout
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+            // The barrier itself never settles, so nothing more to await on `pending`
+            expect(pending).toBeDefined();
+        });
+
+        it('still clears the signal when the barrier rejects', async () => {
+            // Given a pending submit write tied to a barrier that rejects (the write still executes in that case)
+            const clear = markPendingSubmitWriteForReport('report-A');
+            const wrappedBarrier = clearPendingSubmitWriteWhenBarrierSettles(() => Promise.reject(new Error('barrier failed')), clear);
+
+            // When the barrier rejects
+            await expect(wrappedBarrier(new AbortController().signal)).rejects.toThrow('barrier failed');
+
+            // Then the signal is cleared along with it
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+        });
     });
 });
