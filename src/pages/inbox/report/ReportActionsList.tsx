@@ -63,6 +63,7 @@ import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -386,6 +387,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         setTreatAsNoPaginationAnchor,
     });
 
+    const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
+    const shouldShowInitialViewportSkeleton = !isOffline && (!hasOnceLoadedReportActions || loadedInitialViewportListID !== listID);
+
+    const handleListLoad = () => {
+        onLoad();
+        setLoadedInitialViewportListID(listID);
+    };
+
     const loadOlderChatsOnStartReached = () => {
         if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
             return;
@@ -598,13 +607,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     alignItemsAtEnd={!shouldBeAlignedToTop}
                     // Only follow the real latest page. Older/linked windows must retain their visible anchor.
                     maintainScrollAtEnd={!hasNewerActions && {animated: false}}
-                    // Keyboard avoidance can shrink the viewport by almost a full screen before LegendList evaluates end proximity.
                     // Leave the end-follow region as soon as the user starts reading older messages.
                     maintainScrollAtEndThreshold={0.01}
                     maintainVisibleContentPosition
-                    onLoad={onLoad}
+                    onLoad={handleListLoad}
                     onContentSizeChange={() => trackVerticalScrolling(undefined)}
                 />
+                {shouldShowInitialViewportSkeleton && (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.appBG, styles.overflowHidden, styles.zIndex10, styles.justifyContentEnd, styles.pb4]}
+                    >
+                        <ReportActionsSkeletonView />
+                    </View>
+                )}
             </ReportActionsListPaddingView>
         </>
     );
