@@ -25,7 +25,6 @@ import {createAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
 type WorkspaceListItem = {
-    /** The ID of the policy/workspace */
     policyID: string;
 
     /** The timestamp of when the policy was created */

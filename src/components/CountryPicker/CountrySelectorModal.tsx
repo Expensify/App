@@ -20,19 +20,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import React, {useMemo} from 'react';
 
 type CountrySelectorModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Function to call when the user closes the business type selector modal */
     onClose: () => void;
 
-    /** Label to display on field */
     label: string;
-
-    /** Country selected  */
     currentCountry: string;
-
-    /** Function to call when the user selects a country */
     onCountrySelected: (value: Option) => void;
 
     /** Function to call when the user presses on the modal backdrop */
