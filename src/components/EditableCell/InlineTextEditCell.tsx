@@ -28,7 +28,7 @@ type InlineTextEditCellProps = {
     /** Whether to show a tooltip over the display text */
     shouldShowTooltip?: boolean;
 
-    /** Style applied to the display text */
+    /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
     displayTextStyle?: StyleProp<TextStyle>;
 
     /** Normalizes the value before saving and for change detection (defaults to trimming) */
@@ -82,6 +82,8 @@ function InlineTextEditCell({value, accessibilityLabel, shouldShowTooltip = true
                     onSubmitEditing={save}
                     autoFocus
                     submitBehavior="blurAndSubmit"
+                    // Match the display cell's type (e.g. supporting label size on Expensify card names).
+                    inputStyle={displayTextStyle}
                     // EditableCell owns the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
                     textInputContainerStyles={styles.editableCellInputStyle}

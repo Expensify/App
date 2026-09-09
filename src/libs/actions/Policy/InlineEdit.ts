@@ -1,10 +1,11 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {getCompanyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
+import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
+import {updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -81,4 +82,22 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
 
 // #endregion Company Cards
 
-export {renameCategoryInline, renameTagInline, renameCompanyCardInline};
+// #region Expensify Cards
+
+/**
+ * Renames an Expensify card from an inline table edit. Delegates to the canonical rename action
+ * without extra sanitization, matching the RHP edit form. Silently no-ops when the name is
+ * unchanged or fails validation (matching the Spend inline-edit behavior, where an invalid edit
+ * reverts to the original value without an error).
+ */
+function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
+    if (newName === currentName || getExpensifyCardNameError(newName)) {
+        return;
+    }
+
+    updateExpensifyCardTitle(workspaceAccountID, cardID, newName, currentName);
+}
+
+// #endregion Expensify Cards
+
+export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline};

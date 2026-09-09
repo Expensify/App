@@ -1252,6 +1252,38 @@ function getCompanyCardNameErrorMessage(translate: LocaleContextProps['translate
     }
 }
 
+/** The reason a proposed Expensify card name is invalid. Callers translate it via `getExpensifyCardNameErrorMessage`. */
+type ExpensifyCardNameError = 'required' | 'tooLong';
+
+/**
+ * Validates an Expensify card name against the same rules the RHP edit form and issue-new name
+ * step used before inline editing: required if the value is empty after stripping invisible
+ * characters, then UTF-8 length of the raw (unsanitized) value. Returns an error code, or
+ * undefined when the name is valid.
+ */
+function getExpensifyCardNameError(newName: string): ExpensifyCardNameError | undefined {
+    if (!newName || StringUtils.isEmptyString(newName)) {
+        return 'required';
+    }
+
+    if (StringUtils.getUTF8ByteLength(newName) > CONST.STANDARD_LENGTH_LIMIT) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardNameError} into a user-facing message for the given name. */
+function getExpensifyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(name), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
 function getCompanyCardCustomName(
     cardID: string | number | undefined,
@@ -2253,6 +2285,8 @@ export {
     sanitizeCompanyCardName,
     getCompanyCardNameError,
     getCompanyCardNameErrorMessage,
+    getExpensifyCardNameError,
+    getExpensifyCardNameErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
@@ -2335,4 +2369,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CompanyCardNameError};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CompanyCardNameError, ExpensifyCardNameError};
