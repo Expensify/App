@@ -186,6 +186,40 @@ describe('Navigate', () => {
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
         });
 
+        it('removes the internal sidebar marker without leaving empty params', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.SETTINGS_ABOUT, {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const activeTabState = navigationRef.current?.getRootState().routes.at(-1)?.state;
+            const settingsSplit = activeTabState?.routes.findLast((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(settingsSplit?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+            expect(settingsSplit?.state?.routes.at(-1)?.params).toBeUndefined();
+        });
+
         it('to the page from the different split navigator', () => {
             // Given the initialized navigation on the narrow layout with the settings split navigator
             render(
