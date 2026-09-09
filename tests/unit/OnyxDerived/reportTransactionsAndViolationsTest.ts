@@ -85,4 +85,31 @@ describe('reportTransactionsAndViolations compute', () => {
         expect(result.reportE?.transactions?.[txKey('5')]).toBeTruthy();
         expect(result.reportE?.transactions?.[txKey('6')]).toBeTruthy();
     });
+
+    it('drops an entry whose transaction moved to another report while the cross-compute state was empty', () => {
+        // Given a derived value restored from disk that still files the transaction under its old report,
+        // and no primed cross-compute state (a fresh app load leaves the module-level mapping empty)
+        const currentValue: ReportTransactionsAndViolationsDerivedValue = {reportOld: {transactions: {[txKey('7')]: makeTx('7', 'reportOld')}, violations: {}}};
+
+        // When a full compute runs (no delta) and the collection already places it on the new report
+        const transactions: OnyxCollection<Transaction> = {[txKey('7')]: makeTx('7', 'reportNew')};
+        const result = reportTransactionsAndViolationsConfig.compute([transactions, undefined], {sourceValues: undefined, currentValue});
+
+        // Then it is listed only under the new report
+        expect(result.reportNew?.transactions?.[txKey('7')]).toBeTruthy();
+        expect(result.reportOld?.transactions?.[txKey('7')]).toBeUndefined();
+    });
+
+    it('drops an entry whose transaction is absent from the collection on a full compute', () => {
+        // Given a derived value restored from disk listing a transaction that no longer exists
+        const currentValue: ReportTransactionsAndViolationsDerivedValue = {reportF: {transactions: {[txKey('8')]: makeTx('8', 'reportF')}, violations: {}}};
+
+        // When a full compute runs (no delta) over a collection that no longer contains it
+        const transactions: OnyxCollection<Transaction> = {[txKey('9')]: makeTx('9', 'reportF')};
+        const result = reportTransactionsAndViolationsConfig.compute([transactions, undefined], {sourceValues: undefined, currentValue});
+
+        // Then the missing transaction is dropped and the surviving one is kept
+        expect(result.reportF?.transactions?.[txKey('8')]).toBeUndefined();
+        expect(result.reportF?.transactions?.[txKey('9')]).toBeTruthy();
+    });
 });
