@@ -1,5 +1,6 @@
+import recordFullReconnectTimeFromResponse from '@libs/actions/recordFullReconnectTimeFromResponse';
 import {isFullDownloadRequest} from '@libs/actions/RequestConflictUtils';
-import {getServerReconnectCutoff, recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
+import {getServerReconnectCutoff} from '@libs/FullReconnectUtils';
 
 import CONST from '@src/CONST';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';

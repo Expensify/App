@@ -1,5 +1,4 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
@@ -53,22 +52,4 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
     return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-/**
- * The response can deliver a newer cutoff than the one known when the request was built, and the
- * held cutoff can be newer still (a Pusher update can overtake an in-flight response), so the
- * recorded time satisfies whichever of the two is later. A time below either would read as stale
- * and fire an extra reconnect right after the full download.
- *
- * The time is written directly to Onyx (not spliced into the deferred response batch) so
- * subscribeToFullReconnect sees it before any cutoff from the same response can land.
- */
-function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[] | undefined, knownServerReconnectCutoff: string): Promise<void> {
-    const deliveredCutoffValue: unknown = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE)?.value;
-    const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
-    const cutoffToSatisfy = deliveredCutoff > knownServerReconnectCutoff ? deliveredCutoff : knownServerReconnectCutoff;
-    // Written directly to Onyx (not via an action) so subscribeToFullReconnect observes LAST_FULL_RECONNECT_TIME before any cutoff from the same response can land.
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    return Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoffToSatisfy));
-}
-
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff, recordFullReconnectTimeFromResponse};
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff};

@@ -1,10 +1,10 @@
 import {openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import recordFullReconnectTimeFromResponse from '@libs/actions/recordFullReconnectTimeFromResponse';
 import {writeWithNoDuplicatesOpenAppConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
