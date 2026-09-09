@@ -1,6 +1,8 @@
+import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
 import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
+import {startMainQueue} from '@libs/Network';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -63,6 +65,8 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
+            [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
@@ -91,6 +95,8 @@ export default function () {
         ],
     });
 
+    cleanupPreMountedDraftReports();
+
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.
     registerReportActionsPagination();
@@ -103,6 +109,8 @@ export default function () {
     // picked up and the URL restored here, before React Navigation resolves the initial route. After
     // Onyx.init() because a completed exchange persists the session. No-op on every other load.
     finishCloudflareSignInFromURL();
+
+    startMainQueue();
 
     initOnyxDerivedValues();
 

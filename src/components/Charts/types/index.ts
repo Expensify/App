@@ -27,10 +27,7 @@ type UnitWithFallback = {value: string; fallback: string};
 type UnitPosition = 'left' | 'right';
 
 type ChartProps = {
-    /** Data points to display */
     data: ChartDataPoint[];
-
-    /** Whether data is loading */
     isLoading?: boolean;
 };
 
