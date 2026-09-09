@@ -74,7 +74,11 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
     );
 
     const selectDefaultVendor = (item: VendorListItem) => {
-        if (item.value !== defaultCompanyCardVendorID && policyID) {
+        const isAlreadySelected = item.value === defaultCompanyCardVendorID || (!item.value && !defaultCompanyCardVendorID);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateRilletDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
         }
         Navigation.goBack(backPath);
