@@ -15,6 +15,4 @@ function ServerPage() {
     );
 }
 
-ServerPage.displayName = 'ServerPage';
-
 export default ServerPage;

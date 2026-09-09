@@ -19,7 +19,7 @@ import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userAction
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {Platform, View} from 'react-native';
@@ -36,8 +36,7 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 type TestToolMenuProps = {
-    /** Where the server row navigates. */
-    serverPageRoute: Route;
+    serverPageRoute: typeof ROUTES.SETTINGS_TROUBLESHOOT_SERVER | typeof ROUTES.TEST_TOOLS_SERVER;
 };
 
 function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
@@ -58,9 +57,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
     const isAgentAccount = useIsAgentAccount();
 
-    // A pinned build ignores what the selector would store, so the row states the server instead of offering it.
-    // The pressable below announces the title on every other build, so only here does the title itself
-    // have to be readable.
+    // Only the pinned row needs an accessible title: the pressable below announces it on every other build.
     const serverRow = (
         <TestToolRow
             title={translate('initialSettingsPage.troubleshoot.server')}

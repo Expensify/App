@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import SelectionList from '@components/SelectionList';
 import TestToolMenu from '@components/TestToolMenu';
 
@@ -29,8 +30,7 @@ const mockQAServer = CONST.SERVER.QA;
 let mockActiveServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 let mockIsPinnedByEnvironment = false;
 
-// The resolved server, not the stored one, is what the row and the selector show. How it resolves is
-// `ApiUtilsTest` and its per-environment siblings; here it is an input.
+// How the server resolves is `ApiUtilsTest` and its per-environment siblings; here it is an input.
 jest.mock('@hooks/useActiveServer', () => ({
     __esModule: true,
     default: (): ActiveServerState => ({activeServer: mockActiveServer, isPinnedByEnvironment: mockIsPinnedByEnvironment}),
@@ -61,10 +61,10 @@ jest.mock('@src/CONFIG', () => ({
 }));
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
-jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {navigate: jest.fn(), goBack: jest.fn(), getActiveRoute: jest.fn(() => '/test-tools')},
+    default: {navigate: jest.fn(), goBack: jest.fn(), pop: jest.fn(), getActiveRoute: jest.fn(() => '/test-tools')},
 }));
 
 type RootState = ReturnType<NonNullable<typeof navigationRef.current>['getRootState']>;
@@ -98,6 +98,14 @@ const getConfirmButtonOptions = () => {
     return confirmButtonOptions;
 };
 
+const pressBack = () => {
+    const onBackButtonPress = jest.mocked(HeaderWithBackButton).mock.calls.at(-1)?.at(0)?.onBackButtonPress;
+    if (!onBackButtonPress) {
+        throw new Error('The header was rendered without an onBackButtonPress');
+    }
+    onBackButtonPress();
+};
+
 const pressSave = () => {
     const {onConfirm} = getConfirmButtonOptions();
     if (!onConfirm) {
@@ -106,9 +114,12 @@ const pressSave = () => {
     onConfirm();
 };
 
+const ROOT_STATE_KEY = 'stack-root';
+
 const mockTestToolsModalState = (backTo?: string) => {
     mockGetRootState.mockReturnValue(
         createMock<RootState>({
+            key: ROOT_STATE_KEY,
             routes: [
                 {
                     name: NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
@@ -183,6 +194,17 @@ describe('Server selection', () => {
             expect(setActiveServer).toHaveBeenCalledWith(CONST.SERVER.STAGING);
         });
 
+        it('drops the pick when the back caret is used, so only Save commits', () => {
+            render(<ServerSelector />);
+            act(() => getSelectionListProps().onSelectRow({keyForList: CONST.SERVER.STAGING}));
+            expect(getSelectionListProps().data.find((item) => item.isSelected)?.keyForList).toBe(CONST.SERVER.STAGING);
+
+            pressBack();
+
+            expect(setActiveServer).not.toHaveBeenCalled();
+            expect(Navigation.goBack).toHaveBeenCalledWith();
+        });
+
         it('reports every server as fixed on a build that pins one, the pinned server included', () => {
             mockActiveServer = CONST.SERVER.QA;
             mockIsPinnedByEnvironment = true;
@@ -209,16 +231,18 @@ describe('Server selection', () => {
         beforeEach(() => jest.useFakeTimers());
         afterEach(() => jest.useRealTimers());
 
-        it('goes back to where the modal was opened from, and to the root when it was opened without a backTo', () => {
+        it('goes back to where the modal was opened from, and pops the whole modal when it was opened without a backTo', () => {
             mockTestToolsModalState(ROUTES.SETTINGS_TROUBLESHOOT);
             toggleTestToolsModal();
             expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT);
+            expect(Navigation.pop).not.toHaveBeenCalled();
 
             jest.advanceTimersByTime(CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
 
             mockTestToolsModalState();
             toggleTestToolsModal();
-            expect(Navigation.goBack).toHaveBeenLastCalledWith(ROUTES.ROOT);
+            expect(Navigation.pop).toHaveBeenCalledWith(ROOT_STATE_KEY);
+            expect(Navigation.goBack).toHaveBeenCalledTimes(1);
         });
     });
 });
