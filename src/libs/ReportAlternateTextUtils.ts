@@ -188,7 +188,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction,
     excludeParticipantsForDisplay,
@@ -1248,8 +1248,7 @@ function getReportAlternateText({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = deprecatedGetReportName(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(lastActionReport ?? undefined, reportAttributesDerived?.[lastActionReport?.reportID ?? '']?.reportName) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
