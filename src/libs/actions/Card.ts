@@ -15,6 +15,7 @@ import type {
     SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
+    ToggleCardContinuousReconciliationParams,
     UnassignCardParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
@@ -1573,15 +1574,23 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
     | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
 >;
 
-function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
-    const parameters = shouldUseContinuousReconciliation
+function toggleContinuousReconciliation(
+    workspaceAccountID: number,
+    policyID: string,
+    shouldUseContinuousReconciliation: boolean,
+    connectionName: ConnectionName,
+    oldConnectionName?: ConnectionName,
+) {
+    const parameters: ToggleCardContinuousReconciliationParams = shouldUseContinuousReconciliation
         ? {
               policyAccountID: workspaceAccountID,
+              policyID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
               policyAccountID: workspaceAccountID,
+              policyID,
               shouldUseContinuousReconciliation,
           };
 

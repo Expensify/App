@@ -92,7 +92,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
-        toggleContinuousReconciliation(effectiveDomainID, value, connectionName, currentConnectionName);
+        if (!policyID) {
+            return;
+        }
+        toggleContinuousReconciliation(effectiveDomainID, policyID, value, connectionName, currentConnectionName);
         if (value) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path));
         }
