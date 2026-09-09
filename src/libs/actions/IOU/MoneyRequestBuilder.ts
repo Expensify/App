@@ -1398,16 +1398,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
-        // The chat's `iouReportID` pointer can be emptied while the submitter still has an outstanding report on the policy,
-        // for example after their expenses are moved to another report and the emptied report is then deleted. Without this
-        // fallback the expense lands on a brand new report even though the confirmation page named the existing one, because
-        // the confirmation page already falls back to `getOutstandingReportsForUser`.
         if (!iouReport && isPolicyExpenseChat) {
             iouReport =
                 getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, getAllReportNameValuePairs(), allReports, false)
-                    // Newest first, matching `sortOutstandingReportsBySelected` used by the report picker. `created` is a
-                    // machine timestamp rather than user-facing text, so locale collation does not apply here and there is
-                    // no `localeCompare` from `useLocalize` available in this action.
                     // eslint-disable-next-line rulesdir/prefer-locale-compare-from-context
                     .sort((report1, report2) => (report2?.created ?? '').localeCompare(report1?.created ?? ''))
                     .at(0) ?? null;
