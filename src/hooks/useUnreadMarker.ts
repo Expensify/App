@@ -20,7 +20,7 @@ type UseUnreadMarkerParams = {
     /** The report whose unread marker is being computed */
     reportID: string;
 
-    /** The visible actions (FlatList `data` domain) that the marker scan runs over — newest-first, or oldest-first when `isReversed` */
+    /** The visible actions (FlatList `data` domain) that the marker scan runs over. Newest-first, or oldest-first when `isReversed`. */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
