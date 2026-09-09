@@ -1170,6 +1170,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `已导入 ${count} 笔交易。`,
             other: `已导入 ${count} 笔交易。`,
         }),
+        importStatementSuccessfulDescription: '您的银行对账单已上传。',
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
         importDescription: '通过点击下方每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',

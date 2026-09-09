@@ -1229,6 +1229,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `${count} transaction a été importée.`,
             other: `${count} transactions ont été importées.`,
         }),
+        importStatementSuccessfulDescription: 'Votre relevé bancaire a été téléchargé.',
         importFailedTitle: 'Échec de l’importation',
         importFailedDescription: 'Veuillez vous assurer que tous les champs sont correctement remplis, puis réessayez. Si le problème persiste, veuillez contacter Concierge.',
         importDescription: 'Choisissez les champs à faire correspondre à partir de votre feuille de calcul en cliquant sur le menu déroulant à côté de chaque colonne importée ci‑dessous.',

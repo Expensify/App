@@ -1224,6 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 transactie is geïmporteerd.',
             other: `${count} transacties zijn geïmporteerd.`,
         }),
+        importStatementSuccessfulDescription: 'Je bankafschrift is geüpload.',
         importFailedTitle: 'Import mislukt',
         importFailedDescription: 'Zorg dat alle velden correct zijn ingevuld en probeer het opnieuw. Neem als het probleem aanhoudt contact op met Concierge.',
         importDescription: 'Kies welke velden je uit je spreadsheet wilt koppelen door op het dropdownmenu naast elke geïmporteerde kolom hieronder te klikken.',

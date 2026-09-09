@@ -1224,6 +1224,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `${count} transação foi importada.`,
             other: `${count} transações foram importadas.`,
         }),
+        importStatementSuccessfulDescription: 'Seu extrato bancário foi enviado.',
         importFailedTitle: 'Falha na importação',
         importFailedDescription: 'Certifique-se de que todos os campos foram preenchidos corretamente e tente novamente. Se o problema persistir, entre em contato com o Concierge.',
         importDescription: 'Escolha quais campos mapear da sua planilha clicando no menu suspenso ao lado de cada coluna importada abaixo.',
