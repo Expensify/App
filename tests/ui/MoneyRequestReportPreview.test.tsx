@@ -558,8 +558,7 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Wide layouts open the report first and the pressed expense on a short timer. Let that timer run. Narrow layouts
-        // push both in the same tick, so this is a no-op there.
+        // Wide layouts open the pressed expense on a short timer, so let it run. Narrow layouts push both at once.
         const settleCascade = async () => {
             await act(async () => {
                 jest.advanceTimersByTime(400);
@@ -924,8 +923,7 @@ describe('MoneyRequestReportPreview', () => {
         it('resolves the pressed expense through its live IOU action when the first match is one deleted by an offline split revert', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});
-            // Deploy blocker #100669: reverting a split offline leaves a deleted IOU action next to the live one for the
-            // restored expense, and the first-match lookup can return the deleted one, whose thread is torn down.
+            // Deploy blocker #100669: a reverted split leaves a deleted IOU action that the first-match lookup could pick.
             const deletedAction: ReportAction = {
                 ...mockAction,
                 reportActionID: 'deleted',

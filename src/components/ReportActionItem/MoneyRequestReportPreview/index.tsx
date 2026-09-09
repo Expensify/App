@@ -237,12 +237,7 @@ function MoneyRequestReportPreview({
         (transaction: Transaction) => {
             let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             if (transactionIOUAction && (isDeletedAction(transactionIOUAction) || transactionIOUAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
-                // After a split is reverted the expense report can hold more than one IOU action for the same transaction,
-                // and the first-match lookup above returns whichever sorts first, deleted or not. Removing a split while
-                // offline also deletes IOU actions for transactions that are not themselves flagged pending-delete, so the
-                // pressed-transaction guard in the caller cannot see it. A deleted action is exactly what
-                // ReportNotFoundInnerGuard rejects as a thread's parent, so navigating through one lands on the not-found
-                // page. Resolve through a live action instead.
+                // A reverted split leaves a deleted IOU action next to the live one, and a deleted parent action shows the not-found page.
                 const liveIOUAction = getIOUActionForTransactionID(
                     Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(
                         (reportAction) => !!reportAction && !isDeletedAction(reportAction) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -250,16 +245,14 @@ function MoneyRequestReportPreview({
                     transaction.transactionID,
                 );
                 if (!liveIOUAction) {
-                    // Only deleted actions remain, so the thread has been torn down. Returning nothing lets the caller open
-                    // the parent report, and skips the create branch below, which must not run for such an expense.
+                    // Only deleted actions remain, so the caller opens the parent report instead.
                     return undefined;
                 }
                 transactionIOUAction = liveIOUAction;
             }
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
-                // The thread report can carry the teardown too: the offline clean-up merges `reportID: null` into it
-                // rather than deleting it. An absent report is fine, the RHP loads it. A present one with no reportID is not.
+                // The offline clean-up leaves the thread report with a null reportID instead of removing it.
                 const existingThread = getReportOrDraftReport(childReportID);
                 if (existingThread && !existingThread.reportID) {
                     return undefined;
@@ -306,11 +299,7 @@ function MoneyRequestReportPreview({
                     Navigation.navigate(reportRoute);
                 }
                 setActiveTransactionIDs(openableTransactionIDs);
-                // No stagger here: the report is a full-screen split screen, not a layer the expense can visibly cascade
-                // over, and mounting the money request report is heavy enough that a timer only fires once it has painted
-                // (about a second on a mid-range Android device). The user would watch the report load and re-layout before
-                // the expense finally opened. Pushing both in the same tick commits them together, so the expense slides in
-                // over the report from the start while back still returns to the report and then to the chat.
+                // No stagger on narrow layouts, or the user watches the report load before the expense opens.
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
                 return;
             }
