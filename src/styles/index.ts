@@ -1147,6 +1147,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: undefined,
         },
 
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
+        },
+
         badgeDefaultText: {
             color: theme.text,
         },
@@ -4696,11 +4700,6 @@ const staticStyles = (theme: ThemeColors) =>
         reportHorizontalRule: {
             borderColor: theme.border,
             ...spacing.mh5,
-        },
-
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {
