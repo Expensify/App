@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 
 import type {ButtonProps} from '@src/components/ButtonComposed';
 import Button from '@src/components/ButtonComposed';
-import {useButtonContext} from '@src/components/ButtonComposed/context';
+import {useButtonState} from '@src/components/ButtonComposed/context';
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -25,11 +25,11 @@ jest.mock('@libs/HapticFeedback', () => ({
 const LABEL = 'test-button';
 
 /**
- * Reads ButtonContext and exposes each value as a testID'd Text node so that
+ * Reads ButtonState context and exposes each value as a testID'd Text node so that
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isHovered, isDisabled, isLoading} = useButtonContext();
+    const {variant, size, isHovered, isDisabled, isLoading} = useButtonState();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
@@ -109,12 +109,12 @@ describe('ButtonComposed — Button', () => {
         });
     });
 
-    // ── ButtonContext ───────────────────────────────────────────────────────────
+    // ── ButtonStateContext ──────────────────────────────────────────────────────
     //
-    // ButtonComposed/Button is the sole owner of ButtonContext. These tests verify
+    // ButtonComposed/Button is the sole owner of ButtonStateContext. These tests verify
     // that every prop the context exposes reaches children correctly.
 
-    describe('ButtonContext', () => {
+    describe('ButtonStateContext', () => {
         it('provides sensible defaults: size=medium, no variant, not loading, not disabled, not hovered', () => {
             // Given a Button with no extra props
             renderButton();

@@ -1,5 +1,5 @@
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
-import {useButtonContext} from '@components/ButtonComposed/context';
+import {useButtonActions, useButtonState} from '@components/ButtonComposed/context';
 import type {ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 
@@ -27,8 +27,9 @@ const accessibilityRoles: string[] = Object.values(CONST.ROLE);
  *   </Button>
  */
 function ButtonKeyboardShortcut({allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
-    // The press handler and disabled/loading state come from the parent Button context.
-    const {onPress, isDisabled, isLoading} = useButtonContext();
+    // The disabled/loading state and the press handler come from the parent Button's state and actions contexts.
+    const {isDisabled, isLoading} = useButtonState();
+    const {onPress} = useButtonActions();
 
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
