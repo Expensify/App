@@ -48,9 +48,10 @@ type PolicyParamsForOpenOrReconnect = {
 
 // `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
 // If React components need this value in the future, use `useOnyx` instead.
-let currentSessionData: {accountID?: number; email: string} = {
+let currentSessionData: {accountID?: number; email: string; authToken?: string} = {
     accountID: undefined,
     email: '',
+    authToken: undefined,
 };
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -58,6 +59,7 @@ Onyx.connectWithoutView({
         currentSessionData = {
             accountID: val?.accountID,
             email: val?.email ?? '',
+            authToken: val?.authToken,
         };
     },
 });
@@ -240,7 +242,8 @@ function setAppLoading(isLoading: boolean) {
  */
 function saveCurrentPathBeforeBackground() {
     try {
-        if (!navigationRef.isReady()) {
+        // Signed out there is only the sign-in page to save, and on Android the SAML browser backgrounds the app.
+        if (!navigationRef.isReady() || !currentSessionData.authToken) {
             return;
         }
 

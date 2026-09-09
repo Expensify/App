@@ -27,7 +27,21 @@ describe('saveCurrentPathBeforeBackground', () => {
         jest.restoreAllMocks();
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+        await Onyx.set(ONYXKEYS.SESSION, {authToken: 'token', accountID: 1, email: 'test@example.com'});
         await waitForBatchedUpdates();
+    });
+
+    it('keeps the page a forced re-auth kept when the sign in page backgrounds behind the SAML browser', async () => {
+        await Onyx.set(ONYXKEYS.SESSION, null);
+        await waitForBatchedUpdates();
+        // The navigator only ever reads routes and names, so a partial state stands in for a rehydrated one.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        mockRootState(getAdaptedStateFromPath('/inbox' as Route) as unknown as NavigationState);
+
+        saveCurrentPathBeforeBackground();
+        await waitForBatchedUpdates();
+
+        expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBe('/search?q=status:outstanding');
     });
 
     it('keeps the page a forced re-auth kept when the app backgrounds on the transition screen', async () => {
