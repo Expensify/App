@@ -211,6 +211,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         allPolicies,
         parentReport,
     );
+    const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     useEffect(() => {
         setErrorMessage('');
@@ -312,7 +313,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             getCurrencyDecimals,
             allPolicies,
-            frozenSplitTransactionIDs,
+            frozenSplitsContext,
         );
     };
 
@@ -448,7 +449,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
-                frozenSplitTransactionIDs,
+                frozenSplitsContext,
             );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
@@ -462,7 +463,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
-                frozenSplitTransactionIDs,
+                frozenSplitsContext,
             );
         }
     };

@@ -16,6 +16,7 @@ import {
     getSelectedRouteKey,
     getTaxValue,
     hasManualDistanceOverride,
+    hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManagedCardTransaction,
     calculateTaxAmount,
@@ -28,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -437,29 +439,44 @@ function redistributeSplitExpenseAmounts(
     });
 }
 
+/** Bundled to stay within the max-params lint limit. */
+type FrozenSplitsContext = {
+    frozenSplitTransactionIDs?: Set<string>;
+    searchResultsData?: SearchResultDataType;
+};
+
 /**
- * Same as `redistributeSplitExpenseAmounts`, but a split whose own report is already approved/paid/done
- * (`frozenSplitTransactionIDs`) is treated as locked and comes back unchanged - the removed/added amount
- * never lands on it. When `unlockManualEditsIfAllLocked` is set and every split is locked, the ones the user
- * manually edited (not the frozen ones) are unlocked so the total still has somewhere to redistribute to.
+ * Same as `redistributeSplitExpenseAmounts`, but a frozen split is restored to its live transaction amount
+ * instead. `unlockManualEditsIfAllLocked` unlocks non-frozen manual edits if every split is locked, so there's
+ * still somewhere to redistribute to.
  */
 function redistributeExcludingFrozenSplits(
     splitExpenses: SplitExpense[],
     total: number,
     currency: string,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    frozenSplitTransactionIDs?: Set<string>,
+    frozenSplitsContext?: FrozenSplitsContext,
     unlockManualEditsIfAllLocked = false,
 ): SplitExpense[] {
-    const isFrozenSplit = (item: SplitExpense) => frozenSplitTransactionIDs?.has(item.transactionID) ?? false;
+    const isFrozenSplit = (item: SplitExpense) => frozenSplitsContext?.frozenSplitTransactionIDs?.has(item.transactionID) ?? false;
     const lockedSplits = splitExpenses.map((item) => (isFrozenSplit(item) ? {...item, isManuallyEdited: true} : item));
     const hasAnyUneditedSplit = lockedSplits.some((item) => !item.isManuallyEdited);
     const splitExpensesToRedistribute =
         unlockManualEditsIfAllLocked && !hasAnyUneditedSplit ? lockedSplits.map((item) => (isFrozenSplit(item) ? item : {...item, isManuallyEdited: false})) : lockedSplits;
 
-    return redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals).map((item) =>
-        isFrozenSplit(item) ? (splitExpenses.find((original) => original.transactionID === item.transactionID) ?? item) : item,
-    );
+    return redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals).map((item) => {
+        if (!isFrozenSplit(item)) {
+            return item;
+        }
+        const original = splitExpenses.find((split) => split.transactionID === item.transactionID) ?? item;
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` as const;
+        const liveTransaction = getAllTransactions()[transactionKey] ?? frozenSplitsContext?.searchResultsData?.[transactionKey];
+        if (!liveTransaction) {
+            return original;
+        }
+        const liveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
+        return {...original, amount: liveAmount, taxAmount: convertToBackendAmount(calculateTaxAmount(original.taxValue, liveAmount, getCurrencyDecimals(currency)))};
+    });
 }
 
 /**
@@ -476,7 +493,7 @@ function addSplitExpenseField(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    frozenSplitTransactionIDs?: Set<string>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!transaction || !draftTransaction) {
         return;
@@ -546,7 +563,7 @@ function addSplitExpenseField(
     // Skip redistribution only when manual edits exist AND splits sum to total
     const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
     if (!isDistanceRequest && shouldRedistribute) {
-        redistributedSplitExpenses = redistributeExcludingFrozenSplits(updatedSplitExpenses, total, currency, getCurrencyDecimals, frozenSplitTransactionIDs);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(updatedSplitExpenses, total, currency, getCurrencyDecimals, frozenSplitsContext);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -770,14 +787,14 @@ function removeSplitExpenseField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    frozenSplitTransactionIDs?: Set<string>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
 
     // A frozen split can't be dropped from the set either - its amount must stay accounted for.
-    if (frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
         return;
     }
 
@@ -793,7 +810,7 @@ function removeSplitExpenseField(
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitExpenses, total, currency, getCurrencyDecimals, frozenSplitTransactionIDs, true);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitExpenses, total, currency, getCurrencyDecimals, frozenSplitsContext, true);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -907,7 +924,7 @@ function updateSplitExpenseAmountField(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    frozenSplitTransactionIDs?: Set<string>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
@@ -915,7 +932,7 @@ function updateSplitExpenseAmountField(
 
     // A frozen split's amount must stay fixed - `redistributeExcludingFrozenSplits` only guards it from
     // absorbing changes made to other splits, not from a direct edit applied to itself below.
-    if (frozenSplitTransactionIDs?.has(currentItemTransactionID)) {
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(currentItemTransactionID)) {
         return;
     }
 
@@ -970,7 +987,7 @@ function updateSplitExpenseAmountField(
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitWithUpdatedAmount, total, currency, getCurrencyDecimals, frozenSplitTransactionIDs);
+        redistributedSplitExpenses = redistributeExcludingFrozenSplits(splitWithUpdatedAmount, total, currency, getCurrencyDecimals, frozenSplitsContext);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {

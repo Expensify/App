@@ -8652,23 +8652,77 @@ describe('updateSplitExpenseAmountField', () => {
             reportID: '456',
         };
 
-        updateSplitExpenseAmountField(
-            draftTransaction,
-            currentTransactionID,
-            20,
-            undefined,
-            false,
-            undefined,
-            getCurrencySymbolLocal,
-            getCurrencyDecimalsLocal,
-            undefined,
-            new Set([currentTransactionID]),
-        );
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([currentTransactionID]),
+        });
         await waitForBatchedUpdates();
 
         // Then no draft is written at all - the edit to the frozen split is rejected outright.
         const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
         expect(updatedDraftTransaction).toBeFalsy();
+    });
+
+    it('restores a frozen split from its live modifiedAmount, not its stale amount, when a sibling split is edited', async () => {
+        const originalTransactionID = '123-frozen-modified';
+        const frozenTransactionID = '789-frozen-modified';
+        const editedTransactionID = '999-frozen-modified';
+
+        // The frozen split's own transaction was edited elsewhere (e.g. from the report view) after it froze -
+        // `modifiedAmount` is the live, authoritative amount; `amount` is stale.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`, {
+            transactionID: frozenTransactionID,
+            amount: 5000,
+            modifiedAmount: 6000,
+            currency: 'USD',
+            reportID: '456',
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-modified',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 5000,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then the frozen split is restored to its live `modifiedAmount`, not the stale `amount`.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
     });
 
     it('should update distance and merchant for distance transactions when amount changes', async () => {
