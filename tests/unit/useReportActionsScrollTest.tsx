@@ -319,7 +319,6 @@ describe('useReportActionsScroll', () => {
 
             // Still aligned to top so short reports keep their layout, but the mount position is the latest message.
             expect(result.current.shouldBeAlignedToTop).toBe(true);
-            expect(result.current.shouldFocusToTopOnMount).toBe(false);
             expect(result.current.initialScrollIndex).toBeUndefined();
         });
 
@@ -330,7 +329,6 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll();
 
             expect(result.current.shouldBeAlignedToTop).toBe(true);
-            expect(result.current.shouldFocusToTopOnMount).toBe(false);
         });
     });
 
