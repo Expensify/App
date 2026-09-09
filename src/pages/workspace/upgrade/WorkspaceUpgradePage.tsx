@@ -43,6 +43,7 @@ import {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
     enablePolicyReportFields,
     enablePolicyRules,
     isCurrencySupportedForDirectReimbursement,
@@ -289,6 +290,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 enablePolicyHR(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
+                enablePolicyRecruiting(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
