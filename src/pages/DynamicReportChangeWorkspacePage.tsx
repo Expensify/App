@@ -221,6 +221,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
+        // The report's saved workspace stays pinned to the top, so checking another row doesn't reorder the list before the user saves.
+        policyIDsToSortToTop: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {

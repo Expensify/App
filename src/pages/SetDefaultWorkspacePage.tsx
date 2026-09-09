@@ -76,6 +76,8 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
+        // This page never pinned a workspace to the top, so keep the plain alphabetical order instead of pinning the row the user just checked.
+        shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
