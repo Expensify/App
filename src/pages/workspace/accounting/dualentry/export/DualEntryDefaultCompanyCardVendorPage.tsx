@@ -95,7 +95,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={defaultCompanyCardVendorID}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : defaultCompanyCardVendorID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
             pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.pendingFields)}
