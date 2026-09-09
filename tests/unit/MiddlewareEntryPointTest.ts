@@ -1,3 +1,4 @@
+import {clearProcessQueueInterval} from '@libs/Network';
 import type * as RequestModule from '@libs/Request';
 import {addMiddleware} from '@libs/Request';
 
@@ -17,6 +18,10 @@ jest.mock('@src/setup/platformSetup', () => jest.fn());
 jest.mock('@src/setup/telemetry', () => jest.fn());
 
 describe('src/setup attaches the API middlewares', () => {
+    afterAll(() => {
+        clearProcessQueueInterval();
+    });
+
     it('registers all 14 middlewares when the composition root runs', () => {
         expect(jest.mocked(addMiddleware)).not.toHaveBeenCalled();
 

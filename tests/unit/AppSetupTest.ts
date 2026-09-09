@@ -1,3 +1,5 @@
+import {clearProcessQueueInterval} from '@libs/Network';
+
 import appSetup from '@src/setup';
 import platformSetup from '@src/setup/platformSetup';
 
@@ -17,6 +19,10 @@ jest.mock('@src/setup/platformSetup', () => jest.fn());
 jest.mock('@src/setup/telemetry', () => jest.fn());
 
 describe('app setup', () => {
+    afterAll(() => {
+        clearProcessQueueInterval();
+    });
+
     it('registers pagination synchronously after initializing Onyx', () => {
         const onyxInitSpy = jest.spyOn(Onyx, 'init');
 

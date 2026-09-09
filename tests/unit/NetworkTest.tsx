@@ -65,6 +65,16 @@ afterEach(() => {
 });
 
 describe('NetworkTests', () => {
+    test('does not start the main queue after it is cleared while waiting for the active client', async () => {
+        jest.useFakeTimers();
+
+        Network.startMainQueue();
+        Network.clearProcessQueueInterval();
+        await Promise.resolve();
+
+        expect(jest.getTimerCount()).toBe(0);
+    });
+
     test('failing to reauthenticate should not log out user', () => {
         // Use fake timers to control timing in the test
         jest.useFakeTimers();

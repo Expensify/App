@@ -5,9 +5,11 @@ import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/Curr
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import registerMiddlewares from '@libs/Middleware/register';
+import {clearProcessQueueInterval} from '@libs/Network';
 import {format as formatNumber, formatToParts} from '@libs/NumberFormatUtils';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import Timers from '@libs/Timers';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -99,6 +101,13 @@ function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
         });
+    });
+
+    afterAll(() => {
+        // appSetup() calls startMainQueue(), which arms a 1s setInterval once
+        // ActiveClientManager is ready. Left running, Jest workers never exit.
+        clearProcessQueueInterval();
+        Timers.clearAll();
     });
 }
 

@@ -10,11 +10,21 @@ import MainQueueStore from './MainQueueStore';
 import {flush as flushSequentialQueue} from './SequentialQueue';
 
 // React Native uses a number for the timer id, but Web/NodeJS uses a Timeout object
-let processQueueInterval: NodeJS.Timeout | number;
+let processQueueInterval: NodeJS.Timeout | number | undefined;
+
+// startMainQueue waits on ActiveClientManager.isReady() before arming the interval.
+// Incrementing this ID cancels earlier pending starts so they cannot run after teardown.
+let mainQueueStartID = 0;
 
 function startMainQueue() {
+    const startID = ++mainQueueStartID;
+
     // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
     ActiveClientManager.isReady().then(() => {
+        if (startID !== mainQueueStartID) {
+            return;
+        }
+
         flushSequentialQueue();
 
         // Start main queue and process once every n ms delay
@@ -27,10 +37,12 @@ function startMainQueue() {
  * This is to prevent previous intervals interfering with other tests
  */
 function clearProcessQueueInterval() {
+    mainQueueStartID++;
     if (!processQueueInterval) {
         return;
     }
     clearInterval(processQueueInterval);
+    processQueueInterval = undefined;
 }
 
 /**
