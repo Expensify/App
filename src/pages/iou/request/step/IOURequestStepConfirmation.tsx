@@ -240,7 +240,7 @@ function IOURequestStepConfirmationContent({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
@@ -321,11 +321,11 @@ function IOURequestStepConfirmationContent({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale, convertToDisplayString},
+                          {translate, preferredLocale, convertToDisplayString},
                       );
             }) ?? [],
         [
-            dateFnsLocale,
+            preferredLocale,
             transaction?.participants,
             iouType,
             personalDetails,

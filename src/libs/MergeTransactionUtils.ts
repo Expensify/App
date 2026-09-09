@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {Locale, MergeTransaction, Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
@@ -19,6 +19,7 @@ import type {TransactionDetails} from './ReportUtils';
 
 import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import Parser from './Parser';
@@ -577,6 +578,7 @@ function getDisplayValue(
     transactionDetails: TransactionDetails | undefined,
     policy: Policy | undefined,
     translate: LocaleContextProps['translate'],
+    locale: Locale,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     localeCompare: LocaleContextProps['localeCompare'],
     reports?: Array<OnyxEntry<Report>>,
@@ -591,6 +593,10 @@ function getDisplayValue(
     }
     if (field === 'amount') {
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
+    }
+    if (field === 'created') {
+        // An expense date is date-only, so it renders UTC-anchored rather than in the reader's zone.
+        return DateUtils.formatInUTCToMedium(SafeString(fieldValue), locale);
     }
     if (field === 'description') {
         return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
@@ -642,6 +648,7 @@ function buildMergeFieldsData({
     targetTransactionPolicy,
     sourceTransactionPolicy,
     translate,
+    locale,
     convertToDisplayString,
     localeCompare,
     reports,
@@ -655,6 +662,7 @@ function buildMergeFieldsData({
     targetTransactionPolicy: Policy | undefined;
     sourceTransactionPolicy: Policy | undefined;
     translate: LocaleContextProps['translate'];
+    locale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
     reports: Array<OnyxEntry<Report>>;
@@ -675,13 +683,13 @@ function buildMergeFieldsData({
             {
                 transaction: targetTransaction,
                 transactionDetails: targetTransactionDetails,
-                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                displayValue: getDisplayValue(field, targetTransaction, targetTransactionDetails, targetTransactionPolicy, translate, locale, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
             {
                 transaction: sourceTransaction,
                 transactionDetails: sourceTransactionDetails,
-                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, convertToDisplayString, localeCompare, reports),
+                displayValue: getDisplayValue(field, sourceTransaction, sourceTransactionDetails, sourceTransactionPolicy, translate, locale, convertToDisplayString, localeCompare, reports),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
         ];

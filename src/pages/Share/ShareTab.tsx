@@ -40,7 +40,7 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
@@ -73,7 +73,7 @@ function ShareTab() {
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
-              dateFnsLocale,
+              preferredLocale,
               convertToDisplayString,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,

@@ -18,9 +18,9 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
@@ -438,7 +438,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
 function getLastMessageTextForReport({
     translate,
     convertToDisplayString,
-    dateFnsLocale,
+    preferredLocale,
     report,
     personalDetails,
     lastActorDetails,
@@ -459,7 +459,7 @@ function getLastMessageTextForReport({
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -543,7 +543,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -566,7 +566,7 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+            const reportPreviewMessage = getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -593,7 +593,7 @@ function getLastMessageTextForReport({
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         lastMessageTextFromReport = getReimbursedMessage(
             translate,
-            dateFnsLocale,
+            preferredLocale,
             lastReportAction,
             report?.ownerAccountID,
             getLoginByAccountID(report?.ownerAccountID, personalDetails),
@@ -801,7 +801,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastReportAction);
+        lastMessageTextFromReport = getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, lastReportAction);
     }
     if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
         lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
@@ -895,7 +895,7 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage(translate, convertToDisplayString, {
+                            getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -1109,7 +1109,7 @@ type GetReportAlternateTextParams = {
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
@@ -1141,7 +1141,7 @@ function getReportAlternateText({
     translate,
     localeCompare,
     formatPhoneNumber,
-    dateFnsLocale,
+    preferredLocale,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
 }: GetReportAlternateTextParams): string | undefined {
@@ -1181,7 +1181,7 @@ function getReportAlternateText({
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
             convertToDisplayString,
-            dateFnsLocale,
+            preferredLocale,
             report,
             personalDetails,
             lastActorDetails,
@@ -1318,9 +1318,9 @@ function getReportAlternateText({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
             alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-            alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, lastAction);
+            alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, preferredLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-            alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastAction);
+            alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
             alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
@@ -1334,7 +1334,7 @@ function getReportAlternateText({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD)) {
             alternateText = getWorkspaceReportFieldDeleteMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-            alternateText = getWorkspaceUpdateFieldMessage(translate, lastAction);
+            alternateText = getWorkspaceUpdateFieldMessage(translate, preferredLocale, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
             alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {

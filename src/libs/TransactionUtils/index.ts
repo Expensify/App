@@ -77,6 +77,7 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -93,7 +94,6 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -1443,15 +1443,62 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
+/** The reader's copy. Never for a message that gets stored: a persisted one has to read the same for everyone, which is what {@link getMerchantOrDescription} returns. */
+function getDisplayMerchantOrDescription(transaction: OnyxEntry<Transaction>, locale: Locale): string {
+    return !isMerchantMissing(transaction) ? getDisplayMerchant(transaction, getMerchant(transaction), locale) : getDescription(transaction);
+}
+
+/** The positional split is only for rows stored before the range was pinned to enUS, whose comma count depends on the locale that wrote them. */
+function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string): string {
+    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    const startDate = start ? DateUtils.toLocalDate(start) : undefined;
+    const endDate = end ? DateUtils.toLocalDate(end) : undefined;
+    // `getStablePerDiemMerchantDateRange` goes through date-fns, which throws on an Invalid Date, and this runs in render with no error boundary.
+    if (startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
+        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(startDate, endDate)}`;
+        if (merchant.endsWith(dateRangeSuffix)) {
+            return merchant.slice(0, -dateRangeSuffix.length);
+        }
+    }
+    const merchantParts = merchant.split(', ');
+    if (merchantParts.length < 3) {
+        return '';
+    }
+    return merchantParts.slice(0, merchantParts.length - 3).join(', ');
+}
+
+function getPerDiemDates(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): string {
+    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    const startDate = start ? DateUtils.formatToMediumDate(start, locale) : '';
+    const endDate = end ? DateUtils.formatToMediumDate(end, locale) : '';
+    if (!startDate || !endDate) {
+        const merchantParts = merchant.split(', ');
+        return merchantParts.length < 3 ? merchant : merchantParts.slice(-3).join(', ');
+    }
+    return `${startDate} - ${endDate}`;
+}
+
+/** The merchant a reader sees. Per diem persists an enUS wire string so every viewer stores the same value, so the reader's copy is rebuilt from the structured dates. */
+function getDisplayMerchant(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): string {
+    if (!isPerDiemRequest(transaction)) {
+        return merchant;
+    }
+    const destination = getPerDiemDestination(transaction, merchant);
+    const dates = getPerDiemDates(transaction, merchant, locale);
+    // Both halves required, else the stored string is closer to right than a bare location or a bare range.
+    return destination && dates ? `${destination}, ${dates}` : merchant;
+}
+
 /**
  * Resolves the merchant string to display for a transaction. Returns the localized scanning label while a receipt is
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
  * values to an empty string so they never leak into the UI.
  */
-function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
+function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: Locale): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    let merchant = transaction?.formattedMerchant ?? getMerchant(transaction);
+    // Only the raw merchant: a second pass cannot match the enUS suffix it already replaced, so the positional fallback would eat the commas out of the location.
+    let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -1708,9 +1755,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
+    return DateUtils.formatMachineDateWithUTCTimeZone(created, dateFormat);
 }
 
 /**
@@ -3762,6 +3809,10 @@ export {
     getFormattedAttendees,
     getMerchant,
     getMerchantName,
+    getPerDiemDestination,
+    getPerDiemDates,
+    getDisplayMerchant,
+    getDisplayMerchantOrDescription,
     hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,

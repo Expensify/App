@@ -1,16 +1,17 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Locale, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import DateUtils from './DateUtils';
+import {toLocaleDayOfMonth} from './LocaleDigitUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
@@ -60,7 +61,7 @@ type GetReportNextStepParams = {
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
-    dateFnsLocale: DateFnsLocale | undefined,
+    preferredLocale: Locale,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
@@ -81,12 +82,16 @@ function buildNextStepMessage(
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
-        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
-        // local midnight so the rendered day matches the day set in the workspace settings.
-        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
-        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight, which
+        // shifts the day back by one in a UTC-negative timezone. `parseISO` reads it as local midnight, so both branches
+        // below render the day that was actually set in the workspace settings.
+        const etaDate = parseISO(nextStep.eta.dateTime);
+        eta =
+            nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
+                ? toLocaleDayOfMonth(preferredLocale, etaDate.getDate())
+                : DateUtils.formatToWeekdayLongDate(etaDate, preferredLocale);
+        // A date that cannot be rendered leaves the templates with a hole ("on the  of each month"), so drop the clause instead.
+        etaType = eta ? CONST.NEXT_STEP.ETA_TYPE.DATE_TIME : undefined;
     }
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;

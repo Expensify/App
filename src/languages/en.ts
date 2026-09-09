@@ -217,7 +217,6 @@ const translations = {
         admin: 'Admin',
         editor: 'Editor',
         owner: 'Owner',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
         // @context Screen-reader live announcement suffix when an RHP/modal dialog opens, e.g. "App download links, dialog".
         dialogOpened: 'dialog',
@@ -1401,7 +1400,10 @@ const translations = {
         split: 'Split',
         splitExpense: 'Split expense',
         splitDates: 'Split dates',
-        splitDateRange: (startDate: string, endDate: string, count: number) => `${startDate} to ${endDate} (${count} days)`,
+        splitDateRange: ({startDate, endDate, count}: {startDate: string; endDate: string; count: number}) => ({
+            one: `${startDate} to ${endDate} (1 day)`,
+            other: `${startDate} to ${endDate} (${count} days)`,
+        }),
         splitExpenseSubtitle: (amount: string, merchant: string) => `${amount} from ${merchant}`,
         splitByPercentage: 'Split by percentage',
         splitByDate: 'Split by date',
@@ -4114,7 +4116,6 @@ const translations = {
         industryClassificationCode: 'Industry classification code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
-        incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
@@ -4178,7 +4179,6 @@ const translations = {
         },
         selectYourCompanyIncorporationDate: "What's your company’s incorporation date?",
         incorporationDate: 'Incorporation date',
-        incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         incorporationState: 'Incorporation state',
         pleaseSelectTheStateYourCompanyWasIncorporatedIn: 'Which state was your company incorporated in?',
         letsDoubleCheck: "Let's double check that everything looks right.",

@@ -4,6 +4,7 @@ import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestPartici
 
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
@@ -46,7 +47,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report,
                 policy,
@@ -72,7 +73,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
             reportDraft,
             translate,
             convertToDisplayString: mockConvertToDisplayString,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
         });
     });
 
@@ -104,7 +105,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,
@@ -127,7 +128,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,

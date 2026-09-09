@@ -46,6 +46,17 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return {...baseValues, ...values};
 }
 
+// The enUS range `computePerDiemExpenseMerchant` persists, so the fixtures exercise the same string the backend holds.
+const PER_DIEM_RANGE = 'Aug 19, 2025 - Aug 20, 2025';
+const PER_DIEM_MERCHANT = `Berlin, ${PER_DIEM_RANGE}`;
+
+function buildPerDiemTransaction(dates: {start: string; end: string} = {start: '2025-08-19 00:00:00', end: '2025-08-20 23:59:59'}): Transaction {
+    return {
+        ...generateTransaction({merchant: PER_DIEM_MERCHANT}),
+        comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, attributes: {dates}}},
+    };
+}
+
 const CURRENT_USER_ID = 1;
 const CURRENT_USER_EMAIL = 'test@example.com';
 const OTHER_USER_EMAIL = 'other@example.com';
@@ -1837,22 +1848,22 @@ describe('TransactionUtils', () => {
 
         it('should return the merchant for a valid merchant', () => {
             const transaction = generateTransaction({merchant: 'Starbucks'});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Starbucks');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('Starbucks');
         });
 
         it('should normalize the DEFAULT_MERCHANT ("Expense") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should normalize the PARTIAL_TRANSACTION_MERCHANT ("(none)") placeholder value to an empty string', () => {
             const transaction = generateTransaction({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should prefer modifiedMerchant over merchant', () => {
             const transaction = generateTransaction({merchant: 'Original', modifiedMerchant: 'Modified'});
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('Modified');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('Modified');
         });
 
         it('should return the localized scanning label while a receipt is scanning', () => {
@@ -1860,7 +1871,7 @@ describe('TransactionUtils', () => {
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'},
             });
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('iou.receiptStatusTitle');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('iou.receiptStatusTitle');
         });
 
         it('should return an empty string for a receipt whose scan failed', () => {
@@ -1868,9 +1879,71 @@ describe('TransactionUtils', () => {
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
             });
-            expect(TransactionUtils.getMerchantName(transaction, translate)).toBe('');
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.EN)).toBe('');
+        });
+
+        it('should rebuild a per diem merchant in the readers locale', () => {
+            expect(TransactionUtils.getMerchantName(buildPerDiemTransaction(), translate, CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+        });
+
+        it('should leave an already localized formattedMerchant alone rather than localizing it twice', () => {
+            // Search localizes before this runs, and a second pass would take "California, USA" for date parts and drop them.
+            const formattedMerchant = 'San Francisco, California, USA, 19 ago 2025 - 20 ago 2025';
+            const transaction = {...buildPerDiemTransaction(), formattedMerchant};
+            expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES)).toBe(formattedMerchant);
         });
     });
+
+    describe('getMerchantOrDescription', () => {
+        it('returns the stored per diem merchant, because a persisted message must read the same for every viewer', () => {
+            expect(TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction())).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it('rebuilds the per diem merchant in the readers locale only for the display variant', () => {
+            expect(TransactionUtils.getDisplayMerchantOrDescription(buildPerDiemTransaction(), CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+        });
+
+        it('falls back to the description when the merchant is missing, in both variants', () => {
+            const transaction = generateTransaction({merchant: '', comment: {comment: 'Team lunch'}});
+            expect(TransactionUtils.getMerchantOrDescription(transaction)).toBe('Team lunch');
+            expect(TransactionUtils.getDisplayMerchantOrDescription(transaction, CONST.LOCALES.ES)).toBe('Team lunch');
+        });
+    });
+
+    describe('getDisplayMerchant', () => {
+        it('should leave a non per diem merchant exactly as stored', () => {
+            const transaction = generateTransaction({merchant: 'Starbucks'});
+            expect(TransactionUtils.getDisplayMerchant(transaction, 'Starbucks', CONST.LOCALES.ES)).toBe('Starbucks');
+        });
+
+        it('should render the stored enUS range unchanged for an English reader', () => {
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), PER_DIEM_MERCHANT, CONST.LOCALES.EN)).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it.each([
+            [CONST.LOCALES.ES, 'Berlin, 19 ago 2025 - 20 ago 2025'],
+            [CONST.LOCALES.DE, 'Berlin, 19.08.2025 - 20.08.2025'],
+            [CONST.LOCALES.JA, 'Berlin, 2025/08/19 - 2025/08/20'],
+        ])('should rebuild the range from the structured dates for %s', (locale, expected) => {
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), PER_DIEM_MERCHANT, locale)).toBe(expected);
+        });
+
+        it('should keep the stored merchant when the structured dates are missing', () => {
+            const transaction = buildPerDiemTransaction({start: '', end: ''});
+            expect(TransactionUtils.getDisplayMerchant(transaction, PER_DIEM_MERCHANT, CONST.LOCALES.ES)).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it('should keep the stored merchant when the structured dates are unparsable', () => {
+            const transaction = buildPerDiemTransaction({start: 'not-a-date', end: 'not-a-date'});
+            expect(TransactionUtils.getDisplayMerchant(transaction, PER_DIEM_MERCHANT, CONST.LOCALES.ES)).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it('should keep a location that itself contains commas', () => {
+            const merchant = `Berlin, Germany, ${PER_DIEM_RANGE}`;
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe('Berlin, Germany, 19 ago 2025 - 20 ago 2025');
+        });
+    });
+
     describe('getTransactionPendingAction', () => {
         it.each([
             ['when pendingAction is null', null, null],

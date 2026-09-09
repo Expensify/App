@@ -80,7 +80,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
     const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action, shouldUseRealActor: isOnSearch});
@@ -141,10 +141,10 @@ function ReportActionItemSingle({
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(
         translate,
-        dateFnsLocale,
         details.status?.clearAfter ?? '',
         details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
         currentSelectedTimezone,
+        preferredLocale,
     );
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;

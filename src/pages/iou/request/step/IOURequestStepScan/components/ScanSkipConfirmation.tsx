@@ -115,7 +115,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -133,7 +133,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         reportDraft,
         translate,
         convertToDisplayString,
-        dateFnsLocale,
+        preferredLocale,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 

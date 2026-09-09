@@ -100,7 +100,6 @@ function DateOfBirthStepImpl({
                 InputComponent={DatePicker}
                 inputID={dobInputID}
                 label={translate('common.dob')}
-                placeholder={translate('common.dateFormat')}
                 defaultValue={dobDefaultValue}
                 minDate={minDate}
                 maxDate={maxDate}

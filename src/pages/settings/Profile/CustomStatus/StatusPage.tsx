@@ -50,7 +50,7 @@ function StatusPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     // We intentionally use isSmallScreenWidth here. Since the Status page is displayed
     // inside the RHP, shouldUseNarrowLayout is always true. However, we still need to
@@ -83,8 +83,8 @@ function StatusPage() {
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
-    }, [draftClearAfter, currentUserClearAfter, translate, dateFnsLocale]);
+        return DateUtils.getLocalizedTimePeriodDescription(translate, preferredLocale, dataToShow);
+    }, [draftClearAfter, currentUserClearAfter, translate, preferredLocale]);
 
     const isValidClearAfterDate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

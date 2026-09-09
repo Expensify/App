@@ -186,7 +186,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -282,7 +282,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
-                    dateFnsLocale,
+                    preferredLocale,
                     convertToDisplayString,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
@@ -312,7 +312,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
@@ -348,7 +348,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         betas,
                         selectedOptions,
@@ -386,7 +386,7 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     conciergeReportID,
                     {
-                        dateFnsLocale,
+                        preferredLocale,
                         convertToDisplayString,
                         betas: betas ?? [],
                         includeP2P: true,

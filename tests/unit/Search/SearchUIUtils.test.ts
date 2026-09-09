@@ -49,7 +49,7 @@ describe('SearchUIUtils', () => {
             data,
             queryJSON,
             groupBy: queryJSON.groupBy,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             translate,
             formatPhoneNumber,
         });
@@ -76,7 +76,7 @@ describe('SearchUIUtils', () => {
             data,
             queryJSON,
             groupBy: queryJSON.groupBy,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             translate,
             formatPhoneNumber,
         });

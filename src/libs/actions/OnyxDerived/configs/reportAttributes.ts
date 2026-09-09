@@ -232,6 +232,8 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CURRENCY_LIST,
         ONYXKEYS.NETWORK,
+        // Only the trigger matters: the flag's value is read through `IntlStore.hasLocale` below.
+        ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ],
     compute: (
         [
@@ -254,8 +256,9 @@ export default createOnyxDerivedValueConfig({
     ) => {
         // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
-        const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
-        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        // The dependency slot carries the committed locale, not the raw NVP, so this is the one every consumer below reads rather than each picking its own.
+        const activeLocale = preferredLocale && IntlStore.hasLocale(preferredLocale) ? preferredLocale : IntlStore.getCurrentLocale();
+        const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(activeLocale, path, ...parameters);
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
         // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
         const getCurrencyDecimals = (currencyCode: string): number => currencyList?.[currencyCode]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
@@ -264,7 +267,7 @@ export default createOnyxDerivedValueConfig({
             const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
             const decimals = getCurrencyDecimals(sanitizedCurrency);
             const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
-            return format(preferredLocale, convertedAmount, {
+            return format(activeLocale, convertedAmount, {
                 style: 'currency',
                 currency: sanitizedCurrency,
 
@@ -279,7 +282,7 @@ export default createOnyxDerivedValueConfig({
             const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
             const decimals = getCurrencyDecimals(sanitizedCurrency);
             const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-            return formatToParts(preferredLocale, convertedAmount, {
+            return formatToParts(activeLocale, convertedAmount, {
                 style: 'currency',
                 currency: sanitizedCurrency,
                 minimumFractionDigits: decimals,
@@ -315,11 +318,11 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
-        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
-        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
-        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        // Comparing against the stored locale holds off during the load window, where recomputing would rewrite every name in the language the user just left.
         const needsFullRecompute =
-            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) && preferredLocale !== currentValue?.locale) ||
+            ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&
+                activeLocale !== currentValue?.locale &&
+                IntlStore.hasLocale(activeLocale)) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys) ||
@@ -681,7 +684,7 @@ export default createOnyxDerivedValueConfig({
                               currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                               currentUserLogin: session?.email ?? '',
                               translate,
-                              dateFnsLocale,
+                              preferredLocale: activeLocale,
                               allPolicyTags: policyTags,
                               conciergeReportID: conciergeReportID ?? undefined,
                               reportAttributes: currentValue?.reports,
@@ -781,7 +784,7 @@ export default createOnyxDerivedValueConfig({
 
         return {
             reports: reportAttributes,
-            locale: preferredLocale ?? null,
+            locale: IntlStore.hasLocale(activeLocale) ? activeLocale : null,
         };
     },
     // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full

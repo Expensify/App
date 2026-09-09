@@ -24,12 +24,12 @@ type TrainTripDetailsProps = {
 
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(DateUtils.toLocalDate(reservation.start.date), preferredLocale);
+    const endDate = DateUtils.getFormattedTransportDateAndHour(DateUtils.toLocalDate(reservation.end.date), preferredLocale);
     const trainRouteDescription = `${formatTransitLocationLabel(reservation.start)} ${translate('common.conjunctionTo')} ${formatTransitLocationLabel(reservation.end)}`;
-    const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, new Date(reservation.start.date), new Date(reservation.end.date));
+    const trainDuration = DateUtils.getFormattedDurationBetweenDates(translate, DateUtils.toLocalDate(reservation.start.date), DateUtils.toLocalDate(reservation.end.date));
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
 

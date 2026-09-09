@@ -170,7 +170,7 @@ describe('AmountSubmission', () => {
             return {
                 report: baseReport,
                 translate: translateLocal,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,

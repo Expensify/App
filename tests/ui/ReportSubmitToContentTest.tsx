@@ -28,6 +28,7 @@ mockPersonalDetailsList[2] = {accountID: 2, login: MANAGER_EMAIL, displayName: '
 // `mock`-prefixed so they can be referenced inside the hoisted `useOnyx` jest.mock factory below.
 const mockPersonalDetailsListKey = ONYXKEYS.PERSONAL_DETAILS_LIST;
 const mockLoginsKey = ONYXKEYS.LOGINS;
+const mockPreferredLocale = CONST.LOCALES.EN;
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/InviteMemberListItem', () => jest.fn(() => null));
@@ -56,7 +57,7 @@ jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
         localeCompare: (a: string, b: string) => a.localeCompare(b),
-        dateFnsLocale: {},
+        preferredLocale: mockPreferredLocale,
     })),
 );
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));

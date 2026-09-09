@@ -144,7 +144,6 @@ describe('actions/IOU/createExpenseByType', () => {
         overrides: Partial<Parameters<typeof createExpenseByType>[0]> & Pick<Parameters<typeof createExpenseByType>[0], 'transactionType' | 'params' | 'transaction' | 'transactionDetails'>,
     ) {
         return createExpenseByType({
-            dateFnsLocale: undefined,
             waypoints: undefined,
             participants: [],
             policyRecentlyUsedCurrencies: [],

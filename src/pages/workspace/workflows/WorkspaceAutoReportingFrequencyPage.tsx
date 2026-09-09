@@ -12,6 +12,7 @@ import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceS
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -67,7 +68,7 @@ const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['tr
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
@@ -99,13 +100,13 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
 
     const getDescriptionText = () => {
         if (policy?.autoReportingOffset === undefined) {
-            return toLocaleOrdinal(1);
+            return toLocaleDayOfMonth(preferredLocale, 1);
         }
         if (typeof policy?.autoReportingOffset === 'number') {
-            return toLocaleOrdinal(policy.autoReportingOffset);
+            return toLocaleDayOfMonth(preferredLocale, policy.autoReportingOffset);
         }
         if (typeof policy?.autoReportingOffset === 'string' && parseInt(policy?.autoReportingOffset, 10)) {
-            return toLocaleOrdinal(parseInt(policy.autoReportingOffset, 10));
+            return toLocaleDayOfMonth(preferredLocale, parseInt(policy.autoReportingOffset, 10));
         }
 
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);

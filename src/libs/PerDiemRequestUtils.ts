@@ -2,12 +2,13 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
@@ -217,27 +218,36 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
     return `${subrate.name}, ${qtyText}: ${subrate.quantity}`;
 }
 
-/**
- * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
- */
-function formatDateTimeTo12Hour(translate: LocalizedTranslate, dateTimeString: string): string {
+function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string {
     if (!dateTimeString) {
         return '';
     }
-    const date = new Date(dateTimeString);
-    return `${DateUtils.formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD)}, ${format(date, CONST.DATE.FNS_FORMAT_STRING)}`;
+    // Medium rather than short, which is locale-ambiguous (MM/DD/YYYY vs DD/MM/YYYY vs YYYY/MM/DD).
+    const time = DateUtils.formatToLocalTime(dateTimeString, locale);
+    const day = DateUtils.formatToMediumDate(dateTimeString, locale);
+    // Both halves required, else the hard-coded separator renders on its own.
+    if (!time || !day) {
+        return '';
+    }
+    return `${time}, ${day}`;
 }
 
-function getTimeForDisplay(transaction: OnyxEntry<Transaction>, translate: LocalizedTranslate) {
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${formatDateTimeTo12Hour(translate, customUnitRateDate.start)} - ${formatDateTimeTo12Hour(translate, customUnitRateDate.end)}`;
+    const start = formatDateTimeTo12Hour(customUnitRateDate.start, locale);
+    const end = formatDateTimeTo12Hour(customUnitRateDate.end, locale);
+    // Guard the formatted output, not the raw input: an unparsable timestamp is truthy but formats to ''.
+    if (!start || !end) {
+        return '';
+    }
+    return `${start} - ${end}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = new Date(customUnitRateDate.start);
-    const endDate = new Date(customUnitRateDate.end);
+    // Bare `new Date` yields Invalid Date on Hermes for this wire shape, and every diff below turns NaN.
+    const startDate = DateUtils.toLocalDate(customUnitRateDate.start);
+    const endDate = DateUtils.toLocalDate(customUnitRateDate.end);
 
     if (isSameDay(startDate, endDate)) {
         const hourDiff = differenceInMinutes(endDate, startDate) / 60;

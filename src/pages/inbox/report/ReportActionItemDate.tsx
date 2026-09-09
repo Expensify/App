@@ -19,7 +19,7 @@ function ReportActionItemDate({created}: ReportActionItemDateProps) {
     // It is used to force re-render of component that display relative time, ensuring they update correctly when the date changes (e.g., at midnight).
     useOnyx(ONYXKEYS.CURRENT_DATE);
 
-    return <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(created, false, false)}</Text>;
+    return <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(created)}</Text>;
 }
 
 export default memo(ReportActionItemDate);

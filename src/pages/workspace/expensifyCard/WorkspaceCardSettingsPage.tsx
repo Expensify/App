@@ -14,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
+import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -29,7 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,7 +38,7 @@ type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -56,10 +57,8 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
-    const monthlySettlementDateText =
-        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
-            ? translate('workspace.expensifyCard.monthlySettlementDate', format(new Date(settings.monthlySettlementDate), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale}))
-            : undefined;
+    const settlementDay = settings?.monthlySettlementDate ? toLocaleDayOfMonth(preferredLocale, DateUtils.toLocalDate(settings.monthlySettlementDate).getDate()) : '';
+    const monthlySettlementDateText = settlementDay ? translate('workspace.expensifyCard.monthlySettlementDate', settlementDay) : undefined;
 
     return (
         <AccessOrNotFoundWrapper

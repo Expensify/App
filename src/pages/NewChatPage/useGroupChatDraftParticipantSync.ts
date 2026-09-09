@@ -39,7 +39,7 @@ function useGroupChatDraftParticipantSync(
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
 
-    const {dateFnsLocale} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
@@ -66,7 +66,7 @@ function useGroupChatDraftParticipantSync(
                 ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- participant-shaped option built from real personal details
                   (getParticipantsOption({accountID: participant.accountID, login: participant.login}, allPersonalDetails, translate) as OptionData)
                 : getUserToInviteOption({
-                      dateFnsLocale,
+                      preferredLocale,
                       convertToDisplayString,
                       searchValue: participant?.login,
                       personalDetails: allPersonalDetails,

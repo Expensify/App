@@ -90,7 +90,7 @@ function DynamicIOURequestStepDistanceRate({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -158,7 +158,7 @@ function DynamicIOURequestStepDistanceRate({
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
-        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, dateFnsLocale);
+        const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, preferredLocale);
         const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
             text: rate.name ?? rateForDisplay,

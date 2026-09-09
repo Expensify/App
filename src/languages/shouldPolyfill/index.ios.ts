@@ -2,6 +2,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 
 import {shouldPolyfill as listFormatNeedsLocale} from '@formatjs/intl-listformat/should-polyfill';
 import {shouldPolyfill as pluralRulesNeedsLocale} from '@formatjs/intl-pluralrules/should-polyfill';
+import {shouldPolyfill as relativeTimeFormatNeedsLocale} from '@formatjs/intl-relativetimeformat/should-polyfill';
 
 /**
  * These guards run after the polyfills are installed and answer "does `locale`'s data still need to be
@@ -31,4 +32,8 @@ function shouldPolyfillPluralRules(locale: Locale): boolean {
     return !!pluralRulesNeedsLocale(locale);
 }
 
-export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules};
+function shouldPolyfillRelativeTimeFormat(locale: Locale): boolean {
+    return !!relativeTimeFormatNeedsLocale(locale);
+}
+
+export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat};

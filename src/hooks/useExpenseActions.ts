@@ -99,7 +99,7 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -261,7 +261,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             duplicateTransactionAction({
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -444,7 +443,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const reportDuplicateParticipantsPolicyTags = getPolicyTagsSelector(reportDuplicateParticipants)(allPolicyTags);
 
                 duplicateReportAction({
-                    dateFnsLocale,
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',

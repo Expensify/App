@@ -1662,7 +1662,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 conciergeChat,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
                 transaction: {...mockTransaction, amount: mockTransaction.amount * -1},
@@ -1707,7 +1706,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1778,7 +1776,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1841,7 +1838,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1897,7 +1893,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1968,7 +1963,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2048,7 +2042,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2115,7 +2108,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2175,7 +2167,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2244,7 +2235,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2297,7 +2287,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2345,7 +2334,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2394,7 +2382,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2445,7 +2432,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2502,7 +2488,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2574,7 +2559,6 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2647,7 +2631,6 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2703,7 +2686,6 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2770,7 +2752,6 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2948,7 +2929,6 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
-            dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -3534,7 +3514,6 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
@@ -3591,7 +3570,6 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
-                dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
                 allTransactions,
@@ -3693,7 +3671,6 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
-            dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

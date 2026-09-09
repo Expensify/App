@@ -104,7 +104,7 @@ jest.mock('@react-navigation/native', () => {
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
 const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.EN,
     convertToDisplayString,
     conciergeReportID: undefined,
     isSearching: true,
@@ -112,7 +112,7 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
 });
 
 const ValidOptionsConfig = {
-    dateFnsLocale: undefined,
+    preferredLocale: CONST.LOCALES.EN,
     convertToDisplayString,
     betas: mockedBetas,
     includeRecentReports: true,
@@ -149,7 +149,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options,
@@ -182,7 +182,7 @@ describe('OptionsListUtils', () => {
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
             });
         });
@@ -202,7 +202,7 @@ describe('OptionsListUtils', () => {
         );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
             });
         });
@@ -221,7 +221,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
-                    dateFnsLocale: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
                     convertToDisplayString,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
@@ -289,7 +289,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 mockedPersonalDetails,
                 true,
             ),
@@ -313,7 +313,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 convertToDisplayString,
-                undefined,
+                CONST.LOCALES.EN,
                 mockedPersonalDetails,
                 true,
             ),
@@ -327,7 +327,7 @@ describe('OptionsListUtils', () => {
             clearFilteredOptionListCache();
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
@@ -341,7 +341,7 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
@@ -358,7 +358,7 @@ describe('OptionsListUtils', () => {
         const largeReports = getMockedReports(LARGE_REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
         const largeOptionList = createFilteredOptionList(largePersonalDetails, largeReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             convertToDisplayString,
             conciergeReportID: undefined,
         });
@@ -377,7 +377,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails, {
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
             });
         });
@@ -387,7 +387,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             convertToDisplayString,
             conciergeReportID: undefined,
             maxRecentReports: 500,
@@ -396,7 +396,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,

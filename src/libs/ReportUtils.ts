@@ -30,6 +30,7 @@ import type {
     BillingGraceEndPeriod,
     GuideAccountIDsDerivedValue,
     IntroSelected,
+    Locale,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
@@ -78,7 +79,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -99,6 +99,7 @@ import Onyx from 'react-native-onyx';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
+import type {MachineDateFormat} from './DateUtils';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -263,6 +264,7 @@ import {
     getMCCForDisplay,
     getMCCGroup,
     getMerchant,
+    getDisplayMerchantOrDescription,
     getMerchantOrDescription,
     getOriginalAmount,
     getOriginalAmountForDisplay,
@@ -5082,12 +5084,11 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 
 function getTransactionDetails(
     transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
-    createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
+    createdDateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     reportOwnerAsAttendee?: Attendee,
-    dateFnsLocale?: DateFnsLocale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -5097,7 +5098,7 @@ function getTransactionDetails(
     const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || (isEmptyObject(report) && isGroupPolicyPolicyUtils(policy));
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, dateFnsLocale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, reportOwnerAsAttendee),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -5834,6 +5835,7 @@ function shouldShowRBRForMissingSmartscanFields(
  */
 function getTransactionReportName({
     translate,
+    preferredLocale,
     convertToDisplayString,
     getCurrencySymbol,
     reportAction,
@@ -5841,6 +5843,7 @@ function getTransactionReportName({
     report,
 }: {
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
@@ -5879,7 +5882,7 @@ function getTransactionReportName({
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
+        return getIOUReportActionDisplayMessage(translate, preferredLocale, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
     const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
@@ -5892,7 +5895,7 @@ function getTransactionReportName({
 
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
-    const comment = getMerchantOrDescription(displayTransaction);
+    const comment = getDisplayMerchantOrDescription(displayTransaction, preferredLocale);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -5937,6 +5940,7 @@ function getReportPreviewMessageForCopy(
  */
 function getReportPreviewMessage(
     translate: LocalizedTranslate,
+    preferredLocale: Locale,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
 ): string {
@@ -5976,7 +5980,7 @@ function getReportPreviewMessage(
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return translate('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
+            return translate('iou.didSplitAmount', formattedAmount, getDisplayMerchantOrDescription(linkedTransaction, preferredLocale));
         }
     }
 
@@ -6009,7 +6013,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
 
-            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
+            const merchantOrComment = getDisplayMerchantOrDescription(linkedTransaction, preferredLocale);
 
             return translate('iou.trackedAmount', formattedAmount, merchantOrComment);
         }
@@ -6119,7 +6123,7 @@ function getReportPreviewMessage(
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
+    let comment = !isEmptyObject(linkedTransaction) ? getDisplayMerchantOrDescription(linkedTransaction, preferredLocale) : undefined;
     if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
         comment = undefined;
     }
@@ -11409,6 +11413,7 @@ function getTaskAssigneeChatOnyxData({
  */
 function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
+    preferredLocale: Locale,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyACHAccountNumber: string | undefined,
@@ -11478,7 +11483,7 @@ function getIOUReportActionDisplayMessage(
     } else {
         translationKey = 'iou.expenseAmount';
     }
-    return translate(translationKey, formattedAmount, getMerchantOrDescription(transaction));
+    return translate(translationKey, formattedAmount, getDisplayMerchantOrDescription(transaction, preferredLocale));
 }
 
 /**

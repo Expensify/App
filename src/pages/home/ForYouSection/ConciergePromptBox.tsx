@@ -70,7 +70,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isKeyboardShown} = useKeyboardState();
     const {firstName} = useCurrentUserPersonalDetails();
@@ -155,7 +155,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
 
     // Current moment in the user's timezone (resolved by the localization provider).
     const localNow = getLocalDateFromDatetime();
-    const dateLabel = DateUtils.formatToLongDateWithWeekdayWithoutYear(localNow, dateFnsLocale);
+    const dateLabel = DateUtils.formatToLongDateWithWeekdayWithoutYear(localNow, preferredLocale);
     const greeting = translate(`homePage.conciergePrompt.${DateUtils.getTimeOfDayGreetingKey(localNow)}`, {name: firstName});
     const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
     const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');

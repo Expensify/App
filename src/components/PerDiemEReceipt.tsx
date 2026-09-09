@@ -8,10 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import {getPerDiemDates, getPerDiemDestination} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
@@ -37,26 +37,10 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
     return subRateComments.join(', ');
 }
 
-function getPerDiemDestination(merchant: string) {
-    const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 3) {
-        return '';
-    }
-    return merchantParts.slice(0, merchantParts.length - 3).join(', ');
-}
-
-function getPerDiemDates(merchant: string) {
-    const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 3) {
-        return merchant;
-    }
-    return merchantParts.slice(-3).join(', ');
-}
-
 function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -64,10 +48,10 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
 
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
-    const datesDescription = getPerDiemDates(transactionMerchant ?? '');
-    const destination = getPerDiemDestination(transactionMerchant ?? '');
+    const datesDescription = getPerDiemDates(transaction, transactionMerchant ?? '', preferredLocale);
+    const destination = getPerDiemDestination(transaction, transactionMerchant ?? '');
     const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
 

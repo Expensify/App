@@ -3,7 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import type {OptionData} from '@libs/ReportUtils';
 
-import type {ParticipantsPolicyTags, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Locale, ParticipantsPolicyTags, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -12,14 +12,13 @@ import type {Participant} from '@src/types/onyx/IOU';
  * Combines `getMoneyRequestParticipantOptions` with `useParticipantsPolicyTags` so distance-request call sites can
  * read reactive participant policy tags from Onyx instead of the deprecated `buildParticipantsPolicyTags` helper.
  */
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
@@ -46,7 +45,7 @@ function useMoneyRequestParticipantsPolicyTags({
     reportAttributesDerived,
     reportDraft,
     translate,
-    dateFnsLocale,
+    preferredLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
     const {convertToDisplayString} = useCurrencyListActions();
     const participants = getMoneyRequestParticipantOptions({
@@ -60,7 +59,7 @@ function useMoneyRequestParticipantsPolicyTags({
         reportDraft,
         translate,
         convertToDisplayString,
-        dateFnsLocale,
+        preferredLocale,
     });
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
