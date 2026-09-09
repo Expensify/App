@@ -8,6 +8,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePa
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import type {OpenGroupKeys} from './hooks/useOpenGroupsRegistry';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -384,7 +385,7 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
 }
 
 /** Openness is the gate, not the rows: a closed group still carries the ones it loaded. */
-function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: ReadonlySet<string>): TransactionListItemType[] {
+function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: OpenGroupKeys): TransactionListItemType[] {
     return openGroupKeys.has(group.keyForList) ? group.transactions : [];
 }
 
@@ -399,7 +400,7 @@ type ShiftRangeSource = {
 };
 
 /** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
-function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
+function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {

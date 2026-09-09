@@ -8,48 +8,56 @@ import type {SearchShiftRangeGroupsActions} from '@components/Search/types';
 import {useState} from 'react';
 
 const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
+const NO_OPEN_GROUP_COUNTS: ReadonlyMap<string, number> = new Map();
+
+/** Whatever can answer that a group is open: a set of keys going in, the registry's counts coming back out */
+type OpenGroupKeys = Pick<ReadonlySet<string>, 'has'>;
 
 type OpenGroupsRegistry = {
     /** The groups currently rendering their children as rows */
-    openGroupKeys: ReadonlySet<string>;
+    openGroupKeys: OpenGroupKeys;
 
     shiftRangeGroupsActions: SearchShiftRangeGroupsActions;
 };
 
 function useOpenGroupsRegistry(searchHash: number): OpenGroupsRegistry {
-    const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
+    // Counted, so the first of two owners to clean up does not close the group for the other.
+    const [openGroupCounts, setOpenGroupCounts] = useState<ReadonlyMap<string, number>>(NO_OPEN_GROUP_COUNTS);
 
     const [registryHash, setRegistryHash] = useState(searchHash);
     if (registryHash !== searchHash) {
         setRegistryHash(searchHash);
-        setOpenGroupKeys(NO_OPEN_GROUPS);
+        setOpenGroupCounts(NO_OPEN_GROUP_COUNTS);
     }
 
     // Built once (by construction, not by React Compiler) so the subscribing effects can't loop.
     const [methods] = useState<Omit<SearchShiftRangeGroupsActions, 'registryGeneration'>>(() => ({
         addGroupToRange: (groupKey) =>
-            setOpenGroupKeys((prev) => {
-                if (prev.has(groupKey)) {
-                    return prev;
-                }
-                const next = new Set(prev);
-                next.add(groupKey);
+            setOpenGroupCounts((prev) => {
+                const next = new Map(prev);
+                next.set(groupKey, (prev.get(groupKey) ?? 0) + 1);
                 return next;
             }),
         removeGroupFromRange: (groupKey) =>
-            setOpenGroupKeys((prev) => {
-                if (!prev.has(groupKey)) {
+            setOpenGroupCounts((prev) => {
+                const count = prev.get(groupKey);
+                if (count === undefined) {
                     return prev;
                 }
-                const next = new Set(prev);
-                next.delete(groupKey);
+                const next = new Map(prev);
+                if (count > 1) {
+                    next.set(groupKey, count - 1);
+                } else {
+                    next.delete(groupKey);
+                }
                 return next;
             }),
     }));
 
     // Only the container changes when the registry is dropped. The methods keep their identity, so subscribers stay put.
-    return {openGroupKeys, shiftRangeGroupsActions: {...methods, registryGeneration: registryHash}};
+    return {openGroupKeys: openGroupCounts, shiftRangeGroupsActions: {...methods, registryGeneration: registryHash}};
 }
 
 export default useOpenGroupsRegistry;
 export {NO_OPEN_GROUPS};
+export type {OpenGroupKeys};

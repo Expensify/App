@@ -11,30 +11,57 @@ describe('useOpenGroupsRegistry', () => {
         const {result} = renderRegistry();
 
         act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
-        expect([...result.current.openGroupKeys]).toEqual(['group-1']);
+        expect(result.current.openGroupKeys.has('group-1')).toBe(true);
 
         act(() => result.current.shiftRangeGroupsActions.removeGroupFromRange('group-1'));
-        expect([...result.current.openGroupKeys]).toEqual([]);
+        expect(result.current.openGroupKeys.has('group-1')).toBe(false);
     });
 
-    it('returns the same set when a group is opened twice, so a republish re-renders nothing', () => {
+    it('keeps a group open until every owner that opened it has closed it', () => {
         const {result} = renderRegistry();
 
+        // Given two owners of the same group's expanded state, as the split and row layouts would be
         act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
-        const openedOnce = result.current.openGroupKeys;
+        act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
 
-        act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
-        expect(result.current.openGroupKeys).toBe(openedOnce);
+        // When the first one cleans up
+        act(() => result.current.shiftRangeGroupsActions.removeGroupFromRange('group-1'));
+
+        // Then the group is still reachable, rather than the first cleanup closing it for the other one
+        expect(result.current.openGroupKeys.has('group-1')).toBe(true);
+
+        act(() => result.current.shiftRangeGroupsActions.removeGroupFromRange('group-1'));
+        expect(result.current.openGroupKeys.has('group-1')).toBe(false);
+    });
+
+    it('ignores a close for a group it never opened', () => {
+        const {result} = renderRegistry();
+        const before = result.current.openGroupKeys;
+
+        act(() => result.current.shiftRangeGroupsActions.removeGroupFromRange('group-1'));
+
+        expect(result.current.openGroupKeys).toBe(before);
     });
 
     it('drops every open group when the search changes, so a range cannot reach the previous results', () => {
         const {result, rerender} = renderRegistry();
 
         act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
-        expect([...result.current.openGroupKeys]).toEqual(['group-1']);
+        expect(result.current.openGroupKeys.has('group-1')).toBe(true);
 
         rerender({searchHash: 222});
-        expect([...result.current.openGroupKeys]).toEqual([]);
+        expect(result.current.openGroupKeys.has('group-1')).toBe(false);
+    });
+
+    it('drops the counts with them, so a group left open twice does not survive the change', () => {
+        const {result, rerender} = renderRegistry();
+
+        act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
+        act(() => result.current.shiftRangeGroupsActions.addGroupToRange('group-1'));
+
+        rerender({searchHash: 222});
+
+        expect(result.current.openGroupKeys.has('group-1')).toBe(false);
     });
 
     it('changes the generation with the search, which is how a subscriber knows to open its group again', () => {
