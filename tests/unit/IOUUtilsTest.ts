@@ -16,6 +16,7 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -916,6 +917,27 @@ describe('getExistingTransactionID', () => {
             expect(result1.chatReportID).toBeDefined();
             expect(result2.chatReportID).toBeDefined();
         });
+
+        it('should use the preferred optimistic ID when no existing report is found', () => {
+            // Given a new chat whose caller already reserved an optimistic report ID
+            // When chat resolution cannot find an existing report
+            const result = IOUUtils.resolveOptimisticChatReportID([100001, 100002], undefined, 'preferred-123');
+
+            // Then the reserved ID is reused so related optimistic data stays aligned
+            expect(result.chatReportID).toBe('preferred-123');
+            expect(result.optimisticChatReportID).toBe('preferred-123');
+        });
+
+        it('should prefer an existing report over the preferred optimistic ID', () => {
+            // Given both an existing chat and a caller-reserved optimistic ID
+            const existingReport = {reportID: 'existing-123'} as Report;
+            // When chat resolution chooses the report identity
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport, 'preferred-123');
+
+            // Then the persisted chat wins because no optimistic replacement is needed
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
     });
 
     describe('resolveReportForMoneyRequest', () => {
@@ -1231,6 +1253,36 @@ describe('isParticipantP2P', () => {
         };
 
         expect(IOUUtils.isParticipantP2P(participant)).toBe(false);
+    });
+});
+
+describe('getReusableP2PReportID', () => {
+    it('returns the transaction report ID for a brand-new P2P recipient', () => {
+        // Given a new P2P recipient without an existing chat
+        // When selecting an ID for its optimistic chat
+        // Then the transaction ID is reused so both optimistic records share an identity
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, '123')).toBe('123');
+    });
+
+    it('does not return the transaction report ID for an existing P2P chat', () => {
+        // Given a P2P recipient already linked to a persisted chat
+        // When selecting an ID for request creation
+        // Then no reusable ID is supplied because the existing chat remains authoritative
+        expect(IOUUtils.getReusableP2PReportID({reportID: '456'} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the transaction report ID for a workspace chat', () => {
+        // Given a workspace recipient whose chat identity follows policy routing
+        // When selecting an optimistic P2P report ID
+        // Then reuse is rejected because workspace chats are not P2P destinations
+        expect(IOUUtils.getReusableP2PReportID({isPolicyExpenseChat: true} as Participant, '123')).toBeUndefined();
+    });
+
+    it('does not return the unreported report ID', () => {
+        // Given a new recipient whose transaction still uses the unreported sentinel
+        // When selecting an optimistic chat identity
+        // Then the sentinel is rejected because it cannot identify a real chat
+        expect(IOUUtils.getReusableP2PReportID({} as Participant, CONST.REPORT.UNREPORTED_REPORT_ID)).toBeUndefined();
     });
 });
 
