@@ -162,6 +162,15 @@ describe('useScreenBoundDynamicRoute', () => {
         expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
     });
 
+    it('keeps the matched path when focus reports the screen as its dynamic suffix alone', () => {
+        // Focus on a screen pushed into the RHP runs mid-transition, where getActiveRoute drops the path it sits under.
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`);
+
+        const {result} = renderHook(() => useScreenBoundDynamicRoute(), {wrapper: FocusedScreenWithPathWrapper});
+
+        expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
+    });
+
     it('falls back to the screen route when the screen mounts without ever being focused', () => {
         jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(UNRELATED_PATH);
 

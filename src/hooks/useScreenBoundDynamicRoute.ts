@@ -7,20 +7,19 @@ import {NavigationRouteContext, useFocusEffect} from '@react-navigation/native';
 import {useContext, useState} from 'react';
 
 /**
- * Builds dynamic routes with `basePath` bound to the mounted route of the component using `useFocusEffect`,
- * so a link created during render remains tied to that screen's route even after another screen is stacked over it.
+ * Builds dynamic routes against the route of the screen that owns the component, so a link created during render
+ * stays tied to that screen even after another one is stacked over it.
  *
- * A screen that mounts with another one already stacked over it never focuses, so the path the screen was matched
- * from seeds the base until focus can supply it. Read off the context rather than `useRoute`, which throws when the
- * component renders outside a screen.
+ * The path a screen was matched from is the base whenever it has one. Screens reached without a matched path fall
+ * back to the active route latched on focus. Read the route off the context rather than `useRoute`, which throws
+ * when the component renders outside a screen.
  */
 function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
     const route = useContext(NavigationRouteContext);
     const [focusedBasePath, setFocusedBasePath] = useState<string | undefined>();
     useFocusEffect(() => {
-        // On a cold start the focus effect can run before the navigation container is ready, when getActiveRoute
-        // still returns an empty string or the bare root. Latching either would shadow the route path seed until
-        // the next blur and focus, and a root base drops the rest of the path.
+        // An empty string means the navigation container is not ready yet, and a bare root drops the rest of the
+        // path, so neither is worth latching until the next focus.
         const activeRoute = Navigation.getActiveRoute();
         if (!activeRoute || activeRoute === '/') {
             return;
@@ -28,8 +27,10 @@ function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) =>
         setFocusedBasePath(activeRoute);
     });
 
+    // The focus effect of a screen pushed into the RHP runs while the state is still mid-transition, where
+    // getActiveRoute reports a dynamic screen as its suffix alone (`/category/Name`), so the matched path wins.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const basePath = focusedBasePath || route?.path;
+    const basePath = route?.path || focusedBasePath;
 
     return (dynamicRouteSuffixWithParams: string) => createDynamicRoute(dynamicRouteSuffixWithParams, basePath);
 }
