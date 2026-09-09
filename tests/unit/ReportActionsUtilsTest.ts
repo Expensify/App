@@ -1,6 +1,7 @@
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -13,7 +14,7 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
@@ -41,6 +42,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getJoinRequestMessage,
     getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
@@ -2228,6 +2230,59 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
+
+    describe('getJoinRequestMessage', () => {
+        const joinRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST> = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            reportActionID: 'join-request-1',
+            created: '2024-10-01 10:00:00.000',
+            originalMessage: {
+                choice: CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
+                policyID: '1',
+                accountID: 2,
+                email: 'requester@expensify.com',
+            },
+        };
+
+        it('should use the display name and login when the requester has a first name', () => {
+            const userDetail: PersonalDetails = {
+                accountID: 2,
+                firstName: 'John',
+                displayName: 'John Doe',
+                login: 'john.doe@expensify.com',
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, userDetail)).toBe('John Doe (john.doe@expensify.com) requested to join Expensify');
+        });
+
+        it('should use only the login when the requester has no first name', () => {
+            const userDetail: PersonalDetails = {
+                accountID: 2,
+                displayName: 'John Doe',
+                login: 'john.doe@expensify.com',
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, userDetail)).toBe('john.doe@expensify.com requested to join Expensify');
+        });
+
+        it('should fall back to the email from the original message when the personal details are missing', () => {
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, undefined)).toBe('requester@expensify.com requested to join Expensify');
+        });
+
+        it('should fall back to an empty user when there are neither personal details nor an email', () => {
+            const actionWithoutEmail: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST> = {
+                ...joinRequestAction,
+                originalMessage: {
+                    choice: CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
+                    policyID: '1',
+                    accountID: 2,
+                },
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', actionWithoutEmail, undefined)).toBe(' requested to join Expensify');
+        });
+    });
+
     describe('getCardIssuedMessage', () => {
         const mockVirtualCardIssuedAction: ReportAction = {
             actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
@@ -2262,6 +2317,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: undefined,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2275,6 +2331,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe(
@@ -2314,6 +2371,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 456,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
@@ -2326,6 +2384,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).not.toContain('<a href=');
