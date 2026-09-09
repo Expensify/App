@@ -26,16 +26,64 @@ import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useReportIsArchived from './useReportIsArchived';
 
 // useRef gets reset when the reportID changes (the list reuses the same instance per report),
-// so we use a module-level variable to track the previous report across re-instantiations.
-let prevReportID: string | null = null;
+// so we use a module-level map to track the previous report across re-instantiations.
+// Keyed by scope so two lists mounted at the same time (the chat list and the money-request
+// table view) don't clobber each other's tracking. Within a scope the entries form a stack of
+// hook instances, because the same scope can also be mounted twice at once (e.g. a money-request
+// list in the RHP over another one in the central pane). The newest instance owns the scope and
+// releases it on unmount, so the list underneath keeps working instead of being left with a
+// stale report ID.
+type ScopeOwner = {instanceID: number; reportID: string | null};
+
+const scopeOwners = new Map<string, ScopeOwner[]>();
+
+let lastInstanceID = 0;
+
+function getScopeReportID(scopeKey: string): string | null | undefined {
+    return scopeOwners.get(scopeKey)?.at(-1)?.reportID;
+}
+
+function claimScope(scopeKey: string, instanceID: number, reportID: string | null) {
+    const owners = scopeOwners.get(scopeKey) ?? [];
+    const owner = owners.find((entry) => entry.instanceID === instanceID);
+
+    if (owner) {
+        owner.reportID = reportID;
+    } else {
+        owners.push({instanceID, reportID});
+    }
+
+    scopeOwners.set(scopeKey, owners);
+}
+
+function releaseScope(scopeKey: string, instanceID: number) {
+    const owners = scopeOwners.get(scopeKey)?.filter((entry) => entry.instanceID !== instanceID);
+
+    if (!owners?.length) {
+        scopeOwners.delete(scopeKey);
+        return;
+    }
+
+    scopeOwners.set(scopeKey, owners);
+}
 
 type UseMarkAsReadParams = {
     reportID: string;
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** All sorted actions (the full chain), scanned for unread messages when the app regains focus. Defaults to the visible actions. */
+    sortedReportActions?: OnyxTypes.ReportAction[];
+
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
+
+    /** Identifies the list surface consuming the hook, so unrelated surfaces don't share previous-report tracking. */
+    scopeKey?: string;
+
+    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    shouldRequireScreenFocus?: boolean;
 };
 
 type UseMarkAsReadResult = {
@@ -46,7 +94,17 @@ type UseMarkAsReadResult = {
     completeSkippedMarkAsRead: () => void;
 };
 
-function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
+function useMarkAsRead({
+    reportID,
+    report,
+    transactionThreadReport,
+    sortedVisibleReportActions,
+    sortedReportActions,
+    isScrolledToEnd,
+    hasNewerActions,
+    scopeKey = 'default',
+    shouldRequireScreenFocus = false,
+}: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -75,11 +133,18 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const lastAction = sortedVisibleReportActions.at(0);
     const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
 
+    const [instanceID] = useState(() => {
+        lastInstanceID += 1;
+        return lastInstanceID;
+    });
+
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
-        prevReportID = reportID;
-    }, [reportID]);
+        claimScope(scopeKey, instanceID, reportID);
+    }, [reportID, scopeKey, instanceID]);
+
+    useEffect(() => () => releaseScope(scopeKey, instanceID), [scopeKey, instanceID]);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -99,14 +164,24 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         }
 
         didMarkReportAsReadInitially.current = true;
+
+        if (hasNewerActions || !isScrolledToEnd) {
+            return;
+        }
+
         readNewestAction(reportID, isReportActionsLoaded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
-        if (reportID !== prevReportID) {
+        if (reportID !== getScopeReportID(scopeKey)) {
+            return;
+        }
+
+        if (shouldRequireScreenFocus && !isFocused) {
             return;
         }
 
@@ -141,7 +216,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             didMarkOnReportChangeRef.current = false;
             return;
         }
-        if (reportID !== prevReportID) {
+        if (reportID !== getScopeReportID(scopeKey)) {
             return;
         }
 
@@ -163,7 +238,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = isScrolledToEnd;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
+        const hasUnreadReportAction = (sortedReportActions ?? sortedVisibleReportActions).some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&
