@@ -15,7 +15,7 @@ type ListItemReportAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** A report's avatar(s) sized and colored for a list row; subscript border follows the row's focus/hover state. */
+/** A report's avatar(s) sized and colored for a list row. The subscript border follows the row's focus/hover state. */
 function ListItemReportAvatar({reportID, fallbackDisplayName}: ListItemReportAvatarProps) {
     const styles = useThemeStyles();
     const {shouldShowTooltip} = useListItemContext();

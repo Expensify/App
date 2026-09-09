@@ -10,7 +10,7 @@ type ListItemInvitedSecondaryLoginFooterProps = {
     invitedSecondaryLogin: string;
 };
 
-/** Row footer naming the secondary login that added the member. Shared by the UserListItem family; the row gates rendering. */
+/** Row footer naming the secondary login that added the member. Shared by the UserListItem family. The row gates rendering. */
 function ListItemInvitedSecondaryLoginFooter({invitedSecondaryLogin}: ListItemInvitedSecondaryLoginFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

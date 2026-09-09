@@ -18,7 +18,7 @@ type ListItemWorkspaceAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** A workspace's avatar sized and colored for a list row; subscript border follows the row's focus/hover state. */
+/** A workspace's avatar sized and colored for a list row. The subscript border follows the row's focus/hover state. */
 function ListItemWorkspaceAvatar({policyID, accountID, fallbackDisplayName}: ListItemWorkspaceAvatarProps) {
     const styles = useThemeStyles();
     const {shouldShowTooltip} = useListItemContext();
