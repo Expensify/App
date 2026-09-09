@@ -77,8 +77,6 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: jest.fn(() => ({})),
     useSession: jest.fn(() => ({})),
-    usePolicyCategories: jest.fn(() => ({})),
-    usePolicyTags: jest.fn(() => ({})),
     useAllReportsTransactionsAndViolations: jest.fn(() => ({})),
 }));
 
