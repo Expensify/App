@@ -51,7 +51,7 @@ const darkTheme = {
     overlay: colors.productDark300,
     inverse: colors.productDark900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
-    shadowTop: '0px -6px 12px -2px rgba(2,18,4,0.24)',
+    shadowTop: '0px -6px 12px -2px rgba(2,18,4,0.16)',
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
     messageHighlightBG: colors.messageHighlightDark,
