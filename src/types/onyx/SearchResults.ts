@@ -305,6 +305,7 @@ export type {
     SearchDataTypes,
     SearchResultsInfo,
     SearchResultDataType,
+    SearchGroupBase,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,

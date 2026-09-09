@@ -2,7 +2,10 @@ import type {SelectedTransactions} from '@components/Search/types';
 
 import {getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
 
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 const groupKey = `${CONST.SEARCH.GROUP_PREFIX}42` as const;
 const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43` as const;
@@ -12,13 +15,18 @@ function buildSelection(entries: Record<string, Partial<SelectedTransactions[str
     return Object.fromEntries(Object.entries(entries).map(([key, entry]) => [key, {isSelected: true, ...entry}])) as SelectedTransactions;
 }
 
+function buildGroupSearchData(groups: Partial<Record<SearchGroupKey, SearchGroupBase>>): SearchResultDataType {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- tests only supply group snapshot fields
+    return groups as unknown as SearchResultDataType;
+}
+
 describe('getSelectedGroupKeys', () => {
-    it('returns each group whose transactions were all selected via the group row', () => {
+    it('returns each group whose selected children cover the whole group', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey},
-                txn2: {isSelectedViaGroup: true, groupKey},
-                txn3: {isSelectedViaGroup: true, groupKey: otherGroupKey},
+                txn1: {isEntireGroupSelected: true, groupKey},
+                txn2: {isEntireGroupSelected: true, groupKey},
+                txn3: {isEntireGroupSelected: true, groupKey: otherGroupKey},
             }),
         );
 
@@ -30,19 +38,56 @@ describe('getSelectedGroupKeys', () => {
     });
 
     it('skips a group left only partially selected', () => {
-        // Deselecting any child clears isSelectedViaGroup for the rest of the group, so the group survives the
-        // delete and must not be flagged.
         const keys = getSelectedGroupKeys(
             buildSelection({
-                txn1: {isSelectedViaGroup: false, groupKey},
-                txn2: {isSelectedViaGroup: false, groupKey},
+                txn1: {isEntireGroupSelected: false, isSelectedViaGroup: false, groupKey},
+                txn2: {isEntireGroupSelected: false, isSelectedViaGroup: false, groupKey},
             }),
         );
 
         expect(keys).toEqual([]);
     });
 
+    it('skips a group selected via the group row when the snapshot count is missing and the group is not fully covered', () => {
+        expect(
+            getSelectedGroupKeys(
+                buildSelection({
+                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                }),
+            ),
+        ).toEqual([]);
+    });
+
     it('skips transactions selected outside of any group', () => {
         expect(getSelectedGroupKeys(buildSelection({txn1: {}, txn2: {}}))).toEqual([]);
+    });
+
+    it('returns a group when every transaction is selected even without isSelectedViaGroup', () => {
+        const keys = getSelectedGroupKeys(
+            buildSelection({
+                txn1: {groupKey},
+                txn2: {groupKey},
+            }),
+            buildGroupSearchData({
+                [groupKey]: {count: 2, total: 0, currency: 'USD'},
+            }),
+        );
+
+        expect(keys).toEqual([groupKey]);
+    });
+
+    it('skips a group whose loaded selection is smaller than the group count', () => {
+        const keys = getSelectedGroupKeys(
+            buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey},
+                txn2: {isSelectedViaGroup: true, groupKey},
+            }),
+            buildGroupSearchData({
+                [groupKey]: {count: 5, total: 0, currency: 'USD'},
+            }),
+        );
+
+        expect(keys).toEqual([]);
     });
 });
