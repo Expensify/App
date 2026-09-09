@@ -88,6 +88,7 @@ import type {
     ReportAction,
     ReportActions,
     SaveSearch,
+    SearchTagFilterItem,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -1051,7 +1052,18 @@ type OpenSearchTagFiltersPageResponse = {
 
     /** Pagination cursor to pass for fetching the next page of tag filters */
     nextCursor?: string;
+
+    /** Slice of tag filter results for this page */
+    tags?: SearchTagFilterItem[];
 };
+
+let currentSearchTagFiltersResults: SearchTagFilterItem[] = [];
+Onyx.connect({
+    key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+    callback: (val) => {
+        currentSearchTagFiltersResults = val ?? [];
+    },
+});
 
 /**
  * Fetches a page of tag filter search results from the server.
@@ -1073,10 +1085,14 @@ function openSearchTagFiltersPage(params: OpenSearchTagFiltersPageParams, should
           ]
         : [];
 
-    // The response body contains pagination metadata (hasMore, nextCursor) needed immediately to drive tag filter infinite scroll.
+    // The response body contains pagination metadata (hasMore, nextCursor) and tag slices needed to drive tag filter infinite scroll.
     return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE, {...params, canCancel: true}, {optimisticData}).then((response) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
+        const newTags = tagFiltersResponse?.tags ?? [];
+        if (params.cursor && newTags.length > 0) {
+            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentSearchTagFiltersResults, ...newTags]);
+        }
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
