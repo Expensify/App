@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
@@ -22,7 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {escapeTagName} from '@libs/PolicyUtils';
+import {escapeTagName, getMatchingVendors, hasVendorFeature, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -52,6 +53,7 @@ const ACTION_COLUMNS: string[] = [
     CONST.CSV_IMPORT_COLUMNS.COMMENT,
     CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE,
     CONST.CSV_IMPORT_COLUMNS.BILLABLE,
+    CONST.CSV_IMPORT_COLUMNS.VENDOR,
 ];
 
 /**
@@ -59,7 +61,7 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'category' | 'tag' | 'comment' | 'reimbursable' | 'billable'>): string {
+function getRuleContentKey(rule: Pick<CodingRule, 'filters' | 'merchant' | 'category' | 'tag' | 'comment' | 'reimbursable' | 'billable' | 'vendorID'>): string {
     return JSON.stringify([
         rule.filters.operator,
         rule.filters.right.toLowerCase(),
@@ -256,6 +258,10 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isOnXero = isXeroActiveMatchingSource(policy);
+
+    usePolicyConnectionsPrefetch(policy, true);
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
@@ -289,6 +295,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         {text: translate('workspace.rules.merchantRules.importColumnUpdatedDescription'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
         {text: translate('common.reimbursable'), value: CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE},
         {text: translate('common.billable'), value: CONST.CSV_IMPORT_COLUMNS.BILLABLE},
+        ...(isVendorFeatureAvailable
+            ? [
+                  {
+                      text: translate(isOnXero ? 'workspace.rules.merchantRules.importColumnUpdatedSupplier' : 'workspace.rules.merchantRules.importColumnUpdatedVendor'),
+                      value: CONST.CSV_IMPORT_COLUMNS.VENDOR,
+                  },
+              ]
+            : []),
     ];
 
     const validate = () => {
