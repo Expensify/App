@@ -22,6 +22,7 @@ import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+import {IMMEDIATE, markBarrierAsImmediate} from '@userActions/IOU/resolveWriteBarrier';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -275,8 +276,8 @@ function SubmitExpenseOrchestrator({
         } else {
             // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
             // dismiss transition is starting, otherwise it would wait out an unrelated later one.
-            // The pending-write signal clears from the barrier once the write attaches (the same point the
-            // old deferred-write flush dropped it), so a GPS lookup between dismiss and write keeps it up.
+            // The pending-write signal clears from the barrier once the write attaches, so a GPS lookup
+            // between dismiss and write keeps it up.
             const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
             writeBarrier = clearPendingSubmitWriteWhenBarrierSettles(armTransitionBarrier().barrier, clearPendingWrite);
         }
@@ -402,9 +403,8 @@ function SubmitExpenseOrchestrator({
     // MoneyRequestReportActionsList shows a loading skeleton instead of the "no expenses"
     // empty state while the dismiss animation plays.
     //
-    // Deliberately no write barrier here: this handler's write already executes immediately
-    // (it used to reserve a channel purely for the skeleton, then flush it before createTransaction),
-    // so gating it on a transition would newly delay a write that does not wait today.
+    // Deliberately no transition barrier here: this handler's write executes immediately, so gating it
+    // on a transition would only delay it.
     const handleReportInRHPDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
@@ -412,11 +412,12 @@ function SubmitExpenseOrchestrator({
         const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
         const clearPendingWrite = isDestinationEmpty ? markPendingSubmitWriteForReport(destinationReportID) : () => {};
+        // No wait here, the barrier resolves at once. It exists so the pending-write signal clears when the write
+        // actually goes out, which can be seconds later if a GPS lookup runs first.
+        const writeBarrier = isDestinationEmpty ? markBarrierAsImmediate(clearPendingSubmitWriteWhenBarrierSettles(IMMEDIATE, clearPendingWrite)) : undefined;
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
-            // Cleared after the write, matching where the old deferred-write flush used to drop it.
-            clearPendingWrite();
+            createTransaction(locationPermissionGranted, false, writeBarrier);
             setIsConfirming(false);
         };
 

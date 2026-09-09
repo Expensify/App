@@ -61,9 +61,9 @@ function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
 }
 
 /**
- * Wraps `barrier` so `clearPendingWrite` runs once the write has attached to it and the barrier settles (or aborts),
- * instead of when the caller's submit function returns. A zero-amount GPS submission returns before its write is
- * even issued, so clearing on return would drop the signal mid-lookup and flash the destination's empty state.
+ * Returns a barrier that also calls `clearPendingWrite` when it settles or aborts. Use it so the pending-write signal
+ * clears when the write goes out, not when the submit function returns: a zero-amount GPS submission returns first
+ * and only writes after the lookup, and clearing early would flash the destination's empty state meanwhile.
  */
 function clearPendingSubmitWriteWhenBarrierSettles(barrier: WriteReadyBarrier, clearPendingWrite: () => void): WriteReadyBarrier {
     return (abortSignal) => {
