@@ -30,6 +30,8 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
+    debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
@@ -65,6 +67,7 @@ export default {
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
+    fontSizeH1: 19,
     fontSizeH2: 19,
     fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
@@ -159,9 +162,7 @@ export default {
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
-    // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
-    // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
-    lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
+    lineHeightXSmall: getValueUsingPixelRatio(11, 17),
     lineHeightFinePrint: 12,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),

@@ -1,3 +1,5 @@
+import {useDebugTabViewHeight} from '@components/Navigation/DebugTabView';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -83,6 +85,7 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
@@ -122,6 +125,12 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
                     </TopBarWithLoadingBar>
 
                     {content}
+                    {debugTabViewHeight > 0 && (
+                        <View
+                            style={{height: debugTabViewHeight}}
+                            testID="DebugTabViewSpacer"
+                        />
+                    )}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
                 </View>
             </View>
