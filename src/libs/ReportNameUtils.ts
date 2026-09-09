@@ -970,6 +970,7 @@ function computeReportNameBasedOnReportAction({
 
 function computeChatThreadReportName({
     translate,
+    preferredLocale,
     convertToDisplayString,
     getCurrencySymbol,
     isArchived,
@@ -983,6 +984,7 @@ function computeChatThreadReportName({
     policy,
 }: {
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isArchived: boolean;
@@ -1011,6 +1013,7 @@ function computeChatThreadReportName({
         const linkedTransactionReport = linkedTransaction?.reportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction.reportID}`] : undefined;
         let formattedName = getTransactionReportName({
             translate,
+            preferredLocale,
             convertToDisplayString,
             getCurrencySymbol,
             reportAction: parentReportAction,
@@ -1168,6 +1171,7 @@ function computeReportName({
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
     const chatThreadReportName = computeChatThreadReportName({
         translate,
+        preferredLocale,
         convertToDisplayString,
         getCurrencySymbol,
         isArchived: privateIsArchivedValue,

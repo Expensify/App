@@ -42,7 +42,7 @@ type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -135,6 +135,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const transactionDisplayName = targetTransaction
         ? getTransactionReportName({
               translate,
+              preferredLocale,
               convertToDisplayString,
               getCurrencySymbol,
               reportAction: undefined,

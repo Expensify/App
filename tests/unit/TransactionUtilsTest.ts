@@ -1894,6 +1894,22 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getMerchantOrDescription', () => {
+        it('returns the stored per diem merchant, because a persisted message must read the same for every viewer', () => {
+            expect(TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction())).toBe(PER_DIEM_MERCHANT);
+        });
+
+        it('rebuilds the per diem merchant in the readers locale only for the display variant', () => {
+            expect(TransactionUtils.getDisplayMerchantOrDescription(buildPerDiemTransaction(), CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+        });
+
+        it('falls back to the description when the merchant is missing, in both variants', () => {
+            const transaction = generateTransaction({merchant: '', comment: {comment: 'Team lunch'}});
+            expect(TransactionUtils.getMerchantOrDescription(transaction)).toBe('Team lunch');
+            expect(TransactionUtils.getDisplayMerchantOrDescription(transaction, CONST.LOCALES.ES)).toBe('Team lunch');
+        });
+    });
+
     describe('getDisplayMerchant', () => {
         it('should leave a non per diem merchant exactly as stored', () => {
             const transaction = generateTransaction({merchant: 'Starbucks'});

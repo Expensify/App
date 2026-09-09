@@ -1443,6 +1443,11 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
 }
 
+/** The reader's copy. Never for a message that gets stored: a persisted one has to read the same for everyone, which is what {@link getMerchantOrDescription} returns. */
+function getDisplayMerchantOrDescription(transaction: OnyxEntry<Transaction>, locale: Locale): string {
+    return !isMerchantMissing(transaction) ? getDisplayMerchant(transaction, getMerchant(transaction), locale) : getDescription(transaction);
+}
+
 /** The positional split is only for rows stored before the range was pinned to enUS, whose comma count depends on the locale that wrote them. */
 function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string): string {
     const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
@@ -3807,6 +3812,7 @@ export {
     getPerDiemDestination,
     getPerDiemDates,
     getDisplayMerchant,
+    getDisplayMerchantOrDescription,
     hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,

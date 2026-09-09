@@ -103,6 +103,7 @@ import {
     getCurrency,
     getDescription,
     getDetailedExpenseTypeTranslationKey,
+    getDisplayMerchant,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getFormattedCreated,
@@ -638,7 +639,7 @@ function MoneyRequestView({
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, distanceUnitValue, translate);
 
-    let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
+    let merchantTitle = isEmptyMerchant ? '' : getDisplayMerchant(transaction, transactionMerchant ?? '', preferredLocale);
     let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');

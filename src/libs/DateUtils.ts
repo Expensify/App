@@ -71,10 +71,11 @@ const LOCALE_PROBE_DATE = new Date(Date.UTC(2023, 0, 4));
 /** Sampled offsets cannot identify a zone: Europe/Athens and Africa/Cairo share both solstices yet differ through April. Resolving costs ~20x a format, hence the reuse window. */
 const DEVICE_TIME_ZONE_TTL_MS = 1000;
 let deviceTimeZone: string | undefined;
-let deviceTimeZoneResolvedAt = 0;
+/** Negative infinity so the first lookup resolves, and so a failure is remembered for the window like a success rather than rethrowing per call. */
+let deviceTimeZoneResolvedAt = Number.NEGATIVE_INFINITY;
 function getDeviceTimeZone(): string | undefined {
     const now = Date.now();
-    if (deviceTimeZone !== undefined && now - deviceTimeZoneResolvedAt < DEVICE_TIME_ZONE_TTL_MS) {
+    if (now - deviceTimeZoneResolvedAt < DEVICE_TIME_ZONE_TTL_MS) {
         return deviceTimeZone;
     }
     deviceTimeZoneResolvedAt = now;

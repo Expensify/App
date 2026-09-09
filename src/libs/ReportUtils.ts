@@ -30,6 +30,7 @@ import type {
     BillingGraceEndPeriod,
     GuideAccountIDsDerivedValue,
     IntroSelected,
+    Locale,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalDetails,
@@ -263,6 +264,7 @@ import {
     getMCCForDisplay,
     getMCCGroup,
     getMerchant,
+    getDisplayMerchantOrDescription,
     getMerchantOrDescription,
     getOriginalAmount,
     getOriginalAmountForDisplay,
@@ -5833,6 +5835,7 @@ function shouldShowRBRForMissingSmartscanFields(
  */
 function getTransactionReportName({
     translate,
+    preferredLocale,
     convertToDisplayString,
     getCurrencySymbol,
     reportAction,
@@ -5840,6 +5843,7 @@ function getTransactionReportName({
     report,
 }: {
     translate: LocalizedTranslate;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
@@ -5878,7 +5882,7 @@ function getTransactionReportName({
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     if (isSentMoneyReportAction(reportAction)) {
-        return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
+        return getIOUReportActionDisplayMessage(translate, preferredLocale, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
     }
 
     const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
@@ -5891,7 +5895,7 @@ function getTransactionReportName({
 
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
-    const comment = getMerchantOrDescription(displayTransaction);
+    const comment = getDisplayMerchantOrDescription(displayTransaction, preferredLocale);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -5936,6 +5940,7 @@ function getReportPreviewMessageForCopy(
  */
 function getReportPreviewMessage(
     translate: LocalizedTranslate,
+    preferredLocale: Locale,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
 ): string {
@@ -5975,7 +5980,7 @@ function getReportPreviewMessage(
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return translate('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
+            return translate('iou.didSplitAmount', formattedAmount, getDisplayMerchantOrDescription(linkedTransaction, preferredLocale));
         }
     }
 
@@ -6008,7 +6013,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
 
-            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
+            const merchantOrComment = getDisplayMerchantOrDescription(linkedTransaction, preferredLocale);
 
             return translate('iou.trackedAmount', formattedAmount, merchantOrComment);
         }
@@ -6118,7 +6123,7 @@ function getReportPreviewMessage(
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
+    let comment = !isEmptyObject(linkedTransaction) ? getDisplayMerchantOrDescription(linkedTransaction, preferredLocale) : undefined;
     if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
         comment = undefined;
     }
@@ -11403,6 +11408,7 @@ function getTaskAssigneeChatOnyxData({
  */
 function getIOUReportActionDisplayMessage(
     translate: LocalizedTranslate,
+    preferredLocale: Locale,
     reportAction: OnyxEntry<ReportAction>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     policyACHAccountNumber: string | undefined,
@@ -11472,7 +11478,7 @@ function getIOUReportActionDisplayMessage(
     } else {
         translationKey = 'iou.expenseAmount';
     }
-    return translate(translationKey, formattedAmount, getMerchantOrDescription(transaction));
+    return translate(translationKey, formattedAmount, getDisplayMerchantOrDescription(transaction, preferredLocale));
 }
 
 /**

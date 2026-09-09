@@ -1192,6 +1192,9 @@ describe('DateUtils', () => {
 
         it('refreshIntlFormatterCaches drops cached failures but keeps working formatters', () => {
             clearIntlFormatterCaches();
+            jest.useFakeTimers();
+            DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.EN);
+
             const throwingSpy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
                 throw new RangeError('no Intl');
             });
@@ -1211,6 +1214,7 @@ describe('DateUtils', () => {
             expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.EN)).not.toBe('');
             expect(constructorSpy.mock.calls).toHaveLength(constructionsToRecoverTheFailure);
             constructorSpy.mockRestore();
+            jest.useRealTimers();
         });
 
         it('a device timezone change reaches formatters that were cached without an explicit zone', () => {

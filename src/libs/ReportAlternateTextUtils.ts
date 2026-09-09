@@ -543,7 +543,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
             reportOrID: report,
             iouReportAction: lastReportAction,
             shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -566,7 +566,7 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
+            const reportPreviewMessage = getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
                 reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
                 iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
                 shouldConsiderScanningReceiptOrPendingRoute: true,
@@ -895,7 +895,7 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage(translate, convertToDisplayString, {
+                            getReportPreviewMessage(translate, preferredLocale, convertToDisplayString, {
                                 reportOrID: report,
                                 iouReportAction: lastReportAction,
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
