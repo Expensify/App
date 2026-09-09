@@ -55,7 +55,6 @@ import useDebouncedSaveDraft from './useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
-    /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
     /** ReportID that holds the comment we're editing */
@@ -67,7 +66,6 @@ type ReportActionItemMessageEditProps = {
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
-    /** Reference to the outer element */
     ref?: React.Ref<ComposerRef | undefined>;
 };
 

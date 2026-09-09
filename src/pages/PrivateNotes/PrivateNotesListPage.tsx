@@ -26,7 +26,6 @@ import type {ValueOf} from 'type-fest';
 import React, {useCallback, useMemo} from 'react';
 
 type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps & {
-    /** The report currently being looked at */
     report: Report;
 };
 
