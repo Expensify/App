@@ -1,9 +1,15 @@
-import {useCallback, useContext} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import ROUTES from '@src/ROUTES';
+
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {useCallback, useContext} from 'react';
+
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 
@@ -18,11 +24,8 @@ type UseAvatarMenuParams = {
     originalFileName?: string;
     /** Account ID for navigation */
     accountID: number;
-    /** Callback when avatar is removed */
     onImageRemoved: () => void;
-    /** Callback to show avatar crop modal */
     showAvatarCropModal: (image: FileObject) => void;
-    /** Callback to clear errors */
     clearError: () => void;
 };
 
@@ -75,7 +78,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                     text: translate('avatarWithImagePicker.viewPhoto'),
                     onSelected: () => {
                         attachmentContext.setCurrentAttachment({source, originalFileName});
-                        Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));
                     },
                 },
             ];

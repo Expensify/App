@@ -1,28 +1,30 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
+
 import {removeEvent} from '@userActions/Chronos';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
-type ChronosOOOListActionsProps = {
-    /** The ID of the report */
-    reportID: string | undefined;
+import React from 'react';
+import {View} from 'react-native';
 
-    /** All the data of the action */
+type ChronosOOOListActionsProps = {
+    reportID: string | undefined;
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
 };
 
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     const styles = useThemeStyles();
 
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
 
     const events = getOriginalMessage(action)?.events ?? [];
 
@@ -47,17 +49,23 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end))
+                                    ? translate('chronos.oooEventSummaryFullDay', {
+                                          summary: event.summary,
+                                          count: event.lengthInDays,
+                                          date: DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
+                                      })
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
-                                          DateUtils.formatToLongDateWithWeekday(end),
+                                          `${DateUtils.formatToLocalTime(translate, start)} - ${DateUtils.formatToLocalTime(translate, end)}`,
+                                          DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
                                       )}
                             </Text>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 style={styles.pl2}
+                                // Restores the 12px horizontal padding from the legacy implementation.
+                                innerStyles={styles.ph3}
                                 onPress={() => removeEvent(reportID, action.reportActionID, event.id, events)}
                             >
                                 <Text style={styles.buttonSmallText}>{translate('common.remove')}</Text>

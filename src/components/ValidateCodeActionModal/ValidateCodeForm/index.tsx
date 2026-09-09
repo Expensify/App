@@ -1,13 +1,15 @@
-import React from 'react';
 import CONST from '@src/CONST';
-import BaseValidateCodeForm from './BaseValidateCodeForm';
+
+import React from 'react';
+
 import type {ValidateCodeFormProps} from './BaseValidateCodeForm';
+
+import BaseValidateCodeForm from './BaseValidateCodeForm';
 
 function ValidateCodeForm(props: ValidateCodeFormProps) {
     return (
         <BaseValidateCodeForm
             autoComplete={CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

@@ -1,4 +1,5 @@
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import type {IllustrationName} from './chunks/illustrations.chunk';
 
 type IllustrationsChunk = {
@@ -63,7 +64,6 @@ function loadIllustration(illustrationName: IllustrationName): {default: IconAss
             return {default: illustration}; // Changed to return {default: illustration}
         })
         .catch((error) => {
-            // eslint-disable-next-line no-console
             console.error(`Failed to load Illustration: ${illustrationName}`, error);
             throw error;
         });
@@ -80,4 +80,4 @@ function getIllustrationsChunk(): IllustrationsChunk | null {
 
 export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunk};
 
-export type {IllustrationName, IllustrationsChunk};
+export type {IllustrationName};

@@ -1,22 +1,21 @@
-import {useEffect, useRef} from 'react';
+import CONST from '@src/CONST';
+
 import type React from 'react';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+
+import {useEffect, useLayoutEffect, useRef} from 'react';
+
 import usePrevious from './usePrevious';
 
 type UseScrollToEndOnPaginationMergeParams = {
-    /** The ref to the scroll offset. */
     scrollOffsetRef: React.RefObject<number>;
     /** The ID of the last visible report action. */
     lastActionID?: string;
     /** The length of the visible report actions. */
     visibleActionsLength: number;
-    /** The length of the report actions. */
     reportActionsLength?: number;
     /** Whether the newest report action is the last visible report action. */
     hasNewestReportAction: boolean;
-    /** The function to set the floating message counter visible. */
     setIsFloatingMessageCounterVisible: (isVisible: boolean) => void;
-    /** The function to scroll to the end. */
     scrollToEnd: () => void;
     /**
      * Inbox uses `previousLength !== currentLength` to detect pagination merges.
@@ -43,13 +42,27 @@ function useScrollToEndOnNewMessageReceived({
 }: UseScrollToEndOnPaginationMergeParams) {
     const previousLastIndex = useRef(lastActionID);
     const reportActionSize = useRef(visibleActionsLength);
+    const previousResetKeyRef = useRef<unknown>(undefined);
     const prevHasNewestReportAction = usePrevious(hasNewestReportAction);
+
+    // When the hook is used across report navigations, baselines from the previous report must not drive scroll logic.
+    useLayoutEffect(() => {
+        if (resetKey === undefined) {
+            return;
+        }
+        if (previousResetKeyRef.current === resetKey) {
+            return;
+        }
+        previousResetKeyRef.current = resetKey;
+        previousLastIndex.current = lastActionID;
+        reportActionSize.current = visibleActionsLength;
+    }, [resetKey, lastActionID, visibleActionsLength]);
 
     useEffect(() => {
         const didListSizeChange = sizeChangeType === 'grewFromReportActions' ? reportActionSize.current > (reportActionsLength ?? 0) : reportActionSize.current !== visibleActionsLength;
 
         if (
-            scrollOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollOffsetRef.current < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionID &&
             didListSizeChange &&
             hasNewestReportAction &&

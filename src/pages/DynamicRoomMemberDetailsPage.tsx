@@ -1,0 +1,136 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {removeFromRoom} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
+
+import Navigation from '@navigation/Navigation';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+
+import NotFoundPage from './ErrorPage/NotFoundPage';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+
+type DynamicRoomMemberDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS>;
+
+function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
+    const styles = useThemeStyles();
+    const {formatPhoneNumber, translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const policy = usePolicy(report?.policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
+    const {showConfirmModal} = useConfirmModal();
+
+    const accountID = Number(route.params.accountID);
+    const member = report?.participants?.[accountID];
+    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
+    const fallbackIcon = details.fallbackIcon ?? '';
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+    const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
+    const isSelectedMemberOwner = accountID === report.ownerAccountID;
+    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    const askForConfirmationToRemove = () => {
+        showConfirmModal({
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            title: translate('workspace.people.removeRoomMemberButtonTitle'),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            removeFromRoom(report, [accountID]);
+            Navigation.goBack(backPath);
+        });
+    };
+
+    const navigateToProfile = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+    };
+
+    if (!member) {
+        return <NotFoundPage />;
+    }
+
+    return (
+        <ScreenWrapper testID="DynamicRoomMemberDetailsPage">
+            <HeaderWithBackButton
+                title={displayName}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
+            />
+            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                    <UserAvatar
+                        containerStyles={[styles.mv5, styles.noOutline]}
+                        source={details.avatar}
+                        accountID={accountID}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                        fallbackIcon={fallbackIcon}
+                    />
+                    {!!(details.displayName ?? '') && (
+                        <Text
+                            style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            {displayName}
+                        </Text>
+                    )}
+                    <Button
+                        onPress={askForConfirmationToRemove}
+                        isDisabled={shouldDisableRemoveUser}
+                        style={styles.mv5}
+                    >
+                        <Button.Icon
+                            src={icons.RemoveMembers}
+                            style={StyleUtils.getTransformScaleStyle(0.8)}
+                        />
+                        <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
+                    </Button>
+                </View>
+                <View style={styles.w100}>
+                    <MenuItemNavigation
+                        title={translate('common.profile')}
+                        icon={icons.Info}
+                        onPress={navigateToProfile}
+                    />
+                </View>
+            </View>
+        </ScreenWrapper>
+    );
+}
+
+export default withReportOrNotFound()(DynamicRoomMemberDetailsPage);

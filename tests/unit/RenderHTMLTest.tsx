@@ -1,12 +1,14 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
-import {View} from 'react-native';
+
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
+import React from 'react';
+import {View} from 'react-native';
+
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('react-native-render-html', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {
         RenderHTMLConfigProvider: ({children}: {children: React.ReactNode}) => children,

@@ -1,4 +1,5 @@
 import {sortEmailObjects} from '@src/libs/ContactUtils';
+
 import {localeCompare} from '../utils/TestHelper';
 
 describe('ContactUtils', () => {

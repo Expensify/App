@@ -1,16 +1,21 @@
-import React, {useState} from 'react';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React, {useState} from 'react';
 
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */
@@ -43,7 +48,11 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
                 onPress={onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
-                style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
+                style={({pressed}) => [
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
+                    styles.categoryShortcutButton,
+                    isHighlighted && styles.emojiItemHighlighted,
+                ]}
                 accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
                 accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}

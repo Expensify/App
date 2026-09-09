@@ -1,8 +1,10 @@
-import {Str} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
 import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
     isValid: true;
@@ -29,9 +31,8 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE};
     }
 
-    const isImage = Str.isImage(file.name);
     const maxFileSize = isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!isImage && !hasHeicOrHeifExtension(file) && file.size > maxFileSize) {
+    if (file.size > maxFileSize) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE};
     }
 
@@ -67,10 +68,23 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
          */
         let updatedFile = normalizedFile;
         const cleanName = cleanFileName(updatedFile.name);
-        if (updatedFile.name !== cleanName) {
-            updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+        // On web this snapshots the bytes into a memory-backed File so a later change to the OS file
+        // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
+        try {
+            updatedFile = await snapshotPickedFile(updatedFile, cleanName);
+        } catch {
+            // The backing file was already modified or deleted since it was picked.
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
+        // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
+        // doesn't carry the custom .uri property, so updatedFile.uri is not reliable for the previous URL.
+        const previousUri = normalizedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
+        if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {
+            // Release the superseded object URL (e.g. the one AttachmentPicker assigned) so its Blob can be
+            // garbage-collected; orphaned blob: URLs keep the full-size file resident until the document dies.
+            URL.revokeObjectURL(previousUri);
+        }
         updatedFile.uri = inputSource;
 
         return {isValid: true, file: updatedFile};
@@ -80,7 +94,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 }
 
 function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
-    if (item && item.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
+    if (item?.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
         return true;
     }
 
@@ -88,4 +102,3 @@ function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
 }
 
 export default validateAttachmentFile;
-export type {ValidateAttachmentResult, ValidateAttachmentValidResult, ValidateAttachmentInvalidResult};

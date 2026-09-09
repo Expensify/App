@@ -1,48 +1,47 @@
-import {useNavigation} from '@react-navigation/native';
-import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useEffect, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import {View} from 'react-native';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
+import {buildVideoSourceURL} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+
 import getPlatform from '@libs/getPlatform';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {SourceLoadEventPayload} from 'expo-video';
+import type {GestureResponderEvent} from 'react-native';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoPlayerPreviewProps = {
-    /** Url to a video. */
     videoUrl: string;
-
-    /** reportID of the video */
     reportID: string | undefined;
-
-    /** Dimension of a video. */
     videoDimensions: Dimensions;
-
-    /** Duration of a video. */
     videoDuration: number;
 
     /** Url to a thumbnail image. */
     thumbnailUrl?: string;
 
-    /** Name of a video file. */
     fileName: string;
-
-    /** Callback executed when modal is pressed. */
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
-
-    /** Whether the video is deleted */
     isDeleted?: boolean;
 };
 
@@ -54,6 +53,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -65,9 +65,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
+    const {isOffline} = useNetwork();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const sourceURL = buildVideoSourceURL(videoUrl, encryptedAuthToken);
+
+    // While offline, render BaseVideoPlayer instead of the thumbnail so the existing player-level offline state is shown consistently.
+    const shouldRenderVideoPlayer = !isDeleted && (isOffline || (!isSmallScreenWidth && !isThumbnail));
 
     useEffect(() => {
-        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+        if (!sourceURL || getPlatform() !== CONST.PLATFORM.WEB) {
             return;
         }
         const video = document.createElement('video');
@@ -80,12 +87,12 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 height: video.videoHeight,
             });
         };
-        video.src = videoUrl;
+        video.src = sourceURL;
         video.load();
         return () => {
             video.src = '';
         };
-    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
+    }, [sourceURL, videoDimensions.width, videoDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -103,7 +110,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     const handleOnPress = () => {
-        updateCurrentURLAndReportID(videoUrl, reportID);
+        updateCurrentURLAndReportID(videoUrl, report, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
         }
@@ -125,7 +132,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {isSmallScreenWidth || isThumbnail || isDeleted ? (
+            {!shouldRenderVideoPlayer ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}

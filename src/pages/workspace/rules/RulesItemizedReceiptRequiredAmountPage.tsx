@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,20 +5,30 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setPolicyMaxExpenseAmountNoItemizedReceipt} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequiredItemizedReceiptAmountForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type RulesItemizedReceiptRequiredAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT>;
 
@@ -34,11 +42,11 @@ function RulesItemizedReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
-    const defaultValue =
-        policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoItemizedReceipt
-            ? ''
-            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency);
+    const defaultValue = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt)
+        ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency))
+        : '';
 
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM>,
@@ -48,12 +56,12 @@ function RulesItemizedReceiptRequiredAmountPage({
 
         if (maxExpenseAmountNoItemizedReceipt) {
             const maxExpenseAmountNoItemizedReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
-            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt ?? 0;
+            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
 
             // Check if itemized receipt amount is lower than regular receipt amount
-            if (maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
+            if (isMaxExpenseAmountSet(maxExpenseAmountNoReceipt) && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
                 errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
+                    amount: convertToDisplayString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
                 });
             }
         }
@@ -64,7 +72,7 @@ function RulesItemizedReceiptRequiredAmountPage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper

@@ -1,8 +1,13 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import {measureRenders} from 'reassure';
+
+import {setHasRadio} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+import {measureRenders} from 'reassure';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -17,6 +22,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
@@ -61,7 +67,7 @@ describe('SidebarLinks', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
     });
 
@@ -80,7 +86,7 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: false,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 
@@ -102,7 +108,7 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: false,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 

@@ -1,10 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
@@ -28,12 +35,23 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
     allowNegative?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
-function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, allowNegative = false, ref, ...rest}: PercentageFormProps) {
+function PercentageForm({
+    value: amount,
+    errorText,
+    onInputChange,
+    label,
+    allowExceedingHundred = false,
+    allowDecimal = false,
+    allowNegative = false,
+    ref,
+    suffixStyle,
+    ...rest
+}: PercentageFormProps) {
     const {toLocaleDigit, numberFormat} = useLocalize();
+    const styles = useThemeStyles();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
@@ -78,11 +96,11 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
                 textInput.current = newRef;
             }}
             suffixCharacter="%"
+            suffixStyle={[styles.colorMuted, suffixStyle]}
             keyboardType={rest.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

@@ -1,8 +1,8 @@
-import type {ReactNode} from 'react';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ReactNode} from 'react';
+
 type PickerOptions = {
-    /** A callback that will be called with the selected file. */
     onPicked: (file: FileObject) => void;
 
     /** A callback that will be called without a selected file. */
@@ -37,7 +37,6 @@ type FilePickerProps = {
      * */
     children: (props: {openPicker: OpenPickerFunction}) => ReactNode;
 
-    /** A string of acceptable file types. */
     acceptableFileTypes?: string;
 };
 

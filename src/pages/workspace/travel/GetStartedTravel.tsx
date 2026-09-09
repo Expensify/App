@@ -1,17 +1,24 @@
-import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
+import Button from '@components/ButtonComposed';
 import FeatureList from '@components/FeatureList';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type GetStartedTravelProps = {
     policyID: string;
+    canWriteTravelFeature: boolean;
+    showReadOnlyModal: () => void;
 };
 
-function GetStartedTravel({policyID}: GetStartedTravelProps) {
+function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
     const {translate} = useLocalize();
@@ -27,16 +34,31 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
             titleStyles={styles.textHeadlineH1}
             footer={
-                <BookTravelButton
-                    text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
-                    activePolicyID={policyID}
-                    shouldShowVerifyAccountModal={false}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                    large
-                />
+                canWriteTravelFeature ? (
+                    <BookTravelButton
+                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
+                        activePolicyID={policyID}
+                        shouldShowVerifyAccountModal={false}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                        large
+                    />
+                ) : (
+                    <Button
+                        onPress={showReadOnlyModal}
+                        accessibilityLabel={translate('travel.bookTravel')}
+                        style={styles.w100}
+                        innerStyles={styles.buttonOpacityDisabled}
+                        hoverStyles={styles.buttonOpacityDisabled}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    >
+                        <Button.Text>{translate('workspace.moreFeatures.travel.getStarted.ctaText')}</Button.Text>
+                    </Button>
+                )
             }
         />
     );

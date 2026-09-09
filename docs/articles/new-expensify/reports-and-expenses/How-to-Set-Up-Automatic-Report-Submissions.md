@@ -38,8 +38,10 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
    - **Daily** — Reports are submitted each evening (Pacific Time)
    - **Weekly** — Reports are submitted weekly on Sundays
    - **Twice a month** — Reports are submitted on the 15th and last day of the month
+   - **Monthly** — Reports are submitted once a month on the day you select
    - **By trip** — A report is submitted after two full days without new expenses
-   - **Manually** — Expenses are auto-added to reports, but members must submit manually
+   - **Manually** — Expenses are still **auto-added to a report** as they're created, but members must submit the report manually.
+5. Select **Save** to apply the frequency. Selecting a frequency updates the checkmark but does not take effect until you save.
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
@@ -82,6 +84,12 @@ No. Once Submissions is enabled on the Workspace, it overrides any individual su
 ## Can automatic submissions be paused during month-end review?
 
 There’s no pause button, but you can temporarily change the Frequency setting to **Manually** to prevent automatic submissions. Just switch it back after your review period.
+
+## What's the difference between turning off Submissions and setting the submission frequency to Manually?
+
+When **Submissions** is turned off, expenses are not automatically added to reports and remain Unreported until a member adds them to a report manually.
+
+When the submission frequency is set to **Manually**, expenses are still automatically added to reports, but the reports are not automatically submitted.
 
 ## Can employees still submit manually if Submissions is turned on?
 

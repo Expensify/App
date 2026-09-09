@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
+
 import type {PersonalDetails} from '@src/types/onyx';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
@@ -24,6 +30,7 @@ function UserInfoCellsWithArrow({
     infoCellsAvatarStyle,
     fromRecipientStyle,
     shouldUseArrowIcon = true,
+    isLargeScreenWidth,
 }: {
     shouldShowToRecipient: boolean;
     participantFrom: PersonalDetails;
@@ -36,6 +43,7 @@ function UserInfoCellsWithArrow({
     infoCellsAvatarStyle?: ViewStyle;
     fromRecipientStyle?: ViewStyle;
     shouldUseArrowIcon?: boolean;
+    isLargeScreenWidth?: boolean;
 }) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
@@ -56,6 +64,7 @@ function UserInfoCellsWithArrow({
                 textStyle={infoCellsTextStyle}
                 avatarStyle={infoCellsAvatarStyle}
                 containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
+                isLargeScreenWidth={isLargeScreenWidth}
             />
             {shouldShowToRecipient && (
                 <>
@@ -70,7 +79,7 @@ function UserInfoCellsWithArrow({
                     ) : (
                         <Text
                             testID="UserInfoToIndicator"
-                            style={[styles.textMicroSupporting]}
+                            style={[styles.mutedNormalTextLabel]}
                         >
                             {translate('common.conjunctionTo')}
                         </Text>
@@ -83,6 +92,7 @@ function UserInfoCellsWithArrow({
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
                         containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlHalf]}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </>
             )}

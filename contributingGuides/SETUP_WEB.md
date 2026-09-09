@@ -18,15 +18,17 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 
 ## Configuring HTTPS
 
-The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
+The Rspack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
 
-If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/rsbuild`.
+
+If you already generated certificates before the Webpack → Rsbuild migration, they're now in the wrong place (`config/webpack`, which no longer exists). Just re-run `npm run setup-https` to regenerate them in `config/rsbuild`, or move the existing files: `mv config/webpack/{key,certificate}.pem config/rsbuild/`.
 
 ## Running the Web App
 
 ### Development Server
 - To run the **development web app**: `npm run web`
-- Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
+- Changes applied to Javascript will be applied automatically via Rsbuild as configured in `config/rsbuild/rsbuild.config.ts`
 
 ### Production Build
 To build and run the production web build locally:
@@ -80,6 +82,25 @@ If you want to set up both iOS and Android simulators at once:
 
 ### Browser DevTools
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
+
+### Build Profiling (Rspack)
+To time, profile, and analyze the Rspack build itself (as opposed to the app's runtime), set the `RSPACK_PROFILE` environment variable on any build or dev server command:
+
+```bash
+# Core build process timing (recommended)
+RSPACK_PROFILE=OVERVIEW npm run build
+
+# Every trace event - much larger output, only for deep investigation
+RSPACK_PROFILE=ALL npm run build
+```
+
+This generates a `.rspack-profile-<timestamp>-<pid>/rspack.log` file (JSON Lines) with per-loader/per-plugin timing for the build. To generate a [Perfetto](https://ui.perfetto.dev)-format trace instead, set `RSPACK_TRACE_LAYER=perfetto`:
+
+```bash
+RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW npm run build
+```
+
+Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which runs [Rsdoctor](https://rsdoctor.rs/) against the build output and opens an interactive report covering bundle composition, duplicate packages, and per-loader/per-plugin timing.
 
 ### Release Profiling for Web
 1. Install the necessary packages: `npm i`

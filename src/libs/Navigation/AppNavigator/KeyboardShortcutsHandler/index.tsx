@@ -1,5 +1,8 @@
 import React from 'react';
+
 import EscapeHandler from './EscapeHandler';
+import ExpenseReportSearchHandler from './ExpenseReportSearchHandler';
+import GoToWorkspaceHandler from './GoToWorkspaceHandler';
 import MarkAllMessagesAsReadHandler from './MarkAllMessagesAsReadHandler';
 import NewChatHandler from './NewChatHandler';
 import SearchHandler from './SearchHandler';
@@ -13,6 +16,8 @@ function KeyboardShortcutsHandler() {
             <SearchHandler />
             <NewChatHandler />
             <MarkAllMessagesAsReadHandler />
+            <ExpenseReportSearchHandler />
+            <GoToWorkspaceHandler />
         </>
     );
 }

@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type GetNavigationBarType from './types';
 
 const getNavigationBarType: GetNavigationBarType = () => {

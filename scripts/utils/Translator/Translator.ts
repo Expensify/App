@@ -1,5 +1,7 @@
-import {DomUtils, parseDocument} from 'htmlparser2';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+
+import {DomUtils, parseDocument} from 'htmlparser2';
+
 import type {StringWithContext} from './types';
 
 /**

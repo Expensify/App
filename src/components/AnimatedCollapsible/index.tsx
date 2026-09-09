@@ -1,20 +1,24 @@
-import React, {useState} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 type AnimatedCollapsibleProps = WithSentryLabel & {
-    /** Whether the component is expanded */
     isExpanded: boolean;
 
     /** Element that is inside the collapsible area */
@@ -38,7 +42,6 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Style for the content container */
     contentStyle?: StyleProp<ViewStyle>;
 
-    /** Style for the toggle button */
     expandButtonStyle?: StyleProp<ViewStyle>;
 
     /** Whether the toggle button is disabled */
@@ -47,10 +50,7 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Callback for when the toggle button is pressed */
     onPress: () => void;
 
-    /** Whether to show the toggle button */
     shouldShowToggleButton?: boolean;
-
-    /** Style for the border bottom */
     borderBottomStyle?: StyleProp<ViewStyle>;
 };
 
@@ -72,6 +72,7 @@ function AnimatedCollapsible({
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
@@ -149,7 +150,7 @@ function AnimatedCollapsible({
                                 src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                 fill={theme.icon}
                                 additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                small
+                                size={CONST.ICON_SIZE.SMALL}
                             />
                         )}
                     </PressableWithFeedback>
@@ -182,7 +183,7 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={[styles.pv2, styles.ph3, styles.pb1]}>
+                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1] : styles.ph3}>
                             <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}

@@ -1,11 +1,18 @@
+import ModalContext from '@components/Modal/ModalContext';
+
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
 import {Dimensions} from 'react-native';
-import ModalContext from '@components/Modal/ModalContext';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
+
 import type ResponsiveLayoutResult from './types';
 
 /**
@@ -26,12 +33,14 @@ import type ResponsiveLayoutResult from './types';
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {windowWidth, windowHeight} = useWindowDimensions();
 
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
     const isExtraSmallScreenHeight = screenHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
-    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
-    const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint || isInLandscapeMode;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint && !isInLandscapeMode;
+    const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraLargeScreenWidth = windowWidth > variables.sidePanelResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
@@ -74,5 +83,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isLargeScreenWidth,
         isExtraLargeScreenWidth,
         isSmallScreen,
+        isInLandscapeMode,
     };
 }

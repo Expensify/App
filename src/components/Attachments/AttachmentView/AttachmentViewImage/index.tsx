@@ -1,9 +1,13 @@
-import React, {memo} from 'react';
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {memo} from 'react';
+
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAuthTokenRequired' | 'file' | 'onPress'> & {
@@ -12,8 +16,6 @@ type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAu
     loadComplete: boolean;
 
     isImage: boolean;
-
-    /** Function for handle on error */
     onError?: () => void;
 };
 

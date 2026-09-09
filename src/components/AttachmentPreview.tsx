@@ -1,19 +1,28 @@
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
+
 import {Str} from 'expensify-common';
 import {useEvent} from 'expo';
-import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
 import {useVideoPlayer} from 'expo-video';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
-import variables from '@styles/variables';
+
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
+
+const PDF_FIT_POLICY_FIT_BOTH = 2;
 
 type AttachmentPreviewProps = {
     /** Source for file. */
@@ -25,7 +34,6 @@ type AttachmentPreviewProps = {
     /** Function to call when pressing thumbnail */
     onPress: () => void;
 
-    /** The attachment load error callback */
     onLoadError?: () => void;
 };
 
@@ -63,8 +71,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Attachment Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.VIDEO_THUMBNAIL}
             >
                 {!!thumbnail && (
+                    /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */
                     <Image
                         source={thumbnail}
                         style={[fillStyle, {aspectRatio}]}
@@ -93,8 +103,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Image Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.IMAGE_THUMBNAIL}
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: source}}
                         style={[[styles.w100, styles.h100], styles.overflowHidden]}
@@ -112,11 +124,12 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="PDF Thumbnail"
+                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_PREVIEW.PDF_THUMBNAIL}
             >
                 <PDFThumbnail
-                    fitPolicy={1}
+                    fitPolicy={PDF_FIT_POLICY_FIT_BOTH}
                     previewSourceURL={source}
-                    style={[styles.br4]}
+                    style={[styles.w100, styles.h100, styles.br4]}
                     onLoadError={onLoadError}
                     onPassword={() => setIsEncryptedPDF(true)}
                 />

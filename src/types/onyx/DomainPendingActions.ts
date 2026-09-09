@@ -1,3 +1,6 @@
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -26,8 +29,62 @@ type DomainMemberPendingActions = {
     /**
      * Pending actions for specific domain member lock account action.
      */
-    lockAccount: OnyxCommon.PendingAction;
+    lockAccount?: OnyxCommon.PendingAction;
+
+    changeDomainSecurityGroup?: OnyxCommon.PendingAction;
 } & GeneralDomainMemberPendingAction;
+
+/**
+ * Represents the pending actions related to a domain's security group.
+ */
+type DomainSecurityGroupPendingActions = {
+    /**
+     * Pending action for deleting a security group
+     */
+    deleteGroup?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for creating a new security group
+     */
+    createGroup?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the security group name
+     */
+    name?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRules?: OnyxCommon.PendingAction;
+
+    defaultSecurityGroupID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicy?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted default login selection
+     */
+    enableRestrictedPrimaryLogin?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicy?: OnyxCommon.PendingAction;
+};
 
 /**
  * Pending actions triggered by user operations on the domain
@@ -38,9 +95,6 @@ type DomainPendingAction = {
      */
     admin?: Record<number, GeneralDomainMemberPendingAction>;
 
-    /**
-     * Pending action for the technical contact email
-     */
     technicalContactEmail?: OnyxCommon.PendingAction;
 
     /**
@@ -62,7 +116,12 @@ type DomainPendingAction = {
      * Pending action for the domain itself
      */
     pendingAction?: OnyxCommon.PendingAction;
-};
 
-export type {GeneralDomainMemberPendingAction};
+    /**
+     * Pending action for requesting adminship of a domain already claimed by someone else
+     */
+    requestAdminship?: OnyxCommon.PendingAction;
+} & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
+
+export type {DomainSecurityGroupPendingActions};
 export default DomainPendingAction;

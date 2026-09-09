@@ -1,33 +1,51 @@
-import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
     AddMemberToDomainParams,
+    ChangeDomainSecurityGroupParams,
+    CreateDomainSecurityGroupParams,
     DeleteDomainMemberParams,
     DeleteDomainParams,
+    DeleteDomainSecurityGroupParams,
     RemoveDomainAdminParams,
+    RequestDomainAdminshipParams,
     ResetDomainMemberTwoFactorAuthParams,
+    SetDefaultDomainSecurityGroupParams,
     SetTechnicalContactEmailParams,
     SetTwoFactorAuthExemptEmailForDomainParams,
     SetVacationDelegateParams,
     ToggleConsolidatedDomainBillingParams,
     ToggleTwoFactorAuthRequiredForDomainParams,
+    UpdateDomainSecurityGroupParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getDefaultAvatarName} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {SecurityGroupKey} from '@src/types/onyx/Domain';
+import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+
+import {Num} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
+
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
 /**
@@ -109,8 +127,8 @@ function resetDomainValidationError(accountID: number) {
  * Fetches the latest domain data from the server,
  * when accessing the domain initial page
  */
-function openDomainInitialPage(domainName: string) {
-    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName});
+function openDomainPage(domainAccountID: number) {
+    API.read(READ_COMMANDS.OPEN_DOMAIN_PAGE, {domainAccountID});
 }
 
 /**
@@ -338,13 +356,18 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
-/** Sends request for claiming a domain */
-function createDomain(domainName: string) {
+/**
+ * Sends request for claiming a domain.
+ *
+ * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
+ * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
+ */
+function createDomain(domainName: string, domainKeysBeforeCreation?: ReadonlySet<string>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null, isLoading: true},
+            value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
@@ -354,11 +377,11 @@ function createDomain(domainName: string) {
             value: {hasCreationSucceeded: true, isLoading: null},
         },
     ];
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {isLoading: null},
+            value: {isLoading: null, domainKeysBeforeCreation: domainKeysBeforeCreation ? [...domainKeysBeforeCreation] : null},
         },
     ];
 
@@ -371,6 +394,39 @@ function createDomain(domainName: string) {
  */
 function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
+/**
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has access to it.
+ * Clearing the accountID also stops the navigation effect on the add domain page from re-firing. No server call is performed.
+ */
+function setCreateDomainAlreadyHaveAccessError() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+        domainAccountID: null,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
+    });
+}
+
+/** Clears the domain account ID so the hidden backend error can be displayed. No server call is performed. */
+function clearCreateDomainAccountID() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
+}
+
+/**
+ * Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list.
+ * An adminship request the user already sent for that domain is the one piece of state that outlives the failure, so it is kept on
+ * its own - the entry then carries no accountID or email and stays invisible in the list. No server call is performed.
+ */
+function clearDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    return Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, isEmptyObject(adminRequesters) ? null : {domain_adminRequesters: adminRequesters});
+}
+
+/** Clears a response-only domain after the add-domain page has already unmounted, then removes its persisted failure context. */
+function clearStaleDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    clearDomainFromFailedCreation(domainAccountID, adminRequesters).then(() => {
+        Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null, domainKeysBeforeCreation: null});
+    });
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -456,6 +512,84 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: st
 function clearSetPrimaryContactError(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         technicalContactEmailErrors: null,
+    });
+}
+
+/**
+ * Requests adminship of a domain that's already claimed by someone else.
+ *
+ * @param isTransientDomainEntry whether the domain entry only exists to carry this flow (the user has no access to it), so a failed
+ * request must drop the whole entry instead of just the requester, otherwise an empty entry lingers in the domains collection.
+ */
+function requestDomainAdminship(domainAccountID: number, currentUserAccountID: number, isTransientDomainEntry: boolean) {
+    const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+    const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+    const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainKey,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[currentUserAccountID]: 'read'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: null},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        isTransientDomainEntry
+            ? {onyxMethod: Onyx.METHOD.SET, key: domainKey, value: null}
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: domainKey,
+                  value: {
+                      // eslint-disable-next-line @typescript-eslint/naming-convention
+                      domain_adminRequesters: {[currentUserAccountID]: null},
+                  },
+              },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.domainAlreadyExists.requestAccessError')},
+        },
+    ];
+
+    const params: RequestDomainAdminshipParams = {domainAccountID};
+
+    API.write(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears a failed adminship request's error so a future visit to this flow doesn't show a stale error from a previous attempt.
+ * Resets it only on the client's side, no server call is performed
+ */
+function clearRequestAdminshipError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        requestAdminshipError: null,
     });
 }
 
@@ -550,7 +684,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -580,6 +720,11 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'admins', id: String(accountID)},
         },
     ];
 
@@ -630,7 +775,14 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -650,6 +802,11 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                     [accountID]: null,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
         },
     ];
 
@@ -759,7 +916,7 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
 /**
  * Removes the domain
  */
-function resetDomain(domainAccountID: number, domainName: string, domain: Domain) {
+function resetDomain(domainAccountID: number, domainName: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -771,10 +928,15 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: null,
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: null,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -794,7 +956,7 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: domain,
+            value: {pendingAction: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -843,7 +1005,13 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
     const optimisticAccountID = generateAccountID(email);
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.DOMAIN>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -863,6 +1031,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     login: email,
+                    avatar: USER_AVATARS.getURL(getDefaultAvatarName({accountID: optimisticAccountID, accountEmail: email})) ?? '',
                     isOptimisticPersonalDetail: true,
                 },
             },
@@ -888,6 +1057,11 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'members', id: String(optimisticAccountID)},
         },
     ];
 
@@ -936,7 +1110,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -958,6 +1132,11 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
         },
     ];
 
@@ -1691,11 +1870,623 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
     fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+/**
+ * Moves a domain member from one security group to another with optimistic updates.
+ * @param domainAccountID - The account ID of the domain
+ * @param domainName - The name of the domain
+ * @param employeeEmail - The email of the member being moved
+ * @param accountID - The account ID of the member being moved
+ * @param currentSecurityGroupKey - The Onyx key of the member's current security group
+ * @param currentSecurityGroup - The current security group data
+ * @param targetSecurityGroupKey - The Onyx key of the target security group
+ */
+function changeDomainSecurityGroup(
+    domainAccountID: number,
+    domainName: string,
+    employeeEmail: string,
+    accountID: number,
+    currentSecurityGroupKey: SecurityGroupKey,
+    currentSecurityGroup: Partial<DomainSecurityGroup>,
+    targetSecurityGroupKey: SecurityGroupKey,
+) {
+    const accountIDStr = String(accountID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [currentSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: null,
+                    },
+                },
+                [targetSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: 'read',
+                    },
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: {changeDomainSecurityGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE as PendingAction}},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {[employeeEmail]: null},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {[employeeEmail]: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [currentSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: currentSecurityGroup.shared?.[accountIDStr],
+                    },
+                },
+                [targetSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: null,
+                    },
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [employeeEmail]: {changeDomainSecurityGroupErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.moveMember')},
+                },
+            },
+        },
+    ];
+
+    const newID = targetSecurityGroupKey.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
+
+    const parameters: ChangeDomainSecurityGroupParams = {
+        domainName,
+        newID,
+        employeeEmail,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_DOMAIN_SECURITY_GROUP, parameters, {optimisticData, successData, failureData});
+}
+
+function clearChangeDomainSecurityGroupError(domainAccountID: number, memberEmail: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [memberEmail]: {
+                changeDomainSecurityGroupErrors: null,
+            },
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        member: {
+            [memberEmail]: {
+                changeDomainSecurityGroup: null,
+            },
+        },
+    });
+}
+
+function setDomainMembersSelectedForMove(memberAccountIDs: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
+}
+
+function clearDomainMembersSelectedForMove() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
+}
+
+/**
+ * Updates a setting of a domain security group
+ *
+ * @param domainAccountID - The account ID of the domain
+ * @param groupID - The ID of the security group
+ * @param currentSecurityGroup - The current security group data
+ * @param newSettingValue - The setting value we want to update
+ * @param settingsName - The setting name we want to update
+ */
+function updateDomainSecurityGroup(
+    domainAccountID: number,
+    groupID: string,
+    currentSecurityGroup: DomainSecurityGroup,
+    newSettingValue: Partial<DomainSecurityGroup>,
+    settingsName: keyof DomainSecurityGroup,
+) {
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+    const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
+
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: newSecurityGroup,
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [settingsName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [`${settingsName}Errors`]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [settingsName]: currentSecurityGroup[settingsName] ?? null,
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [settingsName]: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.common.error`),
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [settingsName]: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    [`${settingsName}Errors`]: null,
+                },
+            },
+        },
+    ];
+
+    const params: UpdateDomainSecurityGroupParams = {
+        domainAccountID,
+        name: SECURITY_GROUP_KEY,
+        value: JSON.stringify(newSecurityGroup),
+        settingsName,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Deletes a domain security group.
+ *
+ * @param domainAccountID - The account ID of the domain
+ * @param groupID - The ID of the security group to delete
+ * @param currentSecurityGroup - The current security group data
+ */
+function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    deleteGroup: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.deleteGroupError'),
+                },
+            },
+        },
+    ];
+
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: null,
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup> | null>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    deleteGroup: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: null,
+            },
+        },
+    ];
+
+    const params: DeleteDomainSecurityGroupParams = {
+        domainAccountID,
+        name: SECURITY_GROUP_KEY,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Clears the base error left on a security group after a failed delete attempt.
+ * The group itself is already restored by failureData, so this only clears the error.
+ */
+function clearGroupDeleteError(domainAccountID: number, groupID: string) {
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        [SECURITY_GROUP_KEY]: {
+            errors: null,
+        },
+    });
+}
+
+/**
+ * Removes an error after trying to change the security group setting
+ */
+function clearDomainSecurityGroupSettingError(domainAccountID: number, groupID: string, settingsName: keyof DomainSecurityGroupErrors) {
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        [SECURITY_GROUP_KEY]: {
+            [settingsName]: null,
+        },
+    });
+}
+
+/**
+ * Sets the default security group for a domain
+ * @param domainAccountID - The account ID of the domain
+ * @param groupID - The ID of the security group to set as default
+ * @param previousGroupID - The ID of the previously default security group
+ */
+function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previousGroupID?: string) {
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            value: {domain_defaultSecurityGroupID: groupID},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupIDErrors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            value: {domain_defaultSecurityGroupID: previousGroupID},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupID: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupIDErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.common.error'),
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupID: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupIDErrors: null,
+                },
+            },
+        },
+    ];
+
+    const params: SetDefaultDomainSecurityGroupParams = {
+        domainAccountID,
+        groupID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
+}
+
+function setDomainGroupCreatePreferredPolicyID(policyID: string) {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, policyID);
+}
+
+function clearDomainGroupCreatePreferredPolicyID() {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, null);
+}
+
+/**
+ * Creates a new domain security group with the given configuration
+ * @param domainAccountID - The account ID of the domain
+ * @param newSecurityGroup - The security group data to create
+ * @param shouldSetAsDefaultGroup - Whether we want to set newly created security group as the default
+ * @param previousDefaultGroupID - The current default group ID, used to revert on failure when shouldSetAsDefaultGroup is true
+ */
+function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: DomainSecurityGroup, shouldSetAsDefaultGroup = false, previousDefaultGroupID?: string) {
+    const groupID = String(Num.generateRandom6DigitID());
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+    const optimisticData: Array<
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: newSecurityGroup,
+                // backend API uses snake_case for domain_defaultSecurityGroupID
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...(shouldSetAsDefaultGroup && {domain_defaultSecurityGroupID: groupID}),
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'groups', id: groupID},
+        },
+    ];
+
+    const failureData: Array<
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: newSecurityGroup,
+                // backend API uses snake_case for domain_defaultSecurityGroupID
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...(shouldSetAsDefaultGroup && {domain_defaultSecurityGroupID: previousDefaultGroupID}),
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.createGroupError'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const params: CreateDomainSecurityGroupParams = {
+        domainAccountID,
+        name: SECURITY_GROUP_KEY,
+        value: JSON.stringify(newSecurityGroup),
+        shouldSetAsDefaultGroup,
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Removes an error and the optimistic security group entry after a failed group creation
+ */
+function clearGroupCreateError(domainAccountID: number, groupID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+}
+
+function clearDomainHighlightItems(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, {type: null, id: null});
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
     resetDomainValidationError,
-    openDomainInitialPage,
+    openDomainPage,
     getSamlSettings,
     setSamlEnabled,
     resetSamlEnabledError,
@@ -1705,8 +2496,14 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setCreateDomainAlreadyHaveAccessError,
+    clearCreateDomainAccountID,
+    clearDomainFromFailedCreation,
+    clearStaleDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
+    requestDomainAdminship,
+    clearRequestAdminshipError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
@@ -1727,4 +2524,18 @@ export {
     clearTwoFactorAuthExemptEmailsErrors,
     resetDomainMemberTwoFactorAuth,
     exportMembersToCSV,
+    changeDomainSecurityGroup,
+    clearChangeDomainSecurityGroupError,
+    setDomainMembersSelectedForMove,
+    clearDomainMembersSelectedForMove,
+    updateDomainSecurityGroup,
+    deleteDomainSecurityGroup,
+    clearGroupDeleteError,
+    clearDomainSecurityGroupSettingError,
+    setDefaultSecurityGroup,
+    setDomainGroupCreatePreferredPolicyID,
+    clearDomainGroupCreatePreferredPolicyID,
+    createDomainSecurityGroup,
+    clearGroupCreateError,
+    clearDomainHighlightItems,
 };

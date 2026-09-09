@@ -1,24 +1,31 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
+
 import variables from '@styles/variables';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
@@ -84,7 +91,7 @@ function CardTypeStep() {
     const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
     const [isError, setIsError] = useState(false);
     const data = getAvailableCompanyCardTypes({
         translate,
@@ -95,7 +102,7 @@ function CardTypeStep() {
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
-    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data.selectedCountry);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
     const submit = useCallback(() => {
         if (!typeSelected) {
@@ -148,14 +155,14 @@ function CardTypeStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.yourCardProvider')}</Text>
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
                     setLocalTypeSelected(value);
                     setIsError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={addNewCard?.data.feedType}
+                initiallyFocusedItemKey={addNewCard?.data?.feedType}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >

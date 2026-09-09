@@ -1,19 +1,17 @@
-import React, {useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useTextWithMiddleEllipsis from '@hooks/useTextWithMiddleEllipsis';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 type TextWithMiddleEllipsisProps = {
-    /** The text to display */
     text: string;
-
-    /** Additional styles */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 

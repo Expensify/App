@@ -1,8 +1,8 @@
 ---
 title: Create and Manage Expense Tags
 description: Add tags to use for coding expenses.
-keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
-internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags and tag GL codes. Does not cover personal expense rules or accounting system configuration.
+keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code, tag approver, tag rules, tag approval]
+internalScope: Audience is Workspace Admins. Covers enabling, creating, importing, activating, and managing expense tags, including multi-level tags, tag GL codes, and tag approvers (Tag Rules) and how Tag/Category/workspace approvers combine in the approval chain. Does not cover personal expense rules or accounting system configuration.
 ---
 
 # Create and Manage Expense Tags
@@ -117,6 +117,7 @@ When using multi-level Tags, you must choose whether the tag levels are **depend
 
 - Lower-level tag options depend on the selection made in the level above.
 - When a member selects a value in Level 1, the options in Level 2 (and Level 3, etc.) are filtered to only the valid combinations from your spreadsheet.
+- If a selection leaves only one valid option in the next level, that value is filled in automatically.
 - Best when only specific tag combinations are allowed.
 
 Example:
@@ -156,12 +157,27 @@ When importing multi-level Tags, enable **These are independent tags** to import
 
 ## How to add or edit a tag GL code
 
-Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. Tag GL codes are not visible to members.
+Workspaces on the Control plan can assign a GL code to each tag for exporting purposes. By default, tag GL codes are not visible to members, but you can choose to show them in the tag picker.
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
 3. Select a tag to open its detail panel.
 4. Select the **GL Code** field, enter or update the code, then select **Save**.
+
+---
+
+## How to show tag GL codes when selecting a tag
+
+By default, tag GL codes are hidden from members. Workspace Admins on the Control plan can turn on a setting that displays each tag's GL code in the tag picker, so members can see and search by GL code when selecting a tag on an expense.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
+2. Select **Tags**.
+3. In the top-right corner, select **Settings**.
+4. Turn on **Show GL codes when selecting a tag**.
+
+Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
+
+**Note:** This setting only appears when GL codes are enabled for the workspace.
 
 ---
 
@@ -173,6 +189,22 @@ Expensify may suggest Tags based on how similar expenses were coded previously.
 
 ---
 
+## How to assign an approver to a tag
+
+You can require a specific person to approve any expense that uses a particular tag. This is useful when certain projects, departments, or cost centers need sign-off from a designated owner.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[Workspace name]**.
+2. Select **Tags**.
+3. Select a tag to open its detail panel.
+4. Under **Tag Rules**, select **Approver**.
+5. Choose the member who should approve expenses with this tag, then select **Save**.
+
+Once set, any report that contains an expense with this tag is automatically routed to the Tag approver as part of the report's approval chain.
+
+**Note:** Tag approvers are available on the **Control** plan only.
+
+---
+
 # FAQ
 
 ## Can I edit expense tags on a submitted expense report?
@@ -180,6 +212,14 @@ Expensify may suggest Tags based on how similar expenses were coded previously.
 Yes. You can edit tags until the expense is approved or reimbursed.
 
 Approvers can also edit tags after approval by taking control of the report.
+
+## How does a Tag approver fit into the Workspace approval workflow?
+
+Tag approvers are added to the beginning of a Workspace's approval workflow. When a report contains expenses assigned to a Tag with an approver, that approver must approve the report before it moves through the Workspace's standard approval workflow.
+
+If a Category approver is also assigned, the Category approver approves before the Tag approver.
+
+To learn how Category approvers, Tag approvers, and Workspace approvers work together, see [Set Category and Tag approvers](/articles/new-expensify/workspaces/Add-Approvals#set-category-and-tag-approvers).
 
 ## Can I see an audit trail of tag changes?
 
@@ -189,10 +229,18 @@ Yes. When a tag is changed manually, the update appears in the expense chat.
 
 It will be removed from the workspace’s tag list. However, it will still appear on expenses or reports where it was previously applied.
 
+## What happens to an expense if its tag is disabled on the workspace?
+
+If tags are disabled on the workspace while an expense still has a tag applied, the **Tag** field stays on the expense with a **Tag no longer valid** violation.
+
+To resolve the violation, select the **Tag** field on the expense. A **Tag disabled** alert appears with options for managing the disabled tag.
+
+Alternatively, you can enable tags on the workspace to edit the tag directly.
+
 ## Why can’t I enable multi-level tags?
 
 Multi-level tags are available on Control workspaces only. If your Control workspace is connected to an accounting integration, you will need to manage tags in your accounting system and sync them into Expensify.
 
 ## Can members see Tag GL codes?
 
-No. Tag GL codes are visible only to Workspace Admins. If members need that information, include the GL code in the tag name (for example: `1001 - Marketing`).
+By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).

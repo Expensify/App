@@ -1,21 +1,28 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 type TextInputClearButtonProps = WithSentryLabel & {
+    iconSize?: number;
     style?: StyleProp<ViewStyle>;
     onPressButton: () => void;
 };
 
-function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClearButtonProps) {
+function TextInputClearButton({iconSize = variables.iconSizeNormal, style, onPressButton, sentryLabel}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -35,8 +42,8 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
             >
                 <Icon
                     src={icons.Clear}
-                    width={20}
-                    height={20}
+                    width={iconSize}
+                    height={iconSize}
                     fill={theme.icon}
                 />
             </PressableWithoutFeedback>

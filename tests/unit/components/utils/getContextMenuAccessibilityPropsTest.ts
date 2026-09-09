@@ -1,5 +1,7 @@
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
 
 jest.mock('@libs/getPlatform', () => jest.fn());

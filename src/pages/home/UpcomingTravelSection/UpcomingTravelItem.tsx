@@ -1,21 +1,27 @@
+import Icon from '@components/Icon';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Reservation} from '@src/types/onyx/Transaction';
+
 import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import {formatCancelledDescription, getTripReservationIcon} from '@libs/TripReservationUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type {Reservation} from '@src/types/onyx/Transaction';
+
 import type {UpcomingReservation} from './useUpcomingTravelReservations';
 
 type UpcomingTravelItemProps = {
@@ -77,7 +83,6 @@ function getTypeIdentifier(reservation: Reservation): string {
 function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -101,7 +106,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const subtitle = typeId ? `${relativeTime} ${CONST.DOT_SEPARATOR} ${typeId}` : relativeTime;
 
     const handlePress = () => {
-        Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, reservation.reservationID, sequenceIndex));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(reportID, transactionID, reservation.reservationID, sequenceIndex)));
     };
 
     return (
@@ -113,7 +118,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
-                <View style={[styles.homeWidgetIconContainer, StyleUtils.getBackgroundColorStyle(theme.border)]}>
+                <View style={styles.widgetItemIconContainer}>
                     <Icon
                         src={reservationIcon}
                         width={variables.iconSizeNormal}

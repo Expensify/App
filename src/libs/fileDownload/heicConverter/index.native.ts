@@ -1,8 +1,9 @@
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
-import CONST from '@src/CONST';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+
 import type {HeicConverterFunction} from './types';
 
 /**
@@ -66,50 +67,12 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
 
     onStart();
 
-    if (!file.uri) {
-        onError(new Error('File URI is undefined'), file);
-        onFinish();
-        return;
-    }
-
     // Conversion based on extension
-    if (needsConversion) {
-        const fileUri = file.uri;
-        convertImageWithManipulator(file, fileUri, /\.(heic|heif)$/i, {
-            onSuccess,
-            onError,
-            onFinish,
-        });
-        return;
-    }
-
-    // If not detected by extension, check using file signatures
-    verifyFileFormat({fileUri: file.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-        .then((isHEIC) => {
-            if (isHEIC) {
-                const fileUri = file.uri;
-                if (!fileUri) {
-                    onError(new Error('File URI is undefined'), file);
-                    onFinish();
-                    return;
-                }
-                convertImageWithManipulator(file, fileUri, /\.heic$/i, {
-                    onSuccess,
-                    onError,
-                    onFinish,
-                });
-                return;
-            }
-
-            onSuccess(file);
-        })
-        .catch((err) => {
-            Log.warn('Error processing the file', {error: err instanceof Error ? err.message : String(err)});
-            onError(err, file);
-        })
-        .finally(() => {
-            onFinish();
-        });
+    convertImageWithManipulator(file, file.uri, /\.(heic|heif)$/i, {
+        onSuccess,
+        onError,
+        onFinish,
+    });
 };
 
 export default convertHeicImage;

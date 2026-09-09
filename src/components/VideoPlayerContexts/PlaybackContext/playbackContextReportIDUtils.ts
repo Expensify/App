@@ -1,15 +1,19 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {Route} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+
 import getStateFromPath from '@navigation/helpers/getStateFromPath';
 import Navigation from '@navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@navigation/types';
+
 import type {Route as ActiveRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+
+import type {Route} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 /* NO_REPORT_ID & NO_REPORT_ID_IN_PARAMS are used to differentiate if the ReportID is simply missing or if it is just missing from the route params.
  * Since both are a unique symbol they should not be used outside of these context files to avoid having to always import them.
@@ -27,7 +31,7 @@ const normalizeReportID = (reportID: ProtectedCurrentRouteReportID) => {
 };
 
 type SearchRoute = Omit<Route<string>, 'key'> | undefined;
-type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT]};
 
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
     const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;

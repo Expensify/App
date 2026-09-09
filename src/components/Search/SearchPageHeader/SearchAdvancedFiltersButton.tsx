@@ -1,33 +1,109 @@
-import React from 'react';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
+import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
-import {updateAdvancedFilters} from '@libs/actions/Search';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearchFilterSync';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-function SearchAdvancedFiltersButton({queryJSON}: {queryJSON: SearchQueryJSON}) {
-    const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
-    const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(filterFormValues);
+import React from 'react';
 
-    const openAdvancedFilters = () => {
-        updateAdvancedFilters(filterFormValues);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    };
+type SearchAdvancedFiltersButtonProp = {
+    queryJSON: SearchQueryJSON;
+};
+
+function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonProp) {
+    const {translate} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- advanced filters page is only rendered on the small screen
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
+    const {isOffline} = useNetwork();
+    const filterFormValues = useFilterFormValues(queryJSON);
+    const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
+    const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
+    const shouldDeferFilterSync = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
+    useSearchFilterSync(queryJSON, filterFormValues, shouldDeferFilterSync);
+
+    if (isSmallScreenWidth) {
+        return (
+            <PressableWithFeedback
+                accessibilityLabel={translate('search.filtersHeader')}
+                role={CONST.ROLE.BUTTON}
+                style={[styles.searchActionsBar(true)]}
+                hoverStyle={styles.buttonHoveredBG}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS)}
+            >
+                <Icon
+                    src={expensifyIcons.Filter}
+                    fill={theme.icon}
+                    size={CONST.ICON_SIZE.SMALL}
+                />
+            </PressableWithFeedback>
+        );
+    }
+
+    const filterButton = isMediumScreenWidth
+        ? ({onPress, ref}: ButtonComponentProps) => (
+              <PressableWithFeedback
+                  ref={ref}
+                  accessibilityLabel={translate('search.filtersHeader')}
+                  role={CONST.ROLE.BUTTON}
+                  style={[styles.searchActionsBar(false)]}
+                  hoverStyle={styles.buttonHoveredBG}
+                  sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+                  onPress={onPress}
+              >
+                  <Icon
+                      src={expensifyIcons.Filter}
+                      fill={theme.icon}
+                      size={CONST.ICON_SIZE.EXTRA_SMALL}
+                  />
+              </PressableWithFeedback>
+          )
+        : ({onPress, ref, isExpanded}: ButtonComponentProps) => (
+              <Button
+                  ref={ref}
+                  size={CONST.BUTTON_SIZE.SMALL}
+                  accessibilityLabel={translate('search.filtersHeader')}
+                  onPress={onPress}
+                  innerStyles={isExpanded ? styles.buttonDefaultHovered : undefined}
+                  sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+              >
+                  <Button.Icon src={expensifyIcons.Filter} />
+                  <Button.Text>{translate('search.filtersHeader')}</Button.Text>
+              </Button>
+          );
+
+    const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;
 
     return (
-        <Button
-            small
-            text={translate('search.filtersHeader')}
-            icon={expensifyIcons.Filter}
-            onPress={openAdvancedFilters}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+        <FilterPopupButton
+            PopoverComponent={filtersPopup}
+            popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
+            popoverAnchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }}
+            renderButton={filterButton}
         />
     );
 }

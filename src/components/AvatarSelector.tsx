@@ -1,26 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {PRESET_AVATAR_CATALOG_ORDERED} from '@libs/Avatars/PresetAvatarCatalog';
+
+import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
+
 import type {AvatarSizeName} from '@styles/utils';
+
 import CONST from '@src/CONST';
-import Avatar from './Avatar';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
+import UserInitialsAvatar from './UserInitialsAvatar';
 
 type AvatarSelectorProps = {
-    /** Currently selected avatar ID */
     selectedID?: string;
 
     /** Called when an avatar is selected */
     onSelect: (id: string) => void;
-
-    /** Used to generate letter avatars */
-    name?: string;
 
     /** Optional: size of avatars in grid */
     size?: AvatarSizeName;
@@ -34,44 +35,21 @@ const SPACER_SIZE = 10;
 /**
  * AvatarSelector — renders a grid of selectable avatars.
  */
-function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
+function AvatarSelector({selectedID, onSelect, label, size = CONST.AVATAR_SIZE.X_LARGE}: AvatarSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {avatarList} = useLetterAvatars(name, size);
+    const {initials, options: letterAvatarOptions} = useLetterAvatars();
 
     const iconSize = StyleUtils.getAvatarSize(size);
 
     return (
         <>
-            {!!label && avatarList?.length > 0 && (
+            {!!label && letterAvatarOptions.length > 0 && (
                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {PRESET_AVATAR_CATALOG_ORDERED.map(({id, local}) => {
-                    const isSelected = selectedID === id;
-
-                    return (
-                        <PressableWithFeedback
-                            key={id}
-                            accessible
-                            accessibilityRole="button"
-                            accessibilityLabel={translate('avatarPage.selectAvatar')}
-                            onPress={() => onSelect(id)}
-                            style={[styles.avatarSelectorWrapper, isSelected && {borderColor: theme.success, borderWidth: 2}]}
-                        >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={local}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
-                                testID={`AvatarSelector_${id}`}
-                            />
-                        </PressableWithFeedback>
-                    );
-                })}
-                {avatarList.map(({id, StyledLetterAvatar}) => {
+                {USER_AVATARS.ordered.map(({id, local}) => {
                     const isSelected = selectedID === id;
 
                     return (
@@ -83,13 +61,42 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                             onPress={() => onSelect(id)}
                             style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
                         >
-                            <Avatar
-                                type={CONST.ICON_TYPE_AVATAR}
-                                source={StyledLetterAvatar}
-                                size={size}
-                                containerStyles={styles.avatarSelectorContainer}
+                            <View
+                                style={styles.avatarSelectorContainer}
                                 testID={`AvatarSelector_${id}`}
-                            />
+                            >
+                                <Icon
+                                    src={local}
+                                    width={iconSize}
+                                    height={iconSize}
+                                    additionalStyles={StyleUtils.getAvatarBorderStyle(size, CONST.AVATAR_SHAPE.CIRCLE)}
+                                />
+                            </View>
+                        </PressableWithFeedback>
+                    );
+                })}
+                {letterAvatarOptions.map(({id, colors}) => {
+                    const isSelected = selectedID === id;
+
+                    return (
+                        <PressableWithFeedback
+                            key={id}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('avatarPage.selectAvatar')}
+                            onPress={() => onSelect(id)}
+                            style={[styles.avatarSelectorWrapper, isSelected && styles.avatarSelected]}
+                        >
+                            <View
+                                style={styles.avatarSelectorContainer}
+                                testID={`AvatarSelector_${id}`}
+                            >
+                                <UserInitialsAvatar
+                                    text={initials}
+                                    colors={colors}
+                                    size={iconSize}
+                                />
+                            </View>
                         </PressableWithFeedback>
                     );
                 })}

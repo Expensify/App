@@ -1,8 +1,10 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {BaseTransportOptions, Envelope, Transport} from '@sentry/core';
+
 import {makeFetchTransport} from '@sentry/react';
 import {makeNativeTransportFactory} from '@sentry/react-native/dist/js/transports/native';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Sentry debug settings controlled via Onyx from Troubleshoot panel.

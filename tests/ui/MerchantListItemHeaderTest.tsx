@@ -1,16 +1,23 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
 import MerchantListItemHeader from '@components/Search/SearchList/ListItem/MerchantListItemHeader';
 import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -18,7 +25,7 @@ jest.mock('@libs/Navigation/Navigation');
 
 // Mock useResponsiveLayout to control screen size in tests
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
@@ -26,32 +33,37 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
-    shouldShowActionsBarLoading: false,
+    shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    applySelection: jest.fn(),
+    setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowActionsBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
+    setShouldShowFiltersBarLoading: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMerchantListItem = (merchant: string, options: Partial<TransactionMerchantGroupListItemType> = {}): TransactionMerchantGroupListItemType => ({
@@ -82,22 +94,23 @@ const renderMerchantListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchStateContext.Provider value={mockSearchStateContext}>
-                <SearchActionsContext.Provider value={mockSearchActionsContext}>
-                    <MerchantListItemHeader
-                        merchant={merchantItem}
-                        onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
-                        isDisabled={props.isDisabled ?? false}
-                        canSelectMultiple={props.canSelectMultiple ?? false}
-                        isSelectAllChecked={props.isSelectAllChecked ?? false}
-                        isIndeterminate={props.isIndeterminate ?? false}
-                        onDownArrowClick={props.onDownArrowClick}
-                        isExpanded={props.isExpanded ?? false}
-                        columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
-                    />
-                </SearchActionsContext.Provider>
-            </SearchStateContext.Provider>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
+                <MerchantListItemHeader
+                    merchant={merchantItem}
+                    onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
+                    isDisabled={props.isDisabled ?? false}
+                    canSelectMultiple={props.canSelectMultiple ?? false}
+                    isSelectAllChecked={props.isSelectAllChecked ?? false}
+                    isIndeterminate={props.isIndeterminate ?? false}
+                    onDownArrowClick={props.onDownArrowClick}
+                    isExpanded={props.isExpanded ?? false}
+                    columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
+                />
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
@@ -123,6 +136,7 @@ describe('MerchantListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -277,6 +291,7 @@ describe('MerchantListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

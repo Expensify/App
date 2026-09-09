@@ -1,4 +1,4 @@
-import type {TransactionWithOptionalSearchFields} from '..';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
 type TransactionDataCellProps = {
     transactionItem: TransactionWithOptionalSearchFields;

@@ -14,7 +14,7 @@ Certinia (formerly FinancialForce) is a cloud-based financial management solutio
 Before connecting Expensify to Certinia, complete the following setup steps:
 
 1. **Install the Expensify bundle in Certinia**  
-   - [PSA/SRP Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BHD%252Fpackaging%252FinstallPackage.apexp%253Fp0%253D04t2M000002J0BH)  
+   - [PSA/SRP Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t2M000002J0BM)  
    - [FFA Installer](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t4p000001UQVj)  
 
 2. **Verify Contact Details in Certinia**  

@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import {
     isValidAddress,
     isValidCompanyName,
@@ -9,8 +8,11 @@ import {
     isValidWebsite,
     isValidZipCodeInternational,
 } from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {Str} from 'expensify-common';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 

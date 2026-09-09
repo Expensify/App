@@ -1,7 +1,9 @@
+import type {IncomingMessage, ServerResponse} from 'http';
+
 import dotenv from 'dotenv';
 import http from 'http';
-import type {IncomingMessage, ServerResponse} from 'http';
 import https from 'https';
+
 import proxyConfig from '../config/proxyConfig';
 
 dotenv.config();

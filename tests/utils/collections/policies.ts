@@ -1,15 +1,18 @@
-import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
+
+import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
 
 export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>, name?: string): Policy {
     return {
         id: index.toString(),
         name: name ?? randWord(),
-        type: type ?? rand(Object.values(CONST.POLICY.TYPE)),
+        // Exclude the Submit (submit2026) plan from the random default: it has distinct, plan-specific behavior
+        // (e.g. forced Editor role, locked role changes), so tests that exercise it pass the type explicitly.
+        type: type ?? rand(Object.values(CONST.POLICY.TYPE).filter((policyType) => policyType !== CONST.POLICY.TYPE.SUBMIT)),
         autoReporting: randBoolean(),
-        isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
             Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES).filter(
                 (frequency): frequency is Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL> =>
@@ -28,7 +31,8 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        // Exclude DELETE from the random default: a policy pending deletion blocks report state transitions.
+        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).filter((action) => action !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         errors: {},
         customUnits: {},
         errorFields: {},

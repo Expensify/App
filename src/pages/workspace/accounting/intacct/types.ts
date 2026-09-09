@@ -1,7 +1,9 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
@@ -12,16 +14,23 @@ type ExtendedMenuItemWithSubscribedSettings = MenuItemToRender | ToggleItemWithK
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */
     hintText?: string;
+
+    /** Optional muted helper text rendered below the MenuItemWithTopDescription */
+    helperText?: string;
+
+    /** Optional error message to surface via OfflineWithFeedback */
+    errors?: OfflineWithFeedbackProps['errors'];
+
+    /** Optional callback to clear the surfaced error */
+    onCloseError?: OfflineWithFeedbackProps['onClose'];
 };
 
 type MenuItem = MenuItemProps & {
-    /** Type of the item */
     type: 'menuitem';
 
     /** The type of action that's pending  */
     pendingAction: OfflineWithFeedbackProps['pendingAction'];
 
-    /** Whether the item should be hidden */
     shouldHide?: boolean;
 
     /** Any error message to show */
@@ -32,21 +41,16 @@ type MenuItem = MenuItemProps & {
 };
 
 type ToggleItem = ToggleSettingOptionRowProps & {
-    /** Type of the item */
     type: 'toggle';
-
-    /** Whether the item should be hidden */
     shouldHide?: boolean;
 };
 
 type AccordionItem = {
-    /** Type of the item */
     type: 'accordion';
 
     /** Items nested inside the accordion */
     children: MenuItemToRender[];
 
-    /** Whether the item should be hidden */
     shouldHide: boolean;
 
     /** Indicates if the accordion is expanded */

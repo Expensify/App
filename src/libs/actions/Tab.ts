@@ -1,7 +1,9 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxMergeInput} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
+
+import type {OnyxMergeInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Sets the selected tab for a given tab ID

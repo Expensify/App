@@ -1,13 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-// eslint-disable-next-line no-restricted-syntax
+
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
@@ -18,6 +20,9 @@ function translateMock<TPath extends TranslationPaths>(path: TPath, ...phrasePar
 const AMOUNT_OWED = 100;
 const GRACE_PERIOD_DATE = 1750819200;
 
+// 1 January 2026, distinct from GRACE_PERIOD_DATE so the two grace periods can be told apart
+const TRAVEL_GRACE_PERIOD_DATE = 1767225600;
+
 const stripeCustomerId = STRIPE_CUSTOMER_ID;
 const ACCOUNT_DATA = {
     cardNumber: '1234',
@@ -25,11 +30,11 @@ const ACCOUNT_DATA = {
     cardYear: 2024,
 };
 
-const mockGetSubscriptionStatus = jest.fn();
+const mockGetSubscriptionStatus = jest.fn<ReturnType<typeof SubscriptionUtils.getSubscriptionStatus>, Parameters<typeof SubscriptionUtils.getSubscriptionStatus>>();
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     ...jest.requireActual<typeof SubscriptionUtils>('@libs/SubscriptionUtils'),
-    getSubscriptionStatus: (...args: Parameters<typeof SubscriptionUtils.getSubscriptionStatus>) => mockGetSubscriptionStatus(...args) as BillingStatusResult,
+    getSubscriptionStatus: (...args: Parameters<typeof SubscriptionUtils.getSubscriptionStatus>) => mockGetSubscriptionStatus(...args),
 }));
 
 describe('getNextBillingDate', () => {
@@ -46,17 +51,17 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is valid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(undefined)).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(undefined);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(undefined);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
@@ -64,7 +69,7 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is invalid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(undefined)).toEqual(expectedNextBillingDate);
     });
 });
 
@@ -84,7 +89,7 @@ describe('CardSectionUtils', () => {
         const {result: iconsResult} = renderHook(() => useMemoizedLazyExpensifyIcons(['Close']));
         closeIcon = iconsResult.current.Close;
 
-        mockGetSubscriptionStatus.mockReturnValue('');
+        mockGetSubscriptionStatus.mockReturnValue(undefined);
 
         jest.useFakeTimers();
         // Month is zero indexed, so this is July 5th 2024
@@ -98,6 +103,7 @@ describe('CardSectionUtils', () => {
     it('should return undefined by default', () => {
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -109,6 +115,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: undefined,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toBeUndefined();
     });
@@ -119,6 +126,7 @@ describe('CardSectionUtils', () => {
         });
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -130,6 +138,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
@@ -157,6 +166,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -169,6 +179,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -185,6 +196,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: undefined,
@@ -196,6 +208,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -212,6 +225,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -223,6 +237,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
@@ -239,6 +254,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -250,6 +266,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
@@ -259,6 +276,91 @@ describe('CardSectionUtils', () => {
         });
     });
 
+    it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+        });
+
+        expect(
+            CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+                fundList: undefined,
+                billingStatus: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+            }),
+        ).toEqual({
+            title: 'subscription.billingBanner.travelInvoiceOverdue.title',
+            subtitle: 'subscription.billingBanner.travelInvoiceOverdue.subtitle',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
+    it('should return OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE_LOCKED,
+        });
+
+        expect(
+            CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+                fundList: undefined,
+                billingStatus: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+            }),
+        ).toEqual({
+            title: 'subscription.billingBanner.travelInvoiceOverdueLocked.title',
+            subtitle: 'subscription.billingBanner.travelInvoiceOverdueLocked.subtitle',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
+    it('should date the travel invoice banner from the travel grace period rather than the subscription one', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_WITH_OVERDUE_TRAVEL_INVOICE,
+        });
+
+        const billingStatus = CardSectionUtils.getBillingStatus({
+            dateFnsLocale: undefined,
+            translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => {
+                const interpolatedDate = parameters.at(0);
+                return typeof interpolatedDate === 'string' ? `${path}|${interpolatedDate}` : path;
+            },
+            stripeCustomerId,
+            accountData: ACCOUNT_DATA,
+            retryBillingSuccessful: false,
+            billingDisputePending: undefined,
+            retryBillingFailed: undefined,
+            creditCardEyesIcon,
+            fundList: undefined,
+            billingStatus: undefined,
+            amountOwed: AMOUNT_OWED,
+            ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+            ownerTravelBillingGracePeriodEnd: TRAVEL_GRACE_PERIOD_DATE,
+        });
+
+        expect(billingStatus?.subtitle).toBe('subscription.billingBanner.travelInvoiceOverdue.subtitle|January 1, 2026');
+    });
+
     it('should return BILLING_DISPUTE_PENDING variant', () => {
         mockGetSubscriptionStatus.mockReturnValue({
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
@@ -266,6 +368,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -277,6 +380,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
@@ -293,6 +397,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -304,6 +409,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
@@ -320,6 +426,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -331,6 +438,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
@@ -347,6 +455,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: {...ACCOUNT_DATA, cardYear: 2023},
@@ -358,6 +467,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -368,6 +478,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -379,6 +490,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -395,6 +507,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -406,6 +519,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
@@ -422,6 +536,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -434,6 +549,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
@@ -450,6 +566,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
+                dateFnsLocale: undefined,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -461,6 +578,7 @@ describe('CardSectionUtils', () => {
                 billingStatus: undefined,
                 amountOwed: AMOUNT_OWED,
                 ownerBillingGracePeriodEnd: GRACE_PERIOD_DATE,
+                ownerTravelBillingGracePeriodEnd: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',

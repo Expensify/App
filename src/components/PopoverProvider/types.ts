@@ -8,15 +8,6 @@ type PopoverContextProps = {
     children: ReactNode;
 };
 
-type PopoverContextValue = {
-    onOpen?: (popoverParams: AnchorRef) => void;
-    popover?: AnchorRef | null;
-    popoverAnchor?: AnchorRef['anchorRef']['current'] | null;
-    close: (anchorRef?: RefObject<AnchorType>) => void;
-    isOpen: boolean;
-    setActivePopoverExtraAnchorRef: (ref?: RefObject<AnchorType>) => void;
-};
-
 type AnchorRef = {
     ref: RefObject<AnchorType>;
     close: (anchorRef?: RefObject<AnchorType>) => void;
@@ -24,4 +15,4 @@ type AnchorRef = {
     extraAnchorRefs?: Array<RefObject<AnchorType>>;
 };
 
-export type {PopoverContextProps, PopoverContextValue, AnchorRef};
+export type {PopoverContextProps, AnchorRef};

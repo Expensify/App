@@ -1,11 +1,13 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
@@ -14,17 +16,17 @@ const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key
 
 const CARD_FEEDS = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
-        workspaceAccountID: 44444444,
+        policyAccountID: 44444444,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
         feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, 44444444),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
-        workspaceAccountID: 55555555,
+        policyAccountID: 55555555,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
         feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, 55555555),
     },
     [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: {
-        workspaceAccountID: 66666666,
+        policyAccountID: 66666666,
         feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
         feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, 66666666),
     },
@@ -32,7 +34,7 @@ const CARD_FEEDS = {
     Record<
         CardFeedWithNumber,
         {
-            workspaceAccountID: number;
+            policyAccountID: number;
             feedName: CardFeedWithNumber;
             feedNameWithDomainID: CardFeedWithDomainID;
         }
@@ -64,17 +66,14 @@ function createCard(overrides: Partial<Card> = {}): Card {
 }
 
 // Helper to create workspace cards list
-function createWorkspaceCardsList(cards: Record<string, Card>, cardList?: Record<string, string>): WorkspaceCardsList {
-    return {
-        ...cards,
-        ...(cardList ? {cardList} : {}),
-    } as WorkspaceCardsList;
+function createWorkspaceCardsList(cards: Record<string, Card>): WorkspaceCardsList {
+    return cards;
 }
 
 describe('CardFeedErrors Derived Value', () => {
     describe('compute function', () => {
         it('should return empty errors when no cards exist', () => {
-            const result = cardFeedErrorsConfig.compute([{}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardFeedErrors).toEqual({});
             expect(result.cardsWithBrokenFeedConnection).toEqual({});
@@ -87,7 +86,7 @@ describe('CardFeedErrors Derived Value', () => {
         });
 
         it('should return empty errors when all inputs are undefined', () => {
-            const result = cardFeedErrorsConfig.compute([undefined, undefined, undefined], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([undefined, undefined, undefined, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardFeedErrors).toEqual({});
             expect(result.all.shouldShowRBR).toBe(false);
@@ -99,13 +98,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403, // Not in BROKEN_CONNECTION_IGNORED_STATUSES
                 });
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.all.shouldShowRBR).toBe(true);
@@ -117,13 +116,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 200,
                 });
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
                 expect(result.cardsWithBrokenFeedConnection).toEqual({});
@@ -134,13 +133,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: status,
                 });
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
@@ -150,15 +149,241 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: undefined,
                 });
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
+            });
+
+            // Past the grace period we stop *prompting* about a broken company card feed (no RBR, no home task), but the
+            // feed stays flagged as broken: the Company cards page renders its "log into your bank" fix from that flag,
+            // and the reconnect needs the card in `cardsWithBrokenFeedConnection` to clear the error afterwards.
+            it('should stop prompting for a broken company card connection past the grace period but keep it fixable', () => {
+                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: cardFeed.feedName,
+                    fundID: String(cardFeed.policyAccountID),
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.all.shouldShowRBR).toBe(false);
+                expect(result.all.shouldPromptBrokenConnection).toBe(false);
+                expect(result.companyCards.shouldShowRBR).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
+
+                // ...but the broken state itself is preserved so the feed can still be fixed.
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should still prompt for a broken company card connection within the grace period', () => {
+                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: cardFeed.feedName,
+                    fundID: String(cardFeed.policyAccountID),
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.all.shouldShowRBR).toBe(true);
+                expect(result.all.shouldPromptBrokenConnection).toBe(true);
+                expect(result.all.isFeedConnectionBroken).toBe(true);
+                expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should surface a broken personal card connection when there is no last successful scrape (fail safe)', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '', // No successful scrape recorded — keep prompting
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+                expect(result.personalCardsWithBrokenConnection[CARD_IDS.card1]).toEqual(card);
+            });
+
+            it('should NOT surface a broken personal card connection once it is unresolved past the grace period', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+                expect(result.personalCardsWithBrokenConnection).toEqual({});
+            });
+
+            // `errorFields.lastScrape` is only ever written when a user-initiated action fails: syncCard ("Update card")
+            // and updatePersonalCardConnection ("Fix card") both write it in their failureData. It is never the stale
+            // server connection error, which lives in `card.errors`. So it stays actionable past the grace period,
+            // otherwise a sync the user just triggered could fail with no RBR anywhere once they leave the card.
+            it('should show the RBR for a past-grace card whose manual sync just failed', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403, // Broken connection
+                    lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
+                    errorFields: {lastScrape: {error: 'Update card failed'}}, // Written by the failed manual sync
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+                // The connection itself is still dismissed, so the time-sensitive task stays away.
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should NOT show the RBR for a past-grace card whose only error is the stale server connection error', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errors: {connectionError: 'Your card connection is broken.'}, // Server-set, kept so the card stays fixable
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a broken personal card within the grace period', () => {
+                // Broken only since yesterday, so it is still well inside the grace period and must keep prompting.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: recentScrape,
+                    errorFields: {lastScrape: {error: 'Your card connection is broken.'}},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+            });
+
+            // Past the grace period we suppress ONLY the broken-connection error, not other actionable errors on the same
+            // card — e.g. a failed reimbursable/start-date update, which lands in a different errorFields entry.
+            it('should still show the RBR for a past-grace broken card that also has an unrelated field error', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errorFields: {
+                        lastScrape: {error: 'Your card connection is broken.'},
+                        reimbursable: {error: 'Failed to update the reimbursable setting.'},
+                    },
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
+
+            // The broken connection is also surfaced as a server-set `card.errors` entry (this is what lights the Account
+            // button via hasPaymentMethodError). Past the grace period that must not light the RBR either. It is not
+            // separable from a co-located card error, so a past-grace broken card whose card-level error is the dismissed
+            // connection stops prompting.
+            it('should NOT show the RBR for a past-grace broken card whose card-level error is the dismissed connection', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+            });
+
+            it('should still show the RBR for a personal card with an unrelated error and a healthy connection', () => {
+                // Synced yesterday, so the card is inside the grace period and its errors surface normally.
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 200, // Not a broken connection
+                    lastScrape: recentScrape,
+                    errors: {unrelatedError: 'Something else went wrong.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+            });
+
+            // The server keeps re-sending the connection error even when lastScrapeResult is one of the IGNORED
+            // statuses (e.g. 434), which isCardConnectionBroken treats as not broken. The dismissal is therefore keyed
+            // on the last successful sync, not on the broken check — otherwise these cards light the Account/Wallet
+            // dots forever (the reported production case).
+            it('should NOT show the RBR for a card with an ignored scrape status (434) whose last sync is past the grace period', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434, // In BROKEN_CONNECTION_IGNORED_STATUSES — not "broken", but still carries the error
+                    lastScrape: '2024-08-26 18:58:19', // Last successful sync is well beyond the grace period
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(false);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should still show the RBR for a card with an ignored scrape status (434) whose last sync is within the grace period', () => {
+                const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 434,
+                    lastScrape: recentScrape,
+                    errors: {connectionError: 'Your card connection is broken.'},
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
             });
         });
 
@@ -168,15 +393,15 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card2,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 401, // Broken connection
                 });
 
                 const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({card2: card}),
+                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.policyAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({card2: card}),
                 };
 
-                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card2]).toEqual(card);
@@ -188,7 +413,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const closedCard = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
                     lastScrapeResult: 403,
                 });
@@ -196,7 +421,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const deactivatedCard = createCard({
                     cardID: CARD_IDS.card2,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
                     lastScrapeResult: 403,
                 });
@@ -204,7 +429,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const suspendedCard = createCard({
                     cardID: CARD_IDS.card3,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
                     lastScrapeResult: 403,
                 });
@@ -212,13 +437,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const activeCard = createCard({
                     cardID: CARD_IDS.card4,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     lastScrapeResult: 403,
                 });
 
                 const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({
+                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.policyAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({
                         card1: closedCard,
                         card2: deactivatedCard,
                         card3: suspendedCard,
@@ -226,7 +451,7 @@ describe('CardFeedErrors Derived Value', () => {
                     }),
                 };
 
-                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 // Only the active card should be processed and detected as broken
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card4));
@@ -243,13 +468,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
                 const cardFeeds: OnyxCollection<CardFeeds> = {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.workspaceAccountID}`]: {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.policyAccountID}`]: {
                         settings: {
                             companyCards: {
                                 [cardFeed.feedName]: {
@@ -263,7 +488,7 @@ describe('CardFeedErrors Derived Value', () => {
                     },
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.hasFeedErrors).toBe(true);
                 expect(result.all.shouldShowRBR).toBe(true);
@@ -279,13 +504,13 @@ describe('CardFeedErrors Derived Value', () => {
         //         const card = createCard({
         //             cardID: CARD_IDS.card2,
         //             bank: cardFeed.feedName,
-        //             fundID: String(cardFeed.workspaceAccountID),
+        //             fundID: String(cardFeed.policyAccountID),
         //         });
 
         //         const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
         //         const cardFeeds: OnyxCollection<CardFeeds> = {
-        //             [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.workspaceAccountID}`]: {
+        //             [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.policyAccountID}`]: {
         //                 errors: {
         //                     workspaceError: 'Workspace connection issue',
         //                 },
@@ -299,7 +524,7 @@ describe('CardFeedErrors Derived Value', () => {
         //             },
         //         };
 
-        //         const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+        //         const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
 
         //         expect(result.all.hasWorkspaceErrors).toBe(true);
         //         expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.hasWorkspaceErrors).toBe(true);
@@ -313,7 +538,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     errors: {
                         cardError: 'Card sync failed',
                     },
@@ -321,7 +546,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]).toEqual({
                     errors: {cardError: 'Card sync failed'},
@@ -336,7 +561,7 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     errorFields: {
                         cardName: {error: 'Invalid card name'},
                     },
@@ -344,7 +569,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]?.errorFields).toEqual({
                     cardName: {error: 'Invalid card name'},
@@ -357,13 +582,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
@@ -376,15 +601,15 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403, // Broken connection
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(true);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.policyAccountID]).toBe(true);
             });
 
             it('should set shouldShowRbrForFeedNameWithDomainID correctly', () => {
@@ -393,13 +618,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403, // Broken connection
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(true);
             });
@@ -410,15 +635,15 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 200, // Success
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.policyAccountID]).toBe(false);
                 expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
                 expect(result.all.shouldShowRBR).toBe(false);
             });
@@ -431,23 +656,23 @@ describe('CardFeedErrors Derived Value', () => {
                 const card1 = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed1.feedName,
-                    fundID: String(cardFeed1.workspaceAccountID),
+                    fundID: String(cardFeed1.policyAccountID),
                     lastScrapeResult: 403, // Broken
                 });
 
                 const card2 = createCard({
                     cardID: CARD_IDS.card2,
                     bank: cardFeed2.feedName,
-                    fundID: String(cardFeed2.workspaceAccountID),
+                    fundID: String(cardFeed2.policyAccountID),
                     lastScrapeResult: 200, // OK
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card1, [CARD_IDS.card2]: card2};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
-                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed1.workspaceAccountID]).toBe(true);
-                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed2.workspaceAccountID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed1.policyAccountID]).toBe(true);
+                expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed2.policyAccountID]).toBe(false);
                 expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card2));
@@ -459,25 +684,25 @@ describe('CardFeedErrors Derived Value', () => {
                 const globalCard = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403,
                 });
 
                 const workspaceCard = createCard({
                     cardID: CARD_IDS.card2,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 401,
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: globalCard};
                 const allWorkspaceCards: OnyxCollection<WorkspaceCardsList> = {
-                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({
+                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.policyAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({
                         [CARD_IDS.card2]: workspaceCard,
                     }),
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card2));
@@ -491,13 +716,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
                 const cardFeeds: OnyxCollection<CardFeeds> = {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.workspaceAccountID}`]: {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${cardFeed.policyAccountID}`]: {
                         settings: {
                             companyCards: {
                                 [cardFeed.feedName]: {
@@ -512,7 +737,7 @@ describe('CardFeedErrors Derived Value', () => {
                     },
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(true);
             });
@@ -523,13 +748,13 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 403,
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(true);
             });
@@ -540,15 +765,176 @@ describe('CardFeedErrors Derived Value', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
+                    fundID: String(cardFeed.policyAccountID),
                     lastScrapeResult: 200,
                 });
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(false);
+            });
+        });
+
+        describe('feed selector RBR - per-feed granularity for multi-feed workspaces', () => {
+            const SHARED_WORKSPACE_ACCOUNT_ID = 77777777;
+            const AMEX_FEED = {
+                policyAccountID: SHARED_WORKSPACE_ACCOUNT_ID,
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT,
+                feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, SHARED_WORKSPACE_ACCOUNT_ID),
+            };
+            const CHASE_FEED = {
+                policyAccountID: SHARED_WORKSPACE_ACCOUNT_ID,
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                feedNameWithDomainID: getCardFeedWithDomainID(CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, SHARED_WORKSPACE_ACCOUNT_ID),
+            };
+
+            it('should mark only the broken feed when another feed in the same workspace is healthy', () => {
+                const brokenCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const healthyCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenCard,
+                    [CARD_IDS.card2]: healthyCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+            });
+
+            it('should clear RBR for a fixed feed while keeping it for other broken feeds', () => {
+                const brokenMockCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const fixedAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenMockCard,
+                    [CARD_IDS.card2]: fixedAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[SHARED_WORKSPACE_ACCOUNT_ID]).toBe(true);
+            });
+
+            it('should clear all RBR when all feeds in a workspace are healthy', () => {
+                const healthyChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+                const healthyAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: healthyChaseCard,
+                    [CARD_IDS.card2]: healthyAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(false);
+                expect(result.shouldShowRbrForWorkspaceAccountID[SHARED_WORKSPACE_ACCOUNT_ID]).toBe(false);
+            });
+
+            it('should show RBR on both feeds when both have broken connections', () => {
+                const brokenChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 403,
+                });
+                const brokenAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 401,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: brokenChaseCard,
+                    [CARD_IDS.card2]: brokenAmexCard,
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(true);
+            });
+
+            it('should only mark the feed with errors when mixed feed-level error and broken connection', () => {
+                const healthyChaseCard = createCard({
+                    cardID: CARD_IDS.card1,
+                    bank: CHASE_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+                const healthyAmexCard = createCard({
+                    cardID: CARD_IDS.card2,
+                    bank: AMEX_FEED.feedName,
+                    fundID: String(SHARED_WORKSPACE_ACCOUNT_ID),
+                    lastScrapeResult: 200,
+                });
+
+                const globalCardList: CardList = {
+                    [CARD_IDS.card1]: healthyChaseCard,
+                    [CARD_IDS.card2]: healthyAmexCard,
+                };
+
+                const cardFeeds: OnyxCollection<CardFeeds> = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${SHARED_WORKSPACE_ACCOUNT_ID}`]: {
+                        settings: {
+                            companyCards: {
+                                [AMEX_FEED.feedName]: {
+                                    pending: false,
+                                    errors: {feedError: 'Connection expired'},
+                                },
+                                [CHASE_FEED.feedName]: {
+                                    pending: false,
+                                },
+                            },
+                            oAuthAccountDetails: {
+                                [AMEX_FEED.feedName]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+                                [CHASE_FEED.feedName]: {accountList: ['CREDIT CARD...5678'], credentials: 'xxxxx', expiration: 1730998958},
+                            },
+                        },
+                    },
+                };
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.shouldShowRbrForFeedNameWithDomainID[AMEX_FEED.feedNameWithDomainID]).toBe(true);
+                expect(result.shouldShowRbrForFeedNameWithDomainID[CHASE_FEED.feedNameWithDomainID]).toBe(false);
             });
         });
     });

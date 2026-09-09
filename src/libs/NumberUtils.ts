@@ -6,9 +6,9 @@
 function rand64(): string {
     // Generate two BigInts that are each 32-bit random numbers.
     // We do 2 because Math.random() really only generates 53-bit numbers internally.
-    // eslint-disable-next-line no-bitwise
+
     const hi32 = BigInt(Math.floor(Math.random() * 0x100000000));
-    // eslint-disable-next-line no-bitwise
+
     const lo32 = BigInt(Math.floor(Math.random() * 0x100000000));
 
     // Combine the two into a single 64-bit value.
@@ -69,12 +69,4 @@ function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
 }
 
-function generateNewRandomInt(old: number, min: number, max: number): number {
-    let newNum = old;
-    while (newNum === old) {
-        newNum = generateRandomInt(min, max);
-    }
-    return newNum;
-}
-
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp, generateNewRandomInt};
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp};

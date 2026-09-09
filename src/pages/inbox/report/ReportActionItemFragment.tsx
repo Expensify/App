@@ -1,35 +1,35 @@
-import React, {memo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React, {memo} from 'react';
+
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
-    /** Users accountID */
     accountID: number;
-
-    /** The report action's id */
     reportActionID?: string;
-
-    /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
     /** Message(text) of an IOU report action */
     iouMessage?: string;
 
-    /** The reportAction's source */
     source?: OriginalMessageSource;
 
     /** Should this fragment be contained in a single line? */
@@ -41,7 +41,6 @@ type ReportActionItemFragmentProps = {
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
 
-    /** icon */
     actorIcon?: OnyxCommon.Icon;
 
     /** Whether the comment is a thread parent message/the first message in a thread */
@@ -59,15 +58,9 @@ type ReportActionItemFragmentProps = {
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
     isFragmentContainingDisplayName?: boolean;
 
-    /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
-
-    /** The report action name */
     actionName?: ReportActionName;
-
     moderationDecision?: DecisionName;
-
-    /** Whether the fragment should show a tooltip */
     shouldShowTooltip?: boolean;
 };
 
@@ -195,7 +188,7 @@ function ReportActionItemFragment({
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>{fragment?.text ?? ''}</Text>;
     }
 }
 

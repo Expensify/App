@@ -1,23 +1,26 @@
 import type {ReactNode} from 'react';
+
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo} from 'react-native';
+
 import type UseAccessibilityAnnouncementOptions from './types';
 
 const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
+function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
-    const previousKeyRef = useRef(_options?.announcementKey);
+    const previousKeyRef = useRef(options?.announcementKey);
+    // Default true preserves legacy iOS callers that omit the flag; Header sets false for web-only dialog announces.
+    const shouldAnnounceOnNative = options?.shouldAnnounceOnNative ?? true;
 
     useEffect(() => {
-        if (!shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
+        if (!shouldAnnounceOnNative || !shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
             previousAnnouncedMessageRef.current = '';
             return;
         }
 
-        const keyChanged = _options?.announcementKey !== undefined && _options.announcementKey !== previousKeyRef.current;
-        previousKeyRef.current = _options?.announcementKey;
+        const keyChanged = options?.announcementKey !== undefined && options.announcementKey !== previousKeyRef.current;
+        previousKeyRef.current = options?.announcementKey;
 
         if (!keyChanged && previousAnnouncedMessageRef.current === message) {
             return;
@@ -30,9 +33,8 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             AccessibilityInfo.announceForAccessibility(message);
         }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
-        // eslint-disable-next-line consistent-return
         return () => clearTimeout(timeout);
-    }, [message, shouldAnnounceMessage, _options?.announcementKey]);
+    }, [message, shouldAnnounceMessage, shouldAnnounceOnNative, options?.announcementKey]);
 }
 
 export default useAccessibilityAnnouncement;

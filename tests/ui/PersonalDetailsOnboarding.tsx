@@ -1,25 +1,65 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
+
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
+
+import {createWorkspace} from '@userActions/Policy/Policy';
+import {completeOnboarding} from '@userActions/Report';
+
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const mockCreateWorkspace = jest.mocked(createWorkspace);
+const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+
+jest.mock('@userActions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Policy/Policy', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Policy');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createWorkspace: jest.fn().mockReturnValue({
+            policyID: 'test-policy-id',
+            adminsChatReportID: 'test-admins-report-id',
+        }),
+    };
+});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -29,8 +69,8 @@ const navigate = jest.spyOn(Navigation, 'navigate');
 
 const fakeEmail = 'fake@gmail.com';
 const mockLoginList = {
-    [fakeEmail]: {
-        partnerName: 'expensify.com',
+    [`1_${fakeEmail}`]: {
+        partnerID: 1,
         partnerUserID: fakeEmail,
         validatedDate: 'fake-validatedDate',
     },
@@ -62,13 +102,16 @@ describe('OnboardingPersonalDetails Page', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -87,7 +130,7 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
             });
@@ -100,6 +143,7 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
@@ -118,7 +162,7 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+            await Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
             });
@@ -131,9 +175,88 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to Onboarding workspaces page when submitting form with EMPLOYER and validated private domain', async () => {
+        const testEmail = 'test@user.com';
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: false,
+                hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGINS, {
+                [`1_${testEmail}`]: {
+                    partnerID: 1,
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+        });
+
+        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Submit workspace when submitting form with EMPLOYER and public domain', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+        });
+
+        const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            expect(mockCreateWorkspace).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         });
 
         unmount();

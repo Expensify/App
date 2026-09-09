@@ -1,28 +1,33 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldDisableRename} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
+
 import {updatePolicyRoomName as updatePolicyRoomNameReportAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type RoomNamePageProps = {
     report: Report;
@@ -31,7 +36,7 @@ type RoomNamePageProps = {
 
 function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const styles = useThemeStyles();
-    const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -81,7 +86,6 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
             testID="RoomNamePage"
         >
@@ -102,7 +106,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={RoomNameInput}
-                            ref={roomNameInputRef}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.ROOM_NAME}
                             defaultValue={report?.reportName}
                             isFocused={isFocused}

@@ -1,14 +1,11 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import AccountUtils from '@libs/AccountUtils';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -16,6 +13,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
+
 import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -110,7 +118,35 @@ function getOnboardingRoute(): Route {
         currentOnboardingPurposeSelected: onboardingPurposeSelected,
         onboardingInitialPath,
         onboardingValues: onboarding,
+        isAccountValidated: !!account?.validated,
     }) as Route;
+}
+
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+}
+
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
+
+function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
+    return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
 }
 
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
@@ -120,6 +156,11 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     const currentFocusedRoute = findFocusedRoute(state);
     const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // Allow required 2FA setup navigation even when the user is currently on onboarding.
+    if (isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action))) {
+        return false;
+    }
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
@@ -164,18 +205,31 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
         }
 
+        if (isRequiredTwoFactorSetupExceptionActive() && (isTwoFactorSetupScreen(getActionPayloadScreenName(action)) || isCurrentlyOnTwoFactorSetupRoute(state))) {
+            return {type: 'ALLOW'};
+        }
+
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
-        const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+        const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
         if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
+
+        // Test builds must never enter the onboarding UI. REPLACE into onboarding is normally
+        // admitted (real users advance between onboarding steps with forceReplace), but with
+        // SKIP_ONBOARDING there is no legitimate way to be mid-onboarding — bounce those too.
+        // Scoped to the flag so completed users' REPLACE behaviour is unchanged.
+        if (CONFIG.SKIP_ONBOARDING && isNavigatingToOnboardingFlowWithReplaceAction(action)) {
+            Log.info('[OnboardingGuard] SKIP_ONBOARDING: redirecting REPLACE into onboarding to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
@@ -189,12 +243,23 @@ const OnboardingGuard: NavigationGuard = {
             isTransitioning ||
             isOnboardingCompleted ||
             isMigratedUser ||
-            isSingleEntry ||
-            needsExplanationModal ||
             isInvitedOrGroupMember ||
-            isNavigatingWithReplace;
+            isSingleEntry ||
+            isFirstTimeHybridAppTransition ||
+            isNavigatingWithReplace ||
+            context.isSupportalSession ||
+            // Copilots should not be pushed through onboarding on behalf of the account they are accessing
+            isActingAsDelegateSelector(account);
 
         if (shouldSkipOnboarding) {
+            return {type: 'ALLOW'};
+        }
+
+        // If the OnboardingModalNavigator is the currently focused route, the user is already
+        // on the onboarding flow. Redirecting again would produce a redundant state reset that
+        // triggers further actions, creating an infinite navigation loop (APP-7FR).
+        const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+        if (isOnboardingFocused) {
             return {type: 'ALLOW'};
         }
 
@@ -209,7 +274,7 @@ const OnboardingGuard: NavigationGuard = {
             isOnboardingCompleted,
             isMigratedUser,
             isSingleEntry,
-            needsExplanationModal,
+            isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });

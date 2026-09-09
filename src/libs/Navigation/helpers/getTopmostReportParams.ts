@@ -1,7 +1,9 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
@@ -19,7 +21,12 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
         return;
     }
 
-    const topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    let topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+    if (!topmostReportsSplitNavigator) {
+        const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        topmostReportsSplitNavigator = rootTab?.state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+    }
 
     if (!topmostReportsSplitNavigator) {
         return;

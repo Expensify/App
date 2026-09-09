@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import {BackHandler} from 'react-native';
+
 import type UseAndroidBackButtonHandlerCallback from './type';
 
 export default function useAndroidBackButtonHandler(callback: UseAndroidBackButtonHandlerCallback) {

@@ -12,4 +12,5 @@ type SubscriptionPlanBenefitA11yProps = {
 
 type GetSubscriptionPlanBenefitA11yProps = (params?: GetSubscriptionPlanBenefitA11yPropsParams) => SubscriptionPlanBenefitA11yProps;
 
-export type {GetSubscriptionPlanBenefitA11yPropsParams, SubscriptionPlanBenefitA11yProps, GetSubscriptionPlanBenefitA11yProps};
+// eslint-disable-next-line import/prefer-default-export
+export type {GetSubscriptionPlanBenefitA11yProps};

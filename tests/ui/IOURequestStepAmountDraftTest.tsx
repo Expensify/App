@@ -3,20 +3,34 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import type * as DiscardChangesNative from '@hooks/useDiscardChangesConfirmation/index.native';
+
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepAmount from '@pages/iou/request/step/IOURequestStepAmount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
-import * as IOU from '../../src/libs/actions/IOU';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
+import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const preventRemoveFlags: boolean[] = [];
 
 // Mock LocaleContextProvider to avoid dynamic import issues with emojis/IntlStore
 jest.mock('@components/LocaleContextProvider', () => {
@@ -45,8 +59,8 @@ jest.mock('@components/LocaleContextProvider', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU', () => {
-    const actual = jest.requireActual<typeof IOU>('@libs/actions/IOU');
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
     return {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
@@ -63,6 +77,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 jest.mock('@src/hooks/useResponsiveLayout');
+jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.requireActual<typeof DiscardChangesNative>('@hooks/useDiscardChangesConfirmation/index.native.ts'));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
@@ -70,6 +85,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    getRootState: jest.fn(() => ({routes: [], index: 0})),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -89,8 +105,18 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getReportRouteByID: jest.fn(() => undefined),
         removeScreenByKey: jest.fn(),
         getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
+        preInsertFullscreenUnderRHP: jest.fn(),
     };
 });
+
+jest.mock('@libs/Navigation/helpers/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
+
+// Action-assertion test: post-create navigation is exercised elsewhere; keep the nav helpers inert here.
+jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
@@ -101,11 +127,15 @@ jest.mock('@react-navigation/native', () => {
         getState: jest.fn(() => ({})),
     };
     return {
+        ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
         createNavigationContainerRef: jest.fn(() => mockRef),
         useIsFocused: () => true,
         useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
         useFocusEffect: jest.fn(),
-        usePreventRemove: jest.fn(),
+        usePreventRemove: (shouldPreventRemove: boolean) => {
+            preventRemoveFlags.push(shouldPreventRemove);
+        },
+        useRoute: jest.fn(() => ({name: 'Money_Request_Step_Amount'})),
     };
 });
 
@@ -157,6 +187,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        preventRemoveFlags.length = 0;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -181,7 +212,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -226,7 +257,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -240,10 +271,233 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify requestMoney was called with draftTransactionIDs
-        expect(IOU.requestMoney).toHaveBeenCalledWith(
+        expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
             expect.objectContaining({
                 draftTransactionIDs: expect.any(Array),
             }),
         );
+
+        // The same optimisticTransactionID must reach the action AND post-create cleanup nav, else the destination report highlights the wrong transaction.
+        const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
+        const cleanupArg = jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0];
+        expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
+        expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+    });
+
+    it('arms the native discard guard when only the sign changes and disarms it when the sign is restored', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+    });
+
+    it('keeps the native discard guard armed when a transaction draft update arrives after a sign-only change', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 500});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+    });
+
+    it('disarms the native discard guard when the request type changes after a sign-only change', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(preventRemoveFlags.at(-1)).toBe(false);
+    });
+
+    it('arms the native discard guard when a negative amount becomes positive and disarms it when the negative sign is restored', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: -500,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE, backTo: 'test'})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        preventRemoveFlags.length = 0;
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
+    });
+
+    it('disarms the native discard guard when backspace clears an empty negative amount', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            amount: 0,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createTestReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepAmount
+                        // @ts-expect-error minimal route for test
+                        route={createRouteParams({iouType: CONST.IOU.TYPE.CREATE})}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('iou.flip'));
+        await waitForBatchedUpdatesWithAct();
+        expect(preventRemoveFlags.some(Boolean)).toBe(true);
+
+        const amountInput = screen.getByTestId('moneyRequestAmountInput');
+        fireEvent.changeText(amountInput, '5');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(amountInput, '');
+        await waitForBatchedUpdatesWithAct();
+
+        preventRemoveFlags.length = 0;
+        fireEvent(amountInput, 'keyPress', {nativeEvent: {key: 'Backspace'}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(preventRemoveFlags.some(Boolean)).toBe(false);
     });
 });

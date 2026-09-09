@@ -1,15 +1,19 @@
-import React, {useEffect, useMemo, useState} from 'react';
 import ScrollView from '@components/ScrollView';
+
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-// eslint-disable-next-line no-restricted-imports
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import type {TabSelectorBaseProps} from './types';
+
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -18,7 +22,7 @@ import type {TabSelectorBaseProps} from './types';
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function TabSelectorBase({
+function TabSelectorBase<K extends string = string>({
     tabs,
     activeTabKey,
     onTabPress = () => {},
@@ -27,9 +31,8 @@ function TabSelectorBase({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
-    shouldShowProductTrainingTooltip = false,
-    renderProductTrainingTooltip,
-}: TabSelectorBaseProps) {
+    contentContainerStyles,
+}: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -64,7 +67,11 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={styles.tabSelectorContentContainer}
+            // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
+            // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
+            // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
+            // overflowing/scrollable tab rows are not constrained.
+            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -97,6 +104,10 @@ function TabSelectorBase({
                 });
 
                 const handlePress = () => {
+                    if (tab.isDisabled) {
+                        tab.disabledAction?.();
+                        return;
+                    }
                     if (isActive) {
                         onActiveTabPress(tab.key);
                         return;
@@ -109,10 +120,13 @@ function TabSelectorBase({
                     <TabSelectorItem
                         tabKey={tab.key}
                         key={tab.key}
+                        tabRef={tab.tabRef}
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
-                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
+                        // Only wire the secondary interaction for tabs that opt in. Otherwise every tab would
+                        // suppress the native browser right-click menu on web (see PressableWithSecondaryInteraction).
+                        onLongPress={onLongTabPress && tab.shouldEnableLongPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -120,12 +134,13 @@ function TabSelectorBase({
                         testID={tab.testID}
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
+                        isBadgeCondensed={tab.isBadgeCondensed}
+                        badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
+                        disabledAction={tab.disabledAction}
                     />
                 );
             })}

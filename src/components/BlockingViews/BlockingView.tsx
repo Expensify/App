@@ -1,20 +1,31 @@
-import type {ImageContentFit} from 'expo-image';
-import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import type {WebStyle} from 'react-native-web';
-import type {MergeExclusive} from 'type-fest';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ImageContentFit} from 'expo-image';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
+import type {MergeExclusive} from 'type-fest';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import BlockingViewSubtitle from './BlockingViewSubtitle';
 import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 
@@ -40,25 +51,21 @@ type BaseBlockingViewProps = {
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Whether we should embed the link with subtitle */
-    shouldEmbedLinkWithSubtitle?: boolean;
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
 
-    /** Render custom subtitle */
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
+
+    shouldEmbedLinkWithSubtitle?: boolean;
     CustomSubtitle?: React.ReactElement;
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
 
-    /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Accessibility label for the view */
     accessibilityLabel?: string;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
     /** A testing ID that can be applied to the element on the page */
@@ -69,10 +76,7 @@ type BlockingViewIconProps = {
     /** Expensicon for the page */
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
-    /** The custom icon width */
     iconWidth?: number;
-
-    /** The custom icon height */
     iconHeight?: number;
 
     /** Color for the icon (should be from theme) */
@@ -83,10 +87,7 @@ type BlockingViewAnimationProps = {
     /** Animation for the page */
     animation: DotLottieAnimation;
 
-    /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
-
-    /** Style for the animation on web */
     animationWebStyle?: WebStyle;
 };
 
@@ -102,6 +103,8 @@ function BlockingView({
     subtitleStyle,
     linkTranslationKey,
     subtitleKeyBelowLink,
+    buttonTranslationKey,
+    onButtonPress,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
@@ -118,6 +121,7 @@ function BlockingView({
     testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
     const subtitleWrapperStyle = useMemo(
         () => (shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter]),
@@ -128,8 +132,9 @@ function BlockingView({
     useAbsentPageSpan();
 
     return (
-        <View
-            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+        <ScrollView
+            style={[styles.flex1]}
+            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
             testID={testID}
         >
@@ -176,7 +181,15 @@ function BlockingView({
                     </SubtitleWrapper>
                 )}
             </View>
-        </View>
+            {!!onButtonPress && !!buttonTranslationKey && (
+                <Button
+                    onPress={onButtonPress}
+                    sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON}
+                >
+                    <Button.Text>{translate(buttonTranslationKey)}</Button.Text>
+                </Button>
+            )}
+        </ScrollView>
     );
 }
 

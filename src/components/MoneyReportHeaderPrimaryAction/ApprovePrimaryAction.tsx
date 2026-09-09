@@ -1,41 +1,84 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import Button from '@components/Button';
-import useLocalize from '@hooks/useLocalize';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
-import {getNextApproverAccountID, isReportOwner} from '@libs/ReportUtils';
+import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
+
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import React from 'react';
+
 import useConfirmApproval from './useConfirmApproval';
 
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
-    startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void;
+    chatReportID: string | undefined;
 };
 
-function ApprovePrimaryAction({reportID, startApprovedAnimation, onHoldMenuOpen}: ApprovePrimaryActionProps) {
-    const {translate} = useLocalize();
+function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProps) {
+    const {isPaidAnimationRunning, startApprovedAnimation} = usePaymentAnimationsContext();
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserDetails.accountID;
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
 
-    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
+    );
 
-    const confirmApproval = useConfirmApproval(reportID, startApprovedAnimation, onHoldMenuOpen);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport);
+    const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
+    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
+
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const transactions = Object.values(reportTransactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
+    const canIOUBePaid = canIOUBePaidAction(
+        iouReport,
+        chatReport,
+        activePolicy,
+        bankAccountList,
+        currentUserDetails.login ?? '',
+        currentUserAccountID,
+        undefined,
+        false,
+        undefined,
+        invoiceReceiverPolicy,
+    );
+    const onlyShowPayElsewhere =
+        !canIOUBePaid &&
+        canIOUBePaidAction(iouReport, chatReport, activePolicy, bankAccountList, currentUserDetails.login ?? '', currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+
+    const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation);
 
     return (
-        <Button
-            success
-            onPress={confirmApproval}
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
+        <ExpenseHeaderApprovalButton
+            isAnyTransactionOnHold={isAnyTransactionOnHold}
+            isDelegateAccessRestricted={isDelegateAccessRestricted}
+            onApprove={onApprove}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }}
+            moneyRequestReport={iouReport}
+            transactions={transactions}
+            shouldShowPayButton={shouldShowPayButton}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
         />
     );

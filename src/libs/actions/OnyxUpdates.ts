@@ -1,25 +1,52 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {queueOnyxUpdates} from './QueuedOnyxUpdates';
+
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {Merge} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
+import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
 let lastUpdateIDAppliedToClient: number | undefined = 0;
 
+// Highest update ID staged for the deferred WRITE flush but not yet persisted. Gap detection treats these as
+// applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
+let lastUpdateIDPendingWriteFlush = 0;
+
+let lastUpdateIDPendingPusherApply = 0;
+
+function getEffectiveLastUpdateID(): number {
+    return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingWriteFlush);
+}
+
+function getPersistedLastUpdateID(): number {
+    return lastUpdateIDAppliedToClient ?? 0;
+}
+
 // We have used `connectWithoutView` here because OnyxUpdates is not connected to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
+    callback: (val) => {
+        lastUpdateIDAppliedToClient = val;
+
+        // The persisted watermark is only ever cleared by Onyx.clear (sign-out), so drop the pending marker
+        // too — a stale value from the previous session would mask real gaps after signing back in.
+        if (val === undefined) {
+            lastUpdateIDPendingWriteFlush = 0;
+            lastUpdateIDPendingPusherApply = 0;
+        }
+    },
 });
 
 // This promise is used to ensure pusher events are always processed in the order they are received,
@@ -50,7 +77,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
                 // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
                 // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
                 // Meaning that there's a red dot you can't dismiss.
-                if (response.jsonCode === 460) {
+                if (response.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
@@ -129,7 +156,10 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
+    const isCatchUpRequest =
+        request?.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES || (request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !!request?.data?.updateIDFrom);
+    const effectiveLastUpdateID = isCatchUpRequest ? (lastUpdateIDAppliedToClient ?? 0) : getEffectiveLastUpdateID();
+    const isUpdateOld = lastUpdateID && effectiveLastUpdateID && Number(lastUpdateID) <= effectiveLastUpdateID;
     const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
     const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
 
@@ -137,6 +167,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
         Log.info('[OnyxUpdateManager] Update received was older than or the same as current state, returning without applying the updates other than successData and failureData', false, {
             lastUpdateID,
             lastUpdateIDAppliedToClient,
+            effectiveLastUpdateID,
             command: request?.command,
         });
 
@@ -157,17 +188,77 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 
         return Promise.resolve(response);
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
-        Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
-    }
+    const previousLastUpdateIDAppliedToClient = lastUpdateIDAppliedToClient;
+    const shouldAdvanceLastUpdateID = !!lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient);
+
+    // Advance the watermark only after the updates are successfully applied. If we advanced first and applying
+    // then failed (e.g. a storage write error), the updates would be silently lost and the client would go stale.
+    // Keeping the watermark where it is lets the next reconnect refetch and reapply the missed updates.
+    const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
+        promise
+            .then((result) => {
+                // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
+                // live watermark and only ever move it forward. Otherwise a slower, older update could overwrite a
+                // newer one, moving the watermark backwards and making gap detection refetch already-applied updates.
+                // The in-memory value is updated synchronously so concurrent settles in the same batch stay monotonic.
+                if (shouldAdvanceLastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+                    lastUpdateIDAppliedToClient = Number(lastUpdateID);
+                    Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
+                }
+                // The persisted watermark now covers the staged WRITE updates, so the pending marker is no longer needed
+                if (lastUpdateIDPendingWriteFlush && lastUpdateIDPendingWriteFlush <= Number(lastUpdateID)) {
+                    lastUpdateIDPendingWriteFlush = 0;
+                }
+                if (lastUpdateIDPendingPusherApply && lastUpdateIDPendingPusherApply <= Number(lastUpdateID)) {
+                    lastUpdateIDPendingPusherApply = 0;
+                }
+                return result;
+            })
+            .catch((error) => {
+                // Intentionally cleared for any failed apply, including HTTPS and Airship: the marker is a flat max, so
+                // keeping it after an unrelated lower-ID failure would mask that gap. Errs toward a redundant refetch.
+                lastUpdateIDPendingPusherApply = 0;
+
+                if (shouldAdvanceLastUpdateID) {
+                    Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
+                        type,
+                        command: request?.command,
+                        lastUpdateID,
+                        previousLastUpdateIDAppliedToClient,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
+                }
+                throw error;
+            });
+
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+
+        // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
+        // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
+        // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE) {
+            if (shouldAdvanceLastUpdateID) {
+                lastUpdateIDPendingWriteFlush = Math.max(lastUpdateIDPendingWriteFlush, Number(lastUpdateID));
+            }
+            advanceLastUpdateIDAfterApply(applyPromise.then(() => getCurrentFlushPromise())).catch(() => {
+                // The staged updates never applied, so stop counting them as pending — the next gap check
+                // then sees the missing range against the persisted watermark and triggers recovery.
+                lastUpdateIDPendingWriteFlush = 0;
+            });
+            return applyPromise;
+        }
+        return advanceLastUpdateIDAfterApply(applyPromise);
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
-        return applyPusherOnyxUpdates(updates, Number(lastUpdateID));
+        if (shouldAdvanceLastUpdateID) {
+            lastUpdateIDPendingPusherApply = Math.max(lastUpdateIDPendingPusherApply, Number(lastUpdateID));
+        }
+
+        return advanceLastUpdateIDAfterApply(applyPusherOnyxUpdates(updates, Number(lastUpdateID)));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
-        return applyAirshipOnyxUpdates(updates, Number(lastUpdateID));
+        return advanceLastUpdateIDAfterApply(applyAirshipOnyxUpdates(updates, Number(lastUpdateID)));
     }
 }
 
@@ -184,28 +275,39 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {
     clientLastUpdateID?: number;
     previousUpdateID?: number;
+    updateType?: AnyOnyxUpdatesFromServer['type'];
 };
+
+function isSerializedBehindPusherApply(updateType?: AnyOnyxUpdatesFromServer['type']): boolean {
+    return updateType === CONST.ONYX_UPDATE_TYPES.PUSHER;
+}
 
 /**
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
+ * @param updateType the transport the update being checked arrived on
  */
-function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesClientNeedToBeUpdatedParams): boolean {
+function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, updateType}: DoesClientNeedToBeUpdatedParams): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient;
+    // QueuedOnyxUpdates defers the Onyx write for WRITE requests, so their own responses arrive before the watermark moves.
+    const lastUpdateIDFromClient = Math.max(
+        clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0,
+        lastUpdateIDPendingWriteFlush,
+        isSerializedBehindPusherApply(updateType) ? lastUpdateIDPendingPusherApply : 0,
+    );
 
     // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
     if (!lastUpdateIDFromClient) {
@@ -220,6 +322,5 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
+export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, getPersistedLastUpdateID, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

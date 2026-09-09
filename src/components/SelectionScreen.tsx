@@ -1,25 +1,30 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+
+import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
+import type {ListItem} from './SelectionList/types';
+
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/ListItem/RadioListItem';
-import type TableListItem from './SelectionList/ListItem/TableListItem';
-import type UserListItem from './SelectionList/ListItem/UserListItem';
-import type {ListItem} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -31,37 +36,24 @@ type SelectionScreenProps<T = string> = {
     /** Used to set the testID for tests */
     displayName: string;
 
-    /** Title of the selection component */
     title?: TranslationPaths;
-
-    /** Custom content to display in the header */
     headerContent?: React.ReactNode;
-
-    /** Content to display if the list is empty */
     listEmptyContent?: React.JSX.Element | null;
-
-    /** Custom content to display in the footer of list component. */
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
     data: Array<SelectorType<T>>;
 
-    /** Default renderer for every item in the list */
-    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
+    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
 
-    /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | undefined;
 
-    /** Callback to fire when a row is pressed */
     onSelectRow: (item: SelectorType<T>) => void;
-
-    /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
-
-    /** The current policyID */
     policyID?: string;
 
     /** Defines which types of access should be verified */
@@ -73,16 +65,12 @@ type SelectionScreenProps<T = string> = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
-    /** Name of the current connection */
     connectionName: ConnectionName;
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction | null;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
-
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** A function to run when the X button next to the error is clicked */
@@ -97,8 +85,10 @@ type SelectionScreenProps<T = string> = {
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
-    /** Whether to show the text input */
     shouldShowTextInput?: boolean;
+
+    /** Whether to allow each row's title to wrap onto multiple lines instead of truncating */
+    isRowMultilineSupported?: boolean;
 
     textInputOptions?: {
         /** Label for the text input */
@@ -119,7 +109,7 @@ function SelectionScreen<T = string>({
     listEmptyContent,
     listFooterContent,
     data,
-    listItem,
+    ListItem = SingleSelectListItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
@@ -138,6 +128,7 @@ function SelectionScreen<T = string>({
     shouldShowTextInput,
     textInputOptions,
     shouldUpdateFocusedIndex = false,
+    isRowMultilineSupported = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -169,7 +160,7 @@ function SelectionScreen<T = string>({
                 >
                     <SelectionList
                         data={data}
-                        ListItem={listItem}
+                        ListItem={ListItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
                         shouldShowTooltips={false}
@@ -182,6 +173,7 @@ function SelectionScreen<T = string>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         alternateNumberOfSupportedLines={2}
+                        isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
                     >
                         <ErrorMessageRow

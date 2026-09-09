@@ -1,30 +1,42 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
     policy: OnyxEntry<Policy>;
+    canWriteCompanyCards: boolean;
+    onReadOnlyAction: () => void;
 };
 
-function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompanyCards, onReadOnlyAction}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {canWrite: canWriteMoreFeatures} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
+    const canUseLearnMore = areExpensifyCardsEnabled ? canWriteCompanyCards : canWriteMoreFeatures;
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNewGreen']);
 
@@ -42,19 +54,26 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     }, [policyID, areExpensifyCardsEnabled]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+        const shouldDisplayActionInSeparateLine = shouldUseNarrowLayout && !isInLandscapeMode;
+        const smallScreenStyle = shouldDisplayActionInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
         return (
-            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+            <View
+                key={shouldDisplayActionInSeparateLine ? 'separate-line' : 'inline'}
+                style={[styles.flexRow, styles.gap2, smallScreenStyle]}
+            >
                 <Button
-                    success
-                    onPress={handleLearnMore}
-                    style={shouldUseNarrowLayout && styles.flex1}
-                    text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}
+                    style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
+                    innerStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
+                    hoverStyles={!canUseLearnMore ? styles.buttonOpacityDisabled : undefined}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
-                />
+                >
+                    <Button.Text>{translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}</Button.Text>
+                </Button>
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, canUseLearnMore, handleLearnMore, onReadOnlyAction]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>

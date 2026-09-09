@@ -9,9 +9,13 @@ export default {
     USER_IS_TYPING: 'client-userIsTyping',
     MULTIPLE_EVENTS: 'multipleEvents',
     CONCIERGE_REASONING: 'conciergeReasoning',
+    CONCIERGE_DRAFT_EVENTS: 'conciergeDraftEvents',
+    CONCIERGE_DRAFT_STARTED: 'conciergeDraftStarted',
+    CONCIERGE_DRAFT_UPDATED: 'conciergeDraftUpdated',
+    CONCIERGE_DRAFT_COMPLETED: 'conciergeDraftCompleted',
+    CONCIERGE_DRAFT_FAILED: 'conciergeDraftFailed',
+    CONCIERGE_DRAFT_CLEARED: 'conciergeDraftCleared',
 
-    // An event that the server sends back to the client in response to a "ping" API command
-    PONG: 'pong',
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
         RECONNECT_APP: 'reconnectApp',

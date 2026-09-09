@@ -1,14 +1,18 @@
-import React from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {View as RNView} from 'react-native';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+
+import type {StyleProp, View, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View as RNView} from 'react-native';
 
 type ReceiptScanDropZoneProps = {
     targetRef: React.RefObject<View | HTMLDivElement | null>;

@@ -1,10 +1,13 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import {isTagMissing} from './TagUtils';
+import {getDecodedTagName, isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
@@ -64,7 +67,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 
     for (const transaction of transactions) {
         const category = getCategory(transaction);
-        const categoryKey = isCategoryMissing(category) ? '' : category;
+        const categoryKey = isCategoryMissing(category) ? '' : getDecodedCategoryName(category);
 
         if (!groups.has(categoryKey)) {
             groups.set(categoryKey, []);
@@ -75,7 +78,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
     const result: GroupedTransactions[] = [];
     for (const [categoryKey, transactionList] of groups) {
         result.push({
-            groupName: categoryKey ? getDecodedCategoryName(categoryKey) : categoryKey,
+            groupName: categoryKey,
             groupKey: categoryKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
@@ -99,7 +102,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
 
     for (const transaction of transactions) {
         const tag = getTag(transaction);
-        const tagKey = isTagMissing(tag) ? '' : tag;
+        const tagKey = isTagMissing(tag) ? '' : getDecodedTagName(tag);
 
         if (!groups.has(tagKey)) {
             groups.set(tagKey, []);

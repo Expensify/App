@@ -1,0 +1,497 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import {isCategoryMissing} from '@libs/CategoryUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getOriginalTransactionWithSplitInfo,
+    getTaxValue,
+    isDistanceRequest,
+    isExpenseUnreported,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {
+    Beta,
+    IntroSelected,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    RecentlyUsedCategories,
+    RecentlyUsedTags,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+/**
+ * Actions for inline editing of transactions from the Search results table and the Expense Report page.
+ *
+ * These functions are pure: every Onyx value they need (the transaction and violation
+ * collections, the resolved reports/report action, session, betas, etc.) is passed in by
+ * the caller (`useTransactionInlineEdit`), which reads it via `useOnyx`. Each function
+ * delegates to the corresponding IOU action which owns the canonical Onyx record, the API
+ * write, failure rollback, and snapshot updates (when a hash is provided).
+ */
+import {
+    updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestMerchant,
+    updateMoneyRequestTag,
+} from './IOU/UpdateMoneyRequest';
+import {createTransactionThreadReport} from './Report';
+
+type TransactionEditPermissions = {
+    canEditDate: boolean;
+    canEditMerchant: boolean;
+    canEditDescription: boolean;
+    canEditCategory: boolean;
+    canEditAmount: boolean;
+    canEditTag: boolean;
+};
+
+const NO_EDIT: Readonly<TransactionEditPermissions> = Object.freeze({
+    canEditDate: false,
+    canEditMerchant: false,
+    canEditDescription: false,
+    canEditCategory: false,
+    canEditAmount: false,
+    canEditTag: false,
+});
+
+type TransactionEditPermissionsParams = {
+    transaction: OnyxEntry<Transaction>;
+
+    parentReportAction: OnyxEntry<ReportAction>;
+
+    parentReport: OnyxEntry<Report>;
+
+    /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
+    parentReportActions: OnyxEntry<ReportActions>;
+
+    policy?: OnyxEntry<Policy>;
+
+    transactionThreadReport?: OnyxEntry<Report>;
+
+    policyCategories?: OnyxEntry<PolicyCategories>;
+
+    policyTags?: OnyxEntry<PolicyTagLists>;
+
+    transactionThreadNVP?: OnyxEntry<ReportNameValuePairs>;
+
+    chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
+
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+
+    originalTransaction?: OnyxEntry<Transaction>;
+
+    /** When true, all editing is disabled regardless of permissions. */
+    disabled?: boolean;
+
+    /** When true, unreported expenses require workspace selection before category can be edited. */
+    shouldSelectPolicyForUnreported?: boolean;
+};
+
+type GetIouParamsInput = {
+    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
+    parentReport: OnyxEntry<Report>;
+    parentReportAction: OnyxEntry<ReportAction>;
+    transactionThreadReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    policyForTrackExpense?: OnyxEntry<Policy>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    reportPolicyTags: OnyxEntry<PolicyTagLists>;
+    policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
+    isSelfTourViewed: boolean | undefined;
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+    conciergeChat: OnyxEntry<Report>;
+    distanceOriginalPolicy?: OnyxEntry<Policy>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    delegateAccountID: number | undefined;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+
+    /** The transaction being edited plus any of its duplicates, scoped by the caller. */
+    transactions: OnyxCollection<Transaction>;
+
+    /** Violations for the transaction being edited plus any of its duplicates, scoped by the caller. */
+    transactionViolations: OnyxCollection<TransactionViolations>;
+
+    /** Betas the current user has access to, used to gate ASAP submit behavior. */
+    betas: Beta[] | undefined;
+
+    /** Onboarding intro data, needed to build a transaction thread report when one doesn't exist yet. */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The current user's account ID. */
+    currentUserAccountID: number;
+
+    /** The current user's email/login. */
+    currentUserEmail: string;
+};
+
+type TransactionInlineEditParams = GetIouParamsInput & {
+    hash: number | undefined;
+    isOffline: boolean;
+};
+
+/**
+ * @private
+ * Builds all params needed for IOU action calls.
+ * The returned object can be spread directly into any updateMoneyRequest* call
+ * (all shared fields are at the top level); field-specific extras like
+ * policyTagList, policyRecentlyUsedCategories, and transaction are also included.
+ */
+function getIouParamsForTransaction({
+    transactionID,
+    transaction,
+    parentReport,
+    parentReportAction,
+    transactionThreadReport,
+    policy,
+    policyForTrackExpense,
+    policyCategories,
+    policyTags,
+    reportPolicyTags,
+    policyRecentlyUsedCategories,
+    policyRecentlyUsedTags,
+    conciergeChat,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    personalDetailsList,
+    delegateAccountID,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    getCurrencySymbol,
+    transactionViolations,
+    betas,
+    introSelected,
+    currentUserAccountID,
+    currentUserEmail,
+}: GetIouParamsInput) {
+    // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
+    const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+    // parentReport (already resolved to the self DM for unreported expenses), parentReportAction, and
+    // transactionThreadReport are resolved by the caller (useTransactionInlineEdit) via useOnyx, so they
+    // are used directly here. The only remaining resolution is building a transaction thread report when
+    // one doesn't exist in Onyx yet.
+    let resolvedTransactionThreadReport = transactionThreadReport;
+    if (!resolvedTransactionThreadReport && parentReportAction && transaction) {
+        resolvedTransactionThreadReport = createTransactionThreadReport({
+            introSelected,
+            conciergeChat,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID,
+            betas,
+            iouReport: parentReport,
+            iouReportAction: parentReportAction,
+            transaction,
+            transactionViolations: transactionViolationsForTransaction ?? undefined,
+            personalDetails: personalDetailsList,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+        });
+    }
+
+    return {
+        transactionID,
+        transactionThreadReport: resolvedTransactionThreadReport,
+        parentReport,
+        iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, personalDetailsList),
+        policy,
+        policyForTrackExpense,
+        policyCategories,
+        currentUserAccountIDParam: currentUserAccountID,
+        currentUserEmailParam: currentUserEmail,
+        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas),
+        delegateAccountID,
+        isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
+        reportPolicyTags,
+        violations: transactionViolationsForTransaction,
+        // Field-specific extras
+        transaction,
+        policyTagList: policyTags,
+        policyRecentlyUsedCategories,
+        policyRecentlyUsedTags,
+    };
+}
+
+/** Updates the date of an expense from the Search results table or the Expense Report page. */
+function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
+    const iouParams = getIouParamsForTransaction(params);
+
+    updateMoneyRequestDate({
+        ...iouParams,
+        // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
+        policyTags: iouParams.policyTagList,
+        value: newDate,
+        transactions: params.transactions,
+        transactionViolations: params.transactionViolations,
+        isOffline: params.isOffline,
+        hash: params.hash,
+        distanceOriginalPolicy: params.distanceOriginalPolicy,
+        personalPolicyOutputCurrency,
+    });
+}
+
+/** Updates the merchant of an expense from the Search results table or the Expense Report page. */
+function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
+    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
+    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
+    // thread report for an edit we're about to discard, so validate first.
+    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
+        return;
+    }
+
+    const iouParams = getIouParamsForTransaction(params);
+
+    updateMoneyRequestMerchant({
+        ...iouParams,
+        value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        hash: params.hash,
+        isOffline: params.isOffline,
+    });
+}
+
+/** Updates the description of an expense from the Search results table or the Expense Report page. */
+function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string) {
+    const iouParams = getIouParamsForTransaction(params);
+    updateMoneyRequestDescription({
+        ...iouParams,
+        comment: newDescription,
+        hash: params.hash,
+    });
+}
+
+/** Updates the category of an expense from the Search results table or the Expense Report page. */
+function editTransactionCategoryInline(params: TransactionInlineEditParams, newCategory: string) {
+    const iouParams = getIouParamsForTransaction(params);
+    updateMoneyRequestCategory({
+        ...iouParams,
+        category: newCategory,
+        hash: params.hash,
+    });
+}
+
+/** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
+function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
+    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
+    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
+    // thread report for an edit we're about to discard, so validate against params directly first.
+    const iouType = isInvoiceReport(params.parentReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+    const allowNegative = shouldEnableNegative(params.parentReport, params.policy, iouType);
+    const isP2P = isIOUReport(params.parentReport);
+
+    if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
+        return;
+    }
+
+    const iouParams = getIouParamsForTransaction(params);
+
+    // Keep the existing currency — only the amount is changing from the search table
+    const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
+    // Recalculate tax from the existing tax code and the new amount
+    const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
+    const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
+    const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
+    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
+    updateMoneyRequestAmountAndCurrency({
+        ...iouParams,
+        amount: newAmount,
+        currency,
+        taxAmount,
+        taxCode,
+        taxValue: taxPercentage,
+        allowNegative,
+        transactions: params.transactions,
+        transactionViolations: params.transactionViolations,
+        policyRecentlyUsedCurrencies: [],
+        hash: params.hash,
+    });
+}
+
+/** Updates the tag of an expense from the Search results table or the Expense Report page. */
+function editTransactionTagInline(params: TransactionInlineEditParams, newTag: string) {
+    const iouParams = getIouParamsForTransaction(params);
+    updateMoneyRequestTag({
+        ...iouParams,
+        tag: newTag,
+        policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
+        hash: params.hash,
+        isOffline: params.isOffline,
+    });
+}
+
+/**
+ * Core inline-edit permission check, shared by the Search table and the Expense Report page.
+ * Mirrors MoneyRequestView's permission logic:
+ * 1. isEditable = canUserPerformWriteAction(transactionThreadReport)
+ * 2. canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(...) && isEditable
+ * 3. Restricted fields (date, merchant, amount): canEditFieldOfMoneyRequest per field
+ * 4. Non-restricted fields (description, category, tag): canEdit + policy feature flags
+ */
+function getTransactionEditPermissions({
+    transaction,
+    parentReportAction,
+    parentReport,
+    parentReportActions,
+    policy,
+    transactionThreadReport,
+    policyCategories,
+    policyTags,
+    transactionThreadNVP,
+    chatReportNVP,
+    reportNameValuePairs,
+    originalTransaction,
+    disabled,
+    shouldSelectPolicyForUnreported,
+}: TransactionEditPermissionsParams): TransactionEditPermissions {
+    if (disabled || !transaction) {
+        return NO_EDIT;
+    }
+
+    const isUnreported = isExpenseUnreported(transaction);
+    const isChatReportArchived = isArchivedReport(chatReportNVP);
+    const isTransactionThreadArchived = isArchivedReport(transactionThreadNVP);
+    const isTransactionScanning = isScanning(transaction);
+
+    // Matches MoneyRequestView's isEditable.
+    // For unreported expenses the user always owns these. When the transaction
+    // thread report hasn't been loaded into Onyx yet (common in Search), we
+    // can't evaluate canUserPerformWriteAction — skip the check and let
+    // canEditMoneyRequest be the gatekeeper instead of blocking all editing.
+    const isEditable = isUnreported || !transactionThreadReport || !!canUserPerformWriteAction(transactionThreadReport, isTransactionThreadArchived);
+    if (!isEditable) {
+        return NO_EDIT;
+    }
+
+    // Matches MoneyRequestView's canEdit.
+    // For unreported expenses, parentReportAction may not be loaded; they are
+    // always editable by the owner.
+    const canEdit =
+        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+    if (!canEdit) {
+        return NO_EDIT;
+    }
+
+    // For restricted fields, delegate to canEditFieldOfMoneyRequest.
+    // Unreported expenses bypass this (all restricted fields editable by owner).
+    const canEditRestricted = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+        if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+            // Split expense children cannot have their amount edited inline
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+            if (isExpenseSplit) {
+                return false;
+            }
+
+            // Per diem amount is derived from the rate and cannot be edited
+            if (isPerDiemRequest(transaction)) {
+                return false;
+            }
+
+            // Amount field shows "Scanning..." during SmartScan
+            if (isTransactionScanning) {
+                return false;
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
+            // Distance and per diem expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction) || isPerDiemRequest(transaction)) {
+                return false;
+            }
+
+            // Merchant field shows "Scanning..." during SmartScan
+            if (isTransactionScanning) {
+                return false;
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+            if (!policy?.areCategoriesEnabled && isCategoryMissing(transaction?.category)) {
+                return false;
+            }
+            // Matches MoneyRequestView's shouldShowCategory logic
+            // For policy expenses, check if there's a category or enabled options
+            if (isGroupPolicy(policy)) {
+                return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
+            }
+            // For unreported expenses, disable inline category editing while workspace selection is required.
+            if (isUnreported) {
+                return !shouldSelectPolicyForUnreported && hasEnabledOptions(policyCategories ?? {});
+            }
+        }
+
+        if (field === CONST.EDIT_REQUEST_FIELD.TAG) {
+            // Single-level tags only (multi-level needs a picker UI not available inline)
+            if (isMultiLevelTags(policyTags)) {
+                return false;
+            }
+            return !!transaction?.tag || hasEnabledTags(getTagLists(policyTags));
+        }
+
+        return (
+            isUnreported ||
+            canEditFieldOfMoneyRequest({
+                reportAction: parentReportAction,
+                fieldToEdit: field,
+                isChatReportArchived,
+                reportNameValuePairs,
+                transaction,
+                report: parentReport,
+                policy,
+            })
+        );
+    };
+
+    return {
+        canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),
+        canEditMerchant: canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT),
+        // Non-restricted; always editable when canEdit is true
+        canEditDescription: true,
+        canEditCategory: canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY),
+        canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
+        canEditTag: canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG),
+    };
+}
+
+export {
+    editTransactionDateInline,
+    editTransactionMerchantInline,
+    editTransactionDescriptionInline,
+    editTransactionCategoryInline,
+    editTransactionAmountInline,
+    editTransactionTagInline,
+    getTransactionEditPermissions,
+};
+
+export type {TransactionInlineEditParams, TransactionEditPermissions, TransactionEditPermissionsParams};

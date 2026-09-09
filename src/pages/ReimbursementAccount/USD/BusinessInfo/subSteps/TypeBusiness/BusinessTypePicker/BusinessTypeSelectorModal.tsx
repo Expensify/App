@@ -1,29 +1,28 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import React, {useMemo} from 'react';
+
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
 type BusinessTypeSelectorModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
-
-    /** Business type value selected  */
     currentBusinessType: string;
-
-    /** Function to call when the user selects a business type */
     onBusinessTypeSelected: (value: BusinessTypeItemType) => void;
 
     /** Function to call when the user closes the business type selector modal */
     onClose: () => void;
 
-    /** Label to display on field */
     label: string;
 };
 
@@ -69,7 +68,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     onSelectRow={onBusinessTypeSelected}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </ScreenWrapper>
         </Modal>

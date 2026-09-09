@@ -1,32 +1,39 @@
-import {differenceInCalendarDays} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {formatAirportInfo, formatCancelledDescription, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
-import ROUTES from '@src/ROUTES';
+import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 type ReservationViewProps = {
     reservation: Reservation;
@@ -42,7 +49,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowRightLong',
@@ -62,12 +69,12 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, dateFnsLocale, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, dateFnsLocale, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), dateFnsLocale);
         }
     };
 
@@ -102,18 +109,18 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
-                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.start)}</Text>
                                 <Icon
                                     src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
                                 />
-                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatTransitLocationLabel(reservation.end)}</Text>
                             </>
                         ) : (
                             <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
-                                {formatAirportInfo(reservation.start)} {translate('common.to').toLowerCase()} {formatAirportInfo(reservation.end)}
+                                {formatTransitLocationLabel(reservation.start)} {translate('common.to').toLowerCase()} {formatTransitLocationLabel(reservation.end)}
                             </Text>
                         )}
                     </View>
@@ -158,16 +165,13 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive
-            shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
             secondaryIconFill={theme.icon}
             onPress={() =>
-                Navigation.navigate(
-                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex, Navigation.getReportRHPActiveRoute()),
-                )
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)))
             }
         />
     );
@@ -177,7 +181,6 @@ type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
     tripRoomReport: OnyxEntry<Report>;
 
-    /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 
     /** Trip transactions associated with the report */
@@ -187,6 +190,7 @@ type TripDetailsViewProps = {
 function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getTripDescription = useCallback(
@@ -194,7 +198,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
             const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
             return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
         },
-        [translate],
+        [convertToDisplayString, translate],
     );
 
     const getTripTitle = useCallback(
@@ -216,7 +220,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                     if (!destinationReservation) {
                         return '';
                     }
-                    return `${translate('travel.flightTo')} ${formatAirportInfo(destinationReservation.reservation.end, true)}`;
+                    return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
                 }
                 case CONST.RESERVATION_TYPE.TRAIN:
                     if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {

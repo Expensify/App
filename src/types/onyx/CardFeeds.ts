@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
@@ -39,11 +41,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-/**
  * Card type name
  */
 type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
@@ -63,7 +60,6 @@ type CardFeedProvider =
 
 /** Card feed details */
 type CardFeedDetails = {
-    /** Processor ID */
     processorID?: string;
 
     /** Financial institution (bank) ID */
@@ -72,13 +68,8 @@ type CardFeedDetails = {
     /** Financial institution (bank) name */
     bankName?: string;
 
-    /** Company ID */
     companyID?: string;
-
-    /** Distribution ID */
     distributionID?: string;
-
-    /** Delivery file name */
     deliveryFileName?: string;
 };
 
@@ -96,10 +87,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
-    /** Preferred policy */
     preferredPolicy?: string;
-
-    /** Linked policy IDs */
     linkedPolicyIDs?: string[];
 
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
@@ -116,27 +104,32 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** CSV upload layout settings (present on ccupload feeds) */
+    uploadLayoutSettings?: {
+        /** User-defined name for the CSV upload layout */
+        layoutName?: string;
+
+        /** Unique identifier for this CSV layout instance */
+        instanceID?: string;
+
+        /** Stored column mappings from the most recent CSV import (column name → column index) */
+        columnMappings?: Record<string, string>;
+
+        [key: string]: unknown;
+    };
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
 type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** List of accounts */
     accountList: string[];
-
-    /** Credentials info */
     credentials: string;
-
-    /** Expiration number */
     expiration: number;
 
     /** Defines the type of liability for the card */
@@ -153,15 +146,11 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
@@ -197,7 +186,6 @@ type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Collection of errors coming from BE */
     errors?: OnyxCommon.Errors;
 };
 
@@ -211,17 +199,31 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
  */
 type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
+/** A single travel billing provisioning error for a workspace member */
+type TravelBillingProvisioningError = {
+    /** Account ID of the member whose card provisioning failed */
+    accountID: number;
+
+    /** Email of the member whose card provisioning failed */
+    email: string;
+
+    /** Whether the scheduled retry has already re-attempted this member */
+    retried?: boolean;
+};
+
+/** Travel billing provisioning errors keyed by the failed member's account ID */
+type TravelBillingProvisioningErrors = Record<string, TravelBillingProvisioningError>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
-    /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
-        /** Company cards feeds */
-        companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
 
-        /** Account details */
+        companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
         oAuthAccountDetails?: Partial<Record<CardFeedWithNumber, DirectCardFeedData>>;
 
         /** Collection of card feeds status by domain ID */
@@ -230,7 +232,6 @@ type CardFeeds = {
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
-        /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
 
         /** Whether 2FA is required for all members */
@@ -238,49 +239,34 @@ type CardFeeds = {
 
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
+
+        /** Travel billing provisioning data. The key keeps the legacy spelling because the backend sends it. */
+        travelInvoicing?: {
+            /** Provisioning errors keyed by the failed member's account ID */
+            errors?: TravelBillingProvisioningErrors;
+        };
     };
 } & CardFeedsStatus &
     DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** Card feed provider */
     feedType: CardFeedProvider;
-
-    /** Card feed details */
     feedDetails?: CardFeedDetails;
-
-    /** Name of the card */
     cardTitle: string;
-
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
-
-    /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
-
-    /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
     /** Selected Amex bank custom feed */
     selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
 
-    /** Name of the bank */
     bankName?: string;
-
-    /** Selected country */
     selectedCountry?: string;
 
     /** Public token from Plaid connection */
     publicToken?: string;
 
-    /** Feed from Plaid connection */
-    plaidConnectedFeed?: CardFeedWithNumber;
-
-    /** Feed name from Plaid connection */
+    plaidConnectedFeed?: string;
     plaidConnectedFeedName?: string;
 
     /** Name of the CSV layout template */
@@ -289,10 +275,12 @@ type AddNewCardFeedData = {
     /** Identifier for the CSV layout template */
     layoutType?: string;
 
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
+    /** Existing instance ID when editing a CSV feed */
+    existingInstanceID?: string;
 
-    /** Plaid accounts */
+    /** Account that owns the CSV feed being edited */
+    domainAccountID?: number;
+
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
@@ -320,10 +308,7 @@ type CombinedCardFeed = CustomCardFeedData &
         /** Custom feed name, originally coming from settings.companyCardNicknames */
         customFeedName?: string;
 
-        /** Feed name */
         feed: CardFeedWithNumber;
-
-        /** Card feed status */
         status?: CardFeedsStatus;
     };
 
@@ -340,13 +325,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,
@@ -360,4 +343,5 @@ export type {
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
+    TravelBillingProvisioningErrors,
 };

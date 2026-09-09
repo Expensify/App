@@ -1,20 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MenuItem from '@components/MenuItem';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
@@ -23,12 +27,10 @@ type BeneficialOwnersListProps = {
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
 
-    /** List of owner keys */
     ownerKeys: string[];
 };
 
 function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: BeneficialOwnersListProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -44,21 +46,14 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
             const ownerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
-                <MenuItem
+                <MenuItemAvatarNavigation
                     key={ownerKey}
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
-                    wrapperStyle={[styles.ph5]}
-                    icon={icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
+                    accountID={CONST.DEFAULT_NUMBER_ID}
                     onPress={() => {
                         handleOwnerEdit(ownerKey);
                     }}
-                    iconWidth={40}
-                    iconHeight={40}
-                    interactive
-                    shouldShowRightIcon
-                    displayInDefaultIconColor
                 />
             );
         });
@@ -87,16 +82,17 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     />
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                     isDisabled={isOffline}
                     style={styles.w100}
                     onPress={() => {
                         handleConfirmation({anyIndividualOwn25PercentOrMore: true});
                     }}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

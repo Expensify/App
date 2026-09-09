@@ -11,7 +11,7 @@ Any member with guest booking permission can book travel for someone who doesn�
 
 ## Where to find Expensify Travel
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
@@ -31,6 +31,8 @@ To book travel for a guest, a Travel Admin must assign you the **Travel Arranger
 ---
 
 # How to book travel for a guest
+
+**Note:** A guest’s email address can only be linked to one company in Expensify Travel. Email is a unique identifier, so if the email is already associated with another company — for example, the person is an employee or guest under a different legal entity — the booking will fail with an **“Adhoc user info is invalid”** error. Use a different email address for the guest, or contact your Account Manager or Concierge to remove the conflicting profile.
 
 1. Click **Book for Guest** at the bottom of the booking tool.
 2. Choose a travel type:
@@ -65,5 +67,11 @@ Yes. The booking appears in your Expensify account, and receipts are automatical
 
 ## Who approves guest travel bookings?
 Guest travel follows the same approval workflow as the member who made the booking. If your company requires approval for flights, hotels, or other travel types, those steps will still apply.
+
+## Why am I getting an “Adhoc user info is invalid” error when booking for a guest?
+This happens when the guest’s email address is already tied to another company or profile in Expensify Travel. Because email is a unique identifier, the same address can’t be shared across companies. To resolve it, use a different email address for the guest, or reach out to your Account Manager or Concierge to remove the duplicate profile.
+
+## Can someone have both a guest and an employee travel profile?
+No. If a person was first booked as a guest and later added as an employee on the same email address, the duplicate profile must be removed before they can book or be booked. Customers can’t delete the guest profile themselves — contact your Account Manager or Concierge to have it removed.
 
 

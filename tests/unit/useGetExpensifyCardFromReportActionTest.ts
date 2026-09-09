@@ -1,13 +1,19 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+
 import usePolicy from '@hooks/usePolicy';
+
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardFromReportAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
@@ -19,12 +25,12 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 jest.mock('@hooks/usePolicy');
 
-const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
-const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
-const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
-const mockIsCardIssuedAction = isCardIssuedAction as jest.MockedFunction<typeof isCardIssuedAction>;
-const mockUseCardList = useCardList as jest.MockedFunction<typeof useCardList>;
-const mockUseWorkspaceCardList = useWorkspaceCardList as jest.MockedFunction<typeof useWorkspaceCardList>;
+const mockUsePolicy = jest.mocked(usePolicy);
+const mockIsPolicyAdmin = jest.mocked(isPolicyAdmin);
+const mockGetOriginalMessage = jest.mocked(getOriginalMessage);
+const mockIsCardIssuedAction = jest.mocked(isCardIssuedAction);
+const mockUseCardList = jest.mocked(useCardList);
+const mockUseWorkspaceCardList = jest.mocked(useWorkspaceCardList);
 
 describe('useGetExpensifyCardFromReportAction', () => {
     const mockCard: Card = {
@@ -62,8 +68,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         isAttendeeTrackingEnabled: false,
         owner: '1',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
-        workspaceAccountID: 123,
+        policyAccountID: 123,
     };
 
     beforeAll(() => {
@@ -138,8 +143,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                     isAttendeeTrackingEnabled: false,
                     owner: '1',
                     outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: false,
-                    workspaceAccountID: 123,
+                    policyAccountID: 123,
                 });
             });
 
@@ -156,13 +160,23 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             it('returns undefined when card does not exist in allExpensifyCards', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+
                 mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
                 await waitForBatchedUpdatesWithAct();
 
                 expect(result.current).toBeUndefined();
+            });
+
+            it('falls back to allUserCards when allExpensifyCards is empty', async () => {
+                mockUseWorkspaceCardList.mockReturnValue({});
+                mockUseCardList.mockReturnValue({[mockCard.cardID]: mockCard});
+
+                const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+                await waitForBatchedUpdatesWithAct();
+
+                expect(result.current).toEqual(mockCard);
             });
         });
     });
@@ -197,8 +211,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isAttendeeTrackingEnabled: false,
                 owner: '1',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: false,
-                workspaceAccountID: 123,
+                policyAccountID: 123,
             });
 
             // Set initial state
@@ -230,8 +243,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
                 isAttendeeTrackingEnabled: false,
                 owner: '1',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: false,
-                workspaceAccountID: 123,
+                policyAccountID: 123,
             };
             mockUsePolicy.mockReturnValue(testPolicy);
 
@@ -251,7 +263,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses policy workspaceAccountID for building expensify cards key', async () => {
             const policyWithWorkspaceID = {
                 ...mockPolicy,
-                workspaceAccountID: 456,
+                policyAccountID: 456,
             };
             mockUsePolicy.mockReturnValue(policyWithWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);
@@ -269,7 +281,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
         it('uses DEFAULT_NUMBER_ID when policy has no workspaceAccountID', async () => {
             const policyWithoutWorkspaceID = {
                 ...mockPolicy,
-                workspaceAccountID: undefined,
+                policyAccountID: undefined,
             };
             mockUsePolicy.mockReturnValue(policyWithoutWorkspaceID);
             mockIsPolicyAdmin.mockReturnValue(true);

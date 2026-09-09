@@ -1,22 +1,27 @@
-import React, {useCallback} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React, {useCallback} from 'react';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererProps) {
     const styles = useThemeStyles();
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.accountManagerReportID});
 
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;

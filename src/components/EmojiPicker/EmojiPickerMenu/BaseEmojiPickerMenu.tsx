@@ -1,24 +1,28 @@
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
-import React from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
+
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
+
 import CONST from '@src/CONST';
+
+import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import type {ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {FlashList} from '@shopify/flash-list';
+import React from 'react';
+import {View} from 'react-native';
 
 type BaseEmojiPickerMenuProps = {
     /** Indicates if the emoji list is filtered or not */
     isFiltered: boolean;
 
-    /** Array of header emojis */
     headerEmojis: HeaderIndices[];
 
     /** Function to scroll to a specific header in the emoji list */
@@ -27,31 +31,17 @@ type BaseEmojiPickerMenuProps = {
     /** The index of the currently selected category header */
     selectedHeaderIndex?: number | null;
 
-    /** Style to be applied to the list wrapper */
     listWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** The data for the emoji list */
     data: EmojiPickerList;
-
-    /** Function to render each item in the list */
     renderItem: ListRenderItem<EmojiPickerListItem>;
-
-    /** Extra data to be passed to the list for re-rendering */
     extraData?: Array<EmojiPickerList | OnyxEntry<string | number> | ((skinTone: number) => void)>;
-
-    /** Array of indices for the sticky headers */
     stickyHeaderIndices?: number[];
-
-    /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
-
-    /** Callback fired when scroll momentum ends */
     onMomentumScrollEnd?: () => void;
 
     /** The current search input value, used for accessibility re-announcements */
     searchValue?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
 

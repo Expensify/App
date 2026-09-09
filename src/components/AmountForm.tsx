@@ -1,13 +1,19 @@
-import type {ForwardedRef} from 'react';
-import React from 'react';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+
+import type {ForwardedRef} from 'react';
+
+import React from 'react';
+
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import NumberWithSymbolForm from './NumberWithSymbolForm';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -40,27 +46,31 @@ type AmountFormProps = {
     /** Whether the form should use a standard TextInput as a base */
     displayAsTextInput?: boolean;
 
-    /** Number of decimals to display */
     decimals?: number;
-
-    /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
+
+    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown */
+    currencyButtonAccessibilityLabel?: string;
 
     /** Whether the input should be disabled */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference to the number form for imperative updates */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
 
     /** Callback when the input is focused */
     onFocus?: () => void;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'onBlur'>;
 
 /**
  * Wrapper around NumberWithSymbolForm with currency handling.
@@ -77,12 +87,16 @@ function AmountForm({
     label,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
+    shouldShowCurrencyButton = false,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     disabled = false,
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
     onSubmitEditing,
     onFocus,
+    onBlur,
     ref,
     numberFormRef,
 }: AmountFormProps) {
@@ -94,7 +108,7 @@ function AmountForm({
     return (
         <NumberWithSymbolForm
             label={label}
-            value={value}
+            value={value ?? ''}
             decimals={decimals}
             currency={currency}
             displayAsTextInput={displayAsTextInput}
@@ -113,6 +127,9 @@ function AmountForm({
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
+            shouldShowCurrencyButton={shouldShowCurrencyButton}
+            currencyButtonLabel={currencyButtonLabel}
+            currencyButtonAccessibilityLabel={currencyButtonAccessibilityLabel}
             maxLength={amountMaxLength}
             errorText={errorText}
             style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
@@ -124,9 +141,9 @@ function AmountForm({
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
             onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }
 
 export default AmountForm;
-export type {AmountFormProps, NumberWithSymbolFormRef};

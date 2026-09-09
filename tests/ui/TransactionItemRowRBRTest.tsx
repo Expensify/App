@@ -1,16 +1,20 @@
 import {render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchColumnType} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, TransactionViolations} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -47,7 +51,6 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
                 report={transactionItem.report}
                 policy={transactionItem.policy}
                 reportActions={reportActions}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />
         </ComposeProviders>,
@@ -74,9 +77,9 @@ const createBaseReportAction = (id: number, overrides = {}) => ({
 const createIOUReportAction = () =>
     createBaseReportAction(1, {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        reportID: MOCK_REPORT_ID,
         childReportID: MOCK_REPORT_ID,
         originalMessage: {
-            IOUReportID: MOCK_REPORT_ID,
             amount: -100,
             currency: 'USD',
             comment: '',
@@ -135,7 +138,6 @@ describe('TransactionItemRowRBR', () => {
                 <TransactionItemRow
                     transactionItem={mockTransaction}
                     violations={undefined}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultProps}
                     columns={[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]}
                 />
@@ -239,6 +241,44 @@ describe('TransactionItemRowRBR', () => {
         expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
     });
 
+    it('should not render RBR via the early-return path for a clean row when the thread report ID is known', async () => {
+        // Given a clean transaction whose IOU action exposes a transaction thread report ID with no thread errors
+        const mockTransaction = createBaseTransaction({violations: []});
+        const mockReportActionIOU = createIOUReportAction();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
+            [mockReportActionIOU.reportActionID]: mockReportActionIOU,
+        });
+
+        // When rendering the transaction item row with reportActions (early-return guard enabled)
+        renderTransactionItemRow(mockTransaction, [mockReportActionIOU]);
+        await waitForBatchedUpdates();
+
+        // Then the RBR should not be displayed (the wrapper short-circuits to null without mounting the inner component)
+        expect(screen.queryByTestId('TransactionItemRowRBR')).not.toBeOnTheScreen();
+    });
+
+    it('should still render RBR for a row whose only error lives in the transaction thread', async () => {
+        // Given a transaction with no violations/errors of its own, but an errored action in its transaction thread
+        const mockTransaction = createBaseTransaction({violations: []});
+        const mockReportActionIOU = createIOUReportAction();
+        const mockReportActionErrors = createErrorReportAction();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_TRANSACTION_ID}`, {
+            [mockReportActionIOU.reportActionID]: mockReportActionIOU,
+            [mockReportActionErrors.reportActionID]: mockReportActionErrors,
+        });
+
+        // When rendering the transaction item row with reportActions (early-return guard enabled)
+        renderTransactionItemRow(mockTransaction, [mockReportActionIOU, mockReportActionErrors]);
+        await waitForBatchedUpdates();
+
+        // Then the early-return is skipped and the thread error message is displayed
+        expect(screen.getByText('Unexpected error posting the comment. Please try again later.')).toBeOnTheScreen();
+    });
+
     it('should display RBR message for transaction with report action errors', async () => {
         // Given a transaction with report action errors
         const mockTransaction = createBaseTransaction();
@@ -298,7 +338,6 @@ describe('TransactionItemRowRBR', () => {
                 <TransactionItemRow
                     transactionItem={mockTimeTransaction}
                     violations={undefined}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultProps}
                     columns={[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]}
                 />

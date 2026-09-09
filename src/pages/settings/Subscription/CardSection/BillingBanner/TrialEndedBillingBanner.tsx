@@ -1,11 +1,16 @@
-import React from 'react';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+
 import BillingBanner from './BillingBanner';
 
 function TrialEndedBillingBanner() {

@@ -1,7 +1,10 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import TextLink from '@components/TextLink';
+
 import type {FooterColumnRow} from '@pages/signin/SignInPageLayout/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
 
 type FooterRowProps = FooterColumnRow & {
     text: string;

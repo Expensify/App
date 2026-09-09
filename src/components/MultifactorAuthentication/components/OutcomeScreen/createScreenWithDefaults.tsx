@@ -31,12 +31,27 @@ import React from 'react';
  * // Override only the title (illustration and subtitle keep their defaults):
  * <DefaultClientFailureScreen title="multifactorAuthentication.customTitle" />
  */
-function createScreenWithDefaults<P extends Record<string, unknown>>(Component: React.ComponentType<P>, defaultProps: NoInfer<P>, displayName: string): React.FC<Partial<P>> {
-    function Screen(overrideProps: Partial<P>) {
-        const mergedProps: P = {...defaultProps, ...overrideProps};
+type ScreenWithDefaultsImplProps<P extends Record<string, unknown>> = {
+    Component: React.ComponentType<P>;
+    defaultProps: NoInfer<P>;
+    overrideProps: Partial<P>;
+};
 
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <Component {...mergedProps} />;
+function ScreenWithDefaultsImpl<P extends Record<string, unknown>>({Component, defaultProps, overrideProps}: ScreenWithDefaultsImplProps<P>) {
+    const mergedProps: P = {...defaultProps, ...overrideProps};
+
+    return <Component {...mergedProps} />;
+}
+
+function createScreenWithDefaults<P extends Record<string, unknown>>(Component: React.ComponentType<P>, defaultProps: NoInfer<P>, displayName: string): React.ComponentType<Partial<P>> {
+    function Screen(overrideProps: Partial<P>) {
+        return (
+            <ScreenWithDefaultsImpl
+                Component={Component}
+                defaultProps={defaultProps}
+                overrideProps={overrideProps}
+            />
+        );
     }
 
     Screen.displayName = displayName;

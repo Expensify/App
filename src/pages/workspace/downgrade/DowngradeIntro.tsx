@@ -1,24 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    onDowngrade: () => void;
+    onDowngrade: () => void | Promise<void>;
     policyID?: string;
     backTo?: Route;
 };
@@ -97,19 +101,21 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
             {policyID ? (
                 <Button
                     isLoading={loading}
-                    text={translate('common.downgradeWorkspace')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onDowngrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('common.downgradeWorkspace')}</Button.Text>
+                </Button>
             ) : (
                 <Button
-                    text={translate('workspace.common.goToWorkspaces')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.common.goToWorkspaces')}</Button.Text>
+                </Button>
             )}
         </View>
     );

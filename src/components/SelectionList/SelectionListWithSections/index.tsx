@@ -1,7 +1,10 @@
-import React from 'react';
 import useWebSelectionListBehavior from '@components/SelectionList/hooks/useWebSelectionListBehavior';
-import BaseSelectionList from './BaseSelectionListWithSections';
+
+import React from 'react';
+
 import type {ListItem, SelectionListWithSectionsProps} from './types';
+
+import BaseSelectionList from './BaseSelectionListWithSections';
 
 function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListWithSectionsProps<TItem>) {
     const {shouldIgnoreFocus, shouldDebounceScrolling, shouldDisableHoverStyle, setShouldDisableHoverStyle, onScroll} = useWebSelectionListBehavior({
@@ -12,7 +15,7 @@ function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = tru
     return (
         <BaseSelectionList
             // Props spreading is necessary here to pass through all SelectionList props while adding web-specific behavior
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...props}
             ref={ref}
             onScroll={onScroll}

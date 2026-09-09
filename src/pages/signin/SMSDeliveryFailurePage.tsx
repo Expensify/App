@@ -1,17 +1,24 @@
-import React, {useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {formatList} from '@libs/Localize';
 import {normalizeLogin} from '@libs/LoginUtils';
+
 import {beginSignIn, clearSignInData, resetSMSDeliveryFailureStatus} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -42,6 +49,20 @@ function SMSDeliveryFailurePage() {
         }
     }
 
+    // Each unit is translated separately so it can be pluralized by the locale's own rules, then joined
+    // with Intl.ListFormat rather than a hardcoded "and".
+    const durationParts: string[] = [];
+    if (timeData?.days) {
+        durationParts.push(translate('common.durationDays', {count: timeData.days}));
+    }
+    if (timeData?.hours) {
+        durationParts.push(translate('common.durationHours', {count: timeData.hours}));
+    }
+    if (timeData?.minutes) {
+        durationParts.push(translate('common.durationMinutes', {count: timeData.minutes}));
+    }
+    const timeText = durationParts.length > 0 ? formatList(durationParts) : '';
+
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     // We need to show two different messages after clicking validate button, based on API response for hasSMSDeliveryFailure.
@@ -62,19 +83,20 @@ function SMSDeliveryFailurePage() {
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeText})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                     <Button
-                        success
-                        large
-                        text={translate('common.buttonConfirm')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => clearSignInData()}
-                        pressOnEnter
                         style={styles.w100}
                         sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONFIRM}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                    </Button>
                 </View>
                 <View style={[styles.mt3, styles.mb2]}>
                     <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />

@@ -1,8 +1,10 @@
-import type {Ref} from 'react';
-import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
-import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
+import type {Ref} from 'react';
+import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 
 type TextSelection = {
     start: number;
@@ -14,6 +16,8 @@ type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
+
+type ComposerRef = MarkdownTextInput & HTMLInputElement & HTMLTextAreaElement;
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> &
     ForwardedFSClassProps & {
@@ -42,7 +46,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         onPasteFile?: (files: FileObject | FileObject[]) => void;
 
         /** General styles to apply to the text input */
-        // eslint-disable-next-line react/forbid-prop-types
+
         style?: StyleProp<TextStyle>;
 
         /** Whether or not this TextInput is disabled. */
@@ -55,16 +59,12 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         /** Update selection position on change */
         onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
-        /** Selection Object */
         selection?: TextSelection;
-
-        /** Should we calculate the caret position */
         shouldCalculateCaretPosition?: boolean;
 
         /** Function to check whether composer is covered up or not */
         checkComposerVisibility?: () => boolean;
 
-        /** Whether the full composer is open */
         isComposerFullSize?: boolean;
 
         /** Should make the input only scroll inside the element avoid scroll out to parent */
@@ -74,7 +74,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         isGroupPolicyReport?: boolean;
 
         /** Ref exposing imperative methods on the underlying text input */
-        ref?: Ref<TextInput | HTMLInputElement | HTMLTextAreaElement | AnimatedMarkdownTextInputRef>;
+        ref?: Ref<ComposerRef>;
     };
 
-export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};
+export type {TextSelection, ComposerProps, CustomSelectionChangeEvent, ComposerRef};

@@ -1,16 +1,17 @@
-import React from 'react';
-import Icon from '@components/Icon';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionList/types';
+
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
+
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
 
 type EditReportFieldDropdownPageProps = {
     /** Value of the policy report field */
@@ -29,27 +30,18 @@ type EditReportFieldDropdownPageProps = {
 function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
-    const itemRightSideComponent = (item: ListItem) => {
-        if (item.text === fieldValue) {
-            return (
-                <Icon
-                    src={icons.Checkmark}
-                    fill={theme.iconSuccessFill}
-                />
-            );
-        }
-
-        return null;
-    };
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
+    // Freeze the value selected when the picker opened so it drives the pinned "Selected" section for the whole open/focus cycle.
+    // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
+    const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
+
     const sections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
+        // Live value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
             {
                 keyForList: fieldValue,
@@ -57,13 +49,14 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
                 text: fieldValue,
             },
         ],
+        // Frozen value drives the pinned section, so the list doesn't reorder while selecting.
+        initiallySelectedValue: initialFieldValue,
         options: validFieldOptions,
         recentlyUsedOptions,
         translate,
     });
 
     const policyReportFieldData = sections.at(0)?.data ?? [];
-    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList;
 
     const textInputOptions = {
         value: searchValue,
@@ -75,12 +68,12 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     return (
         <SelectionListWithSections
             sections={sections ?? []}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
-            initiallyFocusedItemKey={selectedOptionKey}
-            rightHandSideComponent={itemRightSideComponent}
+            initiallyFocusedItemKey={initialFieldValue}
+            shouldUpdateFocusedIndex
         />
     );
 }

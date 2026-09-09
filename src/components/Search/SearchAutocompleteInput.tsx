@@ -1,14 +1,8 @@
-/* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useRef} from 'react';
-import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
@@ -18,31 +12,37 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ForwardedRef} from 'react';
+import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
     value: string;
 
-    /** Callback to update search in SearchRouter */
     onSearchQueryChange: (searchTerm: string) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    /** Whether the input is full width */
     isFullWidth: boolean;
-
-    /** Whether the input is disabled */
     disabled?: boolean;
-
-    /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
     /** Callback to call when the input gets focus */
@@ -51,7 +51,6 @@ type SearchAutocompleteInputProps = {
     /** Callback to call when the input gets blur */
     onBlur?: () => void;
 
-    /** Any additional styles to apply */
     wrapperStyle?: ViewStyle;
 
     /** Any additional styles to apply when input is focused */
@@ -59,6 +58,10 @@ type SearchAutocompleteInputProps = {
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
+    inputStyle?: StyleProp<TextStyle>;
+    inputContainerStyle?: StyleProp<ViewStyle>;
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+    clearButtonStyle?: StyleProp<ViewStyle>;
 
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
@@ -66,10 +69,7 @@ type SearchAutocompleteInputProps = {
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
 
-    /** Whether the focus should be delayed */
     shouldDelayFocus?: boolean;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection' | 'onKeyPress'>;
 
@@ -88,6 +88,10 @@ function SearchAutocompleteInput({
     wrapperStyle,
     wrapperFocusedStyle = {},
     outerWrapperStyle,
+    inputStyle,
+    inputContainerStyle,
+    touchableInputWrapperStyle,
+    clearButtonStyle,
     isSearchingForReports,
     selection,
     substitutionMap,
@@ -109,11 +113,11 @@ function SearchAutocompleteInput({
     const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
@@ -193,63 +197,63 @@ function SearchAutocompleteInput({
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
-                <View style={styles.flex1}>
-                    <TextInput
-                        testID="search-autocomplete-text-input"
-                        value={value}
-                        onChangeText={onSearchQueryChange}
-                        autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
-                        caretHidden={caretHidden}
-                        role={CONST.ROLE.SEARCHBOX}
-                        placeholder={translate('search.searchPlaceholder')}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        spellCheck={false}
-                        enterKeyHint="search"
-                        accessibilityLabel={translate('search.searchPlaceholder')}
-                        disabled={disabled}
-                        maxLength={CONST.SEARCH_QUERY_LIMIT}
-                        onSubmitEditing={onSubmit}
-                        shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
-                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
-                        placeholderTextColor={theme.textSupporting}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
-                        onFocus={() => {
-                            onFocus?.();
-                            focusedSharedValue.set(true);
-                        }}
-                        onBlur={() => {
-                            focusedSharedValue.set(false);
-                            onBlur?.();
-                        }}
-                        onKeyPress={onKeyPress}
-                        isLoading={isSearchingForReports}
-                        ref={(element) => {
-                            if (!ref) {
-                                return;
-                            }
+            <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
+                <TextInput
+                    testID="search-autocomplete-text-input"
+                    value={value}
+                    onChangeText={onSearchQueryChange}
+                    autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
+                    caretHidden={caretHidden}
+                    role={CONST.ROLE.SEARCHBOX}
+                    placeholder={translate('search.searchPlaceholder')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    enterKeyHint="search"
+                    accessibilityLabel={translate('search.searchPlaceholder')}
+                    disabled={disabled}
+                    maxLength={CONST.SEARCH_QUERY_LIMIT}
+                    onSubmitEditing={onSubmit}
+                    shouldUseDisabledStyles={false}
+                    textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
+                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
+                    touchableInputWrapperStyle={touchableInputWrapperStyle}
+                    clearButtonStyle={clearButtonStyle}
+                    placeholderTextColor={theme.textSupporting}
+                    loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
+                    onFocus={() => {
+                        onFocus?.();
+                        focusedSharedValue.set(true);
+                    }}
+                    onBlur={() => {
+                        focusedSharedValue.set(false);
+                        onBlur?.();
+                    }}
+                    onKeyPress={onKeyPress}
+                    isLoading={isSearchingForReports}
+                    ref={(element) => {
+                        if (!ref) {
+                            return;
+                        }
 
-                            inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element as AnimatedTextInputRef;
 
-                            if (typeof ref === 'function') {
-                                ref(element);
-                                return;
-                            }
+                        if (typeof ref === 'function') {
+                            ref(element);
+                            return;
+                        }
 
-                            // eslint-disable-next-line no-param-reassign
-                            ref.current = element;
-                        }}
-                        type="markdown"
-                        multiline={false}
-                        parser={parser}
-                        selection={selection}
-                        shouldShowClearButton={!!value && !isSearchingForReports}
-                        shouldHideClearButton={false}
-                        onClearInput={clearInput}
-                    />
-                </View>
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = element;
+                    }}
+                    type="markdown"
+                    multiline={false}
+                    parser={parser}
+                    selection={selection}
+                    shouldShowClearButton={!!value && !isSearchingForReports}
+                    shouldHideClearButton={false}
+                    onClearInput={clearInput}
+                />
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}

@@ -1,10 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import SelectCircle from '@components/SelectCircle';
+import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
+
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,23 +12,29 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getSubscriptionPlanInfo, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import getSubscriptionPlanBenefitA11yProps from './getSubscriptionPlanBenefitA11yProps';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
 type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
-    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal?: boolean;
 
-    /** Closes comparison modal */
     closeComparisonModal?: () => void;
 };
 
@@ -56,7 +60,6 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
-    const subscriptionLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionPlanCard', isLoading: !privateSubscription};
 
     const renderBenefits = () => {
         return (
@@ -113,7 +116,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             {!privateSubscription ? (
                 <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
-                    <ActivityIndicator reasonAttributes={subscriptionLoadingReasonAttributes} />
+                    <ActivityIndicator />
                 </View>
             ) : (
                 <>
@@ -124,12 +127,16 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                                 width={variables.iconHeader}
                                 height={variables.iconHeader}
                             />
-                            <View>
-                                <SelectCircle
-                                    isChecked={isSelected}
-                                    selectCircleStyles={[styles.bgTransparent, styles.borderNone]}
-                                />
-                            </View>
+                            {isFromComparisonModal && (
+                                <View pointerEvents="none">
+                                    <RadioButton
+                                        isChecked={isSelected}
+                                        onPress={() => {}}
+                                        accessibilityLabel=""
+                                        accessible={false}
+                                    />
+                                </View>
+                            )}
                         </View>
                         <Text
                             style={[styles.headerText, styles.mv2, styles.textHeadlineH2]}

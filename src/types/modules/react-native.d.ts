@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
 import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
+
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
+import type {TargetedEvent} from 'react-native';
 
 type AppStateTrackerModule = {
     getWasAppRelaunchedFromIcon: () => Promise<boolean>;
@@ -17,6 +18,11 @@ type RNTextInputResetModule = {
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
     getType: () => NavigationBarType;
+};
+
+type GpsTripServiceModule = {
+    startService: (title: string, body: string, deepLink: string) => void;
+    stopService: () => void;
 };
 
 type TestToolsBridge = {
@@ -58,6 +64,7 @@ declare module 'react-native' {
         BootSplash: BootSplashModule;
         RNTextInputReset: RNTextInputResetModule;
         RNNavBarManager: RNNavBarManagerModule;
+        GpsTripServiceModule: GpsTripServiceModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
         ShareActionHandler: ShareActionHandlerModule;

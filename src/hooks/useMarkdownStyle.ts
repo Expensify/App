@@ -1,7 +1,11 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import {useMemo} from 'react';
+import {fontScale, lineHeightScale} from '@styles/typography';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+
+import {useMemo} from 'react';
+
 import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
@@ -32,12 +36,12 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
                 color: theme.link,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: fontScale.pageHeader,
             },
             emoji: {
                 ...FontUtils.fontFamily.platform.CUSTOM_EMOJI_FONT,
                 fontSize: emojiFontSize,
-                lineHeight: variables.lineHeightXLarge,
+                lineHeight: lineHeightScale.pageHeader,
             },
             blockquote: {
                 borderColor: theme.border,

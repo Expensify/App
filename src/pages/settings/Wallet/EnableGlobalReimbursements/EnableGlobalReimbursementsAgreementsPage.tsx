@@ -1,14 +1,18 @@
-import React from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+
+import React from 'react';
 
 type EnableGlobalReimbursementsAgreementsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS>;
 
@@ -29,6 +33,7 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             return [typedKey, enableGlobalReimbursementsDraft?.[typedKey] ?? false];
         }),
     ) as Record<keyof typeof inputIDs, boolean>;
+    const bankStatementDefaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT] ?? [];
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM));
@@ -49,6 +54,8 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
             currency={currency}
             startStepIndex={1}
             stepNames={CONST.ENABLE_GLOBAL_REIMBURSEMENTS.STEP_INDEX_LIST}
+            bankStatementInputID={INPUT_IDS.BANK_STATEMENT}
+            bankStatementDefaultValue={bankStatementDefaultValue}
         />
     );
 }

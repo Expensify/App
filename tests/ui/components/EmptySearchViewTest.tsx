@@ -1,12 +1,19 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
 import EmptySearchView from '@pages/Search/EmptySearchView';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -25,10 +32,9 @@ const SESSION = {
     accountID: CURRENT_USER_ACCOUNT_ID,
 };
 const POLICY_ID = '1';
-const createPaidGroupPolicy = (isPolicyExpenseChatEnabled = true) => ({
+const createPolicy = (type: Policy['type'] = CONST.POLICY.TYPE.TEAM) => ({
     id: POLICY_ID,
-    type: CONST.POLICY.TYPE.TEAM,
-    isPolicyExpenseChatEnabled,
+    type,
     role: CONST.POLICY.ROLE.ADMIN,
 });
 
@@ -112,9 +118,9 @@ describe('EmptySearchView', () => {
                 });
             });
 
-            it('should display "Create Report" button when user has a paid group policy with expense chat enabled', async () => {
-                // Given a paid group policy with expense chat enabled
-                const paidGroupPolicy = createPaidGroupPolicy();
+            it('should display "Create Report" button when user has a group policy', async () => {
+                // Given a group policy
+                const paidGroupPolicy = createPolicy();
                 await act(async () => {
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidGroupPolicy.id}`, paidGroupPolicy);
                 });
@@ -132,7 +138,7 @@ describe('EmptySearchView', () => {
                     <Wrapper>
                         <EmptySearchView
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
-                            type={dataType}
+                            type={queryJSON?.type ?? dataType}
                             hasResults={false}
                         />
                     </Wrapper>,
@@ -146,9 +152,9 @@ describe('EmptySearchView', () => {
                 expect(screen.getByText(translateLocal('report.newReport.createExpense'))).toBeVisible();
             });
 
-            it('should hide "Create Report" button when user has a paid group policy with expense chat disabled', async () => {
-                // Given a paid group policy with expense chat disabled
-                const policy = createPaidGroupPolicy(false);
+            it('should hide "Create Report" button when user has a personal policy', async () => {
+                // Given a personal policy
+                const policy = createPolicy(CONST.POLICY.TYPE.PERSONAL);
                 await act(async () => {
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 });
@@ -166,23 +172,23 @@ describe('EmptySearchView', () => {
                     <Wrapper>
                         <EmptySearchView
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
-                            type={dataType}
+                            type={queryJSON?.type ?? dataType}
                             hasResults={false}
                         />
                     </Wrapper>,
                 );
                 await waitForBatchedUpdatesWithAct();
 
-                // Then it should display the submit empty results title
-                expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
+                // Then it should fall back to the generic report empty state
+                expect(screen.getByText(translateLocal('search.searchResults.emptyReportResults.title'))).toBeVisible();
 
-                // And it should not display the "Create Expense" button
-                expect(screen.queryByText(translateLocal('report.newReport.createExpense'))).not.toBeOnTheScreen();
+                // And it should show the generic report actions instead of the submit suggestion CTA
+                expect(screen.getByText(translateLocal('emptySearchView.takeATestDrive'))).toBeVisible();
             });
         });
 
         it('should show "emptyExpenseResults" when the user has deleted all expenses, even though hasResults remains true', async () => {
-            const policy = createPaidGroupPolicy();
+            const policy = createPolicy();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             });
@@ -215,7 +221,7 @@ describe('EmptySearchView', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         it('should show "emptyReportResults" when the user has deleted all expenses, even though hasResults remains true', async () => {
-            const policy = createPaidGroupPolicy();
+            const policy = createPolicy();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             });
@@ -246,11 +252,21 @@ describe('EmptySearchView', () => {
 
     describe('type is Invoice', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.INVOICE;
+        const INVOICE_POLICY_ID = 'invoicePolicy';
+        const createInvoiceEnabledPolicy = () => ({
+            id: INVOICE_POLICY_ID,
+            name: 'Invoice Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            areInvoicesEnabled: true,
+        });
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {
-            // Given user hasn't clicked on "Take a test drive" yet
+            // Given user hasn't clicked on "Take a test drive" yet and has an invoice-enabled workspace
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: false});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${INVOICE_POLICY_ID}`, createInvoiceEnabledPolicy());
             });
 
             // Render component
@@ -273,9 +289,11 @@ describe('EmptySearchView', () => {
         });
 
         it('should display correct buttons and subtitle when user already did "Take a test drive"', async () => {
-            // Given user clicked on "Take a test drive"
+            // Given user clicked on "Take a test drive" and has an invoice-enabled workspace
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${INVOICE_POLICY_ID}`, createInvoiceEnabledPolicy());
             });
 
             // Render component
@@ -295,6 +313,32 @@ describe('EmptySearchView', () => {
 
             // And correct modal subtitle
             expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'))).toBeVisible();
+        });
+
+        it('should hide Send invoice button when user cannot send invoices', async () => {
+            // Given user has no invoice-enabled workspace
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+            });
+
+            // Render component
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={1}
+                        type={dataType}
+                        hasResults={false}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it should not display Send invoice button
+            expect(screen.queryByText(translateLocal('workspace.invoices.sendInvoice'))).not.toBeOnTheScreen();
+
+            // And should show the cannot-send subtitle
+            expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleCannotSend'))).toBeVisible();
         });
     });
 });

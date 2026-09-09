@@ -48,6 +48,8 @@ For detailed setup instructions for each platform, see the following guides:
 * **📱 iOS Development**: [iOS Setup Instructions](contributingGuides/SETUP_IOS.md)  
 * **🤖 Android Development**: [Android Setup Instructions](contributingGuides/SETUP_ANDROID.md)
 
+**Optional AI-assisted mobile testing:** If you use Claude Code, the [`/agent-device` skill](.claude/skills/agent-device/SKILL.md) drives iOS and Android simulators or devices for interactive testing, debugging, and performance profiling. Requires `npm install -g agent-device`.
+
 ## General Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
@@ -92,6 +94,7 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
+* To run the **Bun tests** — `server/` plus the `.github/` and `scripts/` tooling tests: `npm run test:bun` — see [tests/tooling/README.md](tests/tooling/README.md)
 * UI tests guidelines can be found [here](tests/ui/README.md)
 
 ## Performance tests

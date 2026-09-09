@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+import {Str} from 'expensify-common';
+
 /**
  * Checks if a tag value is missing/empty
  * Similar to isCategoryMissing but for tags
@@ -19,4 +21,12 @@ function trimTag(tag: string): string {
     return tagWithoutEscapedColons.replace(/:*$/, '').replaceAll('☢', '\\:');
 }
 
-export {isTagMissing, trimTag};
+/**
+ * HTML-decodes a tag name so values stored with different encodings are displayed correctly (e.g. `R&amp;D` vs `R&D`)
+ * Mirrors getDecodedCategoryName in CategoryUtils.
+ */
+function getDecodedTagName(tagName: string): string {
+    return Str.htmlDecode(tagName);
+}
+
+export {isTagMissing, trimTag, getDecodedTagName};

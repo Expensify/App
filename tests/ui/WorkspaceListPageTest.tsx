@@ -1,15 +1,22 @@
-import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import {PortalProvider} from '@gorhom/portal';
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
@@ -83,7 +90,54 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
+        expect(newWorkspaceButton).not.toBeOnTheScreen();
+    });
+
+    it('should not show new workspace button when the restrict creation policy in the group domain is enabled and the restricting group is under the sharedNVP key', async () => {
+        const TEST_DOMAIN = 'domain.com';
+        const TEST_SECURITY_GROUP_ID = '123456';
+        const TEST_OWNER_ACCOUNT_ID = 42;
+        const TEST_POLICY_ID = 'A1B2C3D4E5F6A7B8';
+        const TEST_EMAIL = 'test@domain.com';
+        const TEST_ACCOUNT_ID = 1;
+
+        // Given an object membership, which carries the owner account ID
+        await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {
+            [TEST_DOMAIN]: {securityGroupID: TEST_SECURITY_GROUP_ID, ownerAccountID: TEST_OWNER_ACCOUNT_ID},
+        });
+
+        // Given the group forbids workspace creation, stored under the sharedNVP key
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${TEST_SECURITY_GROUP_ID}_${TEST_OWNER_ACCOUNT_ID}`, {
+            enableRestrictedPolicyCreation: true,
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Test Policy',
+            role: 'admin',
+        });
+
+        await Onyx.set(`${ONYXKEYS.SESSION}`, {
+            email: TEST_EMAIL,
+            accountID: TEST_ACCOUNT_ID,
+        });
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [TEST_ACCOUNT_ID]: {
+                login: TEST_EMAIL,
+                accountID: TEST_ACCOUNT_ID,
+                displayName: TEST_EMAIL,
+            },
+        });
+
+        // When the workspaces list is opened
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new workspace button is not rendered
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
 
@@ -125,31 +179,37 @@ describe('WorkspaceListPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
 
-    it('should show a "new" dropdown button when workspaces and domains are present', async () => {
-        const TEST_DOMAIN_ACCOUNT_ID = 123;
-        const TEST_POLICY_ID = 'test-policy-id';
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${TEST_DOMAIN_ACCOUNT_ID}`, {
-            accountID: TEST_DOMAIN_ACCOUNT_ID,
-            email: '+@test.com',
-        });
+    it('should show the owner email of a pending join request workspace when the owner is not in the personal details list', async () => {
+        const TEST_POLICY_ID = 'pending-policy-id';
+        const OWNER_EMAIL = 'owner@example.com';
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
             id: TEST_POLICY_ID,
-            name: 'Test Policy',
-            role: 'admin',
+            isJoinRequestPending: true,
+            policyDetailsForNonMembers: {
+                [TEST_POLICY_ID]: {
+                    name: 'Pending Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    ownerAccountID: 42,
+                    ownerEmail: OWNER_EMAIL,
+                },
+            },
         });
 
         renderPage();
 
         await waitForBatchedUpdatesWithAct();
 
-        const newDropdownButton = screen.getByTestId('dropdown-button-new');
-        expect(newDropdownButton).toBeOnTheScreen();
+        expect(screen.getByText('Pending Workspace')).toBeOnTheScreen();
+        expect(screen.getByText(new RegExp(OWNER_EMAIL))).toBeOnTheScreen();
+        // The workspace default icon is derived from nonMemberDetails.name ("Pending Workspace"), so the
+        // rendered SVG test ID is keyed by its first alphanumeric character. The icon is decorative and
+        // hidden from accessibility, so the query must include hidden elements.
+        expect(screen.getByTestId('SvgDefaultAvatar_p Icon', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('should show a "New workspace" button when there are workspaces but no domains', async () => {
@@ -169,7 +229,7 @@ describe('WorkspaceListPage', () => {
         const newDropdownButton = screen.queryByTestId('dropdown-button-new');
         expect(newDropdownButton).not.toBeOnTheScreen();
 
-        const newWorkspaceButton = screen.queryByAccessibilityHint('New workspace');
+        const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
 });

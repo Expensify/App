@@ -1,9 +1,13 @@
-import React, {useMemo} from 'react';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo} from 'react';
+
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 

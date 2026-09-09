@@ -10,6 +10,7 @@ type OpenReimbursementAccountPageParams = {
     policyID?: string;
     bankAccountID?: number;
     shouldPreserveDraft?: boolean;
+    includeUploadKYBSetupStep: boolean;
 };
 
 export default OpenReimbursementAccountPageParams;

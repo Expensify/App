@@ -1,40 +1,55 @@
-import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, Keyboard} from 'react-native';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
+import {MFA_OVERLAY_SCREENS} from '@components/MultifactorAuthentication/mfaNavigation';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
+import doesInitialURLMatchActiveRoute from '@libs/Navigation/helpers/doesInitialURLMatchActiveRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {Route} from '@react-navigation/native';
+import type {ReactNode} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+
+import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter, Keyboard} from 'react-native';
+
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
+import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
+
 import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
-import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
+
+const FallbackRouteContext = createContext<Route<string> | undefined>(undefined);
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -58,19 +73,16 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
             | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
         children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-        /** Settings for the focus trap */
         focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
@@ -112,8 +124,7 @@ function ScreenWrapper({
     const mergedScreenWrapperRef = mergeRefs(screenWrapperRef, ref);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayoutIgnoringWideRHP, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -132,25 +143,19 @@ function ScreenWrapper({
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     const statusContextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+        () => ({didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, shouldUseNarrowLayoutOnWideRHP, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
+    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayoutIgnoringWideRHP;
     const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
     const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
-    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
-
-        const newOriginalValues = originalValues ?? {
-            addSafeAreaPadding: newAddSafeAreaPadding,
-            showOnSmallScreens,
-            showOnWideScreens,
-        };
 
         return {
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
@@ -158,11 +163,8 @@ function ScreenWrapper({
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
-            // Pass down the original values by the outermost ScreenWrapperOfflineIndicatorContext.Provider,
-            // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
-            originalValues: newOriginalValues,
         };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
@@ -178,11 +180,31 @@ function ScreenWrapper({
 
     const {initialURL} = useInitialURLState();
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const [initialActiveRouteWithoutParams, setInitialActiveRouteWithoutParams] = useState('');
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => setInitialActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams()));
+    }, []);
+    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams;
+    const initialURLMatchesActiveRoute = doesInitialURLMatchActiveRoute(initialURL, activeRouteWithoutParams);
 
-    usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
+    // A multifactor authentication flow (e.g. Face ID to reveal UK/EU card details) renders in an independent navigation tree
+    // overlaid above the single NewDot entry, and each MFA screen renders its own ScreenWrapper. Navigation.getActiveRouteWithoutParams()
+    // still reports the underlying NewDot route while the overlay is up, so initialURLMatchesActiveRoute is true on the MFA screens too.
+    // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
+    // MFA navigator's own stack actions (e.g. replacing the validateCode page with the Face ID prompt, or popping the outcome screen on close),
+    // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
+    // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
+    const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
+    const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
+
+    usePreventRemove(isSingleNewDotEntry && initialURLMatchesActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
+
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
 
@@ -276,7 +298,6 @@ function ScreenWrapper({
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
                 shouldHideFromAccessibility={shouldHideFromAccessibility}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
                 {isDevelopment && <CustomDevMenu />}
@@ -301,4 +322,4 @@ function ScreenWrapper({
 }
 
 export default withNavigationFallback(ScreenWrapper);
-export type {ScreenWrapperProps, ScreenWrapperChildrenProps};
+export type {ScreenWrapperChildrenProps};

@@ -1,4 +1,5 @@
 import type {SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 /**

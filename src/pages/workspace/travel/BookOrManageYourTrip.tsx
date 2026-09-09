@@ -1,28 +1,45 @@
-import React from 'react';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
-import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
-type GetStartedTravelProps = {
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
+
+type BookOrManageYourTripProps = {
     policyID: string;
 };
 
-function GetStartedTravel({policyID}: GetStartedTravelProps) {
+function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
+    const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
+    const {showConfirmModal} = useConfirmModal();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
@@ -31,11 +48,33 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
+    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
+    const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
+
+    const toggleCodingSync = (enabled: boolean) => {
+        setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
+    };
+
     const handleManageTravel = () => {
-        // TODO: Show the prevention modal when the beta is enabled
         if (isPreventSpotnanaTravelEnabled) {
+            showConfirmModal({
+                title: translate('travel.blockedFeatureModal.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                prompt: translate('travel.blockedFeatureModal.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
+
+        if (blockIfDefaultWorkspaceLacksTravel()) {
+            return;
+        }
+
         openTravelDotLink(policyID);
     };
 
@@ -51,11 +90,11 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 <MenuItem
                     title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
                     icon={icons.LuggageWithLines}
-                    onPress={handleManageTravel}
-                    shouldShowRightIcon
+                    onPress={withReadOnlyFallback(handleManageTravel)}
+                    shouldShowRightIcon={canWriteMoreFeatures}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
-                    iconRight={icons.NewWindow}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                    iconRight={canWriteMoreFeatures ? icons.NewWindow : undefined}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
@@ -64,13 +103,35 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
-                    pendingAction={policy?.pendingFields?.travelSettings}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteMoreFeatures}
+                    pendingAction={policy?.pendingFields?.autoAddTripName}
+                    errors={policy?.errorFields?.autoAddTripName ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
                     wrapperStyle={styles.mt3}
                 />
+                {isCodingSyncBetaEnabled && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
+                        shouldPlaceSubtitleBelowSwitch
+                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        isActive={isCodingSyncEnabled}
+                        onToggle={toggleCodingSync}
+                        disabled={!canWriteMoreFeatures}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWriteMoreFeatures}
+                        pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
+                        errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
+                        wrapperStyle={styles.mt3}
+                    />
+                )}
             </Section>
-            {isTravelInvoicingEnabled && <WorkspaceTravelInvoicingSection policyID={policyID} />}
+            <WorkspaceTravelBillingSection policyID={policyID} />
         </>
     );
 }
 
-export default GetStartedTravel;
+export default BookOrManageYourTrip;

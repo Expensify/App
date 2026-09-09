@@ -1,19 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {StyleProp} from 'react-native';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type AvatarWithOptionalStatusProps = {
-    /** Emoji status */
     emojiStatus?: string;
-
-    /** Whether the avatar is selected */
     isSelected?: boolean;
-
-    /** Style for the Avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 

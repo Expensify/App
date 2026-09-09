@@ -1,12 +1,16 @@
-import React from 'react';
-import {Image, View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+
+import {fontScale} from '@styles/typography';
+
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
+
+import React from 'react';
+import {Image, View} from 'react-native';
 
 const IMAGE_TYPES = new Set(['jpg', 'jpeg', 'png']);
 const MAX_IMAGE_HEIGHT = 180;
@@ -56,13 +60,14 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 <View style={styles.flexRow}>
                     {!!logo && (
                         <Image
+                            accessibilityIgnoresInvertColors
                             style={styles.linkPreviewLogoImage}
                             source={{uri: logo.url}}
                         />
                     )}
                     {!!publisher && (
                         <Text
-                            fontSize={variables.fontSizeLabel}
+                            fontSize={fontScale.label}
                             style={styles.pl2}
                         >
                             {publisher}
@@ -71,16 +76,17 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 </View>
                 {!!title && !!url && (
                     <TextLink
-                        fontSize={variables.fontSizeNormal}
+                        fontSize={fontScale.text}
                         style={[styles.mv2, StyleUtils.getTextColorStyle(theme.link), styles.alignSelfStart]}
                         href={url}
                     >
                         {title}
                     </TextLink>
                 )}
-                {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
+                {!!description && <Text fontSize={fontScale.text}>{description}</Text>}
                 {!!image?.type && IMAGE_TYPES.has(image.type) && !!image.width && !!image.height && (
                     <Image
+                        accessibilityIgnoresInvertColors
                         style={[
                             styles.linkPreviewImage,
                             {

@@ -1,7 +1,9 @@
-import type {ViewStyle} from 'react-native';
 import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
+
+import type {ViewStyle} from 'react-native';
+
 import type StyleUtilGenerator from './types';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
@@ -42,7 +44,8 @@ const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActio
             getDefaultWrapperStyle(theme),
 
             // Small screens use a bottom-docked modal that already has vertical padding.
-            isSmallScreenWidth ? {} : styles.pv4,
+            isSmallScreenWidth ? {} : styles.pv2,
+            isSmallScreenWidth ? {} : {width: variables.compactPopoverMenuWidth},
         ];
     },
 });

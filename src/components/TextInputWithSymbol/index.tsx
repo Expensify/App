@@ -1,12 +1,14 @@
-import React from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
-import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+
+import React from 'react';
+
 import type {TextInputWithSymbolProps} from './types';
+
+import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     return (
         <BaseTextInputWithSymbol
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => {

@@ -1,12 +1,17 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
+
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
 import type PolicyData from './types';
 
 /**
@@ -37,9 +42,9 @@ function usePolicyData(policyID?: string): PolicyData {
         [policyID, allReportsTransactionsAndViolations],
     );
 
-    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, undefined, [policyID]);
-    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, undefined, [policyID]);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelectorCallback}, [policyID, allReportsTransactionsAndViolations]);
+    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelectorCallback});
     const transactionsAndViolations = useMemo(() => {
         if (!reports || !allReportsTransactionsAndViolations) {
             return {};

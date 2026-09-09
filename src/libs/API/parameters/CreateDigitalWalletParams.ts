@@ -18,5 +18,4 @@ type CreateDigitalGoogleWalletParams = {
 
 type CreateDigitalWalletParams = CreateDigitalAppleWalletParams | CreateDigitalGoogleWalletParams;
 
-export type {CreateDigitalAppleWalletParams, CreateDigitalGoogleWalletParams};
 export default CreateDigitalWalletParams;

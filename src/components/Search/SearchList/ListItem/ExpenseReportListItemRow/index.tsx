@@ -1,0 +1,48 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import React from 'react';
+
+import type {ExpenseReportListItemRowProps} from './types';
+
+import ExpenseReportListItemRowNarrow from './ExpenseReportListItemRowNarrow';
+import ExpenseReportListItemRowWide from './ExpenseReportListItemRowWide';
+
+function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
+    const {isLargeScreenWidth} = useResponsiveLayout();
+
+    if (isLargeScreenWidth) {
+        return (
+            <ExpenseReportListItemRowWide
+                item={props.item}
+                reportActions={props.reportActions}
+                canSelectMultiple={props.canSelectMultiple}
+                isActionLoading={props.isActionLoading}
+                onButtonPress={props.onButtonPress}
+                onCheckboxPress={props.onCheckboxPress}
+                chatReport={props.chatReport}
+                containerStyle={props.containerStyle}
+                isSelectAllChecked={props.isSelectAllChecked}
+                isIndeterminate={props.isIndeterminate}
+                isDisabledCheckbox={props.isDisabledCheckbox}
+                isHovered={props.isHovered}
+                isFocused={props.isFocused}
+                isPendingDelete={props.isPendingDelete}
+                shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
+                columns={props.columns}
+                shouldShowMarkAsDoneCopy={props.shouldShowMarkAsDoneCopy}
+            />
+        );
+    }
+    return (
+        <ExpenseReportListItemRowNarrow
+            item={props.item}
+            onCheckboxPress={props.onCheckboxPress}
+            canSelectMultiple={props.canSelectMultiple}
+            isSelectAllChecked={props.isSelectAllChecked}
+            isIndeterminate={props.isIndeterminate}
+            isDisabledCheckbox={props.isDisabledCheckbox}
+        />
+    );
+}
+
+export default ExpenseReportListItemRow;

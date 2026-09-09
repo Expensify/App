@@ -29,7 +29,7 @@ function calculateISOWeekNumber(date: Date): number {
 
     // Set to nearest Thursday: current date + 4 - current day number
     // Make Sunday's day number 7 (getUTCDay returns 0 for Sunday)
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const dayNum = target.getUTCDay() || 7;
     target.setUTCDate(target.getUTCDate() + 4 - dayNum);
 
@@ -55,12 +55,16 @@ function calculateDayOfYear(date: Date): number {
  * Get localized month and day names using date-fns
  */
 function getLocalizedNames(date: Date) {
+    // Report title formulas resolve to a name stored on the report and seen by everyone who opens it, so it must not vary
+    // with the language of whoever happened to trigger the computation.
+    /* eslint-disable rulesdir/require-locale-for-localized-date-format */
     return {
         fullMonthName: dateFnsFormat(date, 'MMMM'),
         shortMonthName: dateFnsFormat(date, 'MMM'),
         fullDayName: dateFnsFormat(date, 'EEEE'),
         shortDayName: dateFnsFormat(date, 'EEE'),
     };
+    /* eslint-enable rulesdir/require-locale-for-localized-date-format */
 }
 
 /**
@@ -249,4 +253,4 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
     }
 }
 
-export {formatDate, getOrdinalSuffix, calculateISOWeekNumber, calculateDayOfYear, getLocalizedNames, getUTCTimeComponents, createDateTokens, applyTokenReplacement};
+export default formatDate;

@@ -1,21 +1,27 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import BlockingView from './BlockingViews/BlockingView';
-import Button from './Button';
+import Button from './ButtonComposed';
 
 type OnboardingMergingAccountBlockedViewProps = {
-    // Work email to display in the subtitle
+    /** Work email to display in the subtitle */
     workEmail: string | undefined;
 
-    // Whether the user is a VSB
     isVsb: boolean | undefined;
 };
 
@@ -26,6 +32,10 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
+        // This subtitle interpolates the work email, so translate it with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle') {
+            return translate('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail);
+        }
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);
         }
@@ -44,19 +54,20 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 subtitleStyle={[styles.colorMuted]}
             />
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5]}
-                text={translate('common.buttonConfirm')}
                 onPress={() => {
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
-                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                         return;
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}
-            />
+            >
+                <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

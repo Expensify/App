@@ -1,18 +1,24 @@
+import useEnvironment from '@hooks/useEnvironment';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {openLink as openLinkUtil} from '@userActions/Link';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
 /**
  * TextLinkBlock component splits a given text into individual words and displays
  * each word within a TextLink component so the link text wraps naturally.
  */
 import React, {memo, useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import useEnvironment from '@hooks/useEnvironment';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink as openLinkUtil} from '@userActions/Link';
-import CONST from '@src/CONST';
+
+import type {LinkProps, PressProps} from './TextLink';
+
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
 import TextLink from './TextLink';
-import type {LinkProps, PressProps} from './TextLink';
 
 type TextLinkBlockProps = (LinkProps | PressProps) & {
     /** Styles to apply to each word */
@@ -56,7 +62,6 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
                     {!!prefixIcon && index === 0 && <Text> </Text>}
                     <TextLink
                         style={style}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                     >
                         {word}

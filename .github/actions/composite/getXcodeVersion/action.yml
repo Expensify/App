@@ -1,0 +1,19 @@
+name: Get Xcode version
+description: Returns the Xcode version and exports DEVELOPER_DIR for the pinned toolchain
+
+outputs:
+  version:
+    description: The Xcode version
+    value: ${{ steps.getVersion.outputs.VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get Xcode version
+      id: getVersion
+      shell: bash
+      run: |
+        VERSION="26.6"
+        DEVELOPER_DIR="/Applications/Xcode_${VERSION}.app/Contents/Developer"
+        echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"

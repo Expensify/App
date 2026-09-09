@@ -1,15 +1,20 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+
+import type {ValueOf} from 'type-fest';
+
 import type {CardFeedWithNumber} from './CardFeeds';
-import type * as OnyxCommon from './OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
+
+/** Card identifier */
+type CardID = number | string;
 
 /** Model of Expensify card status changes */
 type CardStatusChanges = {
     /** Card status change date */
     date: string;
 
-    /** Card status change value */
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
@@ -41,14 +46,9 @@ type PossibleFraudData = {
 };
 
 /** Model of Expensify card */
-type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Card ID number */
+type Card = OnyxValueWithOfflineFeedback<{
     cardID: number;
-
-    /** Current card state */
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
-
-    /** Bank name */
     bank: CardFeedWithNumber;
 
     /** Available amount to spend */
@@ -60,7 +60,6 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Total spend on the card (comes as a negative number) */
     totalSpend?: number;
 
-    /** Domain name */
     domainName: string;
 
     /** Transaction start date */
@@ -75,19 +74,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
-    /** Pin of the card */
     pin?: string;
-
-    /** Card number */
     cardNumber?: string;
-
-    /** Encrypted card number */
     encryptedCardNumber?: string;
-
-    /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-
-    /** Card name */
     cardName?: string;
 
     /** Related policy account id */
@@ -102,14 +92,14 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether transactions from the card should be marked reimbursable by default */
     reimbursable?: boolean;
 
-    /** Last update result */
     lastScrapeResult?: number;
+    lastImportAttempt?: string;
 
     /** Card related error messages */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: ErrorFields;
 
     /** Is card data loading */
     isLoading?: boolean;
@@ -124,7 +114,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isOfflinePINMarket?: boolean;
 
     /** Additional card data */
-    nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
+    nameValuePairs?: OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
@@ -155,22 +145,11 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Program currency of the card (USD, GBP, or EUR) */
         currency?: string;
 
-        /** Is a virtual card */
         isVirtual?: boolean;
-
-        /** Is a travel card */
         isTravelCard?: boolean;
-
-        /** Previous card state */
         previousState?: number;
-
-        /** Card expiration date */
         expirationDate?: string;
-
-        /** Card status changes */
         statusChanges?: CardStatusChanges[];
-
-        /** Card terminated reason */
         terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
 
         /** Card's primary account identifier */
@@ -187,11 +166,13 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Date when card expires (YYYY-MM-DD format) */
         validThru?: string;
 
-        /** Collection of errors coming from BE */
-        errors?: OnyxCommon.Errors;
+        /** Whether the card's PIN is currently blocked due to too many incorrect entries */
+        isPINBlocked?: boolean;
+
+        errors?: Errors;
 
         /** Collection of form field errors  */
-        errorFields?: OnyxCommon.ErrorFields;
+        errorFields?: ErrorFields;
 
         /**
          * Metadata about when and by whom the card was frozen.
@@ -199,10 +180,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
          */
         frozen?: FrozenCardData | null;
 
-        /** Possible fraud information */
         possibleFraud?: PossibleFraudData;
     }> &
-        OnyxCommon.OnyxValueWithOfflineFeedback<
+        OnyxValueWithOfflineFeedback<
             /** Type of export card */
             Record<ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_POLICY_TYPES>, string>
         >;
@@ -210,10 +190,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** Model of card just added to a wallet */
 type ProvisioningCardData = {
-    /** Card identifier */
     cardToken: string;
-
-    /** Card display name */
     displayName: string;
 
     /** Last 4 digits of the card */
@@ -232,7 +209,7 @@ type ProvisioningCardData = {
     isLoading?: boolean;
 
     /** Error message */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** User's address, required to add card to wallet */
     userAddress: {
@@ -310,10 +287,7 @@ type IssueNewCardData = {
     /** The email address of the inviting member */
     invitingMemberEmail: string;
 
-    /** The accountID of the inviting member */
     invitingMemberAccountID: number;
-
-    /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
 
     /** Card spending limit type */
@@ -322,10 +296,7 @@ type IssueNewCardData = {
     /** Card spending limit */
     limit: number;
 
-    /** Name of the card */
     cardTitle: string;
-
-    /** Currency of the card */
     currency: string;
 
     /** Optional start date for card validity (YYYY-MM-DD) */
@@ -333,6 +304,36 @@ type IssueNewCardData = {
 
     /** Optional end date for card validity (YYYY-MM-DD) */
     validThru?: string;
+
+    /** Whether or not we are adding a spend rule to the card or not */
+    spendRuleEnabled?: boolean;
+
+    /** Whether or not we will use an existing spend rule, or create a new one */
+    spendRuleOption?: ValueOf<typeof CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION>;
+
+    /** Optional card rule ID for card rule creation/duplicating */
+    spendRuleID?: string;
+
+    /** Optional card rule value for creating a new card rule */
+    spendRuleValue?: {
+        /** The type of restriction on the card */
+        restrictionAction?: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+
+        /** The merchant names for the spend rule, if applicable */
+        merchantNames?: string[];
+
+        /** The merchant match types for the spend rule, if applicable */
+        merchantMatchTypes?: Array<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>;
+
+        /** The categories for the spend rule, if applicable */
+        categories?: SpendRuleCategory[];
+
+        /** The maximum amount for the spend rule, if applicable (in cents) */
+        maxAmount?: string;
+
+        /** The currencies to limit the rule to */
+        currencies?: string[];
+    };
 };
 
 /** Model of Issue new card flow */
@@ -353,7 +354,7 @@ type IssueNewCard = {
     isLoading?: boolean;
 
     /** Error message */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /** Whether the request was successful */
     isSuccessful?: boolean;
@@ -384,19 +385,15 @@ type CardAssignmentData = {
     /** User-defined name for the card (e.g., "John's card") */
     customCardName?: string;
 
-    /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
-
-    /** Errors */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 
     /**
      *
      */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: ErrorFields;
 
-    /** Pending action */
-    pendingAction?: OnyxCommon.PendingAction;
+    pendingAction?: PendingAction;
 };
 
 /**
@@ -412,6 +409,7 @@ type FrozenCardData = {
 
 export default Card;
 export type {
+    CardID,
     ExpensifyCardDetails,
     CardList,
     IssueNewCard,
@@ -424,5 +422,4 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
-    FrozenCardData,
 };

@@ -1,16 +1,19 @@
-import React from 'react';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import BillingBanner from './BillingBanner';
+
+import React from 'react';
+
 import type {BillingBannerProps} from './BillingBanner';
+
+import BillingBanner from './BillingBanner';
 
 type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 'subtitleStyle' | 'style' | 'brickRoadIndicator' | 'icon'> & {
     /** Indicates whether there is an error */
     isError?: boolean;
 
-    /** An optional icon prop */
     icon?: IconAsset;
 };
 

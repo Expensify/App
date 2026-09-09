@@ -1,37 +1,33 @@
-import React, {useEffect, useState} from 'react';
-import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ExtraLoadingContext} from '@libs/AppState';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Text from './Text';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** Whether the "Go Back" button appears after a timeout. */
     shouldUseGoBackButton?: boolean;
 
-    /** The ID of the test to be used for testing */
     testID?: string;
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
-
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function FullScreenLoadingIndicator({
@@ -40,12 +36,10 @@ function FullScreenLoadingIndicator({
     shouldUseGoBackButton = false,
     testID = '',
     extraLoadingContext,
-    reasonAttributes,
 }: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
-    useSkeletonSpan('FullScreenLoadingIndicator', reasonAttributes);
 
     useEffect(() => {
         if (!shouldUseGoBackButton) {
@@ -59,23 +53,21 @@ function FullScreenLoadingIndicator({
     }, [shouldUseGoBackButton]);
 
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, style]}>
             <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize}
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
-                    reasonAttributes={reasonAttributes}
                 />
                 {showGoBackButton && shouldUseGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>
                         </View>
-                        <Button
-                            text={translate('common.goBack')}
-                            onPress={() => Navigation.goBack()}
-                        />
+                        <Button onPress={() => Navigation.goBack()}>
+                            <Button.Text>{translate('common.goBack')}</Button.Text>
+                        </Button>
                     </View>
                 )}
             </View>

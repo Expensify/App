@@ -20,24 +20,27 @@ If your company’s business bank account is located in Australia, you can enabl
 ## Australia Document Requirements
 
 * ✅ Address verification document
-* ✅ Bank statement for direct debit setup
+* ✅ Recent bank statement (dated within the last three months) for the business bank account you're connecting, used for direct debit setup
 * ✅ Proof of Beneficial Ownership
 * ✅ Certified ID & Proof of Address for all signatories
 * ✅ Entity ownership chart signed by a CPA, lawyer, or notary
+* ✅ Directors added as signers must be listed on the company's illion report
+
+Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
 
 ---
 
-# Step 1: Connect Your Australian Bank Account
+## How to connect your Australian bank account
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **AUD A$**.
-3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
+3. From the workspace settings left-hand menu, click **Workflows > enable Payments**
 4. Under **Connect bank account > Confirm currency and country (Australia - AUD A$)**
 5. Click **Confirm**.
 
 ---
 
-# Step 2: Submit Bank and Business Information
+## How to submit bank and business information
 
 1. **Enter Business Bank Account Details**
    * Account name
@@ -60,15 +63,27 @@ If your company’s business bank account is located in Australia, you can enabl
    * Upload signed entity ownership chart
 6. **Add Director Information**
    * If any beneficial owner is also a director, their info is reused automatically.
-   * Otherwise, enter the name and email address of the Director or Senior Officer.
+   * Otherwise, enter the name and email address of the Director.
    * They’ll receive a message prompting them to securely enter their personal information in the setup flow.
    * Once the Director has entered their info and uploaded ID and proof of address, the submission can proceed.
 
-**Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies.
+**Note:** For global reimbursements, Expensify requires information from at least two Directors for Australian companies.
+
+**Note:** Both signers must be listed as directors on the company's illion report. They can't be any two people at the business.
+
+**Note:** Each designated Director will also see a **Signer info needed** task in the **Time sensitive** section of their **Home** page. They can select **Begin** to enter their information directly from there.
 
 ---
 
-# Step 3: Confirm Test Transactions
+## How to review the disclosure paperwork and provide a bank statement
+
+As per Australian regulation, Expensify provides Corpay's **Financial Services Guide (FSG)**, **Product Disclosure Statement (PDS)**, and **Target Market Determination (TMD)** during setup. Read these documents carefully as they contain full details and important information on the products and services Corpay offers, and retain them for future reference.
+
+You'll also be asked to provide a recent bank statement, dated within the last three months, for the business bank account you're connecting.
+
+---
+
+## How to confirm test transactions
 
 1. Expensify will send test deposits to your bank account. Once you see those transactions, contact Concierge support to confirm that you received them.
 2. After you confirm the receipt of those test transactions, Expensify will complete the bank account verification.
@@ -76,13 +91,13 @@ If your company’s business bank account is located in Australia, you can enabl
 
 ---
 
-# Step 4: Start Sending Global Reimbursements
+## How to start sending global reimbursements
 
 ⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–4 weeks. Once verified, you can start reimbursing within 2 business days.
 
 To begin reimbursing:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Payments**.
 2. Set the verified AUD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

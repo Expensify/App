@@ -1,12 +1,20 @@
 import {act, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -32,11 +40,11 @@ describe('Sidebar', () => {
     beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             // Initialize the network key for OfflineWithFeedback
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -59,13 +67,13 @@ describe('Sidebar', () => {
                 lastMessageText: 'test',
             };
 
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 actionName: 'CLOSED',
                 originalMessage: {
                     reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
                 },
-            };
+            });
 
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
@@ -84,7 +92,7 @@ describe('Sidebar', () => {
 
                         const reportAction: ReportActionsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionsCollectionDataSet;
+                        };
 
                         const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
@@ -95,7 +103,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,
@@ -122,14 +130,14 @@ describe('Sidebar', () => {
                 private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
-            const action = {
+            const action = createMock<ReportAction>({
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 actionName: 'CLOSED',
                 originalMessage: {
                     policyName: 'Vikings Policy',
                     reason: 'policyDeleted',
                 },
-            };
+            });
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
@@ -147,7 +155,7 @@ describe('Sidebar', () => {
 
                         const reportAction: ReportActionsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
-                        } as ReportActionsCollectionDataSet;
+                        };
 
                         const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
                             [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
@@ -158,7 +166,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,

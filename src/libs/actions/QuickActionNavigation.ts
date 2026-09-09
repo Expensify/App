@@ -1,11 +1,13 @@
 import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
-import type {IOURequestType} from './IOU';
-import {startDistanceRequest, startMoneyRequest} from './IOU';
+
+import {startDistanceRequest, startMoneyRequest} from './IOU/MoneyRequest';
 import {startOutCreateTaskQuickAction} from './Task';
 
 type NavigateToQuickActionParams = {
@@ -31,7 +33,7 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
         requestType = CONST.IOU.REQUEST_TYPE.SCAN;
     } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
         requestType = lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
+    } else if ([CONST.QUICK_ACTIONS.PER_DIEM, CONST.QUICK_ACTIONS.TRACK_PER_DIEM].some((a) => a === action)) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     } else if (action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
         requestType = CONST.IOU.REQUEST_TYPE.TIME;
@@ -65,13 +67,13 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, draftTransactionIDs, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_TIME:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, requestType, false, undefined, isFromFloatingActionButton), true);
@@ -79,4 +81,5 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         default:
     }
 }
-export {navigateToQuickAction, getQuickActionRequestType};
+// eslint-disable-next-line import/prefer-default-export
+export {navigateToQuickAction};

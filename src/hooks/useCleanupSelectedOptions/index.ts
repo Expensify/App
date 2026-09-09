@@ -1,7 +1,9 @@
+import {navigationRef} from '@libs/Navigation/Navigation';
+
+import NAVIGATORS from '@src/NAVIGATORS';
+
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
-import {navigationRef} from '@libs/Navigation/Navigation';
-import NAVIGATORS from '@src/NAVIGATORS';
 
 const useCleanupSelectedOptions = (cleanupFunction?: () => void) => {
     const isFocused = useIsFocused();

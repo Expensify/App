@@ -1,10 +1,14 @@
-import {Str} from 'expensify-common';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+
 import useOnyx from './useOnyx';
 
 const useHasPhoneNumberLogin = () => {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
 
     const isPrimaryEmailPhone = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);

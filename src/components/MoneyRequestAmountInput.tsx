@@ -1,29 +1,27 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
+
+import type {ForwardedRef} from 'react';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useCallback, useEffect, useRef} from 'react';
+
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
-import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type MoneyRequestAmountInputRef = {
-    changeSelection: (newSelection: Selection) => void;
-    changeAmount: (newAmount: string) => void;
-    getAmount: () => string;
-    getSelection: () => Selection;
-};
+import NumberWithSymbolForm from './NumberWithSymbolForm';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
 
-    /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency?: string) => string;
+    onFormatAmount: (amount: number, currency?: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -34,37 +32,22 @@ type MoneyRequestAmountInputProps = {
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress?: () => void;
 
-    /** Function to call when the amount changes */
     onAmountChange?: (amount: string) => void;
-
-    /** Style for the input */
     inputStyle?: StyleProp<TextStyle>;
-
-    /** Style for the container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Character to be shown before the amount */
     prefixCharacter?: string;
 
-    /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
     /** Whether to disable native keyboard on mobile */
     disableKeyboard?: boolean;
 
-    /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
-
-    /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Style for the touchable input wrapper */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Whether we want to format the display amount on blur */
     formatAmountOnBlur?: boolean;
-
-    /** Max length for the amount input */
     maxLength?: number;
 
     /** Hide the focus styles on TextInput */
@@ -78,19 +61,13 @@ type MoneyRequestAmountInputProps = {
      */
     autoGrow?: boolean;
 
-    /** The width of inner content */
     contentWidth?: number;
 
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
-    /** Whether the amount is negative */
     isNegative?: boolean;
-
-    /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
-
-    /** Function to clear the negative amount */
     clearNegative?: () => void;
 
     /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
@@ -99,13 +76,12 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
+    negativeSymbolStyle?: StyleProp<TextStyle>;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
-    /** Whether to show the big number pad */
     shouldShowBigNumberPad?: boolean;
-
-    /** Whether to use dynamic font size for the amount input */
     shouldUseDynamicFontSize?: boolean;
 
     /** Error to display at the bottom of the form */
@@ -114,7 +90,6 @@ type MoneyRequestAmountInputProps = {
     /** Footer to display at the bottom of the form */
     footer?: React.ReactNode;
 
-    /** Reference to the amount form */
     moneyRequestAmountInputRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /**
@@ -124,22 +99,19 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
-    /** Whether the input is disabled or not */
+    /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether to refocus the input when clicking on the ScrollView empty space.
+     * Prevents focus loss when clicking empty space left of the right-aligned input.
+     */
+    shouldRefocusOnScrollViewClick?: boolean;
+
     disabled?: boolean;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
-
-type Selection = {
-    start: number;
-    end: number;
-};
-
-const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
 /**
  * Specialized money amount input with currency and money amount formatting.
@@ -154,7 +126,7 @@ function MoneyRequestAmountInput({
     hideCurrencySymbol = false,
     moneyRequestAmountInputRef,
     disableKeyboard = true,
-    onFormatAmount = defaultOnFormatAmount,
+    onFormatAmount,
     formatAmountOnBlur,
     maxLength,
     hideFocusedState = true,
@@ -169,9 +141,12 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
+    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
+    negativeSymbolStyle,
     toggleNegative,
     clearNegative,
     ref,
@@ -247,6 +222,7 @@ function MoneyRequestAmountInput({
             currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
+            symbolTextStyle={props.symbolTextStyle}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}
@@ -256,12 +232,15 @@ function MoneyRequestAmountInput({
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
+            scrollViewStyle={scrollViewStyle}
+            shouldRefocusOnScrollViewClick={shouldRefocusOnScrollViewClick}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
             isNegative={isNegative}
+            negativeSymbolStyle={negativeSymbolStyle}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
@@ -280,4 +259,4 @@ function MoneyRequestAmountInput({
 }
 
 export default MoneyRequestAmountInput;
-export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps};

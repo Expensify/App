@@ -1,10 +1,16 @@
 import type {FormInputErrors} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
+
+import type {FormulaPart} from './Formula';
+
 import {addErrorMessage} from './ErrorUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
@@ -62,8 +68,9 @@ function validateReportFieldListValueName(
 /**
  * Generates a field ID based on the field name.
  */
-function generateFieldID(name: string) {
-    return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+function generateFieldID(name: string, target?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>) {
+    const targetPrefix = target ? `${target.toUpperCase()}_` : '';
+    return `field_id_${targetPrefix}${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
 /**
@@ -96,7 +103,7 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 
     // Dynamically require to avoid circular dependency with ReportActionsUtils
     const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
-        parse: (formula?: string) => Array<{type: string}>;
+        parse: (formula?: string) => FormulaPart[];
         FORMULA_PART_TYPES: {FREETEXT: string};
     };
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
@@ -105,8 +112,150 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 /**
  * Checks if a report field name already exists in the policy's field list (case-insensitive).
  */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => {
+        if (!isReportFieldTargetValid(reportField, expectedTarget)) {
+            return false;
+        }
+
+        return reportField.name.toLowerCase() === fieldName.toLowerCase();
+    });
+}
+
+/**
+ * Determines whether a report field matches the expected target.
+ */
+function isReportFieldTargetValid(reportField: PolicyReportField | null, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    if (!reportField) {
+        return false;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.INVOICE) {
+        return reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.EXPENSE) {
+        return !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    }
+
+    return true;
+}
+
+/**
+ * Returns report fields that match the expected target.
+ */
+function getReportFieldsForTarget(fieldList: Record<string, PolicyReportField> | undefined, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): Record<string, PolicyReportField> {
+    return Object.fromEntries(Object.entries(fieldList ?? {}).filter(([, reportField]) => isReportFieldTargetValid(reportField, expectedTarget)));
+}
+
+/**
+ * Determines whether a report field was imported from an accounting integration.
+ */
+function isReportFieldImportedFromIntegration(reportField: PolicyReportField | undefined | null): boolean {
+    if (!reportField?.origin) {
+        return false;
+    }
+
+    return (Object.values(CONST.POLICY.CONNECTIONS.REPORT_FIELD_ORIGIN) as string[]).includes(reportField.origin);
+}
+
+/**
+ * Returns the list of unsupported {report:*} formula parts in the initial value.
+ * Used to validate formula report fields so unsupported tokens (e.g. {report:i}) are rejected with a clear error.
+ */
+function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] {
+    if (!initialValue || typeof initialValue !== 'string') {
+        return [];
+    }
+
+    // Dynamically require to avoid circular dependency with ReportActionsUtils
+    const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
+        parse: (formula?: string) => FormulaPart[];
+        FORMULA_PART_TYPES: {REPORT: string};
+    };
+
+    // cspell:ignore oldid
+    const supportedReportFields = new Set([
+        'id',
+        'oldid',
+        'title',
+        'status',
+        'displaystatus',
+        'expensescount',
+        'type',
+        'startdate',
+        'enddate',
+        'total',
+        'reimbursable',
+        'currency',
+        'policyname',
+        'workspacename',
+        'created',
+        'approve',
+        'submit',
+        'autoreporting',
+    ]);
+
+    const supportedSubmitDirections = new Set(['from', 'to', 'date']);
+    const supportedSubmitPersonFields = new Set(['firstname', 'lastname', 'fullname', 'email', 'userid', 'customfield1', 'payrollid', 'customfield2']);
+    const supportedAutoReportingFields = new Set(['start', 'end']);
+
+    const unsupported: string[] = [];
+    const parts = parse(initialValue);
+
+    for (const part of parts) {
+        if (part.type !== FORMULA_PART_TYPES.REPORT) {
+            continue;
+        }
+
+        const [field, ...rest] = part.fieldPath ?? [];
+        const normalizedField = field?.trim().toLowerCase();
+
+        if (!normalizedField || !supportedReportFields.has(normalizedField)) {
+            unsupported.push(part.definition);
+            continue;
+        }
+
+        if (normalizedField === 'submit') {
+            const direction = rest.at(0)?.trim().toLowerCase();
+            if (!direction || !supportedSubmitDirections.has(direction)) {
+                unsupported.push(part.definition);
+                continue;
+            }
+
+            // report:submit:from and report:submit:to are valid without subfield.
+            if ((direction === 'from' || direction === 'to') && rest.length === 1) {
+                continue;
+            }
+
+            // report:submit:date is valid (format is optional and validated elsewhere)
+            if (direction === 'date') {
+                continue;
+            }
+
+            // report:submit:from:* and report:submit:to:* need a subfield
+            const submitField = rest.at(1)?.trim().toLowerCase();
+            if (!submitField || !supportedSubmitPersonFields.has(submitField)) {
+                unsupported.push(part.definition);
+            }
+            continue;
+        }
+
+        if (normalizedField === 'autoreporting') {
+            const subField = rest.at(0)?.trim().toLowerCase();
+            if (!subField || !supportedAutoReportingFields.has(subField)) {
+                unsupported.push(part.definition);
+            }
+        }
+
+        if (normalizedField === 'approve') {
+            if (rest.at(0)?.trim().toLowerCase() !== 'date') {
+                unsupported.push(part.definition);
+            }
+        }
+    }
+
+    return unsupported;
 }
 
 export {
@@ -115,6 +264,10 @@ export {
     validateReportFieldListValueName,
     generateFieldID,
     getReportFieldInitialValue,
+    getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    isReportFieldTargetValid,
+    getReportFieldsForTarget,
+    isReportFieldImportedFromIntegration,
 };

@@ -1,0 +1,17 @@
+name: Check validateCode terminology
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths: ['**.ts', '**.tsx', '**.md']
+
+jobs:
+  check:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+
+      - name: Check validateCode terminology
+        run: ./scripts/checkValidateCodeTerminology.sh

@@ -16,7 +16,7 @@ buildscript {
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
         reactNativeIncludedBuild = gradle.getIncludedBuilds().find { it.name == 'react-native' }
-        // This is our custom extension that we defined in gradleUtils/PatchedArtifactsSettings.gradle
+        // This is our custom extension that we defined in scripts/artifacts-utils/android/PatchedArtifactsSettings.gradle
         // It enables us to use custom artifacts of patched react-native
         patchedArtifactsConfig = project.gradle.settings.extensions.findByName('patchedArtifacts')
     }
@@ -30,7 +30,7 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("com.google.gms:google-services:4.3.4")
         // Fullstory integration
-        classpath ("com.fullstory:gradle-plugin-local:1.68.3")
+        classpath ("com.fullstory:gradle-plugin-local:1.70.1")
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files

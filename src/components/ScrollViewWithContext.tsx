@@ -1,9 +1,13 @@
+import CONST from '@src/CONST';
+
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {createContext, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
-import CONST from '@src/CONST';
+
+import React, {createContext, useMemo, useRef, useState} from 'react';
+
 import type {ScrollViewProps} from './ScrollView';
+
 import ScrollView from './ScrollView';
 
 type ScrollContextValue = {
@@ -51,7 +55,6 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
 
     return (
         <ScrollView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}

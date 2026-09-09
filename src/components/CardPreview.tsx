@@ -1,12 +1,20 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getCardFeedTextColor} from '@libs/CardUtils';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -35,6 +43,7 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
                 styles.alignSelfCenter,
                 {
                     width: variables.cardPreviewWidth,
+                    ...(overlayImage ? {height: variables.cardScarfOverlayHeight} : {}),
                 },
             ]}
         >
@@ -47,7 +56,7 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
                     width={variables.cardPreviewWidth}
                 />
                 <Text
-                    style={styles.walletCardHolder}
+                    style={[styles.walletCardHolder, {color: getCardFeedTextColor(CONST.EXPENSIFY_CARD.BANK)}]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >

@@ -1,23 +1,26 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
-import {isUsingStagingApi} from '@libs/ApiUtils';
-import Navigation from '@libs/Navigation/Navigation';
+
+import {getActiveServer} from '@libs/ApiUtils';
+
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
+import {setActiveServer, setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
+
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import Button from './Button';
+
+import React from 'react';
+import {Platform} from 'react-native';
+
+import BiometricsTestToolRow from './BiometricsTestToolRow';
+import Button from './ButtonComposed';
+import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -27,37 +30,18 @@ import Text from './Text';
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
-    const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
-    const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
-
-    const {singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
-
-    /**
-     * The wrapper is needed to prevent rapid double‑taps on native from triggering multiple navigations.
-     * Context: https://github.com/Expensify/App/pull/79475#discussion_r2708230681
-     */
-    const navigateToBiometricsTestPage = singleExecution(
-        waitForNavigate(() => {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
-        }),
-    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    const statusTextMap = {
-        [REGISTRATION_STATUS.NEVER_REGISTERED]: translate('multifactorAuthentication.biometricsTest.statusNeverRegistered'),
-        [REGISTRATION_STATUS.NOT_REGISTERED]: translate('multifactorAuthentication.biometricsTest.statusNotRegistered'),
-        [REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE]: translate('multifactorAuthentication.biometricsTest.statusRegisteredOtherDevice', {count: otherDeviceCount}),
-        [REGISTRATION_STATUS.REGISTERED_THIS_DEVICE]: translate('multifactorAuthentication.biometricsTest.statusRegisteredThisDevice'),
-    };
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {status: statusTextMap[registrationStatus]});
+    // Agent accounts can't have biometric multifactor authentication, so hide the biometrics test row for them.
+    const isAgentAccount = useIsAgentAccount();
 
     return (
         <>
@@ -81,65 +65,59 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
+                    {/* When toggled on web, the current git branch name is prepended to the browser tab title. */}
+                    {Platform.OS === 'web' && !!__GIT_BRANCH__ && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}
+                                isOn={shouldShowBranchNameInTitle}
+                                onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
+                            />
+                        </TestToolRow>
+                    )}
+
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.invalidate')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateAuthToken()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.invalidate')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
-                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    {/* Clears stored auto-generated credentials, corrupts the local authToken and fires a request so reauth fails and the user is signed out. Useful for manually testing sign out logic. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.destroy')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateCredentials()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.destroy')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
                     {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => expireSessionWithDelay()}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
                     {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
                         <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={clearLHNCache}
-                        />
+                        >
+                            <Button.Text>{translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}</Button.Text>
+                        </Button>
                     </TestToolRow>
 
-                    {/* Allows testing the biometric multifactor authentication flow */}
-                    <TestToolRow title={biometricsTitle}>
-                        <View style={[styles.flexRow, styles.gap2]}>
-                            <Button
-                                small
-                                text={translate('multifactorAuthentication.biometricsTest.test')}
-                                onPress={() => navigateToBiometricsTestPage()}
-                            />
-                            {isCurrentDeviceRegistered && !!localCredentialID && (
-                                <Button
-                                    danger
-                                    isLoading={isMFARevokeLoading}
-                                    small
-                                    text={translate('multifactorAuthentication.revoke.revoke')}
-                                    onPress={async () => {
-                                        setIsMFARevokeLoading(true);
-                                        await revokeMultifactorAuthenticationCredentials({onlyKeyID: localCredentialID});
-                                        setIsMFARevokeLoading(false);
-                                    }}
-                                />
-                            )}
-                        </View>
-                    </TestToolRow>
+                    {/* Allows testing and revoking biometric multifactor authentication */}
+                    {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
             )}
 
@@ -153,11 +131,14 @@ function TestToolMenu() {
                 >
                     <Switch
                         accessibilityLabel="Use Staging Server"
-                        isOn={shouldUseStagingServer}
-                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
+                        isOn={activeServer === CONST.SERVER.STAGING}
+                        onToggle={(isOn) => setActiveServer(isOn ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION)}
                     />
                 </TestToolRow>
             )}
+
+            {/* QA server auth flow. Web only, and only when it is configured. */}
+            <QAAuthTestToolRows />
 
             {/* When toggled the app will be forced offline. */}
             <TestToolRow
@@ -180,7 +161,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
-                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>

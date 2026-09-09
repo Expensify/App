@@ -1,23 +1,27 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
-    /** TestID for test */
     testID?: string;
-
-    /** Child elements */
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "not found" view */
@@ -47,7 +51,6 @@ type FullPageNotFoundViewProps = {
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
     /** The style of the subtitle message */
@@ -56,14 +59,10 @@ type FullPageNotFoundViewProps = {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({
     testID,
     children = null,

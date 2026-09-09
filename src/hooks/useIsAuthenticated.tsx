@@ -1,5 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import {authTokenSelector} from '@src/selectors/Session';
+
 import useOnyx from './useOnyx';
 
 function useIsAuthenticated() {

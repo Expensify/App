@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
-import {convertToDisplayString} from './CurrencyUtils';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -27,7 +31,12 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
+function formatRequireReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
@@ -46,7 +55,12 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
-function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
+function formatRequireItemizedReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoItemizedReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
@@ -83,7 +97,10 @@ function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: strin
 }
 
 function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
-    const categoryDefaultTaxRate = expenseRules?.find((rule) => rule.applyWhen.some((when) => when.value === categoryName))?.tax?.field_id_TAX?.externalID;
+    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
+    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
+    // rate an expense picks up would not be the one the admin set.
+    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
 
     // If the default taxRate is not found in expenseRules, use the default value for policy
     if (!categoryDefaultTaxRate) {
@@ -133,8 +150,70 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
+    if (!policyCategories || !category) {
+        return '';
+    }
+    const glCode = policyCategories[category]?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
+}
+
+/**
+ * Splits a category name on the colon separator, removes empty middle segments,
+ * and merges a trailing empty segment into the previous part (preserving trailing colons).
+ *
+ * Examples:
+ *   "Food: Meat" → ["Food", "Meat"]
+ *   "A: B:" → ["A", "B:"]
+ *   "A: B: :" → ["A", "B:"]
+ *   "A: B::" → ["A", "B:"]
+ *   "A: B:::" → ["A", "B:"]
+ *   ":D" → ["D"]
+ *   "Plain" → ["Plain"]
+ */
+function processCategoryNameSegments(categoryName: string): string[] {
+    const parts = categoryName.split(CONST.PARENT_CHILD_SEPARATOR);
+    const result: string[] = [];
+
+    // Keep only parts that contain at least one non‑whitespace character.
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts.at(i);
+        if (part === undefined) {
+            continue;
+        }
+        if (part.trim() !== '') {
+            result.push(part);
+        }
+    }
+
+    // If all segments were empty but the original name is not empty,
+    // treat the whole name as a single segment (e.g., ":" or "::").
+    if (result.length === 0 && categoryName.trim() !== '') {
+        return [categoryName.trim()];
+    }
+
+    // If the original name ends with a colon (allowing trailing spaces), append a colon to the last segment.
+    const endsWithColon = categoryName.trim().endsWith(CONST.PARENT_CHILD_SEPARATOR);
+    if (endsWithColon && result.length > 0) {
+        result[result.length - 1] = result.at(result.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
+    }
+
+    return result;
+}
+
+function getDecodedLeafCategoryName(categoryName: string): string {
+    const segments = processCategoryNameSegments(categoryName);
+    const leaf = segments.at(segments.length - 1) ?? '';
+    return Str.htmlDecode(leaf.trim());
+}
+
+function getDecodedFullCategoryName(categoryName: string): string {
+    const segments = processCategoryNameSegments(categoryName).map((segment) => segment.trim());
+    return Str.htmlDecode(segments.join(`${CONST.PARENT_CHILD_SEPARATOR} `));
 }
 
 function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
@@ -149,17 +228,40 @@ function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollectio
     );
 }
 
+function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean {
+    return Object.values(categories ?? {}).some((category) => {
+        if (category.maxExpenseAmount !== undefined && category.maxExpenseAmount !== null && category.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+            return true;
+        }
+        // null means "use policy default" (inactive); 0 = always required, DISABLED_MAX_EXPENSE_VALUE = never required — both are explicit overrides
+        if (category.maxAmountNoReceipt !== undefined && category.maxAmountNoReceipt !== null) {
+            return true;
+        }
+        if (category.maxAmountNoItemizedReceipt !== undefined && category.maxAmountNoItemizedReceipt !== null) {
+            return true;
+        }
+        if (category.areCommentsRequired || category.areAttendeesRequired) {
+            return true;
+        }
+        return !!category.commentHint;
+    });
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryGLCode,
     getDecodedCategoryName,
+    getDecodedLeafCategoryName,
+    getDecodedFullCategoryName,
+    processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
+    hasAnyCategoryRules,
 };

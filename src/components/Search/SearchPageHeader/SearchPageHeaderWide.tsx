@@ -1,24 +1,28 @@
-import React from 'react';
 import TopBar from '@components/Navigation/TopBar';
 import type {SearchQueryJSON} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+
+import React from 'react';
+
+import getSearchPageHeaderTitle from './getSearchPageHeaderTitle';
 
 type SearchPageHeaderWideProps = {
     queryJSON: SearchQueryJSON;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
+
 function SearchPageHeaderWide({queryJSON}: SearchPageHeaderWideProps) {
     const {translate} = useLocalize();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections(queryJSON);
-    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex);
-    const title = activeItemIndex >= 0 && selectedItem ? translate(selectedItem.translationPath) : translate('common.reports');
+    const {typeMenuSections, activeItemIndex, activeSavedSearch} = useSearchTypeMenuSections(queryJSON);
+    const selectedItem = activeItemIndex >= 0 ? typeMenuSections.flatMap((section) => section.menuItems).at(activeItemIndex) : undefined;
+
+    const title = getSearchPageHeaderTitle({translate, type: queryJSON.type, activeSavedSearch, selectedItem});
 
     return (
         <TopBar
             shouldShowLoadingBar={false}
             breadcrumbLabel={title}
-            shouldDisplaySearch={false}
             shouldDisplayHelpButton
         />
     );

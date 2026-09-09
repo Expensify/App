@@ -1,15 +1,21 @@
-import React, {useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
+
 import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import React, {useMemo, useState} from 'react';
 
 function CountrySelection() {
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
@@ -50,6 +56,7 @@ function CountrySelection() {
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
     const onCountrySelected = (countryChecked: string) => {
         setShouldShowError(false);
@@ -61,10 +68,12 @@ function CountrySelection() {
             setShouldShowError(true);
             return;
         }
-        clearReimbursementAccount();
-        clearReimbursementAccountDraft();
-        updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
-        navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+        startWithLoading(() => {
+            clearReimbursementAccount();
+            clearReimbursementAccountDraft();
+            updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
+            navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+        });
     };
 
     return (
@@ -76,6 +85,8 @@ function CountrySelection() {
             footerContent={
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.next')}
+                    shouldShowLoadingImmediatelyOnPress={false}
+                    isLoading={isLoading}
                     onSubmit={onConfirm}
                     isAlertVisible={shouldShowError}
                     containerStyles={[!shouldShowError && styles.mt5]}

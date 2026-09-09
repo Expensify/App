@@ -1,13 +1,11 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     updateNetSuiteAutoCreateEntities,
     updateNetSuiteCustomFormIDOptionsEnabled,
@@ -17,15 +15,16 @@ import {
 } from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
-    findSelectedBankAccountWithDefaultSelect,
     getFilteredApprovalAccountOptions,
     getFilteredCollectionAccountOptions,
     getFilteredReimbursableAccountOptions,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
+
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideCustomFormIDOptions,
@@ -37,17 +36,24 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
+    const autoSync = !!autoSyncConfig?.autoSync?.enabled;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
@@ -55,21 +61,22 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const shouldAnimateAccordionSection = useSharedValue(false);
 
     const selectedReimbursementAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
+        () => getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID),
         [payableList, config?.reimbursementAccountID],
     );
     const selectedCollectionAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(getFilteredCollectionAccountOptions(payableList), config?.collectionAccount),
+        () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
         [payableList, config?.collectionAccount],
     );
     const selectedApprovalAccount = useMemo(() => {
-        if (config?.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
+        // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
+        if (!config?.approvalAccount || config.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
             return {
                 id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
+        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
@@ -93,11 +100,11 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
-            title: autoSyncConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
+            title: autoSync ? translate('common.enabled') : translate('common.disabled'),
             description: translate('workspace.accounting.autoSync'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path)),
             hintText: (() => {
-                if (!autoSyncConfig?.autoSync?.enabled) {
+                if (!autoSync) {
                     return undefined;
                 }
                 return translate(
@@ -291,7 +298,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <ToggleSettingOptionRow
                                     key={rest.title}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />
@@ -316,5 +322,3 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 }
 
 export default withPolicyConnections(NetSuiteAdvancedPage);
-
-export {shouldHideReimbursedReportsSection};

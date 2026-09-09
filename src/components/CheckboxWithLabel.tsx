@@ -1,9 +1,13 @@
-import type {ComponentType, ForwardedRef} from 'react';
-import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {ComponentType, ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -20,7 +24,6 @@ type RequiredLabelProps =
           LabelComponent?: ComponentType;
       }
     | {
-          /** Component to display for label */
           LabelComponent: ComponentType;
 
           /** Text that appears next to check box
@@ -30,7 +33,6 @@ type RequiredLabelProps =
       };
 
 type CheckboxWithLabelProps = RequiredLabelProps & {
-    /** Whether the checkbox is checked */
     isChecked?: boolean;
 
     /** Called when the checkbox or label is pressed */
@@ -39,13 +41,11 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     /** Container styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Error text to display */
     errorText?: string;
 
     /** Value for checkbox. This prop is intended to be set by FormProvider only */
     value?: boolean;
 
-    /** The default value for the checkbox */
     defaultValue?: boolean;
 
     /** The ID used to uniquely identify the input in a Form */
@@ -56,10 +56,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     shouldSaveDraft?: boolean;
 
-    /** An accessibility label for the checkbox */
     accessibilityLabel?: string;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
@@ -93,7 +90,7 @@ function CheckboxWithLabel({
 
     return (
         <View style={style}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.userSelectNone]}>
                 <Checkbox
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}

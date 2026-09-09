@@ -1,9 +1,12 @@
-import type {ReactNode} from 'react';
-import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {FocusTrapOptions} from '@components/Modal/types';
+
+import type CONST from '@src/CONST';
+
+import type {ReactNode, Ref, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
+import type {NativeSyntheticEvent, StyleProp, Text, View, ViewProps, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import type {FocusTrapOptions} from '@components/Modal/types';
-import type CONST from '@src/CONST';
 
 type GestureProps = {
     /** Height of the device (used for positioning) */
@@ -26,8 +29,8 @@ type GestureHandlerProps = {
     swipeDirection?: SwipeDirection | SwipeDirection[];
 };
 
-type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight';
-type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+type AnimationIn = 'fadeIn' | 'slideInUp' | 'slideInRight' | 'slideAndFadeInRight';
+type AnimationOut = 'fadeOut' | 'slideOutDown' | 'slideOutRight' | 'slideAndFadeOutRight';
 
 type ReanimatedModalProps = ViewProps &
     GestureProps &
@@ -54,7 +57,6 @@ type ReanimatedModalProps = ViewProps &
             }>,
         ) => void;
 
-        /** The presentation style of the modal */
         presentationStyle?: 'fullScreen' | 'pageSheet' | 'formSheet' | 'overFullScreen';
 
         /** Enum for animation type when modal appears */
@@ -81,10 +83,7 @@ type ReanimatedModalProps = ViewProps &
         /** Whether the modal should have a backdrop */
         hasBackdrop?: boolean;
 
-        /** Color of the backdrop */
         backdropColor?: string;
-
-        /** Opacity of the backdrop */
         backdropOpacity?: number;
 
         /** Duration of backdrop transition when modal appears */
@@ -93,13 +92,8 @@ type ReanimatedModalProps = ViewProps &
         /** Duration of backdrop transition when modal disappears */
         backdropTransitionOutTiming?: number;
 
-        /** Custom component to use as the backdrop */
         customBackdrop?: ReactNode;
-
-        /** Whether to hide modal content during animations */
         hideModalContentWhileAnimating?: boolean;
-
-        /** Whether the modal is visible */
         isVisible?: boolean;
 
         /** Callback when modal has fully appeared */
@@ -114,7 +108,6 @@ type ReanimatedModalProps = ViewProps &
         /** Callback when modal is about to disappear */
         onModalWillHide?: () => void;
 
-        /** Callback when the backdrop is pressed */
         onBackdropPress?: () => void;
 
         /** Callback when the back button is pressed (on Android) */
@@ -127,11 +120,7 @@ type ReanimatedModalProps = ViewProps &
         supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
 
         navigationBarTranslucent?: boolean;
-
-        /** Modal type */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-
-        /** Whether to prevent scroll on focus */
         shouldPreventScrollOnFocus?: boolean;
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */
@@ -148,7 +137,12 @@ type ReanimatedModalProps = ViewProps &
          */
         shouldReturnFocus?: boolean;
 
-        /** Whether to ignore the back handler during transition */
+        /**
+         * The element that opened this modal, a popover's anchor. Used only when nothing held focus at activation time,
+         * which is the case for triggers that blur themselves to avoid a focus ring (the FAB, the composer "+").
+         */
+        launcherRef?: RefObject<View | Text | HTMLElement | null>;
+
         shouldIgnoreBackHandlerDuringTransition?: boolean;
     };
 
@@ -156,29 +150,22 @@ type BackdropProps = {
     /** Style applied to the modal backdrop */
     style: StyleProp<ViewStyle>;
 
-    /** Custom backdrop component */
     customBackdrop?: ReactNode;
-
-    /** Callback fired when pressing the backdrop */
     onBackdropPress?: () => void;
-
-    /** Delay set to animation on enter */
     animationInDelay?: number;
-
-    /** Timing of animation on enter */
     animationInTiming?: number;
 
     /** Timing of animation on exit */
     animationOutTiming?: number;
 
-    /** Opacity of the backdrop */
     backdropOpacity?: number;
-
-    /** Shows backdrop content */
     isBackdropVisible: boolean;
 };
 
 type ContainerProps = {
+    /** Host node of the modal's content, used to tell whether focus is still inside this modal. */
+    ref?: Ref<View>;
+
     /** This function is called by open animation callback */
     onOpenCallBack: () => void;
 

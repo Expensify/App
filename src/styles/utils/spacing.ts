@@ -231,6 +231,10 @@ export default {
         marginLeft: 12,
     },
 
+    mln3: {
+        marginLeft: -12,
+    },
+
     ml4: {
         marginLeft: 16,
     },
@@ -333,6 +337,10 @@ export default {
 
     mt9: {
         marginTop: 36,
+    },
+
+    mt10: {
+        marginTop: 40,
     },
 
     mt11: {
@@ -619,6 +627,10 @@ export default {
         paddingRight: 4,
     },
 
+    pr1half: {
+        paddingRight: 6,
+    },
+
     pr2: {
         paddingRight: 8,
     },
@@ -645,6 +657,10 @@ export default {
 
     pr8: {
         paddingRight: 32,
+    },
+
+    pr9: {
+        paddingRight: 36,
     },
 
     pr10: {
@@ -787,6 +803,10 @@ export default {
         paddingBottom: 24,
     },
 
+    pb7: {
+        paddingBottom: 28,
+    },
+
     pb8: {
         paddingBottom: 32,
     },
@@ -817,6 +837,10 @@ export default {
 
     gapHalf: {
         gap: 2,
+    },
+
+    gap1Half: {
+        gap: 6,
     },
 
     gap2: {
@@ -900,5 +924,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

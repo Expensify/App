@@ -1,4 +1,5 @@
-import {isTagMissing, trimTag} from '@libs/TagUtils';
+import {getDecodedTagName, isTagMissing, trimTag} from '@libs/TagUtils';
+
 import CONST from '@src/CONST';
 
 describe('TagUtils', () => {
@@ -66,6 +67,25 @@ describe('TagUtils', () => {
             expect(trimTag('tag\\:name:')).toBe('tag\\:name');
             expect(trimTag('tag\\:name\\:')).toBe('tag\\:name\\:');
             expect(trimTag('tag\\:name\\\\::')).toBe('tag\\:name\\\\:');
+        });
+    });
+
+    describe('getDecodedTagName', () => {
+        it('decodes &amp; to &', () => {
+            expect(getDecodedTagName('R&amp;D')).toBe('R&D');
+        });
+
+        it('returns an unencoded string unchanged', () => {
+            expect(getDecodedTagName('R&D')).toBe('R&D');
+        });
+
+        it('returns an empty string when input is empty', () => {
+            expect(getDecodedTagName('')).toBe('');
+        });
+
+        it('decodes other common HTML entities', () => {
+            expect(getDecodedTagName('a &lt; b &gt; c')).toBe('a < b > c');
+            expect(getDecodedTagName('&quot;hello&quot;')).toBe('"hello"');
         });
     });
 });

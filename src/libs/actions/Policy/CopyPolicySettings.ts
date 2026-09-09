@@ -1,0 +1,599 @@
+import {write} from '@libs/API';
+import type {CopyPolicySettingsParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
+import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory} from '@src/types/onyx';
+import type {CustomUnit, PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+type Part =
+    | 'overview'
+    | 'currency'
+    | 'members'
+    | 'reports'
+    | 'accounting'
+    | 'categories'
+    | 'tags'
+    | 'taxes'
+    | 'workflows'
+    | 'rules'
+    | 'codingRules'
+    | 'distanceRates'
+    | 'perDiem'
+    | 'invoices'
+    | 'travel'
+    | 'timeTracking'
+    | 'receiptPartners';
+
+const PARTS_TO_POLICY_FIELDS = {
+    overview: ['address', 'description'],
+    currency: ['outputCurrency'],
+    members: ['employeeList'],
+    reports: ['fieldList', 'areReportFieldsEnabled'],
+    accounting: ['connections', 'areConnectionsEnabled'],
+    categories: ['areCategoriesEnabled', 'requiresCategory'],
+    tags: ['areTagsEnabled'],
+    taxes: ['tax', 'taxRates'],
+    // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
+    // (see Auth PR #21638). We rely on the server push for that field.
+    workflows: ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice'],
+    rules: [
+        'areRulesEnabled',
+        'maxExpenseAmount',
+        'maxExpenseAge',
+        'maxExpenseAmountNoReceipt',
+        'maxExpenseAmountNoItemizedReceipt',
+        'defaultBillable',
+        'defaultReimbursable',
+        'prohibitedExpenses',
+        'eReceipts',
+        'isAttendeeTrackingEnabled',
+        'preventSelfApproval',
+        'disabledFields',
+        'glCodes',
+        'showTagGLCodes',
+        'shouldShowAutoApprovalOptions',
+        'shouldShowAutoReimbursementLimitOption',
+        'customRules',
+    ],
+    codingRules: ['rules'],
+    distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
+    perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
+    invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
+    // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
+    // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
+    // and must not be copied — each target is re-provisioned with its own entity by the backend.
+    travel: ['isTravelEnabled'],
+    timeTracking: [],
+    receiptPartners: [],
+} as const satisfies Record<Part, ReadonlyArray<keyof Policy>>;
+
+type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
+
+/**
+ * Maps each copy-settings part to the policy feature it enables. This carries no plan judgment - it
+ * only relates a part to its feature name so `canPolicyAccessFeature` can decide which features a
+ * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
+ *
+ * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
+ * part copies, where the feature toggle isn't reliably identifiable (e.g. `codingRules` copies the
+ * `rules` field, not the `areRulesEnabled` feature; `timeTracking`/`receiptPartners` copy no fields).
+ */
+const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
+    reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
+    accounting: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    categories: CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED,
+    tags: CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED,
+    taxes: CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
+    workflows: CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+    rules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    codingRules: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+    distanceRates: CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+    perDiem: CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+    invoices: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+    travel: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+    timeTracking: CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
+    receiptPartners: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+};
+
+function setCopyPolicySettingsData(data: Partial<CopyPolicySettingsState>): Promise<void> {
+    return Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, data);
+}
+
+function clearCopyPolicySettings(): void {
+    Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {});
+}
+
+function requestCopyPolicySettingsNotification(shouldOnlyNotifyOnFailure = false): void {
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {shouldOnlyNotifyOnFailure});
+}
+
+function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {
+    if (!policy?.customUnits) {
+        return undefined;
+    }
+    return Object.values(policy.customUnits).find((unit) => unit.name === unitName);
+}
+
+/**
+ * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
+ * being copied. This mirrors what Auth's CopyPolicySettings persists: the source unit is written under
+ * the target's existing unit ID, and each source rate keeps the target's rate ID when the target
+ * already has a rate of the same name.
+ *
+ * Units and rates the target doesn't have yet are left out. Auth mints their IDs and pushes them to
+ * Onyx as a merge, so optimistically inventing a different ID would leave the same unit or rate on
+ * screen twice once the server push lands.
+ *
+ * Skipping the optimistic update for those new rates is fine because the copy runs behind a blocking
+ * modal, so nothing is on screen waiting for them. Showing them optimistically would require sending
+ * an optimisticRateIDs parameter and having Auth use those IDs instead of minting its own, which we
+ * can add later if we need it.
+ */
+function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
+    const unitNames = [...(isDistanceSelected ? [CONST.CUSTOM_UNITS.NAME_DISTANCE] : []), ...(isPerDiemSelected ? [CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL] : [])];
+    const patch: Record<string, CustomUnit> = {};
+
+    for (const unitName of unitNames) {
+        const sourceUnit = findCustomUnitByName(sourcePolicy, unitName);
+        const targetUnit = findCustomUnitByName(targetPolicy, unitName);
+        if (!sourceUnit || !targetUnit) {
+            continue;
+        }
+
+        const targetRateIDByName = new Map<string, string>();
+        for (const targetRate of Object.values(targetUnit.rates ?? {})) {
+            if (!targetRate.name || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
+                continue;
+            }
+            targetRateIDByName.set(targetRate.name, targetRate.customUnitRateID);
+        }
+
+        const rates: Record<string, Rate> = {};
+        for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+            const sourceRateName = sourceRate.name;
+            const targetRateID = sourceRateName ? targetRateIDByName.get(sourceRateName) : undefined;
+            if (!sourceRateName || !targetRateID) {
+                continue;
+            }
+
+            // Each target rate ID can only stand in for one source rate, so a second source rate of the
+            // same name falls through to the server push like any other rate the target doesn't have.
+            targetRateIDByName.delete(sourceRateName);
+            rates[targetRateID] = {...sourceRate, customUnitRateID: targetRateID};
+        }
+
+        patch[targetUnit.customUnitID] = {...sourceUnit, customUnitID: targetUnit.customUnitID, rates};
+    }
+
+    if (Object.keys(patch).length === 0) {
+        return undefined;
+    }
+    return {customUnits: patch};
+}
+
+/** Replaces receiptPartners on the target; omits employees and ephemeral Uber UI state. */
+function buildReceiptPartnersPatch(sourcePolicy: Policy): Pick<Policy, 'receiptPartners'> | undefined {
+    const sourceReceiptPartners = sourcePolicy.receiptPartners;
+    if (!sourceReceiptPartners) {
+        return undefined;
+    }
+
+    const sourceUber = sourceReceiptPartners.uber;
+    const uberPatch = sourceUber
+        ? {
+              ...(sourceUber.enabled !== undefined ? {enabled: sourceUber.enabled} : {}),
+              ...(sourceUber.autoInvite !== undefined ? {autoInvite: sourceUber.autoInvite} : {}),
+              ...(sourceUber.autoRemove !== undefined ? {autoRemove: sourceUber.autoRemove} : {}),
+              ...(sourceUber.organizationID !== undefined ? {organizationID: sourceUber.organizationID} : {}),
+              ...(sourceUber.organizationName !== undefined ? {organizationName: sourceUber.organizationName} : {}),
+              ...(sourceUber.centralBillingAccountEmail !== undefined ? {centralBillingAccountEmail: sourceUber.centralBillingAccountEmail} : {}),
+          }
+        : undefined;
+
+    return {
+        receiptPartners: {
+            ...(sourceReceiptPartners.enabled !== undefined ? {enabled: sourceReceiptPartners.enabled} : {}),
+            ...(uberPatch ? {uber: uberPatch} : {}),
+        },
+    };
+}
+
+/** Merges source units.time onto the target without generating IDs. */
+function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | undefined {
+    const sourceTime = sourcePolicy.units?.time;
+    if (!sourceTime) {
+        return undefined;
+    }
+    return {units: {time: sourceTime}};
+}
+
+/**
+ * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
+ * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
+ * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
+ * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
+ * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
+ * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
+ * as provisioned.
+ */
+function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
+    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
+    if (sourceAutoAddTripName === undefined) {
+        return undefined;
+    }
+
+    // A target that is not yet provisioned has no travelSettings, so the spread yields just
+    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
+    // provision time), so leaving them out here keeps the target from looking provisioned.
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+}
+
+/**
+ * The category fields the backend copies for Flag for review and Field requirements rules.
+ */
+const CATEGORY_RULE_FIELDS = [
+    'maxExpenseAmount',
+    'expenseLimitType',
+    'maxAmountNoReceipt',
+    'maxAmountNoItemizedReceipt',
+    'areCommentsRequired',
+    'areAttendeesRequired',
+    'commentHint',
+] as const satisfies ReadonlyArray<keyof PolicyCategory>;
+
+/**
+ * Returns the categories patch to merge onto a target when `rules` is copied without `categories`.
+ */
+function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCategories: PolicyCategories): PolicyCategories | undefined {
+    const patch: PolicyCategories = {};
+
+    for (const sourceCategory of Object.values(sourceCategories)) {
+        if (sourceCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const targetCategory = targetCategories[sourceCategory.name];
+        if (!targetCategory || targetCategory.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        // expenseLimitType and commentHint can be set without a rule existing, so gate on the rule predicates
+        // themselves - otherwise a category carrying no rule would still patch (and force-enable) the target.
+        if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+            continue;
+        }
+
+        const categoryPatch: Partial<PolicyCategory> = {};
+        for (const field of CATEGORY_RULE_FIELDS) {
+            if (sourceCategory[field] === undefined || sourceCategory.pendingFields?.[field] === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
+            // The CATEGORY_RULE_FIELDS values are typed as keyof PolicyCategory, so this assignment is safe.
+            (categoryPatch as Record<string, unknown>)[field] = sourceCategory[field];
+        }
+        if (Object.keys(categoryPatch).length === 0) {
+            continue;
+        }
+
+        // The Rules page hides disabled categories, so rules copied onto a disabled target category would be
+        // invisible - enable it so the copy is actually usable.
+        patch[sourceCategory.name] = {
+            ...targetCategory,
+            ...categoryPatch,
+            ...(sourceCategory.enabled && !targetCategory.enabled ? {enabled: true} : {}),
+        };
+    }
+
+    return Object.keys(patch).length > 0 ? patch : undefined;
+}
+
+/**
+ * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
+ * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
+ */
+function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts: Part[]): Partial<Policy> {
+    const patch: Partial<Policy> = {};
+    const shouldCopyReportFields = parts.includes('reports');
+    const shouldCopyInvoiceFields = parts.includes('invoices');
+
+    for (const part of parts) {
+        for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            if (field === 'customUnits') {
+                continue;
+            }
+            if (field === 'fieldList') {
+                continue;
+            }
+            if (part === 'codingRules' && field === 'rules') {
+                continue;
+            }
+            // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
+            (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
+        }
+    }
+
+    if (shouldCopyReportFields || shouldCopyInvoiceFields) {
+        const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
+            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+        };
+        const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
+        patch.fieldList = Object.fromEntries(mergedFields);
+    }
+
+    return patch;
+}
+
+function buildExpandedPendingFields(parts: Part[]): Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> {
+    const pendingFields: Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> = {};
+    for (const part of parts) {
+        for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            pendingFields[field] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        }
+    }
+    return pendingFields;
+}
+
+function buildClearedPendingFields(parts: Part[]): Partial<Record<PolicyFieldsForPart, null>> {
+    const cleared: Partial<Record<PolicyFieldsForPart, null>> = {};
+    for (const part of parts) {
+        for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            cleared[field] = null;
+        }
+    }
+    return cleared;
+}
+
+type CopyPolicySettingsOnyxKeys =
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+    | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COPY_POLICY_SETTINGS
+    | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
+
+function buildCopyPolicySettingsData(
+    sourcePolicy: Policy,
+    targetPolicies: Policy[],
+    parts: Part[],
+    allPolicyCategories: OnyxCollection<PolicyCategories>,
+    allPolicyTags: OnyxCollection<PolicyTagLists>,
+): {
+    optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
+    successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
+    failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
+} {
+    const optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
+    const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
+    const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
+
+    const pendingFields = buildExpandedPendingFields(parts);
+    const clearedPendingFields = buildClearedPendingFields(parts);
+
+    const isCategoriesSelected = parts.includes('categories');
+    const isTagsSelected = parts.includes('tags');
+    const isDistanceSelected = parts.includes('distanceRates');
+    const isPerDiemSelected = parts.includes('perDiem');
+    const isTimeTrackingSelected = parts.includes('timeTracking');
+    const isReceiptPartnersSelected = parts.includes('receiptPartners');
+    const isCodingRulesSelected = parts.includes('codingRules');
+    const isRulesSelected = parts.includes('rules');
+    const isTravelSelected = parts.includes('travel');
+    const timeTrackingPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+          }
+        : {};
+    const timeTrackingClearedPendingFields = isTimeTrackingSelected
+        ? {
+              isTimeTrackingEnabled: null,
+              timeTrackingDefaultRate: null,
+          }
+        : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
+
+    const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
+    const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
+    const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
+    const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
+    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
+        data
+            ? (Object.fromEntries(
+                  Object.entries(data).filter(([, value]) => {
+                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
+                          return true;
+                      }
+                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  }),
+              ) as Record<string, T>)
+            : undefined;
+    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy.rules?.codingRules);
+
+    for (const targetPolicy of targetPolicies) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
+        const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
+        const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
+        const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
+        const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
+        const codingRulesPatch = isCodingRulesSelected
+            ? {
+                  rules: {
+                      ...targetPolicy.rules,
+                      codingRules: codingRulesWithoutPendingDelete,
+                  },
+              }
+            : {};
+
+        // Step 1+2: SET the full policy with patched fields overlaid.
+        // We use SET (not MERGE) because Onyx.merge deep-merges nested objects — source
+        // values would be merged into target's, leaving stale nested keys behind.
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: policyKey,
+            value: {
+                ...targetPolicy,
+                ...policyFieldPatch,
+                ...(customUnitsPatch ? {customUnits: {...targetPolicy.customUnits, ...customUnitsPatch.customUnits}} : {}),
+                ...(timeTrackingPatch
+                    ? {
+                          units: {
+                              ...targetPolicy.units,
+                              ...timeTrackingPatch.units,
+                          },
+                      }
+                    : {}),
+                ...(travelSettingsPatch ?? {}),
+                ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
+                ...codingRulesPatch,
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields},
+            },
+        });
+
+        // Success: clear pending markers and any leftover errors from a prior failure
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields},
+                errors: null,
+            },
+        });
+
+        // Failure: restore the original target policy in full, surface RBR
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: policyKey,
+            value: {
+                ...targetPolicy,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+            },
+        });
+
+        // Step 3: collection keys (categories / tags) — SET-level overwrite with snapshot rollback
+        if (isCategoriesSelected) {
+            const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
+            const previousCategories = allPolicyCategories?.[targetCategoriesKey] ?? {};
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: targetCategoriesKey,
+                value: sourceCategories,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: targetCategoriesKey,
+                value: previousCategories,
+            });
+        }
+
+        // When categories are copied too, the SET above already carries the source's category rules across.
+        if (isRulesSelected && !isCategoriesSelected) {
+            const targetCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy.id}` as const;
+            const previousCategories = allPolicyCategories?.[targetCategoriesKey];
+            const categoryRulesPatch = previousCategories ? buildCategoryRulesPatch(sourceCategories, previousCategories) : undefined;
+            // We should only copy when there's matched target category
+            if (previousCategories && categoryRulesPatch) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: targetCategoriesKey,
+                    value: categoryRulesPatch,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: targetCategoriesKey,
+                    value: previousCategories,
+                });
+            }
+        }
+
+        if (isTagsSelected) {
+            const targetTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy.id}` as const;
+            const previousTags = allPolicyTags?.[targetTagsKey] ?? {};
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: targetTagsKey,
+                value: sourceTags,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: targetTagsKey,
+                value: previousTags,
+            });
+        }
+    }
+
+    // Surface an RBR on the source policy row so the admin knows the bulk copy failed
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}` as const,
+        value: {
+            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+        },
+    });
+
+    // Clear source policy errors on success (in case this is a retry after failure)
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}` as const,
+        value: {
+            errors: null,
+        },
+    });
+
+    // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
+    // Success intentionally omits this key — the backend transitions the bulk policy
+    // copy NVP state to complete, which the UI uses to show the completion modal.
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.COPY_POLICY_SETTINGS,
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+    });
+
+    // Optimistically set NVP state to 'in-progress' to avoid stale state flash
+    // (e.g., if prior run left it at 'complete', user would briefly see "All Set")
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS,
+        value: {state: CONST.POLICY.COPY_SETTINGS_NVP_STATE.IN_PROGRESS},
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.COPY_POLICY_SETTINGS,
+        value: {currentStep: null},
+    });
+
+    return {optimisticData, successData, failureData};
+}
+
+function copyPolicySettings(
+    sourcePolicy: Policy,
+    targetPolicies: Policy[],
+    parts: Part[],
+    allPolicyCategories: OnyxCollection<PolicyCategories>,
+    allPolicyTags: OnyxCollection<PolicyTagLists>,
+): void {
+    const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+
+    const params: CopyPolicySettingsParams = {
+        policyID: sourcePolicy.id,
+        policyIDList: targetPolicies.map((policy) => policy.id).join(','),
+        parts: parts.join(','),
+    };
+
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
+}
+
+export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings, PART_TO_POLICY_FEATURE};
+export type {Part};

@@ -1,8 +1,12 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+
 import {translateLocal} from '../../utils/TestHelper';
 
 const mockOpenPicker = jest.fn();
@@ -17,7 +21,6 @@ jest.mock('@components/AttachmentPicker', () => {
 jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObject[]) => void) => ({
     validateFiles: onFilesValidated,
     PDFValidationComponent: null,
-    ErrorModal: null,
 }));
 
 // ReceiptAlternativeMethods uses RenderHTML which requires TRenderEngineProvider (buildTTree). Mock to avoid the error.

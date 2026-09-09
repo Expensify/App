@@ -1,5 +1,3 @@
-import {useRef} from 'react';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -11,33 +9,38 @@ import {
     isCustomFeed,
     isSelectedFeedExpired,
 } from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+
+import {useRef} from 'react';
+
+import type {CombinedCardFeed} from './useCardFeeds';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed} from './useCardFeeds';
 import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
-    /** The currently selected card feed */
     feedName: CompanyCardFeedWithDomainID | undefined;
 
     /** The ID of the workspace/policy */
     policyID: string;
 
-    /** Callback to show/hide the offline modal */
     setShouldShowOfflineModal: (shouldShow: boolean) => void;
 };
 
@@ -48,7 +51,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = feedName && companyCards[feedName];
@@ -63,15 +66,13 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
-    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+    // Keyed on the prompting flag rather than `isFeedConnectionBroken`: once a broken connection is past the grace period we
+    // stop blocking assignment. Otherwise a single long-dead card would disable assigning on the whole feed forever, and a
+    // commercial/CSV feed cannot be reconnected at all, so there would be no way out.
+    const isSelectedFeedConnectionBroken = !!feedErrors?.shouldPromptBrokenConnection || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
-
-    const {isActingAsDelegate} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
-
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
     /**
@@ -83,12 +84,6 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         if (isAssigningCardDisabled) {
             return;
         }
-
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         if (!feedName || !cardID) {
             return;
         }
@@ -123,7 +118,9 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: feedName, cardID}));
+                    Navigation.navigate(
+                        createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feedName, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)),
+                    );
                     break;
             }
         });
@@ -147,6 +144,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {currencyList} = useCurrencyListState();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -175,7 +173,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
-            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', plaidAccessToken);
             hasImportedPlaidAccounts.current = true;
         }
 
@@ -201,11 +199,11 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             };
         }
 
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+        const activeEmployees = Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (activeEmployees.length === 1) {
+            const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
+            const personalDetails = employeePersonalDetails[userEmail];
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
             cardToAssign.customCardName = getDefaultCardName(memberName);
 

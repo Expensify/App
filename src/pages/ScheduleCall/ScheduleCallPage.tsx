@@ -1,12 +1,8 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -14,10 +10,12 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getGuideCallAvailabilitySchedule, saveBookingDraft, sendScheduleCallNudge} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -25,12 +23,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
 import {isAdminRoom, isTaskReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {compareAsc, parse} from 'date-fns';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import AvailableBookingDay from './AvailableBookingDay';
 
 type TimeSlot = {
@@ -46,7 +51,7 @@ const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -117,7 +122,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING, {locale: dateFnsLocale});
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -130,7 +135,7 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone]);
+    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -140,7 +145,6 @@ function ScheduleCallPage() {
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
             return;
         }
@@ -174,10 +178,9 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <FullScreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
                         <View style={styles.ph5}>
@@ -214,7 +217,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
                                         })}
                                     />
                                 </Text>
@@ -222,8 +225,8 @@ function ScheduleCallPage() {
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
-                                            large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={scheduleCallDraft?.timeSlot === timeSlot.startTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -236,10 +239,11 @@ function ScheduleCallPage() {
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
-                                            shouldEnableHapticFeedback
+                                            enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
-                                        />
+                                        >
+                                            <Button.Text>{DateUtils.formatTimeInTimeZoneWithPeriod(translate, timeSlot.startTime, userTimezone)}</Button.Text>
+                                        </Button>
                                     ))}
                                     {timeFillerItem}
                                 </View>

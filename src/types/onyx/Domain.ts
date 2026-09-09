@@ -1,12 +1,12 @@
 import type CONST from '@src/CONST';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
 import type * as OnyxCommon from './OnyxCommon';
 import type SecurityGroup from './SecurityGroup';
 import type {BaseVacationDelegate} from './VacationDelegate';
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Whether the domain is validated */
     validated: boolean;
 
     /** Account ID associated with the domain */
@@ -18,10 +18,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Validation code for the domain */
     validateCode?: string;
 
-    /** Whether domain validation is pending */
     isValidationPending?: boolean;
-
-    /** Whether domain validation has succeeded */
     hasValidationSucceeded?: boolean;
 
     /** Errors that occurred when validating the domain */
@@ -48,6 +45,10 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the default security group for the domain */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     domain_defaultSecurityGroupID: string;
+
+    /** Pending domain adminship requests, keyed by requester accountID. Requesters see only their own entry. */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    domain_adminRequesters?: Record<string, 'read' | null>;
 }> &
     PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
     PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> &
@@ -124,9 +125,6 @@ type UserSecurityGroupData =
            */
           key: SecurityGroupKey;
 
-          /**
-           * The security group data.
-           */
           securityGroup: Partial<DomainSecurityGroup>;
       }
     | undefined;

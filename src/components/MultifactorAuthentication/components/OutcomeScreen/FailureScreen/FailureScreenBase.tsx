@@ -1,11 +1,15 @@
-import React from 'react';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
+
 import useLocalize from '@hooks/useLocalize';
+
 // Spacing is needed for icon padding configuration
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
 
 type FailureScreenBaseProps = {
     headerTitle?: TranslationPaths;
@@ -15,9 +19,19 @@ type FailureScreenBaseProps = {
     title: TranslationPaths;
     subtitle?: TranslationPaths;
     customSubtitle?: React.ReactElement;
+    onClose?: () => void;
 };
 
-function FailureScreenBase({headerTitle = 'multifactorAuthentication.verificationFailed', illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: FailureScreenBaseProps) {
+function FailureScreenBase({
+    headerTitle = 'multifactorAuthentication.verificationFailed',
+    illustration,
+    iconWidth,
+    iconHeight,
+    title,
+    subtitle,
+    customSubtitle,
+    onClose,
+}: FailureScreenBaseProps) {
     const {translate} = useLocalize();
 
     return (
@@ -30,6 +44,7 @@ function FailureScreenBase({headerTitle = 'multifactorAuthentication.verificatio
             subtitle={subtitle ? translate(subtitle) : undefined}
             customSubtitle={customSubtitle}
             padding={spacing.p0}
+            onClose={onClose}
         />
     );
 }
@@ -37,4 +52,3 @@ function FailureScreenBase({headerTitle = 'multifactorAuthentication.verificatio
 FailureScreenBase.displayName = 'FailureScreenBase';
 
 export default FailureScreenBase;
-export type {FailureScreenBaseProps};

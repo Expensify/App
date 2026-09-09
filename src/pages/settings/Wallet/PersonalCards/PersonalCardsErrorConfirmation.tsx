@@ -1,13 +1,18 @@
-import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearAddNewPersonalCardErrors, setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function PersonalCardsErrorConfirmation() {
     const {translate} = useLocalize();

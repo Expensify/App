@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Button from './Button';
-import FixedFooter from './FixedFooter';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ColumnRole} from './ImportColumn';
+
+import Button from './ButtonComposed';
+import FixedFooter from './FixedFooter';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScrollView from './ScrollView';
@@ -18,34 +24,22 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ImportSpreadsheetColumnsProps = {
-    // An array of arrays containing strings, representing the spreadsheet data.
     spreadsheetColumns: string[][];
-
-    // An array of strings representing the names of the columns.
     columnNames: string[];
-
-    // An array of column roles to define the role of each column.
     columnRoles?: ColumnRole[];
-
-    // A function to perform the import operation.
-    importFunction: () => void;
-
-    // An optional Errors object containing any errors that may have occurred.
+    importFunction: () => void | Promise<void>;
     errors?: Errors | null;
-
-    // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
 
-    // Link to learn more about the file preparation for import.
+    /** Link to learn more about the file preparation for import */
     learnMoreLink?: string;
 
-    // An optional boolean indicating whether to show the column header.
     shouldShowColumnHeader?: boolean;
-
-    // An optional boolean indicating whether to show the dropdown menu.
     shouldShowDropdownMenu?: boolean;
-
     customHeaderText?: string;
+
+    /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
+    shouldDisableButtonWhenOffline?: boolean;
 };
 
 function ImportSpreadsheetColumns({
@@ -59,6 +53,7 @@ function ImportSpreadsheetColumns({
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
     customHeaderText,
+    shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,14 +111,15 @@ function ImportSpreadsheetColumns({
                     errorRowStyles={styles.mv2}
                 >
                     <Button
-                        text={translate('common.import')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
-                        isDisabled={isOffline}
-                        pressOnEnter
-                        success
-                        large
-                    />
+                        isDisabled={shouldDisableButtonWhenOffline && isOffline}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.import')}</Button.Text>
+                    </Button>
                 </OfflineWithFeedback>
             </FixedFooter>
         </>

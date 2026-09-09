@@ -1,17 +1,24 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type AddressInputKeys = {
     street: string;
@@ -36,47 +43,25 @@ type AddressFormProps = ForwardedFSClassProps & {
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
-    /** Default values */
     defaultValues?: Address;
-
-    /** Form values */
     values?: Address;
 
     /** Any errors that can arise from form validation */
     errors?: AddressErrors;
 
-    /** The map for inputID of the inputs */
     inputKeys: AddressInputKeys;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** Additional styles to apply to container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Indicates if country selector should be displayed */
     shouldDisplayCountrySelector?: boolean;
-
-    /** Indicates if state selector should be displayed */
     shouldDisplayStateSelector?: boolean;
-
-    /** Label for the state selector */
     stateSelectorLabel?: string;
-
-    /** The title of the state selector modal */
     stateSelectorModalHeaderTitle?: string;
-
-    /** The title of the state selector search input */
     stateSelectorSearchInputTitle?: string;
-
-    /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
-
-    /** Indicates if country can be changed by user */
     shouldAllowCountryChange?: boolean;
-
-    /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat?: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
@@ -95,6 +80,10 @@ const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typ
     {} as Record<string, string>,
 );
 
+function isCountry(country: string): country is Country {
+    return country in CONST.ALL_COUNTRIES;
+}
+
 function AddressFormFields({
     shouldSaveDraft = false,
     defaultValues,
@@ -110,18 +99,18 @@ function AddressFormFields({
     stateSelectorSearchInputTitle,
     onCountryChange,
     shouldAllowCountryChange = true,
-    shouldValidateZipCodeFormat = true,
     forwardedFSClass,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [countryInEditMode, setCountryInEditMode] = useState<string>(defaultValues?.country ?? CONST.COUNTRY.US);
-    // When draft values are not being saved we need to relay on local state to determine the currently selected country
-    const currentlySelectedCountry = shouldSaveDraft ? defaultValues?.country : countryInEditMode;
+    const defaultCountry = defaultValues?.country === '' ? CONST.COUNTRY.US : (defaultValues?.country ?? CONST.COUNTRY.US);
+    const [countryInEditMode, setCountryInEditMode] = useState<Country | ''>('');
+    const currentlySelectedCountry = countryInEditMode || defaultCountry;
+    const zipSampleFormat = getCountryZipRegexDetails(currentlySelectedCountry)?.samples ?? '';
 
     const handleCountryChange = (country: unknown) => {
-        if (typeof country === 'string' && country !== '') {
+        if (typeof country === 'string' && isCountry(country)) {
             setCountryInEditMode(country);
         }
         onCountryChange?.(country);
@@ -186,11 +175,11 @@ function AddressFormFields({
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
-                inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
+                inputMode={currentlySelectedCountry === CONST.COUNTRY.US ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                hint={translate('common.zipCodeExampleFormat', CONST.COUNTRY_ZIP_REGEX_DATA.US.samples)}
+                hint={translate('common.zipCodeExampleFormat', zipSampleFormat)}
                 containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="postal-code"

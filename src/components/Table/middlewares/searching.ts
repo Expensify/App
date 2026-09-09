@@ -1,4 +1,5 @@
 import {useState} from 'react';
+
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -28,10 +29,7 @@ type UseSearchingProps<T> = {
  * @template T - The type of items in the data array.
  */
 type SearchingMethods = {
-    /** Callback to update the search string. */
     updateSearchString: (value: string) => void;
-
-    /** Callback to get the active search string. */
     getActiveSearchString: () => string;
 };
 
@@ -42,6 +40,7 @@ type SearchingMethods = {
  */
 type UseSearchingResult<T> = MiddlewareHookResult<T, SearchingMethods> & {
     activeSearchString: string;
+    hasActiveSearchString: boolean;
 };
 
 /**
@@ -65,7 +64,9 @@ function useSearching<T>({isItemInSearch}: UseSearchingProps<T>): UseSearchingRe
         getActiveSearchString,
     };
 
-    return {middleware, activeSearchString, methods};
+    const hasActiveSearchString = activeSearchString.trim().length > 0;
+
+    return {middleware, activeSearchString, methods, hasActiveSearchString};
 }
 
 /**
@@ -105,4 +106,4 @@ function search<T>({data, activeSearchString, isItemInSearch}: SearchingMiddlewa
 }
 
 export default useSearching;
-export type {UseSearchingProps, UseSearchingResult, SearchingMethods, IsItemInSearchCallback};
+export type {SearchingMethods, IsItemInSearchCallback};

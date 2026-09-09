@@ -1,9 +1,12 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type CONST from '@src/CONST';
+
 import type {FocusTrapProps} from 'focus-trap-react';
 import type {ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type CONST from '@src/CONST';
+
 import type ReanimatedModalProps from './ReanimatedModal/types';
 import type {SwipeDirection} from './ReanimatedModal/types';
 
@@ -16,10 +19,6 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
-type WindowState = {
-    shouldGoBack: boolean;
-};
-
 type BaseModalProps = Partial<ReanimatedModalProps> &
     ForwardedFSClassProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
@@ -27,6 +26,12 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
 
         /** Should we announce the Modal visibility changes? */
         shouldSetModalVisibility?: boolean;
+
+        /**
+         * Whether this modal should suppress persistent surfaces that must not overlap covering modals.
+         * POPOVER and BOTTOM_DOCKED modals default to false; other modal types default to true.
+         */
+        shouldTreatModalAsCovering?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
         onClose?: () => void;
@@ -43,7 +48,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Callback method fired when the modal is shown */
         onModalShow?: () => void;
 
-        /** Style of modal to display */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
@@ -58,7 +62,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Whether the modal should go under the system navigation bar */
         navigationBarTranslucent?: boolean;
 
-        /** Whether the modal should avoid the keyboard */
         avoidKeyboard?: boolean;
 
         /** Modal container styles  */
@@ -70,7 +73,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
-        /** Unique id for the modal */
         modalId?: number;
 
         /**
@@ -88,10 +90,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 
-        /** In which direction modal will swipe */
         swipeDirection?: SwipeDirection;
-
-        /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
@@ -115,16 +114,27 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: ForwardedRef<View>;
 
         /**
          * Whether the modal should display under the side panel.
          */
         shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Whether a RIGHT_DOCKED modal should keep its backdrop when it opens inside a narrow-pane RIGHT_DOCKED flow on larger screens.
+         * Set this to true for nested flows, such as inline date editing launching the Month/Year picker RHP, where the underlying pane should stay dimmed.
+         * Leave it false for the default same-width RHP case, where keeping the backdrop would create a double backdrop.
+         * See https://github.com/Expensify/App/issues/88645 for more details.
+         */
+        shouldKeepRightDockedBackdropInNarrowPane?: boolean;
+
+        /**
+         * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
+         * Defaults to true.
+         */
+        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
     };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition, FocusTrapOptions, WindowState};
+export type {PopoverAnchorPosition, FocusTrapOptions};

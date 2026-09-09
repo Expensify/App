@@ -1,11 +1,14 @@
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
+
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 const createMockTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
-    ({
+    createMock<Transaction>({
         transactionID: `transaction_${Math.random()}`,
         amount: -1000,
         currency: 'USD',
@@ -13,7 +16,7 @@ const createMockTransaction = (overrides: Partial<Transaction> = {}): Transactio
         tag: '',
         comment: {},
         ...overrides,
-    }) as Transaction;
+    });
 
 const createMockReport = (overrides: Partial<Report> = {}): Report =>
     ({
@@ -229,6 +232,21 @@ describe('groupTransactionsByCategory', () => {
         expect(travelGroup?.subTotalAmount).toBe(1000);
         expect(travelGroup?.transactions).toHaveLength(2);
     });
+
+    it('groups transactions with HTML-encoded and decoded category names into a single group', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Auto (including Tolls &amp; Parking)', amount: -1000, currency: 'USD'}),
+            createMockTransaction({transactionID: '2', category: 'Auto (including Tolls & Parking)', amount: -2000, currency: 'USD'}),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.groupKey).toBe('Auto (including Tolls & Parking)');
+        expect(result.at(0)?.transactions).toHaveLength(2);
+        expect(result.at(0)?.subTotalAmount).toBe(3000);
+    });
 });
 
 describe('groupTransactionsByTag', () => {
@@ -433,5 +451,20 @@ describe('groupTransactionsByTag', () => {
 
         expect(projectAGroup?.subTotalAmount).toBe(1000);
         expect(projectAGroup?.transactions).toHaveLength(2);
+    });
+
+    it('groups transactions with HTML-encoded and decoded tag names into a single group', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'R&amp;D', amount: -1000, currency: 'USD'}),
+            createMockTransaction({transactionID: '2', tag: 'R&D', amount: -2000, currency: 'USD'}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.groupKey).toBe('R&D');
+        expect(result.at(0)?.transactions).toHaveLength(2);
+        expect(result.at(0)?.subTotalAmount).toBe(3000);
     });
 });

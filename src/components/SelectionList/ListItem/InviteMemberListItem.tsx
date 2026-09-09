@@ -1,179 +1,135 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
-import {isSelectedManagerMcTest} from '@libs/ReportUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import BaseListItem from './BaseListItem';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {InviteMemberListItemProps, ListItem} from './types';
 
+import BaseListItem from './BaseListItem';
+import SelectableListItem from './SelectableListItem';
+
+/**
+ * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
+ * secondary-login footers and product training tooltips on top of the standard user row layout.
+ */
 function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
-    showTooltip,
+    isFocusVisible,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onDismissError,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
     isMultilineSupported,
-    canShowProductTrainingTooltip = true,
-    index = 0,
-    sectionIndex = 0,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
-        canShowProductTrainingTooltip &&
-            !getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) &&
-            isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
-            isSelectedManagerMcTest(item.login) &&
-            !item.isSelected,
-    );
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
+    const ListItemWrapper = item.isDisabled && !item.isSelected ? BaseListItem : SelectableListItem;
+
     return (
-        <BaseListItem
+        <ListItemWrapper
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
             isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            showTooltip={shouldShowTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
-            pendingAction={item.pendingAction}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
+            onSelectionButtonPress={onSelectionButtonPress}
             testID={item.text}
         >
             {(hovered?: boolean) => (
-                <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    shiftVertical={variables.inviteMemberListItemTooltipShiftVertical}
-                    shiftHorizontal={variables.inviteMemberListItemTooltipShiftHorizontal}
-                    shouldHideOnNavigate
-                    shouldHideOnScroll
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    uniqueID={`${sectionIndex}-${index}`}
-                >
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
-                            <ReportActionAvatars
-                                subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                shouldShowTooltip={showTooltip}
-                                secondaryAvatarContainerStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                                reportID={item.reportID}
-                                accountIDs={accountID ? [accountID] : undefined}
-                            />
-                        )}
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <TextWithTooltip
-                                    shouldShowTooltip={showTooltip}
-                                    text={Str.removeSMSDomain(item.text ?? '')}
-                                    numberOfLines={isMultilineSupported ? 2 : 1}
-                                    style={[
-                                        styles.optionDisplayName,
-                                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                        item.isBold !== false && styles.sidebarLinkTextBold,
-                                        isMultilineSupported ? styles.preWrap : styles.pre,
-                                        item.alternateText ? styles.mb1 : null,
-                                    ]}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                    {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
+                            {accountID ? (
+                                <AccountAvatar
+                                    accountID={accountID}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    containerStyle={[styles.actionAvatar, styles.mr3]}
                                 />
-                            </View>
-                            {!!item.alternateText && (
-                                <TextWithTooltip
-                                    shouldShowTooltip={showTooltip}
-                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            ) : (
+                                <ReportAvatar
+                                    subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                    secondaryAvatarContainerStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                    fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                    singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                    reportID={item.reportID}
                                 />
                             )}
+                        </AvatarTooltipsProvider>
+                    )}
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={shouldShowTooltip}
+                                text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                                numberOfLines={isMultilineSupported ? 2 : 1}
+                                style={[
+                                    styles.optionDisplayName,
+                                    styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    isMultilineSupported ? styles.preWrap : styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
+                            />
                         </View>
-                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                        {!!shouldShowCheckBox && (
-                            <PressableWithFeedback
-                                onPress={handleCheckboxPress}
-                                disabled={isDisabled}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={item.text ?? ''}
-                                style={[styles.ml2, styles.optionSelectCircle]}
-                                sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
-                            >
-                                <SelectCircle
-                                    isChecked={item.isSelected ?? false}
-                                    selectCircleStyles={styles.ml0}
-                                />
-                            </PressableWithFeedback>
+                        {!!item.alternateText && (
+                            <TextWithTooltip
+                                shouldShowTooltip={shouldShowTooltip}
+                                text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            />
                         )}
                     </View>
-                </EducationalTooltip>
+                    {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
+                </View>
             )}
-        </BaseListItem>
+        </ListItemWrapper>
     );
 }
 

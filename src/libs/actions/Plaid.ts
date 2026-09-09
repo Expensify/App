@@ -1,13 +1,15 @@
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCompanyCardFeed} from '@libs/CardUtils';
+import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -31,7 +33,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
         {
@@ -43,13 +45,23 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean, cardID?: string) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
@@ -58,7 +70,8 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         country,
         domain,
         isPersonal,
-        feed: feed ? getCompanyCardFeed(feed) : undefined,
+        feed: feed ? getCardFeedWithoutDomainID(feed) : undefined,
+        cardID,
     };
 
     const optimisticData = [
@@ -69,12 +82,22 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
@@ -121,25 +144,26 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
 
 function importPlaidAccounts(
     publicToken: string,
-    feed: CardFeedWithNumber | CardFeedWithDomainID,
+    feed: string,
     feedName: string,
     country: string,
     domainName: string,
     plaidAccounts: string,
-    statementPeriodEnd: StatementPeriodEnd | undefined,
-    statementPeriodEndDay: StatementPeriodEndDay | undefined,
     plaidAccessToken: string | undefined,
+    domainAccountID?: number,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
-        feed: getCompanyCardFeed(feed),
+        feed: getCardFeedWithoutDomainID(feed),
         feedName,
         country,
         domainName,
         plaidAccounts,
-        statementPeriodEnd,
-        statementPeriodEndDay,
         plaidAccessToken,
+        // When repairing a feed that originated from a Classic domain-level connection surfaced into a workspace,
+        // forward the originating domain's account ID so the server refreshes credentials on the feed the broken
+        // cards actually belong to instead of the synthetic workspace-policy domain.
+        ...(domainAccountID ? {domainAccountID: String(domainAccountID)} : {}),
     };
 
     const onyxData = {

@@ -3,6 +3,11 @@
  */
 type TryNewDot = {
     /**
+     * Indicates whether the user is locked to NewApp in HybridApp only.
+     */
+    isLockedToNewApp?: boolean;
+
+    /**
      * This key is mostly used on OldDot. In NewDot, we only use `completedHybridAppOnboarding` and `isLockedToNewDot`.
      */
     classicRedirect?: {
@@ -42,7 +47,6 @@ type TryNewDot = {
     nudgeMigration?: {
         /** Indicates timestamp of an action. */
         timestamp: Date;
-        /** Indicates the user's cohort */
         cohort?: string;
     };
 };

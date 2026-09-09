@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const simplifiedChineseGlossary = new Glossary([
@@ -6,7 +7,7 @@ const simplifiedChineseGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Expensify 卡', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to Simplified Chinese, follow these rules:
 
     - Keep UI labels concise and follow standard Simplified Chinese conventions.

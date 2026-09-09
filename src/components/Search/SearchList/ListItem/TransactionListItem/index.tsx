@@ -1,0 +1,304 @@
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {
+    ReportSubmitToPopoverAnchor,
+    SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
+    useOpenReportSubmitToPopover,
+    useSearchSubmitPopoverGuard,
+} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
+import type {ListItem} from '@components/SelectionList/types';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    isDeletedTransaction as isDeletedTransactionUtil,
+    isViolationDismissed,
+    mergeProhibitedViolations,
+    shouldShowAttendees,
+    shouldShowViolation,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+// NOTE: The narrow-layout rendering of this component has a static twin in
+// SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
+// perceived performance. If you change the narrow-layout UI here, verify the
+// static version still looks visually identical.
+import React from 'react';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+
+import TransactionListItemNarrow from './TransactionListItemNarrow';
+import TransactionListItemWide from './TransactionListItemWide';
+
+function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
+    const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
+        >
+            <TransactionListItemInner {...props} />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function TransactionListItemInner<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onSelectRow,
+    onSelectionButtonPress,
+    onFocus,
+    onLongPressRow,
+    shouldSyncFocus,
+    columns,
+    isLoading,
+    nonPersonalAndWorkspaceCards,
+    lastPaymentMethod,
+    personalPolicyID,
+    isLastItem,
+    isFirstItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    onUndelete,
+}: TransactionListItemProps<TItem>) {
+    const transactionItem = item as unknown as TransactionListItemType;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
+
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const snapshotData = currentSearchResults?.data;
+    const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
+
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
+    const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
+    // Derived here (from this row's own live policy data) rather than drilled from the Search screen,
+    // so the screen does not re-render every row when the moving policy changes.
+    const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
+
+    // Use report's policyID as fallback when transaction doesn't have policyID directly
+    // Use moving-expense policy as final fallback for SelfDM tracking expenses.
+    // NOTE: Using || instead of ?? to treat empty string "" as falsy
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    let policyID = explicitPolicyID || activePolicyIDFromOnyx;
+    if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        policyID = policyForMovingExpensesID;
+    }
+    const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
+    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+
+    const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
+    const reportActions = actionsData ? Object.values(actionsData) : [];
+
+    // Fetch policy categories directly from Onyx since they are not included in the search snapshot
+    const [policyCategories] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    // Fetch policy tags directly from Onyx (not in the snapshot) so the Tag GL code cell can resolve.
+    const [policyTagLists] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
+
+    const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [transactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
+    const [transaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+    const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
+    const [transactionViolationsForRow] = useOnyxWithoutSnapshots(transactionViolationsKey);
+    const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
+    const parentReportActionID = transactionItem?.reportAction?.reportActionID;
+    const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
+        selector: (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => actions?.[`${parentReportActionID}`],
+    });
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const chatReportID = snapshotReport?.chatReportID ?? snapshotReport?.parentReportID;
+    const [parentChatReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
+    // Fall back to the search snapshot when the chat report isn't in live Onyx yet (e.g. offline or not fetched),
+    // matching the grouped-report path in ReportListItemHeader so the Pay flow can still resolve the chat report.
+    const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    const chatReport = parentChatReport ?? snapshotChatReport;
+    const [chatReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
+    const {amountOwed, currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, conciergeChat} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
+        item: transactionItem,
+        reportID: transactionItem.reportID,
+        itemKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`,
+        snapshotData,
+        snapshotActions: reportActions,
+        enabled: !!snapshotData,
+    });
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!transaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!transactionThreadReport,
+    };
+
+    // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
+    // like isAttendeeTrackingEnabled is not missing
+    // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
+    // newly created reports aren't in the search snapshot yet
+    const policyForViolations = parentPolicy ?? snapshotPolicy;
+    const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
+    const reportForViolations = parentReport ?? snapshotReport;
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy: rowPolicy ?? liveTransactionItem.policy,
+        report: liveTransactionItem.report,
+        isTrackIntentUser,
+    });
+
+    const onyxViolations = (transactionViolationsForRow ?? []).filter(
+        (violation: TransactionViolation) =>
+            !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
+            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem),
+    );
+
+    const isInvoice = isInvoiceReport(reportForViolations) || reportForViolations.type === CONST.REPORT.TYPE.INVOICE;
+    // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
+    // Use live transaction data (attendees, category) to ensure we check against current state, not stale snapshot
+    const attendeeOnyxViolations = syncMissingAttendeesViolation(
+        onyxViolations,
+        policyCategories,
+        transaction?.category ?? transactionItem.category ?? '',
+        transaction?.comment?.attendees ?? transactionItem.attendees,
+        currentUserDetails,
+        isAttendeeTrackingEnabled(policyForViolations),
+        policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
+        isInvoice,
+    );
+
+    const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
+
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {showConfirmModal} = useConfirmModal();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+        handleActionButtonPressUtil({
+            getCurrencyDecimals,
+            hash: currentSearchHash,
+            item: liveTransactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            snapshotReport,
+            snapshotPolicy,
+            submitterLogin,
+            policy: parentPolicy,
+            lastPaymentMethod,
+            userBillingGracePeriodEnds,
+            currentSearchKey,
+            isDelegateAccessRestricted,
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
+            onUndelete: () => onUndelete?.(transactionItem),
+            openReportSubmitToPopover,
+            shouldDisableSearchSubmitPress,
+            consumeIgnoreNextSearchSubmitPress,
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            currentUserAccountID,
+            currentUserLogin,
+            introSelected,
+            betas,
+            isSelfTourViewed,
+            activePolicy,
+            chatReport,
+            chatReportPolicy,
+            searchData: currentSearchResults?.data,
+            chatReportActions,
+            delegateEmail,
+            delegateAccountID,
+            isTrackIntentUser,
+            allViolations,
+            conciergeChat,
+        });
+    };
+
+    const sharedProps = {
+        item: liveTransactionItem as unknown as TItem,
+        isDeletedTransaction,
+        isFocused,
+        showTooltip,
+        isDisabled,
+        canSelectMultiple,
+        onSelectRow,
+        onCheckboxPress: onSelectionButtonPress,
+        onFocus,
+        onLongPressRow,
+        shouldSyncFocus,
+        columns,
+        isLoading,
+        isActionLoading,
+        transactionViolations,
+        handleActionButtonPress,
+        shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,
+        transactionPreviewData,
+        reportActions,
+        policyCategories,
+        policyTagLists,
+        rowPolicy,
+        nonPersonalAndWorkspaceCards,
+        isAttendeesEnabledForMovingPolicy,
+        chatReport,
+    };
+
+    if (!isLargeScreenWidth) {
+        return (
+            <TransactionListItemNarrow
+                {...sharedProps}
+                isLastItem={isLastItem}
+                isFirstItem={isFirstItem}
+            />
+        );
+    }
+
+    return (
+        <TransactionListItemWide
+            {...sharedProps}
+            isLastItem={isLastItem}
+            currentSearchHash={currentSearchHash}
+        />
+    );
+}
+
+export default TransactionListItem;

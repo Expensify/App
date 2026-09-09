@@ -1,49 +1,90 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
-import type CONST_TYPE from '@src/CONST';
+import type * as ViolationsUtilsExports from '@libs/Violations/ViolationsUtils';
+
+import type * as CONSTModule from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/TransactionUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const CONST_MOCK = jest.requireActual('@src/CONST').default as typeof CONST_TYPE;
+jest.mock('@libs/Violations/ViolationsUtils', () => {
+    const actual: typeof ViolationsUtilsExports = jest.requireActual('@libs/Violations/ViolationsUtils');
+
     return {
-        isViolationDismissed: jest.fn(),
-        shouldShowViolation: jest.fn(),
-        mergeProhibitedViolations: (transactionViolations: Array<{name: string; type: string; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
-            const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE);
+        ...actual,
+        syncCustomUnitRateOutOfDateRangeViolation: (violations: TransactionViolation[]) => violations,
+    };
+});
 
-            if (prohibitedViolations.length === 0) {
-                return transactionViolations;
+jest.mock('@libs/TransactionUtils', () => {
+    const CONST_MOCK = jest.requireActual<typeof CONSTModule>('@src/CONST').default;
+
+    const mergeProhibitedViolations = (transactionViolations: Array<{name: string; type: string; showInReview?: boolean; data?: {prohibitedExpenseRule?: string | string[]}}>) => {
+        const prohibitedViolations = transactionViolations.filter((violation) => violation.name === CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE);
+
+        if (prohibitedViolations.length === 0) {
+            return transactionViolations;
+        }
+
+        const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
+            const rule = violation.data?.prohibitedExpenseRule;
+            if (!rule) {
+                return [];
             }
+            return Array.isArray(rule) ? rule : [rule];
+        });
 
-            const prohibitedExpenses = prohibitedViolations.flatMap((violation) => {
-                const rule = violation.data?.prohibitedExpenseRule;
-                if (!rule) {
-                    return [];
-                }
-                return Array.isArray(rule) ? rule : [rule];
-            });
+        const mergedProhibitedViolations = {
+            name: CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE,
+            data: {
+                prohibitedExpenseRule: prohibitedExpenses,
+            },
+            type: CONST_MOCK.VIOLATION_TYPES.VIOLATION,
+            showInReview: prohibitedViolations.some((v) => v.showInReview),
+        };
 
-            const mergedProhibitedViolations = {
-                name: CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE,
-                data: {
-                    prohibitedExpenseRule: prohibitedExpenses,
-                },
-                type: CONST_MOCK.VIOLATION_TYPES.VIOLATION,
-            };
+        return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
+    };
 
-            return [...transactionViolations.filter((violation) => violation.name !== CONST_MOCK.VIOLATIONS.PROHIBITED_EXPENSE), mergedProhibitedViolations];
-        },
+    const mockIsViolationDismissed = jest.fn();
+    const mockShouldShowViolation = jest.fn();
+
+    const getVisibleTransactionViolations = (
+        transaction: Transaction | undefined,
+        transactionViolations: TransactionViolations,
+        currentUserEmail: string,
+        currentUserAccountID: number,
+        iouReport: Report | undefined,
+        iouReportOwnerLogin: string | undefined,
+        policy: Policy | undefined,
+        shouldShowRterForSettledReport = true,
+    ) =>
+        mergeProhibitedViolations(
+            transactionViolations.filter(
+                (violation) =>
+                    !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
+                    mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, shouldShowRterForSettledReport, transaction),
+            ),
+        );
+
+    return {
+        isDistanceRequest: (transaction: Transaction | undefined) => transaction?.iouRequestType === CONST_MOCK.IOU.REQUEST_TYPE.DISTANCE,
+        isViolationDismissed: mockIsViolationDismissed,
+        shouldShowViolation: mockShouldShowViolation,
+        mergeProhibitedViolations,
+        getVisibleTransactionViolations,
     };
 });
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         email: 'test@example.com',
@@ -63,8 +104,8 @@ describe('useTransactionViolations', () => {
         Onyx.clear();
 
         // Default mock implementations
-        (isViolationDismissed as jest.Mock).mockReturnValue(false);
-        (shouldShowViolation as jest.Mock).mockReturnValue(true);
+        jest.mocked(isViolationDismissed).mockReturnValue(false);
+        jest.mocked(shouldShowViolation).mockReturnValue(true);
     });
 
     describe('mergeProhibitedViolations', () => {
@@ -81,9 +122,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -104,12 +148,16 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'alcohol',
                     },
+                    showInReview: true,
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -120,6 +168,7 @@ describe('useTransactionViolations', () => {
             expect(result.current.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
             expect(result.current.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol']);
             expect(result.current.at(0)?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+            expect(result.current.at(0)?.showInReview).toBe(true);
         });
 
         it('should merge multiple prohibited violations into one', async () => {
@@ -131,6 +180,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'alcohol',
                     },
+                    showInReview: true,
                 },
                 {
                     name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
@@ -138,6 +188,7 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'gambling',
                     },
+                    showInReview: true,
                 },
                 {
                     name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
@@ -145,12 +196,16 @@ describe('useTransactionViolations', () => {
                     data: {
                         prohibitedExpenseRule: 'tobacco',
                     },
+                    showInReview: true,
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -161,6 +216,7 @@ describe('useTransactionViolations', () => {
             expect(result.current.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
             expect(result.current.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol', 'gambling', 'tobacco']);
             expect(result.current.at(0)?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+            expect(result.current.at(0)?.showInReview).toBe(true);
         });
 
         it('should handle empty prohibitedExpenseRule arrays', async () => {
@@ -180,9 +236,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -226,9 +285,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -268,9 +330,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -298,14 +363,19 @@ describe('useTransactionViolations', () => {
             ];
 
             // Mock the first violation as dismissed
-            (isViolationDismissed as jest.Mock).mockImplementation((transaction, violation) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            jest.mocked(isViolationDismissed).mockImplementation((transaction, violation) => {
+                if (!violation) {
+                    throw new Error('Expected violation to be provided');
+                }
                 return violation.name === CONST.VIOLATIONS.MISSING_CATEGORY;
             });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -333,19 +403,25 @@ describe('useTransactionViolations', () => {
             ];
 
             // Mock shouldShowViolation to hide RTER violations
-            (shouldShowViolation as jest.Mock).mockImplementation((iouReport, policy, violationName) => {
+            jest.mocked(shouldShowViolation).mockImplementation((iouReport, policy, violationName) => {
                 return violationName !== CONST.VIOLATIONS.RTER;
             });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-                reportID,
-            } as Transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                policyID,
-            } as Report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {} as Policy);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                    reportID,
+                }),
+            );
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                createMock<Report>({
+                    reportID,
+                    policyID,
+                }),
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, createMock<Policy>({}));
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -366,9 +442,12 @@ describe('useTransactionViolations', () => {
         it('should handle empty violations array', async () => {
             const transactionID = '123';
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
 
             await waitForBatchedUpdates();
@@ -387,9 +466,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, initialViolations);
 
             await waitForBatchedUpdates();
@@ -429,21 +511,26 @@ describe('useTransactionViolations', () => {
             ];
 
             let capturedShouldShowRterParam: boolean | undefined;
-            (shouldShowViolation as jest.Mock).mockImplementation((iouReport, policy, violationName, email, shouldShowRter) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            jest.mocked(shouldShowViolation).mockImplementation((iouReport, policy, violationName, email, accountID, shouldShowRter) => {
                 capturedShouldShowRterParam = shouldShowRter;
                 return true;
             });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-                reportID,
-            } as Transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                policyID,
-            } as Report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {} as Policy);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                    reportID,
+                }),
+            );
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                createMock<Report>({
+                    reportID,
+                    policyID,
+                }),
+            );
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, createMock<Policy>({}));
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -468,9 +555,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();
@@ -518,9 +608,12 @@ describe('useTransactionViolations', () => {
                 },
             ];
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-                transactionID,
-            } as Transaction);
+            await Onyx.set(
+                `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                createMock<Transaction>({
+                    transactionID,
+                }),
+            );
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, violations);
 
             await waitForBatchedUpdates();

@@ -1,14 +1,19 @@
-import {useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+
+import {isPolicyAdmin, isArchivedPolicy, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 
 type UseWorkspaceListParams = {
@@ -19,9 +24,21 @@ type UseWorkspaceListParams = {
     searchTerm: string;
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
+    shouldSortSelectedToTop?: boolean;
+    includeArchivedPolicy?: boolean;
 };
 
-function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
+function useWorkspaceList({
+    policies,
+    currentUserLogin,
+    selectedPolicyIDs,
+    searchTerm,
+    shouldShowPendingDeletePolicy,
+    localeCompare,
+    additionalFilter,
+    shouldSortSelectedToTop = true,
+    includeArchivedPolicy = false,
+}: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
@@ -30,7 +47,12 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
 
         const result = [];
         for (const policy of Object.values(policies)) {
-            if (!policy || policy.isJoinRequestPending || !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) || (additionalFilter && !additionalFilter(policy))) {
+            if (
+                !policy ||
+                policy.isJoinRequestPending ||
+                !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin, includeArchivedPolicy) ||
+                (additionalFilter && !additionalFilter(policy))
+            ) {
                 continue;
             }
 
@@ -48,18 +70,22 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                 ],
                 keyForList: `${policy.id}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
+                isArchived: isArchivedPolicy(policy),
                 isSelected: policy.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
             });
         }
         return result;
-    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, icons.FallbackWorkspaceAvatar, selectedPolicyIDs, includeArchivedPolicy]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
-            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) =>
-                sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare),
-            ),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare],
+            tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => {
+                if (shouldSortSelectedToTop) {
+                    return sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare);
+                }
+                return localeCompare(policy1.text, policy2.text);
+            }),
+        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare, shouldSortSelectedToTop],
     );
 
     const sections = useMemo(() => {

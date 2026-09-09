@@ -1,4 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
+import ReceiptStorage from '@libs/ReceiptStorage';
+
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**
@@ -20,13 +22,15 @@ function validateReceiptFile(
         return Promise.resolve();
     }
 
-    return checkFileExists(receiptPathString).then((exists) => {
+    const localPath = ReceiptStorage.resolve(receiptPath) ?? receiptPathString;
+
+    return checkFileExists(localPath).then((exists) => {
         if (!exists) {
             onFailure();
             return;
         }
 
-        onSuccess({uri: receiptPathString, name: receiptFilename, type: receiptType, source: receiptPathString} as File);
+        onSuccess({uri: localPath, name: receiptFilename, type: receiptType, source: localPath} as File);
     });
 }
 

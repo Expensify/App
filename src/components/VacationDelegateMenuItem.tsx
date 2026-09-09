@@ -1,18 +1,23 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
+
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+
+import React from 'react';
+
+import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
+import MenuItemEmptyField from './MenuItem/presets/MenuItemEmptyField';
+import MenuItemWithLabel from './MenuItem/presets/MenuItemWithLabel';
 import OfflineWithFeedback from './OfflineWithFeedback';
-import Text from './Text';
 
 type VacationDelegateSectionProps = {
-    /** Currently selected vacation delegate (if any) */
     vacationDelegate?: BaseVacationDelegate;
 
     /** Errors related to setting the vacation delegate */
@@ -35,42 +40,52 @@ type VacationDelegateSectionProps = {
 
 function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const personalDetailsByLogin = usePersonalDetailsByLogin();
 
     const hasVacationDelegate = !!vacationDelegate?.delegate;
-    const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(vacationDelegate?.delegate);
 
-    return hasVacationDelegate ? (
-        <>
-            <Text style={[styles.mh5, styles.mt5, styles.mutedTextLabel]}>{translate('common.vacationDelegate')}</Text>
-            <OfflineWithFeedback
-                pendingAction={pendingAction}
-                errors={errors}
-                errorRowStyles={styles.mh5}
-                onClose={onCloseError}
-            >
-                <MenuItem
-                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                    description={fallbackVacationDelegateLogin}
-                    avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    numberOfLinesDescription={1}
-                    shouldShowRightIcon
+    const rawDelegateLogin = vacationDelegatePersonalDetails?.login ?? vacationDelegate?.delegate ?? '';
+    const delegateDisplayName = getVacationDelegateDisplayName(rawDelegateLogin, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber);
+    const delegateDescription = formatPhoneNumber(rawDelegateLogin);
+
+    return (
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
+            errors={errors}
+            errorRowStyles={styles.mh5}
+            onClose={onCloseError}
+            style={hasVacationDelegate && styles.mt4}
+        >
+            {hasVacationDelegate ? (
+                <MenuItemWithLabel
+                    label={translate('common.vacationDelegate')}
+                    onPress={onPress}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
+                                accountID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{delegateDisplayName}</MenuItem.Title>
+                            {!!delegateDescription && <MenuItem.Description numberOfLines={1}>{delegateDescription}</MenuItem.Description>}
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemWithLabel>
+            ) : (
+                <MenuItemEmptyField
+                    description={translate('common.vacationDelegate')}
                     onPress={onPress}
                 />
-            </OfflineWithFeedback>
-        </>
-    ) : (
-        <MenuItem
-            description={translate('common.vacationDelegate')}
-            shouldShowRightIcon
-            onPress={onPress}
-        />
+            )}
+        </OfflineWithFeedback>
     );
 }
 

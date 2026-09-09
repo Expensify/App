@@ -8,6 +8,7 @@ type UpdatePersonalDetailsForWalletParams = {
     addressZip: string;
     dob: string;
     ssn: string;
+    validateCode?: string;
 };
 
 export default UpdatePersonalDetailsForWalletParams;

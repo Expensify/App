@@ -1,25 +1,35 @@
-import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+import CONST from '@src/CONST';
+
+import type {Span, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+
+import {SPAN_STATUS_OK, spanTimeInputToSeconds} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
-import CONST from '@src/CONST';
+
+import logBenchmarkSpanEnd, {isBenchmarkSpanEnabled} from './logBenchmarkSpanEnd';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
-    startTime: number;
+    spanName: string;
+    startTimeForLog: number;
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
 
-type StartSpanExtraOptions = Partial<{
-    /**
-     * Minimum duration of the span in milliseconds. If the span is shorter than this duration, it will be discarded (filtered out) before sending to Sentry.
-     *
-     */
-    minDuration: number;
-}>;
+/** Converts an optional Sentry epoch start time into the `performance.now()` clock used for monotonic duration logging. */
+function getPerformanceStartTimeForLog(startTime: StartSpanOptions['startTime']): number {
+    const performanceTimestamp = performance.now();
+    if (startTime === undefined) {
+        return performanceTimestamp;
+    }
 
-function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
-    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
+    // Sentry start times are Unix timestamps, while performance.now() is relative to the process start. Translate the timestamp once so elapsed time stays monotonic.
+    const epochStartTime = spanTimeInputToSeconds(startTime) * 1000;
+    return performanceTimestamp - (Date.now() - epochStartTime);
+}
+
+function startSpan(spanId: string, options: StartSpanOptions) {
+    if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE && !isBenchmarkSpanEnabled(options.name)) {
         return;
     }
     // End any existing span for this name
@@ -27,15 +37,13 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     console.debug(`[Sentry][${spanId}] Starting span`, {
         spanId,
         spanOptions: options,
-        spanExtraOptions: extraOptions,
         timestamp: Date.now(),
     });
     const span = Sentry.startInactiveSpan(options);
 
-    if (extraOptions.minDuration) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
-    }
-    activeSpans.set(spanId, {span, startTime: performance.now()});
+    const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
+
+    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog});
 
     return span;
 }
@@ -46,11 +54,16 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, startTime} = entry;
-    const now = performance.now();
-    const durationMs = Math.round(now - startTime);
-    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
-    span.setStatus({code: 1});
+    const {span, spanName, startTimeForLog} = entry;
+    const performanceTimestamp = performance.now();
+    const durationMs = Math.round(performanceTimestamp - startTimeForLog);
+    const attributes = Sentry.spanToJSON(span).data ?? {};
+    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: Date.now(), attributes});
+    if (attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED] !== true) {
+        logBenchmarkSpanEnd(spanName, durationMs);
+    }
+    span.setStatus({code: SPAN_STATUS_OK});
+
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
     activeSpans.delete(spanId);
@@ -64,7 +77,7 @@ function cancelSpan(spanId: string) {
     entry.span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
-    entry.span.setStatus({code: 1});
+    entry.span.setStatus({code: SPAN_STATUS_OK});
     endSpan(spanId);
 }
 
@@ -82,14 +95,39 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Cancel a tracked span by its Sentry span instance rather than its id (e.g. from a lifecycle listener that
+ * only has the raw span). Optionally stamps attributes first. No-op if the span isn't tracked.
+ */
+function cancelSpanByInstance(target: Span, attributes?: Record<string, SpanAttributeValue>) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (entry.span === target) {
+            if (attributes) {
+                entry.span.setAttributes(attributes);
+            }
+            cancelSpan(spanID);
+            return;
+        }
+    }
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
 
-function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue>) {
+/** Look up a span whose id is suffixed (e.g. per-attempt spans stored as `${name}_${attempt}`). */
+function getSpanByPrefix(prefix: string) {
+    for (const [spanID, entry] of activeSpans.entries()) {
+        if (spanID.startsWith(prefix)) {
+            return entry.span;
+        }
+    }
+}
+
+function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
     const span = getSpan(spanId);
     span?.setAttributes(attributes);
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, getSpanByPrefix, cancelSpan, cancelSpanByInstance, cancelAllSpans, cancelSpansByPrefix};

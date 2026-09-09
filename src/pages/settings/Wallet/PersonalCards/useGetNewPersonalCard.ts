@@ -1,8 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useEffect, useRef, useState} from 'react';
 
 export default function useGetNewPersonalCard() {
     const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -17,14 +19,15 @@ export default function useGetNewPersonalCard() {
             prevCardListRef.current = cardList;
             return;
         }
-        const prevCardList = prevCardListRef.current;
-        const prevIds = new Set(Object.keys(prevCardList));
-        const currentIds = Object.keys(cardList);
-        const newCardIds = currentIds.filter((id) => !prevIds.has(id));
-        if (newCardIds.length > 0) {
-            for (const id of newCardIds) {
-                setNewCard(cardList[id]);
-            }
+
+        // Find the first card that is either new or has a fresh import timestamp
+        const latestChange = Object.values(cardList).find((card) => {
+            const prev = prevCardListRef.current?.[card.cardID];
+            return !prev || card.lastImportAttempt !== prev.lastImportAttempt;
+        });
+
+        if (latestChange) {
+            setNewCard(latestChange);
         }
 
         prevCardListRef.current = cardList;

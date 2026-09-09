@@ -1,9 +1,13 @@
-import React, {useState} from 'react';
 import type {DecisionModalProps} from '@components/DecisionModal';
 import DecisionModal from '@components/DecisionModal';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {ModalActions} from './ModalContext';
+
+import React, {useState} from 'react';
+
 import type {ModalProps} from './ModalContext';
+
+import {ModalActions} from './ModalContext';
 
 type DecisionModalWrapperProps = ModalProps & Omit<DecisionModalProps, 'onClose' | 'onSecondOptionSubmit' | 'onFirstOptionSubmit' | 'isVisible' | 'isSmallScreenWidth'>;
 
@@ -35,7 +39,7 @@ function DecisionModalWrapper({closeModal, onModalHide, ...props}: DecisionModal
     return (
         <DecisionModal
             // Spreading is needed to forward all modal configuration props from the wrapper to the underlying DecisionModal.
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...props}
             isVisible={isVisible}
             isSmallScreenWidth={isSmallScreenWidth}

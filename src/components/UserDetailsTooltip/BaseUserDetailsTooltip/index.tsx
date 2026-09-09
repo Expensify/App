@@ -1,17 +1,22 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import Avatar from '@components/Avatar';
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
 import {getUserDetailTooltipText} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
@@ -21,7 +26,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
-    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, userDetails.displayName ? userDetails.displayName.trim() : '');
+    let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, translate, userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? formatPhoneNumber(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
@@ -31,7 +36,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     // the Copilot feature is implemented.
     if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
-        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber);
+        const delegateUserDisplayName = getUserDetailTooltipText(delegateAccountID, formatPhoneNumber, translate);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
         userAvatar = delegateUserDetails?.avatar;
@@ -55,14 +60,18 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
         () => (
             <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
                 <View style={styles.emptyAvatar}>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={icon?.source ?? userAvatar}
-                        avatarID={icon?.id ?? userAccountID}
-                        type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
-                        name={icon?.name ?? userLogin}
-                        fallbackIcon={icon?.fallbackIcon}
-                    />
+                    {icon ? (
+                        <AvatarFromIcon
+                            containerStyles={styles.actionAvatar}
+                            icon={{...icon, id: icon.id ?? userAccountID, name: icon.name ?? userLogin}}
+                        />
+                    ) : (
+                        <UserAvatar
+                            containerStyles={styles.actionAvatar}
+                            source={userAvatar}
+                            accountID={userAccountID}
+                        />
+                    )}
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>

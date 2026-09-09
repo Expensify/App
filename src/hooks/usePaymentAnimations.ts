@@ -1,5 +1,6 @@
-import {useCallback, useState} from 'react';
 import HapticFeedback from '@libs/HapticFeedback';
+
+import {useCallback, useState} from 'react';
 
 function usePaymentAnimations() {
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);

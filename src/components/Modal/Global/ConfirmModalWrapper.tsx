@@ -1,11 +1,17 @@
-import React, {useState} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
+
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useNetwork from '@hooks/useNetwork';
+
 import CONST from '@src/CONST';
-import {ModalActions} from './ModalContext';
+
+import React, {useState} from 'react';
+
 import type {ModalProps} from './ModalContext';
+
+import {ModalActions} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
 
@@ -14,14 +20,25 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
+    const {isOffline} = useNetwork();
     const [isVisible, setIsVisible] = useState(true);
     const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
+    const [isConfirmLoading, setIsConfirmLoading] = useState(false);
 
     const handleConfirm = () => {
         setCloseAction(ModalActions.CONFIRM);
-        setIsVisible(false);
+        // If isConfirmLoading is passed, don't close immediately - show loading state instead
+        // The caller should use closeModal() from useConfirmModal when the async operation completes
+        if (props.isConfirmLoading !== undefined) {
+            setIsConfirmLoading(true);
+            // Resolve the promise so the caller's .then() handler can start the async operation
+            // The modal stays visible with loading state until closeModal() is called
+            resolveModal({action: ModalActions.CONFIRM});
+        } else {
+            setIsVisible(false);
+        }
     };
 
     const handleCancel = () => {
@@ -37,8 +54,11 @@ function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWr
         onModalHide?.();
     };
 
+    // Mirror the confirm button's offline-disabled state so the Enter shortcut can't bypass a button that is visually disabled while offline.
+    const isConfirmDisabledWhileOffline = !!props.shouldDisableConfirmButtonWhenOffline && isOffline;
+
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON,
+        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline,
         shouldPreventDefault: false,
         shouldBubble: false,
     };
@@ -47,12 +67,12 @@ function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWr
 
     return (
         <ConfirmModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
             onModalHide={handleModalHide}
+            isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
         />
     );
 }

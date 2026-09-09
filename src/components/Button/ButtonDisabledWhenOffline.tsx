@@ -1,7 +1,9 @@
-import React from 'react';
+import type {ButtonProps} from '@components/ButtonComposed';
+import Button from '@components/ButtonComposed';
+
 import useNetwork from '@hooks/useNetwork';
-import Button from '.';
-import type {ButtonProps} from '.';
+
+import React from 'react';
 
 type ButtonDisabledWhenOfflineProps = ButtonProps & {
     disabledWhenOffline?: boolean;
@@ -11,7 +13,6 @@ function ButtonDisabledWhenOffline({disabledWhenOffline = true, ...props}: Butto
     const {isOffline} = useNetwork();
     return (
         <Button
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isDisabled={disabledWhenOffline && isOffline}
         />

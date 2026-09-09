@@ -1,6 +1,7 @@
 import type {Country} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -62,10 +63,17 @@ const INPUT_IDS = {
         SIGNER_COUNTRY: 'signer_nationality',
         SIGNER_COPY_OF_ID: 'signerCopyOfID',
         SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscaleTaxID',
         PROOF_OF_DIRECTORS: 'proofOfDirectors',
         DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+    },
+    KYB_DOCUMENTS: {
+        COMPANY_TAX_ID: 'companyTaxId',
+        NAME_CHANGE_DOCUMENT: 'nameChangeDocument',
+        COMPANY_ADDRESS_VERIFICATION: 'companyAddressVerification',
+        USER_ADDRESS_VERIFICATION: 'userAddressVerification',
+        USER_DOB_VERIFICATION: 'userDOBVerification',
     },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
@@ -149,6 +157,7 @@ const INPUT_IDS = {
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+            BANK_STATEMENT: 'bankStatement',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
             SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
@@ -219,6 +228,14 @@ type ACHContractStepProps = {
     [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: boolean;
+};
+
+type KYBDocumentsStepProps = {
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: FileObject[];
 };
 
 type ReimbursementAccountProps = {
@@ -438,6 +455,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Powerform required for US and CA workspaces */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
@@ -449,6 +467,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             CompanyStepProps &
             RequestorStepProps &
             ACHContractStepProps &
+            KYBDocumentsStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
     > & {currency?: string};
@@ -460,7 +479,6 @@ export type {
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
-    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
     InputID,

@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
+
+import {findClosestPoint, normalizeChartCoordinate, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
+
 import {useSharedValue} from 'react-native-reanimated';
-import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks/useChartInteractions';
 
 /**
  * findClosestPoint — binary search for the nearest canvas-x index
@@ -88,6 +90,21 @@ describe('findClosestPoint', () => {
     });
 });
 
+describe('normalizeChartCoordinate', () => {
+    it('leaves coordinates unchanged at the design scale', () => {
+        expect(normalizeChartCoordinate(120, 1)).toBe(120);
+    });
+
+    it('maps rendered coordinates back to design coordinates', () => {
+        expect(normalizeChartCoordinate(120, 0.5)).toBe(240);
+    });
+
+    it('leaves coordinates unchanged when the scale is invalid', () => {
+        expect(normalizeChartCoordinate(120, 0)).toBe(120);
+        expect(normalizeChartCoordinate(120, Number.NaN)).toBe(120);
+    });
+});
+
 /**
  * useChartInteractions hook
  */
@@ -112,11 +129,11 @@ describe('useChartInteractions', () => {
         expect(typeof result.current.setPointPositions).toBe('function');
     });
 
-    it('starts with activeDataIndex of -1 and isTooltipActive false', () => {
+    it('starts with matchedIndex of -1 and isTooltipActive false', () => {
         const {result} = renderHook(() => useChartInteractions(defaultProps));
 
-        expect(result.current.activeDataIndex).toBe(-1);
-        expect(result.current.isTooltipActive).toBe(false);
+        expect(result.current.matchedIndex.get()).toBe(-1);
+        expect(result.current.isTooltipActive.get()).toBe(false);
     });
 
     it('setPointPositions does not throw for typical canvas coordinates', () => {
@@ -142,7 +159,7 @@ describe('useChartInteractions', () => {
             return useChartInteractions({...defaultProps, chartBottom, yZero});
         });
 
-        expect(result.current.isTooltipActive).toBe(false);
+        expect(result.current.isTooltipActive.get()).toBe(false);
     });
 
     it('accepts optional isCursorOverLabel and resolveLabelTouchX', () => {

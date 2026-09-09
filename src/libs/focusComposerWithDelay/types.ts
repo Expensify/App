@@ -7,7 +7,7 @@ type Selection = {
     positionY?: number;
 };
 
-type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection) => void;
+type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => Promise<void>;
 
 type InputType = TextInput | HTMLTextAreaElement;
 

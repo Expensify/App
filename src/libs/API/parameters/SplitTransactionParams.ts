@@ -1,3 +1,4 @@
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
@@ -14,9 +15,13 @@ type SplitTransactionSplitParam = {
     modifiedExpenseReportActionID?: string;
     reimbursable?: boolean;
     billable?: boolean;
+    taxCode?: string;
+    taxAmount?: number;
+    taxValue?: string;
     reportID?: string;
     quantity?: number;
     customUnitRateID?: string;
+    distanceUnit?: Unit;
     odometerStart?: number;
     odometerEnd?: number;
     waypoints?: WaypointCollection;
@@ -36,6 +41,9 @@ type SplitTransactionParams = {
     [key: string]: string | number | boolean;
 };
 
-type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {comment?: string};
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {
+    comment?: string;
+    copiedComments?: string;
+};
 
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams};

@@ -1,169 +1,152 @@
-import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
-import type {NavigationState, PartialState} from '@react-navigation/routers';
+import Log from '@libs/Log';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 
+import type {NavigationState, PartialState} from '@react-navigation/routers';
+
+import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
+
 jest.mock('@react-navigation/native', () => ({
-    findFocusedRoute: jest.fn(),
     getPathFromState: jest.fn(),
 }));
+
+const mockLogAlert = jest.spyOn(Log, 'alert').mockImplementation(() => {});
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     config: {},
     normalizedConfigs: {
-        TestDynamicScreen: {
-            path: 'test-dynamic',
-        },
-        StandardScreen: {
-            path: 'standard',
-        },
-        VerifyAccountScreen: {
-            path: 'verify-account',
-        },
-        CountryScreen: {
-            path: 'country',
-        },
-        FlagScreen: {
-            path: 'flag/:reportID/:reportActionID',
-        },
-        ConstantPickerScreen: {
-            path: 'constant-picker',
-        },
-        WalletScreen: {
-            path: 'settings/wallet',
-        },
-        ReportScreen: {
-            path: 'r/:reportID',
-        },
-    },
-}));
+        TestDynamicScreen: {path: 'test-dynamic'},
+        StandardScreen: {path: 'standard'},
+        VerifyAccountScreen: {path: 'verify-account'},
+        CountryScreen: {path: 'country'},
+        FlagScreen: {path: 'flag/:reportID/:reportActionID'},
+        ConstantPickerScreen: {path: 'constant-picker'},
+        WalletScreen: {path: 'settings/wallet'},
+        ReportScreen: {path: 'r/:reportID'},
+        SplitExpenseScreen: {path: 'split-expense/:reportID'},
+        SplitExpenseQueryScreen: {path: 'split-expense-q/:reportID'},
 
-jest.mock('@libs/Navigation/linkingConfig', () => ({
-    linkingConfig: {
-        config: {},
+        AmountTab: {path: 'amount'},
+        ScanTab: {path: 'scan'},
     },
+    screensWithOnyxTabNavigator: new Set(['SplitExpenseScreen', 'SplitExpenseQueryScreen']),
 }));
 
 jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
-        TEST_DYNAMIC: {
-            path: 'test-dynamic',
-        },
-        VERIFY_ACCOUNT: {
-            path: 'verify-account',
-        },
-        ADDRESS_COUNTRY: {
-            path: 'country',
-            queryParams: ['country'],
-        },
-        FLAG: {
-            path: 'flag/:reportID/:reportActionID',
-        },
-        CONSTANT_PICKER: {
-            path: 'constant-picker',
-            queryParams: ['formType', 'fieldName', 'fieldValue'],
-        },
+        TEST_DYNAMIC: {path: 'test-dynamic'},
+        VERIFY_ACCOUNT: {path: 'verify-account'},
+        ADDRESS_COUNTRY: {path: 'country', queryParams: ['country']},
+        FLAG: {path: 'flag/:reportID/:reportActionID'},
+        CONSTANT_PICKER: {path: 'constant-picker', queryParams: ['formType', 'fieldName', 'fieldValue']},
+        SPLIT_EXPENSE: {path: 'split-expense/:reportID'},
+        SPLIT_EXPENSE_QUERY: {path: 'split-expense-q/:reportID', queryParams: ['currency']},
     },
 }));
 
-type RouteEntry = {
-    name: string;
-    params?: Record<string, unknown>;
-    path?: string;
-    state?: {routes: RouteEntry[]; index: number};
-};
+type RNGetPathFromStateState = Parameters<typeof RNGetPathFromState>[0];
+type NavigationStateTree = RNGetPathFromStateState | PartialState<NavigationState>;
+type RouteEntry = NavigationStateTree['routes'][number];
+type TestState = Pick<PartialState<NavigationState>, 'routes' | 'index'>;
+type TestRouteEntry = TestState['routes'][number];
 
-type TestState = {
-    routes: RouteEntry[];
-    index: number;
-};
-
-function buildState(routes: RouteEntry[], index?: number): TestState {
+function buildState(routes: TestRouteEntry[], index?: number): TestState {
     return {
         routes,
         index: index ?? routes.length - 1,
-    } as TestState;
+    };
 }
 
-function realFindFocusedRoute(state: TestState | RouteEntry['state']): RouteEntry | undefined {
-    let current: TestState | RouteEntry['state'] = state;
+function realFindFocusedRoute(s: NavigationStateTree): RouteEntry | undefined {
+    let current: NavigationStateTree | undefined = s;
     while (current?.routes?.[current.index ?? 0]?.state != null) {
         current = current.routes[current.index ?? 0].state;
     }
     return current?.routes?.[current?.index ?? 0];
 }
 
-const staticBasePaths: Record<string, (params?: Record<string, unknown>) => string> = {
+const staticBasePaths: Record<string, (params?: RouteEntry['params']) => string> = {
     WalletScreen: () => '/settings/wallet',
-    ReportScreen: (params) => `/r/${(params?.reportID as string) ?? ''}`,
+    ReportScreen: (params) => `/r/${params && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : ''}`,
 };
 
 describe('getPathFromState', () => {
-    const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
-    const mockRNGetPathFromState = RNGetPathFromState as jest.Mock;
+    const mockRNGetPathFromState = jest.mocked(RNGetPathFromState);
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should return path from focused route for dynamic screens when path is present', () => {
-        const state = {} as PartialState<NavigationState>;
-        const expectedPath = '/test-dynamic/123';
+    it('should resolve dynamic screen from pattern and params', () => {
+        mockRNGetPathFromState.mockImplementation(staticBasePaths.WalletScreen);
 
-        mockFindFocusedRoute.mockReturnValue({
-            name: 'TestDynamicScreen',
-            path: expectedPath,
-        });
+        const state = buildState([{name: 'WalletScreen'}, {name: 'TestDynamicScreen'}]);
 
-        const result = getPathFromState(state);
+        const result = getPathFromState(state as PartialState<NavigationState>);
 
-        expect(result).toBe(expectedPath);
-        expect(mockRNGetPathFromState).not.toHaveBeenCalled();
+        expect(result).toBe('/settings/wallet/test-dynamic');
+    });
+
+    it('does not log an alert for a well-formed path built from a root base', () => {
+        // With the root-base join restored, a base screen that resolves to '/' yields '/test-dynamic'
+        // (never '//test-dynamic'), so this is a happy path that must not trip the safety-net alert.
+        // Regression guard for the AI Features Promo crash (issue #97470).
+        mockRNGetPathFromState.mockReturnValue('/');
+
+        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
+
+        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/test-dynamic');
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
+    it('normalizes a malformed doubled slash and alerts with the screen name only', () => {
+        // If an upstream base ever carries a doubled slash, the safety net collapses it to a single slash
+        // (so history.pushState can't throw a SecurityError) and alerts. The alert must carry only the
+        // screen name - never the path, which can hold sensitive query params.
+        mockRNGetPathFromState.mockReturnValue('//settings');
+
+        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
+
+        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/test-dynamic');
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), {screenName: 'TestDynamicScreen'});
     });
 
     it('should use RN getPathFromState for standard screens', () => {
-        const state = {} as PartialState<NavigationState>;
         const expectedPath = '/standard/path';
-
-        mockFindFocusedRoute.mockReturnValue({
-            name: 'StandardScreen',
-        });
         mockRNGetPathFromState.mockReturnValue(expectedPath);
 
-        const result = getPathFromState(state);
+        const state = buildState([{name: 'StandardScreen'}]);
+        const result = getPathFromState(state as PartialState<NavigationState>);
 
         expect(result).toBe(expectedPath);
         expect(mockRNGetPathFromState).toHaveBeenCalledWith(state, expect.anything());
     });
 
     it('should handle state where no route is focused', () => {
-        const state = {} as PartialState<NavigationState>;
-        mockFindFocusedRoute.mockReturnValue(undefined);
         mockRNGetPathFromState.mockReturnValue('/fallback');
 
-        const result = getPathFromState(state);
+        const state = buildState([{name: 'StandardScreen'}]);
+        const result = getPathFromState(state as PartialState<NavigationState>);
 
         expect(result).toBe('/fallback');
         expect(mockRNGetPathFromState).toHaveBeenCalled();
     });
 
-    describe('dynamic route fallback (no path in state)', () => {
+    describe('dynamic route resolution from pattern and params', () => {
         beforeEach(() => {
-            mockFindFocusedRoute.mockImplementation(realFindFocusedRoute);
-
-            mockRNGetPathFromState.mockImplementation((s: TestState) => {
+            mockRNGetPathFromState.mockImplementation((s) => {
                 const route = realFindFocusedRoute(s);
                 const builder = staticBasePaths[route?.name ?? ''];
                 return builder ? builder(route?.params) : '/unknown';
             });
         });
 
-        it('simple suffix (no path/query params)', () => {
+        it('simple suffix (no params)', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
-        it('suffix with path params', () => {
+        it('suffix with params', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
@@ -202,22 +185,20 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/constant-picker?formType=report&fieldName=status');
         });
 
-        it('inner dynamic suffix has path, outer has query params', () => {
-            const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen', path: '/settings/wallet/verify-account'}, {name: 'CountryScreen', params: {country: 'US'}}]);
-
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=US');
-        });
-
-        it('inner dynamic suffix has path with path params, outer is simple', () => {
-            const state = buildState([{name: 'ReportScreen', params: {reportID: '123'}}, {name: 'FlagScreen', path: '/r/123/flag/456/abc'}, {name: 'VerifyAccountScreen'}]);
+        it('inner dynamic suffix has path params, outer is simple', () => {
+            const state = buildState([
+                {name: 'ReportScreen', params: {reportID: '123'}},
+                {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
+                {name: 'VerifyAccountScreen'},
+            ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/verify-account');
         });
 
-        it('inner dynamic suffix has path with query params, outer appends suffix (inner query params stripped)', () => {
+        it('inner dynamic suffix has query params, outer appends suffix', () => {
             const state = buildState([
                 {name: 'WalletScreen'},
-                {name: 'CountryScreen', path: '/settings/wallet/country?country=US'},
+                {name: 'CountryScreen', params: {country: 'US'}},
                 {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'status', fieldValue: 'open'}},
             ]);
 
@@ -230,7 +211,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=US');
         });
 
-        it('path params + query params stacking', () => {
+        it('params + query params stacking', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
@@ -240,7 +221,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/country?country=US');
         });
 
-        it('three stacked dynamic suffixes, none with path', () => {
+        it('three stacked dynamic suffixes', () => {
             const state = buildState([
                 {name: 'WalletScreen'},
                 {name: 'VerifyAccountScreen'},
@@ -287,7 +268,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
-        it('path params with special characters are encoded', () => {
+        it('params with special characters are encoded', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: 'a/b', reportActionID: 'c&d'}},
@@ -306,6 +287,105 @@ describe('getPathFromState', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country');
+        });
+    });
+
+    describe('tab navigator integration (OnyxTabNavigator)', () => {
+        beforeEach(() => {
+            mockRNGetPathFromState.mockImplementation((s) => {
+                const route = realFindFocusedRoute(s);
+                const builder = staticBasePaths[route?.name ?? ''];
+                return builder ? builder(route?.params) : '/unknown';
+            });
+        });
+
+        it('appends focused tab path segment when first tab is focused', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'SplitExpenseScreen',
+                    params: {reportID: '123'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 0),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense/123/amount');
+        });
+
+        it('appends focused tab path segment when second tab is focused', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'SplitExpenseScreen',
+                    params: {reportID: '123'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 1),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense/123/scan');
+        });
+
+        it('omits tab segment when tab-hosting screen has no nested state', () => {
+            const state = buildState([{name: 'WalletScreen'}, {name: 'SplitExpenseScreen', params: {reportID: '123'}}]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense/123');
+        });
+
+        it('tab-hosting screen inside a nested navigator', () => {
+            const state = buildState([
+                {
+                    name: 'RHPNavigator',
+                    state: buildState([
+                        {name: 'WalletScreen'},
+                        {
+                            name: 'SplitExpenseScreen',
+                            params: {reportID: '789'},
+                            state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 1),
+                        },
+                    ]),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense/789/scan');
+        });
+
+        it('tab-hosting screen is the only route (no base)', () => {
+            const state = buildState([
+                {
+                    name: 'SplitExpenseScreen',
+                    params: {reportID: '42'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 0),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/split-expense/42/amount');
+        });
+
+        it('tab segment is placed before query params when the tab-host screen has query params', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'SplitExpenseQueryScreen',
+                    params: {reportID: '123', currency: 'USD'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 1),
+                },
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense-q/123/scan?currency=USD');
+        });
+
+        it('popFocusedRoute treats tab-hosting screen as a leaf (removes whole screen, not individual tab)', () => {
+            const state = buildState([
+                {name: 'WalletScreen'},
+                {
+                    name: 'SplitExpenseScreen',
+                    params: {reportID: '123'},
+                    state: buildState([{name: 'AmountTab'}, {name: 'ScanTab'}], 0),
+                },
+                {name: 'VerifyAccountScreen'},
+            ]);
+
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/split-expense/123/amount/verify-account');
         });
     });
 });

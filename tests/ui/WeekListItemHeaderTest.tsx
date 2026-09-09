@@ -1,16 +1,23 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionWeekGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import WeekListItemHeader from '@components/Search/SearchList/ListItem/WeekListItemHeader';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -18,44 +25,50 @@ jest.mock('@libs/Navigation/Navigation');
 
 // Mock useResponsiveLayout to control screen size in tests
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: new Map(),
+    currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
-    isOnSearch: false,
+    excludedTransactions: {},
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
-    shouldShowActionsBarLoading: false,
+    shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
-    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+    suggestedSearches: createMock<SearchStateContextValue['suggestedSearches']>({}),
+    sortedReportIDs: [],
+    hasSelectedTransactions: false,
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    applySelection: jest.fn(),
+    setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowActionsBarLoading: jest.fn(),
-    setShouldShowSelectAllMatchingItems: jest.fn(),
+    setShouldShowFiltersBarLoading: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSortedReportIDs: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupListItemType> = {}): TransactionWeekGroupListItemType => ({
     week,
     formattedWeek: options.formattedWeek ?? 'Jan 25 - Jan 31, 2026',
+    shortFormattedWeek: options.shortFormattedWeek ?? 'Jan 25 - 31, ’26',
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,
@@ -81,22 +94,23 @@ const renderWeekListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchStateContext.Provider value={mockSearchStateContext}>
-                <SearchActionsContext.Provider value={mockSearchActionsContext}>
-                    <WeekListItemHeader
-                        week={weekItem}
-                        onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
-                        isDisabled={props.isDisabled ?? false}
-                        canSelectMultiple={props.canSelectMultiple ?? false}
-                        isSelectAllChecked={props.isSelectAllChecked ?? false}
-                        isIndeterminate={props.isIndeterminate ?? false}
-                        onDownArrowClick={props.onDownArrowClick}
-                        isExpanded={props.isExpanded ?? false}
-                        columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
-                    />
-                </SearchActionsContext.Provider>
-            </SearchStateContext.Provider>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+            <MockSearchContextProvider
+                state={mockSearchStateContext}
+                actions={mockSearchActionsContext}
+            >
+                <WeekListItemHeader
+                    week={weekItem}
+                    onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
+                    isDisabled={props.isDisabled ?? false}
+                    canSelectMultiple={props.canSelectMultiple ?? false}
+                    isSelectAllChecked={props.isSelectAllChecked ?? false}
+                    isIndeterminate={props.isIndeterminate ?? false}
+                    onDownArrowClick={props.onDownArrowClick}
+                    isExpanded={props.isExpanded ?? false}
+                    columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
+                />
+            </MockSearchContextProvider>
         </ComposeProviders>,
     );
 };
@@ -122,6 +136,7 @@ describe('WeekListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -254,6 +269,7 @@ describe('WeekListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

@@ -1,20 +1,23 @@
-/* eslint-disable react/no-array-index-key */
+import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
+import Text from '@components/Text';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
+
+import variables from '@styles/variables';
+
 import {useMappingHelper} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
-import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
-import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
-import variables from '@styles/variables';
+
 import ReportActionItemImage from './ReportActionItemImage';
 
 type ReportActionItemImagesProps = {
-    /** array of image and thumbnail URIs */
     images: ThumbnailAndImageURI[];
 
     // We're not providing default values for size and total and disabling the ESLint rule

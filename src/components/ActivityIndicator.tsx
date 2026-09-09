@@ -1,16 +1,17 @@
-import React, {useEffect} from 'react';
-import type {ActivityIndicatorProps as RNActivityIndicatorProps} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import useTheme from '@hooks/useTheme';
+
 import logAppStateOnLongLoading from '@libs/AppState';
 import type {ExtraLoadingContext} from '@libs/AppState';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 
+import type {ActivityIndicatorProps as RNActivityIndicatorProps} from 'react-native';
+
+import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {ActivityIndicator as RNActivityIndicator} from 'react-native';
+
 type ActivityIndicatorProps = RNActivityIndicatorProps & {
-    /** The ID of the test to be used for testing */
     testID?: string;
 
     /** Timeout for the activity indicator after which we fire a log about abnormally long loading */
@@ -18,14 +19,10 @@ type ActivityIndicatorProps = RNActivityIndicatorProps & {
 
     /** Extra loading context to be passed to the logAppStateOnLongLoading function */
     extraLoadingContext?: ExtraLoadingContext;
-
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, reasonAttributes, ...rest}: ActivityIndicatorProps) {
+function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, extraLoadingContext, ...rest}: ActivityIndicatorProps) {
     const theme = useTheme();
-    useSkeletonSpan('ActivityIndicator', reasonAttributes);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -40,7 +37,6 @@ function ActivityIndicator({timeout = CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT, e
     return (
         <RNActivityIndicator
             color={theme.spinner}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );

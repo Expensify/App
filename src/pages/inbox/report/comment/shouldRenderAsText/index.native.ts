@@ -1,5 +1,6 @@
-import {Str} from 'expensify-common';
 import {containsCustomEmoji} from '@libs/EmojiUtils';
+
+import {Str} from 'expensify-common';
 
 /**
  * Whether to render the report action as text

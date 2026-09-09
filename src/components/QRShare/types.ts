@@ -1,10 +1,12 @@
+import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
+
+import type CONST from '@src/CONST';
+
 import type React from 'react';
 import type {ForwardedRef} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import type {Svg, SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
-import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
-import type CONST from '@src/CONST';
 
 type QRShareProps = {
     /**
@@ -33,14 +35,7 @@ type QRShareProps = {
      */
     logo?: ImageSourcePropType;
 
-    /**
-     * Background color to be used for logo.
-     */
     logoBackgroundColor?: string;
-
-    /**
-     * Fill color to be used for logos of type SVG
-     */
     svgLogoFillColor?: string;
 
     /**
@@ -53,9 +48,6 @@ type QRShareProps = {
      */
     logoMarginRatio?: QRCodeLogoMarginRatio;
 
-    /**
-     * If true, the Expensify logo will be displayed
-     */
     shouldShowExpensifyLogo?: boolean;
 
     /**
@@ -63,12 +55,7 @@ type QRShareProps = {
      */
     additionalStyles?: StyleProp<ViewStyle>;
 
-    /**
-     * The size of the QR code
-     */
     size?: ValueOf<typeof CONST.QR_CODE_SIZE>;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<QRShareHandle>;
 };
 

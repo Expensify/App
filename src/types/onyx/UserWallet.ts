@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Type of account linked to user's wallet */
@@ -13,10 +15,7 @@ type SetupType = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
 
 /** Model of user wallet */
 type UserWallet = {
-    /** The user's available wallet balance */
     availableBalance: number;
-
-    /** The user's current wallet balance */
     currentBalance: number;
 
     /** What step in the activation flow are we on? */
@@ -31,13 +30,11 @@ type UserWallet = {
     /** Status of wallet - e.g. SILVER or GOLD */
     tierName: ValueOf<typeof CONST.WALLET.TIER_NAME>;
 
-    /** The user's wallet tier */
     tier?: number;
 
     /** Whether the Onfido result is pending. KYC is not complete and the wallet will not be activated until we have the Onfido verification result */
     isPendingOnfidoResult?: boolean;
 
-    /** The ID of the linked account */
     walletLinkedAccountID: number;
 
     /** The type of the linked account (debitCard or bankAccount) */
@@ -46,13 +43,8 @@ type UserWallet = {
     /** The wallet's programID, used to show the correct terms. */
     walletProgramID?: string;
 
-    /** The user's bank account ID */
     bankAccountID?: number;
-
-    /** The user's current wallet limit */
     walletLimit?: number;
-
-    /** The user's current wallet limit enforcement period */
     walletLimitEnforcementPeriod?: number;
 
     /** Error code returned by the server */

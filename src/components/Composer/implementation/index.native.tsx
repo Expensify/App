@@ -1,22 +1,31 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import mimeDb from 'mime-db';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
-import {StyleSheet} from 'react-native';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+
+import useBlurOnKeyboardHide from '@hooks/useBlurOnKeyboardHide';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Log from '@libs/Log';
 import Parser from '@libs/Parser';
+
 import getFileSize from '@pages/Share/getFileSize';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
+import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
+
+import mimeDb from 'mime-db';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -37,15 +46,19 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<MarkdownTextInput | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    // Android keeps the input focused when the keyboard is dismissed with the back button/gesture.
+    useBlurOnKeyboardHide(textInputRef);
 
     useEffect(() => {
-        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+        if (!textInputRef.current?.setSelection || !selection || isComposerFullSize) {
             return;
         }
 
@@ -54,8 +67,8 @@ function Composer({
         // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
         const timeoutID = setTimeout(() => {
             // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
-            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
-            textInput.current?.setSelection(selection.start, selection.start);
+            textInputRef.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInputRef.current?.setSelection(selection.start, selection.start);
         }, 0);
 
         return () => clearTimeout(timeoutID);
@@ -67,19 +80,23 @@ function Composer({
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
-        textInput.current = el;
-        if (typeof ref !== 'function' || textInput.current === null) {
-            return;
-        }
+    const setTextInputRef = useCallback(
+        (el: AnimatedMarkdownTextInputRef | null) => {
+            textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        ref(textInput.current);
+            if (typeof ref !== 'function' || textInputRef.current === null) {
+                return;
+            }
+
+            // This callback prop is used by the parent component using the constructor to
+            // get a ref to the inner textInput element e.g. if we do
+            // <constructor ref={el => this.textInput = el} /> this will not
+            // return a ref to the component, but rather the HTML element by default
+            ref(textInputRef.current as ComposerRef);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [isInLandscapeMode],
+    );
 
     const onClear = useCallback(
         ({nativeEvent}: TextInputChangeEvent) => {
@@ -95,7 +112,7 @@ function Composer({
                 const fileURI = clipboardFile?.data;
                 const baseFileName = fileURI?.split('/').pop() ?? 'file';
                 const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+                const fileExtension = originalFileExtension || (mimeDb[mimeType]?.extensions?.[0] ?? 'bin');
                 const fileName = `${stem}.${fileExtension}`;
                 const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
 
@@ -123,7 +140,10 @@ function Composer({
         [onPasteFile],
     );
 
-    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
+    const maxHeightStyle = useMemo(
+        () => StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize),
+        [StyleUtils, isComposerFullSize, maxLines, isInLandscapeMode],
+    );
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (
@@ -139,11 +159,12 @@ function Composer({
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            autoFocus={isInLandscapeMode ? false : props.autoFocus}
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
+            disableFullscreenUI
         />
     );
 }

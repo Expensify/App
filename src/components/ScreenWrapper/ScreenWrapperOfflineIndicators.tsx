@@ -1,33 +1,32 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import OfflineIndicator from '@components/OfflineIndicator';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 type ScreenWrapperOfflineIndicatorsProps = {
-    /** Styles for the offline indicator */
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
 
     /** Whether to show offline indicator on small screens */
     shouldShowOfflineIndicator?: boolean;
 
-    /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 
     /** Whether to use a sticky small screen offline indicator. */
     shouldMobileOfflineIndicatorStickToBottom?: boolean;
 
-    /** Whether the offline indicator should be translucent. */
     isOfflineIndicatorTranslucent?: boolean;
-
-    /** The extra content to display. */
     extraContent?: ReactNode;
 
     /** Whether to add bottom safe area padding to the small screen offline indicator. */

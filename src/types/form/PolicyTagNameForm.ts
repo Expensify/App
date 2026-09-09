@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -14,6 +15,5 @@ type PolicyTagNameForm = Form<
     }
 >;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {PolicyTagNameForm};
 export default INPUT_IDS;

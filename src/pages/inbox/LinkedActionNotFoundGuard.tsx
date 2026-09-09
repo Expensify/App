@@ -1,28 +1,30 @@
-import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportActions} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+
+import cleanStaleReportActionBackToParam from './cleanStaleReportActionBackToParam';
+import useAutoNavigateForDeletedLinkedAction from './hooks/useAutoNavigateForDeletedLinkedAction';
+
 type LinkedActionNotFoundGuardProps = {
     children: ReactNode;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
     const route = useRoute();
     const routeParams = route.params as {reportActionID?: string} | undefined;
@@ -47,18 +49,17 @@ type LinkedActionNotFoundGateProps = {
     children: ReactNode;
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
+    const navigation = useNavigation();
+    const navigatorKey = navigation.getState()?.key;
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
-    const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
     const [linkedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {
@@ -87,59 +88,41 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     // Track whether isLoadingInitialReportActions has been true at least once during this mount.
     // For previously loaded reports, stale metadata may already have isLoadingInitialReportActions: false
-    // before openReport() fires its optimistic update — without this guard we'd flash "not found".
+    // before openReport() fires its optimistic update — without this guard we'd navigate away prematurely.
     const [hasSeenLoadingCycle, setHasSeenLoadingCycle] = useState(false);
     if (isLoadingInitialReportActions && !hasSeenLoadingCycle) {
         setHasSeenLoadingCycle(true);
     }
 
-    // Show "comment not found" when:
-    // 1. The linked action doesn't exist in the report's actions collection (after loading completes)
-    // 2. The linked action exists but is deleted/hidden, and was never visible during this mount
-    //    (if it gets deleted while viewing, the effect below navigates away instead)
-    // Note: the inaccessible whisper case is handled separately by the whisper effect.
+    // Auto-recover to the end of the report when the linked action was NEVER visible during this mount:
+    // 1. The action exists but is deleted/hidden (and was never visible)
+    // 2. The action doesn't exist in the collection after loading completes (and was never visible)
     //
-    // This intentionally does NOT guard against "report actions exist but the filtered/paginated
-    // view is empty" — that's a report view concern, not a linked-action-not-found concern.
-    // Showing "comment not found" for an action that exists in the collection is incorrect.
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction);
+    // When wasEverVisible is true and the action disappears, the cleanup effect below
+    // handles navigation via setParams instead.
+    //
+    // Note: the inaccessible whisper case is handled separately by the whisper effect.
+    const isLinkedActionUnavailable =
+        !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction));
 
+    // Action was deleted or completely removed while we were viewing it — navigate away.
+    // This handles both: (1) action exists but is hidden/deleted, and (2) action was
+    // removed from Onyx entirely (e.g. REPORT_PREVIEW nulled out when moving IOU to workspace).
     useEffect(() => {
-        if (!shouldShowNotFoundLinkedAction) {
+        if (!wasEverVisible) {
             return;
         }
-
-        Log.info('[ReportScreen] Displaying NotFound Page for linked action', false, {
-            reportIDFromRoute,
-            reportActionIDFromRoute,
-            isLoadingInitialReportActions,
-            hasSeenLoadingCycle,
-            isLinkedActionDeleted,
-            isLinkedActionInaccessibleWhisper,
-            wasEverVisible,
-            linkedActionExists: !!linkedAction,
-        });
-    }, [
-        shouldShowNotFoundLinkedAction,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        isLoadingInitialReportActions,
-        hasSeenLoadingCycle,
-        isLinkedActionDeleted,
-        isLinkedActionInaccessibleWhisper,
-        wasEverVisible,
-        linkedAction,
-    ]);
-
-    // Action was deleted while we were viewing it — navigate away
-    useEffect(() => {
-        if (!isLinkedActionDeleted || !wasEverVisible) {
+        const isActionGone = isLinkedActionDeleted || (!linkedAction && !isLoadingInitialReportActions);
+        if (!isActionGone) {
             return;
         }
-        Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionDeleted, wasEverVisible]);
+        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
+        // Also strip the stale reportActionID from any `backTo` params on sibling routes
+        // (e.g. the IOU report screen that was navigated to FROM this deep link).
+        if (reportIDFromRoute) {
+            cleanStaleReportActionBackToParam(reportIDFromRoute, reportActionIDFromRoute);
+        }
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key, navigatorKey, reportIDFromRoute, reportActionIDFromRoute]);
 
     // Handle inaccessible whisper
     useEffect(() => {
@@ -151,33 +134,20 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
             if (ignore) {
                 return;
             }
-            Navigation.setParams({reportActionID: ''});
+            Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
         });
         return () => {
             ignore = true;
         };
-    }, [isLinkedActionInaccessibleWhisper]);
+    }, [isLinkedActionInaccessibleWhisper, route.key, navigatorKey]);
 
     const navigateToEndOfReport = () => {
-        Navigation.setParams({reportActionID: ''});
+        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
     };
 
-    return (
-        <FullPageNotFoundView
-            shouldShow={shouldShowNotFoundLinkedAction}
-            subtitleKey="notFound.commentYouLookingForCannotBeFound"
-            subtitleStyle={[styles.textSupporting]}
-            shouldShowBackButton={shouldUseNarrowLayout}
-            onBackButtonPress={navigateToEndOfReport}
-            shouldShowLink
-            linkTranslationKey="notFound.goToChatInstead"
-            subtitleKeyBelowLink="notFound.contactConcierge"
-            onLinkPress={navigateToEndOfReport}
-            shouldDisplaySearchRouter
-        >
-            {children}
-        </FullPageNotFoundView>
-    );
+    useAutoNavigateForDeletedLinkedAction(isLinkedActionUnavailable, navigateToEndOfReport);
+
+    return children;
 }
 
 LinkedActionNotFoundGuard.displayName = 'LinkedActionNotFoundGuard';

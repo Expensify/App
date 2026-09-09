@@ -1,5 +1,6 @@
-import {useCallback, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
+
+import {useCallback, useState} from 'react';
 
 /**
  * Returns an onLayout handler and the measured container width (minus an optional offset).

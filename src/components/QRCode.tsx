@@ -1,10 +1,13 @@
-import React from 'react';
+import useTheme from '@hooks/useTheme';
+
+import CONST from '@src/CONST';
+
 import type {ImageSourcePropType} from 'react-native';
+import type {Svg, SvgProps} from 'react-native-svg';
+
+import React from 'react';
 import {View} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
-import type {Svg, SvgProps} from 'react-native-svg';
-import useTheme from '@hooks/useTheme';
-import CONST from '@src/CONST';
 
 type QRCodeLogoRatio = typeof CONST.QR.DEFAULT_LOGO_SIZE_RATIO | typeof CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO;
 
@@ -26,14 +29,7 @@ type QRCodeProps = {
      */
     svgLogo?: React.FC<SvgProps>;
 
-    /**
-     * Background color to be used for logo.
-     */
     logoBackgroundColor?: string;
-
-    /**
-     * Fill color to be used for logos of type SVG.
-     */
     svgLogoFillColor?: string;
 
     /** The size ratio of logo to QR code */
@@ -42,13 +38,8 @@ type QRCodeProps = {
     /** The size ratio of margin around logo to QR code */
     logoMarginRatio?: QRCodeLogoMarginRatio;
 
-    /** The QRCode size */
     size?: number;
-
-    /** The QRCode color */
     color?: string;
-
-    /** The QRCode background color */
     backgroundColor?: string;
 
     /**
@@ -68,7 +59,7 @@ function QRCode({
     svgLogoFillColor,
     logoBackgroundColor,
     getRef,
-    size = 120,
+    size = CONST.QR.DEFAULT_LOGO_SIZE,
     color,
     backgroundColor,
     logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,

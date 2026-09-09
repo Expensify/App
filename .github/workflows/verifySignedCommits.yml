@@ -9,7 +9,7 @@ jobs:
   verifySignedCommits:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
 
       - name: Verify signed commits
         uses: ./.github/actions/javascript/verifySignedCommits

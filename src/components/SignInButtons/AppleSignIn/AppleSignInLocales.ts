@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {ValueOf} from 'type-fest';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {ValueOf} from 'type-fest';
 
 /**
  * The set of locales supported by Apple Sign In.
@@ -49,6 +50,7 @@ const APPLE_SIGN_IN_LOCALES = {
 
 const MAP_EXFY_LOCALE_TO_APPLE_LOCALE: Record<Locale, ValueOf<typeof APPLE_SIGN_IN_LOCALES>> = {
     [LOCALES.DE]: APPLE_SIGN_IN_LOCALES.de_DE,
+    [LOCALES.EL]: APPLE_SIGN_IN_LOCALES.el_GR,
     [LOCALES.EN]: APPLE_SIGN_IN_LOCALES.en_US,
     [LOCALES.ES]: APPLE_SIGN_IN_LOCALES.es_ES,
     [LOCALES.FR]: APPLE_SIGN_IN_LOCALES.fr_FR,

@@ -1,14 +1,16 @@
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
@@ -50,23 +52,29 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShow?: boolean;
-    /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
-    /** The type of brick road indicator to show */
+    /** Whether to render a divider before this option */
+    addSeparatorBefore?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** Whether selecting this option should bypass the delete confirmation modal */
+    shouldSkipDeleteModal?: boolean;
+
+    /** Whether selecting this option should avoid restoring focus to the dropdown before a follow-up modal opens on iOS */
+    shouldSkipFocusRestore?: boolean;
+
+    /** Whether to ignore compact popover menu styling for this item */
+    shouldIgnoreCompactStyle?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
-    /** Text to display for the menu header */
     menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: TValueType) => void;
 
-    /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
 
     /** Callback when the options popover is shown */
@@ -81,22 +89,19 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
 
-    /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-
-    /** Render button in extra-small size */
-    extraSmall?: boolean;
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
     /** Whether the button should stay visually normal even when disabled. */
-    shouldStayNormalOnDisable?: boolean;
+    stayNormalOnDisable?: boolean;
 
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to add to the component when it's disabled */
+    /** Additional styles for the inner button when isSplitButton is false (wrapper uses style). */
+    buttonStyle?: StyleProp<ViewStyle>;
+
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Menu options to display */
@@ -106,22 +111,21 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
-    /* ref for the button */
+    /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
+    shouldSwitchPositionIfOverflow?: boolean;
+
     buttonRef?: RefObject<View | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
-    /** Whether the button should use success style or not */
-    success?: boolean;
+    /** The visual variant of the button (success/danger) */
+    variant?: ButtonVariant;
 
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;
 
-    /** Additional style to add to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the button should use split style or not */
     isSplitButton?: boolean;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
@@ -130,8 +134,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
-    /** Whether selected items should be marked as selected */
-    shouldShowSelectedItemCheck?: boolean;
+    shouldShowRadioButton?: boolean;
 
     /** Used to locate the component in the tests */
     testID?: string;
@@ -145,7 +148,6 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Icon for main button */
     icon?: IconAsset;
 
-    /** Whether the popover content should be scrollable */
     shouldPopoverUseScrollView?: boolean;
 
     /** Container style to be applied to the popover of the dropdown menu */
@@ -154,17 +156,19 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
 
-    /** Whether to use short form for the button */
     shouldUseShortForm?: boolean;
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
 
-    /** The type of brick road indicator to show */
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** Used to apply styles specifically to the header text */
+    headerTextStyles?: StyleProp<TextStyle>;
 
-    /** Reference to the outer element */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
 };
 
 type ButtonWithDropdownMenuRef = {
@@ -172,7 +176,6 @@ type ButtonWithDropdownMenuRef = {
 };
 
 export type {
-    PaymentType,
     WorkspaceMemberBulkActionType,
     DomainMemberBulkActionType,
     RoomMemberBulkActionType,

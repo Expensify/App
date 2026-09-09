@@ -1,13 +1,17 @@
-import type {RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {RefObject} from 'react';
+import type {RotationDegrees} from 'react-fast-pdf';
+import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
@@ -36,7 +40,6 @@ type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
-    /** The id of the attachment. */
     attachmentID?: string;
 
     /** Fallback source (URL, SVG function) for the image shown. */
@@ -63,16 +66,12 @@ type AttachmentModalBaseContentProps = {
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
 
-    /** The ID of the current report */
     reportID?: string;
-
-    /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
 
-    /** The data is loading or not */
     isLoading?: boolean;
 
     /** Denotes whether it is a workspace avatar or not */
@@ -81,34 +80,18 @@ type AttachmentModalBaseContentProps = {
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
 
-    /** Whether to display not found page */
     shouldShowNotFoundPage?: boolean;
-
-    /** Whether to show an attachment carousel */
     shouldShowCarousel?: boolean;
-
-    /** Whether to show download button */
     shouldShowDownloadButton?: boolean;
-
-    /** Whether to show rotate button */
     shouldShowRotateButton?: boolean;
-
-    /** Callback triggered when the rotate button is pressed */
     onRotateButtonPress?: () => void;
 
     /** Whether we should show a loading indicator replacing the rotate button */
     isRotating?: boolean;
 
-    /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
-
-    /** Whether to display help button */
     shouldDisplayHelpButton?: boolean;
-
-    /** Whether to minimize menu button */
     shouldMinimizeMenuButton?: boolean;
-
-    /** The link of the attachment */
     attachmentLink?: string;
 
     /** Ref to the submit button */
@@ -119,10 +102,19 @@ type AttachmentModalBaseContentProps = {
     /** Callback triggered when the download button is pressed */
     onDownloadAttachment?: DownloadAttachmentCallback;
 
+    /**
+     * When true, allows the download button to appear even when there is no report context (e.g. the report is empty
+     * and the type is not SEARCH). Use this for standalone document viewers like WorkspaceDocumentModalContent that
+     * pass onDownloadAttachment but do not operate within a report.
+     */
+    shouldAllowDownloadOutsideReportContext?: boolean;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject | FileObject[]) => void;
 
-    /** Callback triggered when the modal is closed */
+    /** Set when `onConfirm` navigates off the current screen, so the modal sequences its close with that transition instead of flashing the screen underneath. */
+    confirmLeavesScreen?: boolean;
+
     onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
@@ -142,14 +134,9 @@ type AttachmentModalBaseContentProps = {
 
     /** Extra styles to pass for the attachment view container */
     attachmentViewContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Controlled rotation angle for the PDF */
+    pdfRotation?: RotationDegrees;
 };
 
-export type {
-    AttachmentModalBaseContentProps,
-    AttachmentModalOnCloseOptions,
-    DownloadAttachmentCallback,
-    AttachmentContent,
-    AttachmentContentProps,
-    ThreeDotsMenuItemFactory,
-    ThreeDotsMenuItemFactoryProps,
-};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, DownloadAttachmentCallback, AttachmentContentProps, ThreeDotsMenuItemFactory};

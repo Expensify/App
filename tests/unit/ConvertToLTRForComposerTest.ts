@@ -1,4 +1,5 @@
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+
 import CONST from '@src/CONST';
 
 describe('convertToLTRForComposer', () => {

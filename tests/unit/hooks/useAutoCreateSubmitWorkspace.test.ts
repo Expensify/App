@@ -1,0 +1,379 @@
+import {renderHook} from '@testing-library/react-native';
+
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
+
+import * as navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+
+import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy as PolicyType} from '@src/types/onyx';
+import type Session from '@src/types/onyx/Session';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@hooks/useCurrentUserPersonalDetails');
+jest.mock('@hooks/useHasActiveAdminPolicies');
+jest.mock('@hooks/useLocalize');
+jest.mock('@hooks/usePreferredPolicy');
+jest.mock('@hooks/useOnboardingMessages');
+
+const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
+    parameters.some(() => false);
+    return path;
+};
+const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
+
+type MockSession = Session & Required<Pick<Session, 'accountID' | 'email'>>;
+
+const MOCK_SESSION = createMock<MockSession>({
+    accountID: 12345,
+    email: 'test@expensify.com',
+});
+
+const MOCK_POLICY_ID = 'mock-policy-id';
+const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
+const MOCK_ONBOARDING_MESSAGE = createMock<ReturnType<typeof useOnboardingMessages>['onboardingMessages'][typeof CONST.ONBOARDING_CHOICES.EMPLOYER]>({
+    message: 'Welcome!',
+    video: undefined,
+    tasks: [],
+});
+
+function setupDefaultMocks() {
+    jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
+        accountID: MOCK_SESSION.accountID,
+        login: MOCK_SESSION.email,
+        localCurrencyCode: 'USD',
+    });
+
+    jest.mocked(useLocalize).mockReturnValue(
+        createMock<ReturnType<typeof useLocalize>>({
+            translate: mockTranslate,
+            formatPhoneNumber: mockFormatPhoneNumber,
+        }),
+    );
+
+    jest.mocked(usePreferredPolicy).mockReturnValue({
+        isRestrictedToPreferredPolicy: false,
+        preferredPolicyID: undefined,
+        isRestrictedPolicyCreation: false,
+    });
+
+    jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
+
+    jest.mocked(useOnboardingMessages).mockReturnValue(
+        createMock<ReturnType<typeof useOnboardingMessages>>({
+            onboardingMessages: {
+                [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
+            },
+        }),
+    );
+}
+
+describe('useAutoCreateSubmitWorkspace', () => {
+    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue(
+        createMock<ReturnType<typeof Policy.createWorkspace>>({
+            policyID: MOCK_POLICY_ID,
+            adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
+        }),
+    );
+    const completeOnboardingSpy = jest.spyOn(Report, 'completeOnboarding').mockImplementation(jest.fn());
+    const setOnboardingAdminsChatReportIDSpy = jest.spyOn(Welcome, 'setOnboardingAdminsChatReportID').mockImplementation(jest.fn());
+    const setOnboardingPolicyIDSpy = jest.spyOn(Welcome, 'setOnboardingPolicyID').mockImplementation(jest.fn());
+    const navigateSpy = jest.spyOn(navigateAfterOnboarding, 'navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue').mockImplementation(jest.fn());
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: MOCK_SESSION,
+            [ONYXKEYS.BETAS]: [],
+        });
+        await waitForBatchedUpdates();
+        setupDefaultMocks();
+    });
+
+    it('creates a Submit workspace with the correct parameters for a new EMPLOYER user', () => {
+        // Given a new user going through onboarding with no existing workspace (onboardingPolicyID is undefined,
+        // hasEditableGroupPolicy is false, and policy creation is not restricted)
+
+        // When the autoCreateSubmitWorkspace function is invoked during onboarding
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('John', 'Doe');
+
+        // Then a Submit workspace should be created because EMPLOYER users without an existing
+        // workspace need one auto-created to land on after onboarding
+        expect(createWorkspaceSpy).toHaveBeenCalledTimes(1);
+        expect(createWorkspaceSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                makeMeAdmin: true,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currency: 'USD',
+                shouldAddOnboardingTasks: false,
+                shouldAddGuideWelcomeMessage: false,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                currentUserAccountIDParam: MOCK_SESSION.accountID,
+                currentUserEmailParam: MOCK_SESSION.email,
+            }),
+        );
+    });
+
+    it('completes onboarding with the newly created workspace and admins chat IDs', () => {
+        // Given a new user with no pre-existing onboarding workspace
+
+        // When the hook creates a workspace and finishes the onboarding flow
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('John', 'Doe');
+
+        // Then completeOnboarding should receive the IDs returned by createWorkspace so the backend
+        // can associate the guided setup data with the correct workspace and admins chat
+        expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
+        expect(completeOnboardingSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                onboardingMessage: MOCK_ONBOARDING_MESSAGE,
+                firstName: 'John',
+                lastName: 'Doe',
+                adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
+                onboardingPolicyID: MOCK_POLICY_ID,
+                // The new Submit workspace gets a Concierge welcome with suggested responses in its #admins
+                // room, so the Concierge DM checklist is suppressed to avoid a duplicate onboarding experience.
+                shouldSkipConciergeOnboarding: true,
+            }),
+        );
+    });
+
+    it('clears onboarding state after the flow completes', async () => {
+        // Given a user completing the onboarding flow
+
+        // When autoCreateSubmitWorkspace finishes
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe');
+
+        // Then the transient onboarding Onyx keys should be cleared so the onboarding
+        // flow is not re-triggered on subsequent app launches
+        expect(setOnboardingAdminsChatReportIDSpy).toHaveBeenCalledTimes(1);
+        expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to the submit workspace page after completing onboarding', async () => {
+        // Given a user completing the EMPLOYER onboarding flow
+
+        // When autoCreateSubmitWorkspace finishes setting up the workspace
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe');
+
+        // Then the user should be navigated to the newly created Submit workspace
+        // so they land on their workspace immediately after onboarding
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
+    });
+
+    it('reuses the existing onboarding workspace instead of creating a new one', async () => {
+        // Given a user who already has an onboardingPolicyID set (e.g. assigned by an admin
+        // or from a previous partial onboarding attempt)
+        const existingPolicyID = 'existing-policy-id';
+        const existingAdminsReportID = 'existing-admins-report-id';
+
+        await Onyx.multiSet({
+            [ONYXKEYS.ONBOARDING_POLICY_ID]: existingPolicyID,
+            [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: existingAdminsReportID,
+        });
+        await waitForBatchedUpdates();
+
+        // When the onboarding flow runs
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Jane', 'Smith');
+
+        // Then no new workspace should be created, and completeOnboarding should use
+        // the pre-existing IDs to avoid creating duplicate workspaces
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(completeOnboardingSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                adminsChatReportID: existingAdminsReportID,
+                onboardingPolicyID: existingPolicyID,
+                // No workspace was created, so no #admins welcome was posted and the Concierge DM
+                // checklist is the only onboarding experience this user gets.
+                shouldSkipConciergeOnboarding: false,
+            }),
+        );
+    });
+
+    it('skips workspace creation when the user is already a paid group policy admin', async () => {
+        // Given a user who is already an admin of a paid group policy
+        const existingPaidPolicy = createMock<PolicyType>({
+            id: 'existing-paid-policy-id',
+            name: 'Existing Paid Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPaidPolicy.id}`, existingPaidPolicy);
+        await waitForBatchedUpdates();
+
+        // When onboarding completes
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Jane', 'Smith');
+
+        // Then no Submit workspace should be created because the user already has
+        // a paid group workspace and creating another would be redundant
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+    });
+
+    it('skips workspace creation when the user domain restricts policy creation', () => {
+        // Given a user whose domain security group has enableRestrictedPolicyCreation set to true
+        jest.mocked(usePreferredPolicy).mockReturnValue({
+            isRestrictedToPreferredPolicy: false,
+            preferredPolicyID: undefined,
+            isRestrictedPolicyCreation: true,
+        });
+
+        // When the onboarding flow runs
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Jane', 'Smith');
+
+        // Then workspace creation should be skipped because the domain admin has
+        // restricted users from creating their own policies
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('still completes onboarding and navigates even when workspace creation is skipped', async () => {
+        // Given a user who cannot create a workspace due to domain restrictions
+        jest.mocked(usePreferredPolicy).mockReturnValue({
+            isRestrictedToPreferredPolicy: false,
+            preferredPolicyID: undefined,
+            isRestrictedPolicyCreation: true,
+        });
+
+        // When the onboarding flow runs
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('Jane', 'Smith');
+
+        // Then onboarding should still be completed and navigation should still occur
+        // because the user needs to finish onboarding regardless of workspace creation
+        expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
+        expect(setOnboardingAdminsChatReportIDSpy).toHaveBeenCalledTimes(1);
+        expect(setOnboardingPolicyIDSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to the existing Submit workspace when an already-onboarded caller skips creation', async () => {
+        // Given an already-onboarded user (the Submit plan welcome modal passes shouldCompleteOnboarding = false)
+        // who is an editor/admin of an existing Submit workspace, so no new workspace should be created
+        const existingSubmitPolicy = createMock<PolicyType>({
+            id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
+
+        // When the user confirms the Submit plan welcome modal again
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('John', 'Doe', false);
+
+        // Then no duplicate workspace is created, onboarding is not re-run, and the user is
+        // navigated to the existing Submit workspace instead of falling back to Home
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(completeOnboardingSpy).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(existingSubmitPolicy.id, expect.any(Boolean));
+    });
+
+    it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
+        // Given an onboarding user who already has an editable group workspace, so creation is skipped
+        const existingSubmitPolicy = createMock<PolicyType>({
+            id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
+
+        // When the onboarding flow runs (shouldCompleteOnboarding defaults to true)
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        await result.current('Jane', 'Smith');
+
+        // Then the navigation still receives no policy ID, preserving the pre-existing onboarding
+        // behavior (landing on Home) so this fix stays scoped to already-onboarded callers
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(undefined, expect.any(Boolean));
+    });
+
+    it('uses the localCurrencyCode from personal details for workspace currency', () => {
+        // Given a user whose personal details have localCurrencyCode set to GBP
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
+            accountID: MOCK_SESSION.accountID,
+            login: MOCK_SESSION.email,
+            localCurrencyCode: 'GBP',
+        });
+
+        // When a workspace is created during onboarding
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('John', 'Doe');
+
+        // Then the workspace should use GBP as its currency so it matches the user's locale
+        expect(createWorkspaceSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currency: 'GBP',
+            }),
+        );
+    });
+
+    it('falls back to USD when localCurrencyCode is not available', () => {
+        // Given a user whose personal details do not have a localCurrencyCode set
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
+            accountID: MOCK_SESSION.accountID,
+            login: MOCK_SESSION.email,
+            localCurrencyCode: undefined,
+        });
+
+        // When a workspace is created during onboarding
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('John', 'Doe');
+
+        // Then the workspace should default to USD as a safe fallback currency
+        expect(createWorkspaceSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currency: CONST.CURRENCY.USD,
+            }),
+        );
+    });
+
+    it('forwards firstName and lastName to completeOnboarding for display name setup', () => {
+        // Given a user providing their name during the onboarding personal details step
+
+        // When the onboarding flow completes
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Alice', 'Wonderland');
+
+        // Then the provided name should be passed through to completeOnboarding so the
+        // backend can set up the user's display name as part of the guided setup
+        expect(completeOnboardingSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                firstName: 'Alice',
+                lastName: 'Wonderland',
+            }),
+        );
+    });
+});

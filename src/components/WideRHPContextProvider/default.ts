@@ -12,19 +12,11 @@ const defaultWideRHPStateContextValue: WideRHPStateContextType = {
 };
 
 const defaultWideRHPActionsContextValue: WideRHPActionsContextType = {
-    showWideRHPVersion: () => {},
-    showSuperWideRHPVersion: () => {},
-    removeWideRHPRouteKey: () => {},
-    removeSuperWideRHPRouteKey: () => {},
-    markReportIDAsExpense: () => {},
-    markReportIDAsMultiTransactionExpense: () => {},
-    unmarkReportIDAsMultiTransactionExpense: () => {},
-    isReportIDMarkedAsExpense: () => false,
-    isReportIDMarkedAsMultiTransactionExpense: () => false,
-    syncRHPKeys: () => {},
-    clearWideRHPKeys: () => {},
-    setIsWideRHPClosing: () => {},
-    setIsSuperWideRHPClosing: () => {},
+    setRHPWidth: () => {},
+    removeRHPRouteKey: () => {},
+    markReportRHPWidth: () => {},
+    unmarkReportRHPWidth: () => {},
+    getReportRHPWidthHint: () => undefined,
 };
 
 export {defaultWideRHPStateContextValue, defaultWideRHPActionsContextValue};

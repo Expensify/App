@@ -1,4 +1,5 @@
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {AvatarType, Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -17,7 +18,6 @@ type FallbackUserDetails = {
 };
 
 type UserDetailsTooltipProps = ChildrenProps & {
-    /** User's Account ID */
     accountID: number;
 
     /** Fallback User Details object used if no accountID */

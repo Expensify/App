@@ -1,5 +1,6 @@
-import {randWord} from '@ngneat/falso';
 import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
+
+import {randWord} from '@ngneat/falso';
 
 export default function createRandomPolicyTags(tagListName: string, numberOfTags = 0): PolicyTagLists {
     const tags: PolicyTags = {};

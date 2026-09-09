@@ -18,11 +18,13 @@ Anyone with access to Expensify Travel can contact travel agent support.
 
 **Note:** Concierge support cannot book or modify trips on your behalf.
 
+**Note:** Travel agents handle booking and itinerary issues only. Account or profile problems — such as duplicate travel profiles or an **“Adhoc user info is invalid”** error — need to go through Concierge or your Account Manager. Asking either team a question is always free.
+
 ---
 
 ## How to access the travel tool
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In New Expensify:** Click the **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Expensify Classic:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
 **Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.

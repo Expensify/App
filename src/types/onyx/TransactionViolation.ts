@@ -1,7 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
 
 /**
  * Names of violations.
@@ -31,6 +32,11 @@ type TransactionViolationData = {
 
     /** Limit that the transaction violated */
     formattedLimit?: string;
+
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
 
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
@@ -86,7 +92,6 @@ type TransactionViolationData = {
     /** List of duplicate transactions */
     duplicates?: string[];
 
-    /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 
     /** A generic message to display to the user */
@@ -106,14 +111,23 @@ type TransactionViolationData = {
 
     /** Card ID associated with the violation (used to determine if it's a personal or company card) */
     cardID?: number;
+
+    /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
+    missingFields?: string[];
+
+    /** True when the violation should render Xero "Supplier" wording instead of the default "Vendor" copy */
+    isSupplierViolation?: boolean;
+
+    /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    startDate?: string;
+
+    /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    endDate?: string;
 };
 
 /** Model of a transaction violation */
 type TransactionViolation = {
-    /** Type of transaction violation */
     type: ValueOf<typeof CONST.VIOLATION_TYPES>;
-
-    /** Name of the transaction violation */
     name: ViolationName;
 
     /** Additional violation information to provide the user */

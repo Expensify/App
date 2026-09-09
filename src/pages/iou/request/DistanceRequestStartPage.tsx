@@ -1,39 +1,42 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
-import {getPayeeName} from '@libs/ReportUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
+import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
+import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
+
+import DynamicIOURequestStepDistanceManual from './step/DynamicIOURequestStepDistanceManual';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
-import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
-import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
     defaultSelectedTab: SelectedTabRequest;
@@ -42,7 +45,7 @@ type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SC
 function DistanceRequestStartPage({
     route,
     route: {
-        params: {iouType, reportID},
+        params: {iouType, action, reportID},
     },
     navigation,
     // This is currently only being used for testing
@@ -50,27 +53,41 @@ function DistanceRequestStartPage({
 }: DistanceRequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const policy = usePolicy(report?.policyID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalPolicy = usePersonalPolicy();
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
+    const onlyActivePolicy = activeGroupPolicies.length === 1 ? activeGroupPolicies.at(0) : undefined;
+    const targetParticipant = participants.find((participant) => participant.isPolicyExpenseChat);
+    const isOnlyWorkspaceTheTarget = onlyActivePolicy?.id === targetParticipant?.policyID;
+    const targetPolicy = isOnlyWorkspaceTheTarget ? onlyActivePolicy : undefined;
+    const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+    // Manual/Odometer distance produces no mapped route, so hide those tabs whenever the resolved
+    // destination restricts distance to maps and GPS:
+    // - Report-scoped flows (workspace chat / expense report): use that report's own policy.
+    // - Global FAB flows: never hide for a Self-DM target (personal expenses are exempt); otherwise hide
+    //   when the single target workspace restricts, or when the user has multiple workspaces that ALL
+    //   restrict. `length > 1` is required because a single workspace is handled by `targetPolicy`, and
+    //   `[].every()` is vacuously true (which would wrongly hide the tabs for personal-only users).
+    const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
+    const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
+    const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
+    const shouldHideManualAndOdometerTabs = isReportScopedTarget
+        ? isMapOrGPSRequired(reportPolicy)
+        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),
@@ -78,17 +95,36 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
-
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
-            return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
+            // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
+            // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
+            const rememberedRequestType = selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+
+            // Both of those values are remembered from a previous expense, so they go stale once the destination
+            // starts requiring map or GPS. Typing the draft from a tab that is no longer rendered would leave it
+            // as Manual or Odometer under a visible Map tab, which later steps then reject.
+            if (shouldHideManualAndOdometerTabs && (rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)) {
+                return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+            }
+
+            return rememberedRequestType;
         }
 
         return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
+    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType, shouldHideManualAndOdometerTabs]);
 
-    const prevTransactionReportID = usePrevious(transaction?.reportID);
+    const resetIOUTypeIfChanged = useResetIOUType({
+        reportID,
+        report,
+        transaction,
+        isLoadingSelectedTab,
+        transactionRequestType,
+        iouType,
+        policy,
+        isTrackDistanceExpense,
+    });
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -97,58 +133,6 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
-
-    const resetIOUTypeIfChanged = useCallback(
-        (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
-            if (transaction?.iouRequestType === newIOUType) {
-                return;
-            }
-            initMoneyRequest({
-                reportID,
-                policy,
-                personalPolicy,
-                isFromGlobalCreate,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType,
-                report,
-                parentReport,
-                currentDate,
-                lastSelectedDistanceRates,
-                currentUserPersonalDetails,
-                hasOnlyPersonalPolicies,
-                draftTransactionIDs,
-            });
-        },
-        [
-            transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
-            transaction?.isFromFloatingActionButton,
-            reportID,
-            policy,
-            personalPolicy,
-            isFromGlobalCreate,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-            draftTransactionIDs,
-        ],
-    );
-
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
-                return;
-            }
-            resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
-    );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
@@ -164,10 +148,10 @@ function DistanceRequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={allPolicies}
         >
+            {/* IOURequestStepDistanceOdometer handles keyboard avoidance without resizing the shared tab layout. */}
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}
+                shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
@@ -190,6 +174,11 @@ function DistanceRequestStartPage({
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
+                        // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
+                        // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        // Applied on every platform rather than gated to Android: `Keyboard.isVisible()` already
+                        // makes this a no-op wherever the keyboard isn't up, so iOS only waits when it actually needs to.
+                        shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (
@@ -201,16 +190,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceManual
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <DynamicIOURequestStepDistanceManual
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
@@ -221,16 +212,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                            {() => (
-                                <TabScreenWithFocusTrapWrapper>
-                                    <IOURequestStepDistanceOdometer
-                                        route={route}
-                                        navigation={navigation}
-                                    />
-                                </TabScreenWithFocusTrapWrapper>
-                            )}
-                        </TopTab.Screen>
+                        {!shouldHideManualAndOdometerTabs && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>

@@ -1,21 +1,26 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {addLeadingForwardSlash} from '@libs/Url';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {domainMemberSettingsSelector, domainSamlSettingsStateSelector, metaIdentitySelector} from '@src/selectors/Domain';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */
@@ -30,7 +35,6 @@ type SamlLoginSectionContentProps = {
     /** Whether SAML authentication is required for the domain. */
     isSamlRequired: boolean;
 
-    /** Whether Okta SCIM is enabled for the domain. */
     isOktaScimEnabled: boolean;
 };
 
@@ -45,7 +49,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
         selector: domainMemberSettingsSelector,
     });
-    const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
         // Auto dismiss the saml enabled/required errors when first opening the page
@@ -76,7 +80,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
-                            disabled={domainSettings?.twoFactorAuthRequired}
+                            disabled={!!domainSettings?.twoFactorAuthRequired}
                             onToggle={() => setSamlEnabled({enabled: !isSamlEnabled, accountID, domainName})}
                         />
                     </View>
@@ -111,7 +115,19 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                                 isOn={isSamlRequired}
                                 onToggle={() => {
                                     if (isSamlRequired && isOktaScimEnabled) {
-                                        setIsScimConfirmModalVisible(true);
+                                        showConfirmModal({
+                                            title: translate('domain.samlLogin.disableSamlRequired'),
+                                            prompt: translate('domain.samlLogin.oktaWarningPrompt'),
+                                            confirmText: translate('common.disable'),
+                                            cancelText: translate('common.cancel'),
+                                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                                            shouldHandleNavigationBack: true,
+                                        }).then(({action}) => {
+                                            if (action !== ModalActions.CONFIRM) {
+                                                return;
+                                            }
+                                            setSamlRequired({required: false, accountID, domainName, metaIdentity});
+                                        });
                                         return;
                                     }
                                     setSamlRequired({required: !isSamlRequired, accountID, domainName, metaIdentity});
@@ -123,21 +139,6 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                     </View>
                 </OfflineWithFeedback>
             )}
-
-            <ConfirmModal
-                isVisible={isOktaScimConfirmModalVisible}
-                onConfirm={() => {
-                    setSamlRequired({required: false, accountID, domainName, metaIdentity});
-                    setIsScimConfirmModalVisible(false);
-                }}
-                title={translate('domain.samlLogin.disableSamlRequired')}
-                prompt={translate('domain.samlLogin.oktaWarningPrompt')}
-                confirmText={translate('common.disable')}
-                cancelText={translate('common.cancel')}
-                onCancel={() => setIsScimConfirmModalVisible(false)}
-                danger
-                shouldHandleNavigationBack
-            />
         </>
     );
 }

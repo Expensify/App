@@ -1,25 +1,30 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DistanceMapView from '@components/DistanceMapView';
-import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setSelectedRoute} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {getSelectedRouteKey, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type TransactionState from '@src/types/utils/TransactionStateType';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const MAX_WAYPOINTS = 25;
 
@@ -33,15 +38,17 @@ type DistanceRequestFooterProps = {
     /** The transaction being interacted with */
     transaction: OnyxEntry<Transaction>;
 
-    /** The policy */
     policy: OnyxEntry<Policy>;
+    mapContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The state of the transaction (draft, current, etc.) used to persist route selection to the correct Onyx key */
+    transactionState: TransactionState;
 };
 
-function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
-    const theme = useTheme();
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle, transactionState}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -55,62 +62,59 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
+    const primaryRoute = transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
+    const alternateRoute = transaction?.routes?.[CONST.TRANSACTION.ALTERNATE_ROUTE_KEY];
+    const isAlternateDirectionSelected = getSelectedRouteKey(transaction) === CONST.TRANSACTION.ALTERNATE_ROUTE_KEY;
+    const handleRouteSelection = (isAlternate: boolean) => {
+        if (isAlternate === isAlternateDirectionSelected) {
+            return;
+        }
+        setSelectedRoute(
+            transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            isAlternate ? CONST.TRANSACTION.ALTERNATE_ROUTE_KEY : CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+            (isAlternate ? alternateRoute : primaryRoute)?.distance ?? undefined,
+            DistanceRequestUtils.getDistanceUnit(transaction, mileageRate),
+            transactionState,
+        );
+    };
 
-    const getMarkerComponent = useCallback(
-        (icon: IconAsset): ReactNode => (
-            <ImageSVG
-                src={icon}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [theme],
-    );
+    const waypointMarkers: WayPoint[] = [];
+    for (const [key, waypoint] of Object.entries(waypoints ?? {})) {
+        if (!waypoint?.lat || !waypoint?.lng) {
+            continue;
+        }
 
-    const waypointMarkers = useMemo(
-        () =>
-            Object.entries(waypoints ?? {})
-                .map(([key, waypoint]) => {
-                    if (!waypoint?.lat || !waypoint?.lng) {
-                        return;
-                    }
+        const index = getWaypointIndex(key);
+        let markerType: MapMarkerType = 'WAYPOINT';
+        if (index === 0) {
+            markerType = 'START_WAYPOINT';
+        } else if (index === lastWaypointIndex) {
+            markerType = 'STOP_WAYPOINT';
+        }
 
-                    const index = getWaypointIndex(key);
-                    let MarkerComponent: IconAsset;
-                    if (index === 0) {
-                        MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = expensifyIcons.Location;
-                    } else {
-                        MarkerComponent = expensifyIcons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
-                    };
-                })
-                .filter((waypoint): waypoint is WayPoint => !!waypoint),
-        [waypoints, lastWaypointIndex, getMarkerComponent, expensifyIcons.DotIndicator, expensifyIcons.DotIndicatorUnfilled, expensifyIcons.Location],
-    );
+        waypointMarkers.push({
+            id: `${waypoint.lng},${waypoint.lat},${index}`,
+            coordinate: [waypoint.lng, waypoint.lat] as const,
+            markerType,
+        });
+    }
 
     return (
         <>
             {numberOfFilledWaypoints >= 2 && (
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                     <Button
-                        small
-                        icon={expensifyIcons.Plus}
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
-                        text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                         innerStyles={[styles.pl10, styles.pr10]}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Plus} />
+                        <Button.Text>{translate('distance.addStop')}</Button.Text>
+                    </Button>
                 </View>
             )}
-            <View style={styles.mapViewContainer}>
+            <View style={[styles.mapViewContainer, mapContainerStyle]}>
                 <DistanceMapView
                     accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAPBOX.PADDING}
@@ -119,12 +123,22 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                         location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
                     }}
-                    directionCoordinates={(transaction?.routes?.route0?.geometry?.coordinates as Array<[number, number]>) ?? []}
+                    directionCoordinates={primaryRoute?.geometry?.coordinates ?? []}
+                    alternateDirection={
+                        alternateRoute?.geometry?.coordinates && alternateRoute?.distance
+                            ? {
+                                  coordinates: alternateRoute.geometry.coordinates,
+                                  distanceInMeters: alternateRoute.distance,
+                                  isSelected: isAlternateDirectionSelected,
+                              }
+                            : undefined
+                    }
+                    setIsAlternateDirectionSelected={handleRouteSelection}
                     style={[styles.mapView, styles.mapEditView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
                     overlayStyle={styles.mapEditView}
-                    distanceInMeters={getDistanceInMeters(transaction, undefined)}
+                    distanceInMeters={primaryRoute?.distance ?? undefined}
                     unit={unit}
                 />
             </View>

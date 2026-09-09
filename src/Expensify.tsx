@@ -1,9 +1,14 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
+
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import type {Route} from './ROUTES';
+
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -12,29 +17,30 @@ import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import FullstoryUserContextHandler from './FullstoryUserContextHandler';
 import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
+import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
+// This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
+import './libs/NetworkState';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
-import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
-import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
+import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
+import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
-import type {Route} from './ROUTES';
-import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -56,24 +62,22 @@ function Expensify() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-
     useDebugShortcut();
 
     useEffect(() => {
-        initializeMemoryTrackingTelemetry();
+        initializeTelemetryTrackers();
         return () => {
-            cleanupMemoryTrackingTelemetry();
+            cleanupTelemetryTrackers();
         };
     }, []);
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -205,17 +209,13 @@ function Expensify() {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
+        scheduleInitialDatabaseSizeMeasurement();
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(accountID);
-
-        return unsubscribeNetInfo;
-    }, [accountID]);
+    }, []);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -257,12 +257,30 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    const didInitReconnectRef = useRef(false);
+    useEffect(() => {
+        if (didInitReconnectRef.current) {
+            return;
+        }
+        didInitReconnectRef.current = true;
+        initReconnect();
+    }, []);
+
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
             return;
         }
         updateLastRoute('');
-        Navigation.navigate(lastRoute as Route);
+
+        // On iOS, changing the Contacts permission in Settings forces the app to reload (see `goToSettings`).
+        // Restoring a deep RHP route (e.g. the money-request participant selector) directly on the boot frame
+        // kicks the react-navigation card's native-driver entering animation while the tree is still hydrating,
+        // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
+        // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
+        const restoreAnimationFrame = requestAnimationFrame(() => {
+            Navigation.navigate(lastRoute as Route);
+        });
+        return () => cancelAnimationFrame(restoreAnimationFrame);
         // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
@@ -282,14 +300,18 @@ function Expensify() {
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
+            <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
+                is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
+                bridge), so we skip this guard to avoid blocking the app. */}
+            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
-                    initialUrl={initialUrl}
+                    initialUrl={initialUrl ?? null}
                 />
             )}
             {(isSplashVisible || isSplashReadyToBeHidden) && (

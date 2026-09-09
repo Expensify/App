@@ -1,13 +1,16 @@
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 
 type TabLabelProps = {
-    /** Title of the tab */
     title?: string;
 
     /** Animated opacity value while the label is in inactive state */
@@ -19,7 +22,6 @@ type TabLabelProps = {
     /** Whether an icon is present - used to conditionally apply margin */
     hasIcon?: boolean;
 
-    /** Text style */
     textStyle?: StyleProp<TextStyle>;
 };
 

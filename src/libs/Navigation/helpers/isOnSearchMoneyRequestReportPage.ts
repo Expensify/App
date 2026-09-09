@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import SCREENS from '@src/SCREENS';
 
 const isOnSearchMoneyRequestReportPage = (): boolean => {

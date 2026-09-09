@@ -1,5 +1,7 @@
 import type {RefObject} from 'react';
+
 import {useEffect, useRef} from 'react';
+
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';

@@ -1,4 +1,5 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+
 import {SHARED_ROUTE_PARAMS} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 

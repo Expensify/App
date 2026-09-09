@@ -1,21 +1,27 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
-import type {TextInput} from 'react-native-gesture-handler';
 import AmountTextInput from '@components/AmountTextInput';
 import BigNumberPad from '@components/BigNumberPad';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
+import type {TextInput} from 'react-native-gesture-handler';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import setCursorPosition from './setCursorPosition';
 
 type TimePickerProps = {
@@ -31,7 +37,6 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
-    /** Whether the time value should be validated for future time only */
     shouldValidateFutureTime?: boolean;
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
@@ -117,7 +122,7 @@ function clearSelectedValue(
 
 function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
@@ -688,7 +693,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 focusSecondInputOnLastCharacter();
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [
             selectionMinute.start,
             selectionMinute.end,
@@ -735,29 +740,31 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         () => (
             <View style={styles.timePickerSwitcherContainer}>
                 <Button
-                    shouldEnableHapticFeedback
+                    enableHapticFeedback
                     innerStyles={styleForAM}
-                    small
-                    text={translate('common.am')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onLongPress={() => {}}
                     onPress={() => {
                         setAmPmValue(CONST.TIME_PERIOD.AM);
                     }}
                     onPressOut={() => {}}
                     onMouseDown={(e) => e.preventDefault()}
-                />
+                >
+                    <Button.Text>{translate('common.am')}</Button.Text>
+                </Button>
                 <Button
-                    shouldEnableHapticFeedback
+                    enableHapticFeedback
                     innerStyles={[styleForPM, styles.ml1]}
-                    small
-                    text={translate('common.pm')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onLongPress={() => {}}
                     onPress={() => {
                         setAmPmValue(CONST.TIME_PERIOD.PM);
                     }}
                     onPressOut={() => {}}
                     onMouseDown={(e) => e.preventDefault()}
-                />
+                >
+                    <Button.Text>{translate('common.pm')}</Button.Text>
+                </Button>
             </View>
         ),
         [styles, styleForAM, styleForPM, translate, setAmPmValue],
@@ -768,7 +775,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
+                    style={[styles.flexRow, !isInLandscapeMode && styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
@@ -882,14 +889,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 {numberPad()}
             </View>
             <Button
-                success
-                medium={isExtraSmallScreenHeight}
-                large={!isExtraSmallScreenHeight}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5, styles.mh5]}
                 onPress={handleSubmit}
-                pressOnEnter
-                text={translate('common.save')}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 }

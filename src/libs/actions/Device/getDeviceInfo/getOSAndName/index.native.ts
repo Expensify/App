@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import RNDeviceInfo from 'react-native-device-info';
+
 import type {GetOSAndName} from './types';
 
 const getOSAndName: GetOSAndName = () => {

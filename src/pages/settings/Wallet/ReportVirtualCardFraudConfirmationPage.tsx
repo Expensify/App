@@ -1,18 +1,26 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 
 type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
 
@@ -24,10 +32,18 @@ function ReportVirtualCardFraudConfirmationPage({
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
+    const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
+    const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
 
     const close = useCallback(() => {
+        if (isCardTerminatedWithoutReplacement) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID]);
+    }, [cardID, isCardTerminatedWithoutReplacement]);
 
     return (
         <ScreenWrapper
@@ -41,9 +57,8 @@ function ReportVirtualCardFraudConfirmationPage({
                 title={translate('reportFraudConfirmationPage.title')}
                 onBackButtonPress={close}
             />
-
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1, themeStyles.gap2]}>
+                <ScrollView contentContainerStyle={[themeStyles.flexGrow1, themeStyles.justifyContentCenter]}>
                     <ImageSVG
                         contentFit="contain"
                         src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
@@ -53,18 +68,16 @@ function ReportVirtualCardFraudConfirmationPage({
                     />
 
                     <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>{translate('reportFraudConfirmationPage.title')}</Text>
-                    <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
-                        {translate('reportFraudConfirmationPage.description')}
-                    </Text>
-                </View>
-
+                    <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>{translate(description)}</Text>
+                </ScrollView>
                 <Button
-                    text={translate('reportFraudConfirmationPage.buttonText')}
                     onPress={close}
                     style={themeStyles.justifyContentEnd}
-                    success
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('reportFraudConfirmationPage.buttonText')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

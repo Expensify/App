@@ -1,4 +1,3 @@
-import React, {useEffect, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ErrorMessageRow from '@components/ErrorMessageRow';
@@ -9,26 +8,35 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+
+import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getEligibleBankAccountShareRecipients} from '@libs/PolicyUtils';
+import {getEligibleBankAccountShareRecipientEmails} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import variables from '@styles/variables';
+
 import {clearShareBankAccount, clearShareBankAccountErrors, openBankAccountSharePage, setShareBankAccountAdmins, shareBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect, useState} from 'react';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT>;
 
@@ -51,7 +59,25 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = getEligibleBankAccountShareRecipients(allPolicies, currentUserLogin, bankAccountID);
+    const adminEmails = getEligibleBankAccountShareRecipientEmails(allPolicies, currentUserLogin, bankAccountID);
+    const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const admins = adminEmails.flatMap((email) => {
+        const personalDetails = adminPersonalDetails[email];
+        if (!personalDetails) {
+            return [];
+        }
+        return [
+            formatMemberForList({
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                keyForList: personalDetails.login ?? String(personalDetails.accountID),
+                accountID: personalDetails.accountID,
+                login: personalDetails.login,
+                pendingAction: personalDetails.pendingAction,
+                reportID: '',
+            }),
+        ];
+    });
     const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const debouncedSearchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -70,12 +96,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     };
     useEffect(() => {
         return () => {
+            clearShareBankAccountErrors(Number(bankAccountID));
             if (!shouldShowSuccess) {
                 return;
             }
             clearShareBankAccount();
         };
-    }, [shouldShowSuccess]);
+    }, [shouldShowSuccess, bankAccountID]);
 
     useEffect(() => {
         if (isOffline) {
@@ -197,8 +224,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                             />
                         }
                         ListItem={UserListItem}
-                        shouldUseDefaultRightHandSideCheckmark
-                        onCheckboxPress={toggleOption}
+                        onSelectionButtonPress={toggleOption}
                         onSelectRow={toggleOption}
                         footerContent={
                             <FormAlertWithSubmitButton
@@ -213,7 +239,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                                     <ErrorMessageRow
                                         errors={sharedBankAccountData?.errors}
                                         errorRowStyles={[styles.mv3]}
-                                        onDismiss={clearShareBankAccountErrors}
+                                        onDismiss={() => clearShareBankAccountErrors(Number(bankAccountID))}
                                     />
                                 }
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}

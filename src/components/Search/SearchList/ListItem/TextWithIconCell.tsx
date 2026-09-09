@@ -1,21 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle} from 'react-native';
 import Icon from '@components/Icon';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TextWithIconCellProps = {
     icon: IconAsset;
+    iconSize?: number;
     text?: string;
     showTooltip: boolean;
     textStyle?: StyleProp<TextStyle>;
     numberOfLines?: number;
 };
 
-export default function TextWithIconCell({icon, text, showTooltip, textStyle, numberOfLines = 1}: TextWithIconCellProps) {
+export default function TextWithIconCell({icon, iconSize = 12, text, showTooltip, textStyle, numberOfLines = 1}: TextWithIconCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -28,8 +33,8 @@ export default function TextWithIconCell({icon, text, showTooltip, textStyle, nu
             <Icon
                 src={icon}
                 fill={theme.icon}
-                height={12}
-                width={12}
+                height={iconSize}
+                width={iconSize}
             />
             <TextWithTooltip
                 text={text}

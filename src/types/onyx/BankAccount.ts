@@ -1,5 +1,6 @@
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -12,37 +13,57 @@ type BankAccountAdditionalData = {
     /** Owners that can benefit from this bank account */
     beneficialOwners?: string[];
 
-    /** In which currency is the bank account */
     currency?: string;
-
-    /** In which bank is the bank account */
     bankName?: BankName;
-
-    /** Plaid account id */
     plaidAccountID?: string;
 
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
-    /** In which country is the bank account */
     country?: string;
-
-    /** Is billing card */
     isBillingCard?: boolean;
-
-    /** ID of related policy */
     policyID?: string;
-
-    /** Corpay fields */
     corpay?: {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
+
+    /** Verification statuses returned by the backend, mirroring how Classic determines status */
+    verifications?: {
+        /** Present once the account is set up with Corpay for Global Reimbursement */
+        corpay?: Record<string, unknown>;
+    };
+
+    /** First name of the bank account owner (OldDot field name) */
+    firstName?: string;
+
+    /** Last name of the bank account owner (OldDot field name) */
+    lastName?: string;
+
+    /** Legal first name of the bank account owner (NewDot field name) */
+    legalFirstName?: string;
+
+    /** Legal last name of the bank account owner (NewDot field name) */
+    legalLastName?: string;
+
+    /** City of the bank account owner's address */
+    addressCity?: string;
+
+    /** State of the bank account owner's address */
+    addressState?: string;
+
+    /** Street address of the bank account owner */
+    addressStreet?: string;
+
+    /** Zip code of the bank account owner's address */
+    addressZipCode?: string;
+
+    /** Phone number of the bank account owner */
+    companyPhone?: string;
 };
 
 /** Model of bank account */
 type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */

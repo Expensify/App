@@ -1,9 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Pusher from '@libs/Pusher';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 
@@ -20,7 +22,6 @@ function setup() {
     Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 
     const pusher = window.getPusherInstance();
@@ -37,7 +38,7 @@ function emitOnyxUpdate<TKey extends OnyxKey>(args: Array<OnyxServerUpdate<TKey>
         updates: [
             {
                 eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                 data: args as AnyOnyxServerUpdate[],
             },
         ],

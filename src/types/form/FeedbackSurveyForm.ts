@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {

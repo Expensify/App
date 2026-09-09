@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReactNode} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Text from './Text';
 
 type BulletListItem = string;

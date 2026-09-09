@@ -1,8 +1,7 @@
-import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
+
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -10,9 +9,12 @@ import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/lan
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 
+import * as RNLocalize from 'react-native-localize';
+import Onyx from 'react-native-onyx';
+
 // Current user mail is needed for handling missing translations
 let userEmail = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
+
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -24,19 +26,14 @@ Onyx.connectWithoutView({
     },
 });
 
-// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
-// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
-let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
+// Note: these Intl instances are created lazily, per locale, rather than at the top level of the file. Two reasons:
+// Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
+// instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
+// formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
+// IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
+const createConjunctionListFormat = (locale: Locale): Intl.ListFormat => new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat);
 
-function init() {
-    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
-        return memo;
-    }, {});
-}
-
-// Memoized function to create PluralRules instances
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
 const memoizedCreatePluralRules = memoize(createPluralRules);
 
@@ -104,7 +101,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, ph
 const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     skipCache: (params) => params.length > 2,
 });
 
@@ -142,18 +139,14 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
  * Uses the locale in this file updated by the Onyx subscriber.
  * @deprecated This function uses imperative Onyx data access patterns, similar to `Onyx.connect`. Use `useLocalize` hook instead for reactive data access in React components.
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
+
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
     const currentLocale = IntlStore.getCurrentLocale();
     return translate(currentLocale, phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
-    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
-        init();
-    }
-
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT];
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
 }
 
 /**
@@ -199,5 +192,4 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestLanguageTag(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

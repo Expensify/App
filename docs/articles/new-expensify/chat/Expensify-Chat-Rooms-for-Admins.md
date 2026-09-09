@@ -22,6 +22,7 @@ To allow only admins to post in the #announce room:
 2. Click the room header.
 3. Click **Settings**.
 4. Under **Who can post**, select **Admins only**.
+5. Click **Save**.
 
 🔒 **Note:** Anyone in the workspace can read messages in the #announce room, but only Admins can post if this setting is enabled.
 
@@ -33,7 +34,7 @@ The **#admins** room is only visible to Workspace Admins. It’s designed for se
 
 **You can use the #admins room to:**
 - Coordinate with your internal admin team.
-- Chat directly with your **Expensify Setup Specialist**.
+- Chat directly with your **Expensify Account Executive**.
 - Communicate with your **Account Manager** (available with subscriptions of 10+ members).
 - Track changes made to workspace settings by any admin or Expensify representative.
 
@@ -45,5 +46,5 @@ The **#admins** room is only visible to Workspace Admins. It’s designed for se
 
 ## Why is someone I don’t recognize in my #admins room?
 
-If you're seeing an unfamiliar name in your **#admins** room, it’s likely your **Expensify Setup Specialist** or **Account Manager**. These team members are added automatically to help you onboard and provide product support.
+If you're seeing an unfamiliar name in your **#admins** room, it’s likely your **Expensify Account Executive** or **Account Manager**. These team members are added automatically to help you onboard and provide product support.
 

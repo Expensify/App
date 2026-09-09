@@ -1,4 +1,5 @@
 import type {WithSpringConfig} from 'react-native-reanimated';
+
 import type {ZoomRange} from './types';
 
 const DOUBLE_TAP_SCALE = 3;

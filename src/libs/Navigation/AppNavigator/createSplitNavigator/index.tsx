@@ -1,6 +1,3 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
@@ -11,18 +8,24 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
 import SidebarSpacerWrapper from './SidebarSpacerWrapper';
 import SplitRouter from './SplitRouter';
 import usePreserveNavigatorState from './usePreserveNavigatorState';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+function SplitNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
-function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
+function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: CustomStateHookProps) {
     const sidebarScreenRoute = state.routes.at(0);
 
     if (!sidebarScreenRoute) {
@@ -37,9 +40,11 @@ function useCustomSplitNavigatorState({state}: CustomStateHookProps) {
 
 const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavigator', {
     createRouter: SplitRouter,
-    useCustomEffects,
-    defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomState: useCustomSplitNavigatorState,
+    Effects: SplitNavigatorEffects,
+    // Covered split screens stay frozen, as they were before this option existed. Their migration to 'activity'
+    // is a per-screen decision left to the rollout in https://github.com/Expensify/App/issues/98254.
+    defaultScreenOptions: {...defaultPlatformStackScreenOptions, nonTopScreenBehavior: 'freeze'},
+    getCustomState: getCustomSplitNavigatorState,
     NavigationContentWrapper: SidebarSpacerWrapper,
 });
 

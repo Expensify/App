@@ -1,9 +1,10 @@
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef, ReactNode} from 'react';
 import type React from 'react';
 import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
-import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SharedTooltipProps = {
     /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
@@ -32,7 +33,6 @@ type SharedTooltipProps = {
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey?: string[];
 
-    /** The anchor alignment of the tooltip */
     anchorAlignment?: TooltipAnchorAlignment;
 
     /** Whether to display tooltip below the wrapped component */
@@ -44,24 +44,14 @@ type SharedTooltipProps = {
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
 
-    /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
-
-    /** Callback when tooltip is clicked */
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /** Whether to compute horizontal shift for native */
     computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
-    /** Is tooltip visible */
     isVisible: boolean;
-
-    /** Show tooltip */
     showTooltip: () => void;
-
-    /** Hide tooltip */
     hideTooltip: () => void;
 
     /** Update the tooltip's target bounding rectangle */
@@ -77,7 +67,6 @@ type GenericTooltipProps = SharedTooltipProps & {
     /** Whether to ignore TooltipSense activity and always trigger animation */
     shouldForceAnimate?: boolean;
 
-    /** Whether it is education tooltip */
     isEducationTooltip?: boolean;
 };
 
@@ -89,7 +78,6 @@ type TooltipProps = ChildrenProps &
         /** Whether the current screen or component is actively focused via navigation */
         isFocused?: boolean;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<BoundsObserver>;
     };
 
@@ -97,6 +85,9 @@ type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
+
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRender. */
+        shouldDisplayTooltip?: boolean;
 
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;

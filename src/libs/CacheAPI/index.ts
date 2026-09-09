@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 type CacheNameType = ValueOf<typeof CONST.CACHE_API_KEYS>;
 

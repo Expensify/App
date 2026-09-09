@@ -1,5 +1,9 @@
 import type {NavigationRoute} from '@libs/Navigation/types';
 
+type RHPWidth = 'narrow' | 'wide' | 'super-wide';
+
+type RHPWidthHint = Exclude<RHPWidth, 'narrow'>;
+
 type WideRHPStateContextType = {
     // Route keys of screens that should be displayed in wide format
     wideRHPRouteKeys: string[];
@@ -27,44 +31,20 @@ type WideRHPStateContextType = {
 };
 
 type WideRHPActionsContextType = {
-    // Show given route as in wide format
-    showWideRHPVersion: (route: NavigationRoute) => void;
+    // Register the route at the given width. 'narrow' drops its registration.
+    setRHPWidth: (route: NavigationRoute, width: RHPWidth) => void;
 
-    // Show given route as in super wide format
-    showSuperWideRHPVersion: (route: NavigationRoute) => void;
+    // Called on screen unmount, which is what bounds how long a dismissing screen holds its width.
+    removeRHPRouteKey: (route: NavigationRoute) => void;
 
-    // Remove given route from the array
-    removeWideRHPRouteKey: (route: NavigationRoute) => void;
+    // Set an optimistic width hint for a reportID before navigation. The latest mark wins.
+    markReportRHPWidth: (reportID: string | undefined, width: RHPWidthHint) => void;
 
-    // Remove given route from the array
-    removeSuperWideRHPRouteKey: (route: NavigationRoute) => void;
+    // Clear the hint for a reportID. Pass `width` to clear only that one.
+    unmarkReportRHPWidth: (reportID: string, width?: RHPWidthHint) => void;
 
-    // Mark reportID as expense before condition check
-    markReportIDAsExpense: (reportID?: string) => void;
-
-    // Mark reportID as multi-transaction expense before condition check
-    markReportIDAsMultiTransactionExpense: (reportID: string) => void;
-
-    // Unmark reportID as multi-transaction expense before condition check
-    unmarkReportIDAsMultiTransactionExpense: (reportID: string) => void;
-
-    // Check if reportID is marked as expense
-    isReportIDMarkedAsExpense: (reportID: string) => boolean;
-
-    // Check if reportID is marked as multi-transaction expense
-    isReportIDMarkedAsMultiTransactionExpense: (reportID: string) => boolean;
-
-    // Sync super wide and wide RHP keys with the visible RHP screens
-    syncRHPKeys: () => void;
-
-    // Clear the arrays of wide and super wide rhp keys
-    clearWideRHPKeys: () => void;
-
-    // Set that wide rhp is closing
-    setIsWideRHPClosing: (isClosing: boolean) => void;
-
-    // Set that super wide rhp is closing
-    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
+    // Read the optimistic width hint for a reportID. Consumed by the screen it was marked for.
+    getReportRHPWidthHint: (reportID: string) => RHPWidthHint | undefined;
 };
 
-export type {WideRHPStateContextType, WideRHPActionsContextType};
+export type {RHPWidth, RHPWidthHint, WideRHPStateContextType, WideRHPActionsContextType};

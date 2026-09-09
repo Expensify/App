@@ -1,15 +1,22 @@
-import React from 'react';
-import type {PressableStateCallbackType} from 'react-native';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {PressableStateCallbackType} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {PressableRef} from './Pressable/GenericPressable/types';
+
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
@@ -19,9 +26,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     tooltipText: string;
 
-    /**
-     * Callback to fire on press
-     */
     onPress: () => void;
 
     /**
@@ -38,9 +42,6 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
      */
     shouldPreventDefaultFocusOnPress?: boolean;
 
-    /**
-     * Reference to the outer element
-     */
     ref?: PressableRef;
 };
 
@@ -91,7 +92,7 @@ function BaseMiniContextMenuItem({
                 sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed, isComplete: isDelayButtonStateComplete}), true),
                     isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

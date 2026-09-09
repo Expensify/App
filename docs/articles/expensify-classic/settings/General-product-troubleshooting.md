@@ -19,7 +19,7 @@ If you're having trouble accessing your account, try the following:
 - **Check your internet connection** – Ensure you're connected to a stable network.
 - **Force a clean sign-out** – [Click here](https://www.expensify.com/signout.php?clean=true) to force a clean sign out, then try signing in again.
 - **Try a different browser or device** – See if the issue persists elsewhere.
-- **Troubleshoot Magic Code issues** – If you're not receiving the Magic Code, refer to the [email troubleshooting guide](https://help.expensify.com/articles/expensify-classic/settings/Email-Notifications).
+- **Troubleshoot Security Code issues** – If you're not receiving the Security Code, refer to the [email troubleshooting guide](https://help.expensify.com/articles/expensify-classic/settings/Email-Notifications).
 - **Troubleshoot 2FA issues** – If you're having trouble with Two-Factor Authentication, check the [2FA troubleshooting guide](https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication).
 
 **Still having trouble?** Reach out to Concierge and provide the details of the issue you are experiencing. 

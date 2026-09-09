@@ -1,10 +1,12 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
-import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type AccordionProps = {
     /** Giving information whether the component is open */
@@ -19,7 +21,6 @@ type AccordionProps = {
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
 
-    /** Was toggle triggered */
     isToggleTriggered: SharedValue<boolean>;
 };
 
@@ -43,10 +44,20 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return isExpanded.get() ? 1 : 0;
         }
 
-        return withTiming(isExpanded.get() ? 1 : 0, {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        });
+        return withTiming(
+            isExpanded.get() ? 1 : 0,
+            {
+                duration,
+                easing: Easing.inOut(Easing.quad),
+            },
+            (finished) => {
+                if (!finished) {
+                    return;
+                }
+                // Reset the toggled-state so we don't keep animating the accordion on remount
+                isToggleTriggered.set(false);
+            },
+        );
     });
 
     const animatedStyle = useAnimatedStyle(() => {

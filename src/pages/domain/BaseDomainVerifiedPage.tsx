@@ -1,37 +1,46 @@
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 type BaseDomainVerifiedPageProps = {
-    /** The accountID of the domain */
     domainAccountID: number;
 
     /** Route to redirect to when trying to access the page for an unverified domain */
     redirectTo: Route;
+
+    /** Route to navigate to when the user confirms verification success */
+    confirmDestination?: Route;
 };
 
-function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination = ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID)}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-    const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const doesDomainExist = !!domain;
 
     useEffect(() => {
@@ -41,13 +50,8 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
-    if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BaseDomainVerifiedPage',
-            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
-            isLoadingAdmin: isLoadingOnyxValue(isAdminMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    if (isLoadingOnyxValue(domainMetadata)) {
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domain || !isAdmin) {
@@ -71,7 +75,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID))}
+                onButtonPress={() => Navigation.navigate(confirmDestination)}
             />
         </ScreenWrapper>
     );

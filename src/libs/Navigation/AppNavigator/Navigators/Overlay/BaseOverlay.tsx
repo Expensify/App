@@ -1,25 +1,29 @@
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {OverlayStylesParams} from '@styles/index';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {OverlayStylesParams} from '@styles/index';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
-    /* Callback to close the modal */
+    /** Callback to close the modal */
     onPress?: () => void;
 
-    /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
+    /** Override the progress from useCardAnimation. Necessary for the secondary overlay */
     progress?: OverlayStylesParams;
 
-    /* Overlay position from the left edge of the container */
+    /** Overlay position from the left edge of the container */
     positionLeftValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 
-    /* Overlay position from the right edge of the container */
+    /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
@@ -32,6 +36,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
     return (
         <Animated.View
             id="BaseOverlay"
+            aria-hidden
             style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>

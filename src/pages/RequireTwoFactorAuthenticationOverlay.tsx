@@ -1,25 +1,34 @@
-import {useNavigation} from '@react-navigation/core';
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
+import {buildOnboardingFlowParams, getRequired2FAOnboardingResumePath} from '@userActions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useNavigation} from '@react-navigation/core';
+import React, {useCallback, useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 /**
  * Checks if the 2FA is required because of Xero.
@@ -48,18 +57,43 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
-    const handleOnPress = useCallback(() => {
-        if (isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+    const snapshotOnboardingResumePathIfNeeded = useCallback(() => {
+        const activeRoute = Navigation.getActiveRoute();
+        if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(activeRoute);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
-    }, [isUserValidated]);
+        if (onboardingInitialPath) {
+            return;
+        }
+        const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
+        const resumePath = getRequired2FAOnboardingResumePath(onboardingFlowParams);
+        if (resumePath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
+            updateOnboardingLastVisitedPath(resumePath);
+        }
+    }, [account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath]);
+
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+            return;
+        }
+        snapshotOnboardingResumePathIfNeeded();
+    }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
+
+    const handleOnPress = () => {
+        snapshotOnboardingResumePathIfNeeded();
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
+    };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
         return null;
@@ -88,12 +122,13 @@ function RequireTwoFactorAuthenticationOverlay() {
                                 </Text>
                             </View>
                             <Button
-                                large
-                                success
-                                pressOnEnter
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 onPress={handleOnPress}
-                                text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                            </Button>
                         </View>
                     </View>
                 </View>

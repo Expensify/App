@@ -6,6 +6,7 @@
 //
 
 #import "RCTBootSplash.h"
+#import "SentryNativeSDKManager.h"
 #import <HardwareShortcuts.h>
 #import <BackgroundTasks/BackgroundTasks.h>
 #import <RNBackgroundTaskManager.h>

@@ -1,7 +1,7 @@
-import MockedOnyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
-import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
+import {initReconnect} from '@libs/actions/Reconnect';
+import {READ_COMMANDS, WRITE_COMMANDS, AUTHENTICATION_COMMAND} from '@libs/API/types';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as API from '@src/libs/API';
@@ -10,20 +10,51 @@ import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue';
+import {getIsOffline, setHasRadio} from '@src/libs/NetworkState';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
+import type {RequestConflictResolver} from '@src/types/onyx/Request';
+
+import type {OnyxKey, OnyxSetInput, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
+// These split and NVP commands are intentionally plain persistable commands with no special conflict resolution, persistence exclusions, or side-effect handling.
+const MOCK_COMMAND_LOWERCASE = WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
+const MOCK_READ_COMMAND_LOWERCASE = READ_COMMANDS.GET_REPORT_PRIVATE_NOTE;
+const MOCK_COMMAND = WRITE_COMMANDS.SPLIT_TRANSACTION;
+const MOCK_READ_COMMAND = READ_COMMANDS.GET_REPORT_PRIVATE_NOTE;
+const MOCK_COMMAND_ONE = WRITE_COMMANDS.SPLIT_TRANSACTION;
+const MOCK_COMMAND_TWO = WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
+const MOCK_READ_COMMAND_TWO = READ_COMMANDS.GET_REPORT_PRIVATE_NOTE;
+const MOCK_COMMAND_THREE = WRITE_COMMANDS.SET_NAME_VALUE_PAIR;
+const MOCK_WRITE_COMMAND_ONE = WRITE_COMMANDS.DELETE_USER_AVATAR;
+const MOCK_WRITE_COMMAND_TWO = WRITE_COMMANDS.CLEAR_STATUS;
+const MOCK_READ_COMMAND_ONE = READ_COMMANDS.OPEN_PAYMENTS_PAGE;
+const MOCK_ENABLE_COMMAND = WRITE_COMMANDS.SET_POLICY_RULES_ENABLED;
+const COMMAND_A = WRITE_COMMANDS.SPLIT_TRANSACTION;
+const COMMAND_B = WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
+const COMMAND_C = WRITE_COMMANDS.SET_NAME_VALUE_PAIR;
+const SPLIT_AMOUNT_PARAM = 'splits[0][amount]';
+
+const splitParams = (amount = 1): ApiRequestCommandParameters[typeof MOCK_COMMAND] => ({
+    transactionID: 'test-transaction',
+    [SPLIT_AMOUNT_PARAM]: amount,
+});
+const nameValueParams = (value: string): ApiRequestCommandParameters[typeof MOCK_COMMAND_THREE] => ({name: 'test', value});
+const openAppParams = (): ApiRequestCommandParameters[typeof WRITE_COMMANDS.OPEN_APP] => ({policyIDList: [], enablePriorityModeFilter: true});
+const readParams = (reportID: string): ApiRequestCommandParameters[typeof MOCK_READ_COMMAND] => ({reportID});
 
 jest.mock('@src/libs/Log');
 
 Onyx.init({
     keys: ONYXKEYS,
 });
+initReconnect();
 
 type Response = {
     ok?: boolean;
@@ -44,6 +75,7 @@ const originalXHR = HttpUtils.xhr;
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
+    setHasRadio(true);
 
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
@@ -71,12 +103,12 @@ describe('APITests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
 
         // Given we're offline
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+        return Promise.resolve(setHasRadio(false))
             .then(() => {
                 // When API Writes and Reads are called
-                API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.read<ReadCommand>('mock command' as ReadCommand, {param2: 'value2'} as unknown as ApiRequestCommandParameters[ReadCommand]);
-                API.write<WriteCommand>('mock command' as WriteCommand, {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                API.read(MOCK_READ_COMMAND_LOWERCASE, readParams('value2'));
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(3));
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -85,8 +117,8 @@ describe('APITests', () => {
 
                 const persisted = PersistedRequests.getAll();
                 expect(persisted).toEqual([
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})}),
-                    expect.objectContaining({command: 'mock command', data: expect.objectContaining({param3: 'value3'})}),
+                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})}),
+                    expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 3})}),
                 ]);
 
                 PersistedRequests.clear();
@@ -97,21 +129,55 @@ describe('APITests', () => {
             });
     });
 
+    test('API.write should default shouldRetry to true when the caller did not set it', () => {
+        jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
+
+        return Promise.resolve(setHasRadio(false))
+            .then(() => {
+                API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const persisted = PersistedRequests.getAll();
+                expect(persisted).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({shouldRetry: true})})]);
+
+                PersistedRequests.clear();
+                return waitForBatchedUpdates();
+            });
+    });
+
+    test('API.write should preserve an explicit shouldRetry: false instead of forcing it to true', () => {
+        jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(new Error('Unexpected xhr call'));
+
+        return Promise.resolve(setHasRadio(false))
+            .then(() => {
+                API.write(WRITE_COMMANDS.OPEN_REPORT, {reportID: 'test-report', shouldRetry: false});
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const persisted = PersistedRequests.getAll();
+                expect(persisted).toEqual([expect.objectContaining({command: WRITE_COMMANDS.OPEN_REPORT, data: expect.objectContaining({shouldRetry: false})})]);
+
+                PersistedRequests.clear();
+                return waitForBatchedUpdates();
+            });
+    });
+
     test('Write requests should resume when we are online', () => {
         // We're setting up a basic case where all requests succeed when we resume connectivity
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         // Given we have some requests made while we're offline
+        setHasRadio(false);
         return (
             Onyx.multiSet({
-                [ONYXKEYS.NETWORK]: {isOffline: true},
                 [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
                 [ONYXKEYS.SESSION]: {authToken: 'testToken'},
             })
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(2));
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -120,17 +186,17 @@ describe('APITests', () => {
                 })
 
                 // When we resume connectivity
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(() => Promise.resolve(setHasRadio(true)))
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    expect(NetworkStore.isOffline()).toBe(false);
+                    expect(getIsOffline()).toBe(false);
                     expect(SequentialQueue.isRunning()).toBe(false);
 
                     // Then `xhr` should be called with expected data, and the persisted queue should be empty
                     expect(xhr).toHaveBeenCalledTimes(2);
                     expect(xhr.mock.calls).toEqual([
-                        expect.arrayContaining(['mock command', expect.objectContaining({param1: 'value1'})]),
-                        expect.arrayContaining(['mock command', expect.objectContaining({param2: 'value2'})]),
+                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})]),
+                        expect.arrayContaining([MOCK_COMMAND_LOWERCASE, expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})]),
                     ]);
 
                     const persisted = PersistedRequests.getAll();
@@ -160,16 +226,16 @@ describe('APITests', () => {
 
         // Given we have some requests made while we're offline
         return (
-            Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+            Promise.resolve(setHasRadio(false))
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(2));
                     return waitForBatchedUpdates();
                 })
 
                 // When we resume connectivity
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(() => Promise.resolve(setHasRadio(true)))
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then requests should remain persisted until the xhr call is resolved
@@ -181,7 +247,9 @@ describe('APITests', () => {
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     expect(PersistedRequests.getAll().length).toEqual(0);
-                    expect(PersistedRequests.getOngoingRequest()).toEqual(expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})}));
+                    expect(PersistedRequests.getOngoingRequest()).toEqual(
+                        expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})}),
+                    );
 
                     // When a request fails it should be retried
                     xhrCalls.at(1)?.reject(new Error(CONST.ERROR.FAILED_TO_FETCH));
@@ -190,7 +258,7 @@ describe('APITests', () => {
                 .then(() => {
                     // The ongoingRequest it is moving back to the persistedRequests queue
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param2: 'value2'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 2})})]);
                     // We need to advance past the request throttle back off timer because the request won't be retried until then
                     return new Promise((resolve) => {
                         setTimeout(resolve, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
@@ -224,15 +292,15 @@ describe('APITests', () => {
 
         // Given we have a request made while we're offline
         return (
-            Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
+            Promise.resolve(setHasRadio(false))
                 .then(() => {
                     // When API Write commands are made
-                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write(MOCK_COMMAND_LOWERCASE, splitParams(1));
                     return waitForNetworkPromises();
                 })
 
                 // When we resume connectivity
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(() => Promise.resolve(setHasRadio(true)))
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     // Then there has only been one request so far
@@ -240,7 +308,7 @@ describe('APITests', () => {
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})})]);
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
@@ -253,7 +321,7 @@ describe('APITests', () => {
 
                     // And we still have 1 persisted request since it failed
                     expect(PersistedRequests.getAll().length).toEqual(1);
-                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: 'mock command', data: expect.objectContaining({param1: 'value1'})})]);
+                    expect(PersistedRequests.getAll()).toEqual([expect.objectContaining({command: MOCK_COMMAND_LOWERCASE, data: expect.objectContaining({[SPLIT_AMOUNT_PARAM]: 1})})]);
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
@@ -311,14 +379,14 @@ describe('APITests', () => {
         Onyx.merge(ONYXKEYS.CREDENTIALS, {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'});
         return (
             waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
+                .then(() => Promise.resolve(setHasRadio(false)))
                 .then(() => {
-                    API.write<WriteCommand>('Mock' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write(MOCK_COMMAND, splitParams(1));
                     return waitForBatchedUpdates();
                 })
 
                 // When we resume connectivity
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+                .then(() => Promise.resolve(setHasRadio(true)))
                 .then(waitForBatchedUpdates)
                 .then(() => {
                     const nonLogCalls = xhr.mock.calls.filter(([commandName]) => commandName !== 'Log');
@@ -329,9 +397,9 @@ describe('APITests', () => {
                     const [commandName1] = call1;
                     const [commandName2] = call2;
                     const [commandName3] = call3;
-                    expect(commandName1).toBe('Mock');
-                    expect(commandName2).toBe('Authenticate');
-                    expect(commandName3).toBe('Mock');
+                    expect(commandName1).toBe(MOCK_COMMAND);
+                    expect(commandName2).toBe(AUTHENTICATION_COMMAND);
+                    expect(commandName3).toBe(MOCK_COMMAND);
                 })
         );
     });
@@ -339,36 +407,36 @@ describe('APITests', () => {
     test('several actions made while offline will get added in the order they are created', () => {
         // Given offline state where all requests will eventually succeed without issue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
-                API.read<ReadCommand>('MockCommand' as ReadCommand, {content: 'not-persisted'} as unknown as ApiRequestCommandParameters[ReadCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(3));
+                API.read(MOCK_READ_COMMAND, readParams('not-persisted'));
+                API.write(MOCK_COMMAND, splitParams(4));
+                API.write(MOCK_COMMAND, splitParams(5));
+                API.write(MOCK_COMMAND, splitParams(6));
 
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect all 7 calls to have been made and for the Writes to be made in the order that we made them
                 // The read command would have been made first (and would have failed in real-life)
                 expect(xhr.mock.calls.length).toBe(7);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('not-persisted');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls.at(0)?.[1].reportID).toBe('not-persisted');
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(3)?.[1]['splits[0][amount]']).toBe(3);
+                expect(xhr.mock.calls.at(4)?.[1]['splits[0][amount]']).toBe(4);
+                expect(xhr.mock.calls.at(5)?.[1]['splits[0][amount]']).toBe(5);
+                expect(xhr.mock.calls.at(6)?.[1]['splits[0][amount]']).toBe(6);
             });
     });
 
@@ -376,38 +444,38 @@ describe('APITests', () => {
         // Given offline state where all requests will eventually succeed without issue and assumed to be valid credentials
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
+        setHasRadio(false);
         return Onyx.multiSet({
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.SESSION]: {authToken: 'test'},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
         })
             .then(() => {
                 // When we queue 6 persistable commands
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(3));
+                API.write(MOCK_COMMAND, splitParams(4));
+                API.write(MOCK_COMMAND, splitParams(5));
+                API.write(MOCK_COMMAND, splitParams(6));
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect only 8 calls to have been made total and for them to be made in the order that we made them despite requiring reauthentication
                 expect(xhr.mock.calls.length).toBe(8);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
 
-                // Our call to Authenticate will not have a "content" field
-                expect(xhr.mock.calls.at(1)?.[1].content).not.toBeDefined();
+                // Our call to Authenticate will not have an "amount" field
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).not.toBeDefined();
 
                 // Rest of the calls have the expected params and are called in sequence
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(3)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(4)?.[1].content).toBe('value3');
-                expect(xhr.mock.calls.at(5)?.[1].content).toBe('value4');
-                expect(xhr.mock.calls.at(6)?.[1].content).toBe('value5');
-                expect(xhr.mock.calls.at(7)?.[1].content).toBe('value6');
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(3)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(4)?.[1]['splits[0][amount]']).toBe(3);
+                expect(xhr.mock.calls.at(5)?.[1]['splits[0][amount]']).toBe(4);
+                expect(xhr.mock.calls.at(6)?.[1]['splits[0][amount]']).toBe(5);
+                expect(xhr.mock.calls.at(7)?.[1]['splits[0][amount]']).toBe(6);
             });
     });
 
@@ -419,9 +487,9 @@ describe('APITests', () => {
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})
             .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS, authToken: 'newToken'});
 
+        setHasRadio(true);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'oldToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
@@ -435,15 +503,16 @@ describe('APITests', () => {
                     forceNetworkRequest: false,
                 });
 
-                Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-                expect(NetworkStore.isOffline()).toBe(false);
+                // setHasRadio is synchronous — offline state is immediate
+                setHasRadio(false);
+                expect(getIsOffline()).toBe(true);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                API.write('MockCommand' as WriteCommand, {});
+                API.write(MOCK_COMMAND, splitParams());
                 expect(PersistedRequests.getAll().length).toBe(1);
-                expect(NetworkStore.isOffline()).toBe(true);
+                expect(getIsOffline()).toBe(true);
                 expect(SequentialQueue.isRunning()).toBe(false);
                 expect(NetworkStore.isAuthenticating()).toBe(false);
 
@@ -453,11 +522,10 @@ describe('APITests', () => {
                 waitForBatchedUpdates();
 
                 // Come back from offline to trigger the sequential queue flush
-                Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+                setHasRadio(true);
             })
             .then(() => {
-                // When we wait for the sequential queue to finish
-                expect(SequentialQueue.isRunning()).toBe(true);
+                // Wait for the deferred flush and queue processing to complete
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -469,7 +537,7 @@ describe('APITests', () => {
                 expect(PersistedRequests.getAll().length).toBe(0);
 
                 // We are not offline anymore
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // First call to xhr is the AuthenticatePusher request that could not call Authenticate because we went offline
                 const [firstCommand] = xhr.mock.calls.at(0) ?? [];
@@ -477,14 +545,14 @@ describe('APITests', () => {
 
                 // Second call to xhr is the MockCommand that also failed with a 407
                 const [secondCommand] = xhr.mock.calls.at(1) ?? [];
-                expect(secondCommand).toBe('MockCommand');
+                expect(secondCommand).toBe(MOCK_COMMAND);
 
                 // Third command should be the call to Authenticate
                 const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
-                expect(thirdCommand).toBe('Authenticate');
+                expect(thirdCommand).toBe(AUTHENTICATION_COMMAND);
 
                 const [fourthCommand] = xhr.mock.calls.at(3) ?? [];
-                expect(fourthCommand).toBe('MockCommand');
+                expect(fourthCommand).toBe(MOCK_COMMAND);
 
                 // We are using the new authToken
                 expect(NetworkStore.getAuthToken()).toBe('newToken');
@@ -499,24 +567,25 @@ describe('APITests', () => {
         const processWithMiddleware = jest.spyOn(Request, 'processWithMiddleware');
 
         // Given a simulated a condition where the credentials have not yet been read from storage and we are offline
+        setHasRadio(false);
         return Onyx.multiSet({
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {},
             [ONYXKEYS.SESSION]: null,
         })
+            .then(waitForBatchedUpdates)
             .then(() => {
-                expect(NetworkStore.isOffline()).toBe(true);
+                expect(getIsOffline()).toBe(true);
 
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a Write request while offline
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write(MOCK_COMMAND, splitParams());
 
                 // Then we should expect the request to get persisted
                 expect(PersistedRequests.getAll().length).toBe(1);
 
                 // When we go online and wait for promises to resolve
-                return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+                return Promise.resolve(setHasRadio(true));
             })
             .then(waitForBatchedUpdates)
             .then(() => {
@@ -540,18 +609,18 @@ describe('APITests', () => {
 
     test('Write request will move directly to the SequentialQueue when we are online and block non-Write requests', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr');
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
+        return Promise.resolve(setHasRadio(true))
             .then(() => {
                 // GIVEN that we are online
-                expect(NetworkStore.isOffline()).toBe(false);
+                expect(getIsOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
-                API.write('MockCommandOne' as WriteCommand, {});
-                API.read('MockCommandTwo' as ReadCommand, null);
-                API.write('MockCommandThree' as WriteCommand, {});
+                API.write(MOCK_COMMAND_ONE, splitParams());
+                API.read(MOCK_READ_COMMAND_TWO, readParams('value2'));
+                API.write(MOCK_COMMAND_THREE, nameValueParams('value3'));
 
                 // THEN the retryable requests should immediately be added to the persisted requests
-                expect(PersistedRequests.getAll().length).toBe(2);
+                expect(PersistedRequests.getLength()).toBe(2);
 
                 // WHEN we wait for the queue to run and finish processing
                 return waitForBatchedUpdates();
@@ -563,11 +632,11 @@ describe('APITests', () => {
                 // And our Write request should run before our non persistable one in a blocking way
                 const firstRequest = xhr.mock.calls.at(0);
                 const [firstRequestCommandName] = firstRequest ?? [];
-                expect(firstRequestCommandName).toBe('MockCommandOne');
+                expect(firstRequestCommandName).toBe(MOCK_COMMAND_ONE);
 
                 const secondRequest = xhr.mock.calls.at(1);
                 const [secondRequestCommandName] = secondRequest ?? [];
-                expect(secondRequestCommandName).toBe('MockCommandThree');
+                expect(secondRequestCommandName).toBe(MOCK_COMMAND_THREE);
 
                 // WHEN we advance the main queue timer and wait for promises
                 return new Promise((resolve) => {
@@ -578,43 +647,43 @@ describe('APITests', () => {
                 // THEN we should see that our third (non-persistable) request has run last
                 const thirdRequest = xhr.mock.calls.at(2);
                 const [thirdRequestCommandName] = thirdRequest ?? [];
-                expect(thirdRequestCommandName).toBe('MockCommandTwo');
+                expect(thirdRequestCommandName).toBe(MOCK_READ_COMMAND_TWO);
             });
     });
 
     test('All write requests are in the queue should be called even some of them are the same', () => {
         // Given offline state where all requests will eventually succeed without issue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 persistable commands and two of them are the same
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write(MOCK_COMMAND, splitParams(1));
+                API.write(MOCK_COMMAND, splitParams(2));
+                API.write(MOCK_COMMAND, splitParams(1));
 
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect all 3 calls to have been made and for the Writes to be made in the order that we made them
                 expect(xhr.mock.calls.length).toBe(3);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value1');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(2)?.[1]['splits[0][amount]']).toBe(1);
             });
     });
 
     test('Read request should not stuck when SequentialQueue is paused and resumed', async () => {
         // Given 2 WRITE requests and 1 READ request where the first write request pauses the SequentialQueue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({previousUpdateID: 1});
-        API.write('MockWriteCommandOne' as WriteCommand, {});
-        API.write('MockWriteCommandTwo' as WriteCommand, {});
-        API.read('MockReadCommand' as ReadCommand, null);
+        API.write(MOCK_WRITE_COMMAND_ONE, null);
+        API.write(MOCK_WRITE_COMMAND_TWO, null);
+        API.read(MOCK_READ_COMMAND_ONE, null);
 
         await waitForBatchedUpdates();
 
@@ -625,81 +694,72 @@ describe('APITests', () => {
 
         // Then the pending READ command should be called
         const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
-        expect(thirdCommand).toBe('MockReadCommand');
+        expect(thirdCommand).toBe(MOCK_READ_COMMAND_ONE);
     });
 
     test('duplicated write APIs with resolveDuplicationConflictAction conflict', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 duplicate persistable commands
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
-                API.writeWithNoDuplicatesConflictAction('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(1));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(2));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND, splitParams(3));
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect only 1 call to have been made and for the Writes to be made at the last one that was made
                 expect(xhr.mock.calls.length).toBe(1);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value3');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(3);
             });
     });
 
     test('different write APIs with resolveDuplicationConflictAction conflict', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 different persistable commands
-                API.writeWithNoDuplicatesConflictAction('MockCommandOne' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.writeWithNoDuplicatesConflictAction('MockCommandTwo' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
-                API.writeWithNoDuplicatesConflictAction('MockCommandThree' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_ONE, splitParams(1));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_TWO, splitParams(2));
+                API.writeWithNoDuplicatesConflictAction(MOCK_COMMAND_THREE, nameValueParams('value3'));
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect all 3 calls to have been made and for the Writes to be made in the order that we made them
                 expect(xhr.mock.calls.length).toBe(3);
-                expect(xhr.mock.calls.at(0)?.[1].content).toBe('value1');
-                expect(xhr.mock.calls.at(1)?.[1].content).toBe('value2');
-                expect(xhr.mock.calls.at(2)?.[1].content).toBe('value3');
+                expect(xhr.mock.calls.at(0)?.[1]['splits[0][amount]']).toBe(1);
+                expect(xhr.mock.calls.at(1)?.[1]['splits[0][amount]']).toBe(2);
+                expect(xhr.mock.calls.at(2)?.[1].value).toBe('value3');
             });
     });
 
     test('duplicated write APIs with resolveEnableFeatureConflicts conflict and same policyID', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 duplicate persistable commands with same policyID and different enabled values
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: true});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: false});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: true});
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect only 1 call to have been made and for the Writes to be made at the first one that was made
@@ -710,24 +770,18 @@ describe('APITests', () => {
 
     test('consecutively enable and disable a feature with resolveEnableFeatureConflicts conflict', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 2 duplicate persistable commands with same policyID and true and false enabled values
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: true});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: false});
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect no calls is made
@@ -737,28 +791,19 @@ describe('APITests', () => {
 
     test('multiple write APIs with resolveEnableFeatureConflicts conflict with different policyIDs', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 different persistable commands with different policyIDs
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '3', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: true});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '2', enabled: false});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '3', enabled: true});
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect all 3 calls to have been made and for the Writes to be made in the order that we made them
@@ -771,28 +816,19 @@ describe('APITests', () => {
 
     test('multiple write APIs with resolveEnableFeatureConflicts conflict with some different policyIDs', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        setHasRadio(false);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
         })
             .then(() => {
                 // When we queue 3 different persistable commands with only 2 policyIDs
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: true} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '2', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
-                API.writeWithNoDuplicatesEnableFeatureConflicts(
-                    'MockCommand' as EnablePolicyFeatureCommand,
-                    {policyID: '1', enabled: false} as ApiRequestCommandParameters[EnablePolicyFeatureCommand],
-                );
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: true});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '2', enabled: false});
+                API.writeWithNoDuplicatesEnableFeatureConflicts(MOCK_ENABLE_COMMAND, {policyID: '1', enabled: false});
                 return waitForBatchedUpdates();
             })
-            .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
+            .then(() => Promise.resolve(setHasRadio(true)))
             .then(waitForBatchedUpdates)
             .then(() => {
                 // Then expect only 1 call to have been made and for the Writes that have unique policyID to be made
@@ -801,13 +837,51 @@ describe('APITests', () => {
             });
     });
 
+    test('OpenApp with writeWithNoDuplicatesOpenAppConflictAction drops a duplicate while one is in flight, unless the caller opts out', async () => {
+        // Hold the first OpenApp on the wire, so the decision is made against the in-flight request.
+        const xhrCalls: XhrCalls = [];
+        const xhr = jest
+            .spyOn(HttpUtils, 'xhr')
+            .mockImplementationOnce(
+                () =>
+                    new Promise((resolve, reject) => {
+                        xhrCalls.push({resolve, reject});
+                    }),
+            )
+            .mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
+            [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test_user', autoGeneratedPassword: 'password'},
+        });
+
+        try {
+            API.writeWithNoDuplicatesOpenAppConflictAction(openAppParams());
+            await waitForBatchedUpdates();
+            expect(PersistedRequests.getOngoingRequest()?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+            await API.writeWithNoDuplicatesOpenAppConflictAction(openAppParams());
+            expect(PersistedRequests.getAll()).toHaveLength(0);
+
+            await API.writeWithNoDuplicatesOpenAppConflictAction(openAppParams(), {}, false);
+            expect(PersistedRequests.getAll()).toHaveLength(1);
+        } finally {
+            // Release the held request even if an assertion failed, so the queue is not stranded for the rest of the file.
+            xhrCalls.at(0)?.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        }
+        await SequentialQueue.waitForIdle();
+        await waitForBatchedUpdates();
+
+        expect(xhr.mock.calls.filter(([command]) => command === WRITE_COMMANDS.OPEN_APP)).toHaveLength(2);
+    });
+
     test('Write request with supportal insufficient permissions (411) suppresses retry, applies failureData, and triggers modal', () => {
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: 411, message: 'You are not authorized to take this action when support logged in.'});
 
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
         const onyxSetSpy = jest.spyOn(Onyx, 'set');
 
-        const failureData = [
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
@@ -815,13 +889,12 @@ describe('APITests', () => {
             },
         ];
 
+        setHasRadio(true);
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT},
-            [ONYXKEYS.NETWORK]: {isOffline: false},
         })
             .then(() => {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
+                API.write(MOCK_COMMAND, splitParams(), {failureData});
                 return waitForNetworkPromises();
             })
             .then(waitForBatchedUpdates)
@@ -849,7 +922,7 @@ describe('APITests', () => {
                     if (typeof payload !== 'object' || payload === null) {
                         return false;
                     }
-                    return (payload as {command?: string}).command === 'MockCommand';
+                    return 'command' in payload && payload.command === MOCK_COMMAND;
                 });
                 expect(supportalModalSet).toBe(true);
             });
@@ -861,55 +934,45 @@ describe('API.write() persistence guarantees', () => {
     // BUG: Currently, prepareRequest() applies optimistic data via Onyx.update() BEFORE
     // processRequest() persists the request via SequentialQueue.push(). This test documents
     // the buggy ordering. When the bug is fixed, flip the final assertion to toBe(true).
-    test('Issue 1: should persist the request before applying optimistic data', () =>
-        Onyx.multiSet({
+    test('Issue 1: should persist the request before applying optimistic data', () => {
+        setHasRadio(false);
+        return Onyx.multiSet({
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
             [ONYXKEYS.SESSION]: {authToken: 'testToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
         }).then(() => {
             let optimisticDataApplied = false;
             let requestPersistedBeforeOptimistic = false;
 
-            // Mock Onyx.update so that when it receives our marker key we snapshot the
-            // persisted-requests queue. This avoids spy-ordering issues that caused
-            // false passes on CI.
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
-                    // Note: getAll() checks the in-memory queue, not durable (disk) state.
-                    // This is intentionally a weaker assertion – if even the in-memory
-                    // ordering is wrong (request not queued before optimistic data), the
-                    // stronger disk-persistence guarantee is certainly broken too.
-                    requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
+                    requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === MOCK_COMMAND);
                 }
                 return Promise.resolve();
             });
 
             try {
-                API.write('MockCommand' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand], {
+                API.write(MOCK_COMMAND, splitParams(), {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
                 });
 
-                // Guard: ensure our mock actually intercepted the optimistic data.
-                // Without this, the test could pass for the wrong reason (e.g. mock
-                // never fires, flag stays false, and we'd incorrectly confirm the bug).
                 expect(optimisticDataApplied).toBe(true);
-
                 // BUG: The request is NOT in the persisted queue when optimistic data is
                 // applied. When fixed, this assertion should be changed to toBe(true).
                 expect(requestPersistedBeforeOptimistic).toBe(false);
             } finally {
                 updateMock.mockRestore();
             }
-        }));
+        });
+    });
 
     // BUG: API.write() returns Promise.resolve() immediately (API/index.ts:148).
     // The Onyx.set() in PersistedRequests.save() (PersistedRequests.ts:134) is
@@ -917,14 +980,14 @@ describe('API.write() persistence guarantees', () => {
     // no guarantee that persistence has completed. This test mocks Onyx.set to
     // never resolve for PERSISTED_REQUESTS, proving that API.write()'s promise
     // is completely disconnected from the persistence pipeline.
-    test('Issue 2: should return a promise that resolves only after the request is persisted to disk', () =>
-        Onyx.multiSet({
+    test('Issue 2: should return a promise that resolves only after the request is persisted to disk', () => {
+        setHasRadio(false);
+        return Onyx.multiSet({
             [ONYXKEYS.CREDENTIALS]: {
                 autoGeneratedLogin: 'test',
                 autoGeneratedPassword: 'passwd',
             },
             [ONYXKEYS.SESSION]: {authToken: 'testToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
         }).then(() => {
             let saveCalled = false;
             let writePromiseResolved = false;
@@ -941,7 +1004,7 @@ describe('API.write() persistence guarantees', () => {
                 return originalSet(key, value);
             });
 
-            API.write('MockCommand' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]).then(() => {
+            API.write(MOCK_COMMAND, splitParams()).then(() => {
                 writePromiseResolved = true;
             });
 
@@ -952,17 +1015,17 @@ describe('API.write() persistence guarantees', () => {
             // Flush one microtask to give writePromise.then() a chance to fire.
             return Promise.resolve()
                 .then(() => {
-                    // BUG: The write promise resolved despite persistence being permanently
-                    // stalled. processRequest() returns Promise.resolve() (API/index.ts:148)
-                    // which is disconnected from the persistence pipeline.
-                    // When fixed, this should be changed to toBe(false) — the write promise
-                    // should NOT resolve until persistence completes.
-                    expect(writePromiseResolved).toBe(true);
+                    // FIX: The write promise no longer resolves immediately.
+                    // processRequest() now awaits pushToSequentialQueue() which awaits
+                    // PersistedRequests.save()'s Onyx.set() promise. Since we mocked
+                    // Onyx.set to never resolve, the write promise correctly stalls.
+                    expect(writePromiseResolved).toBe(false);
                 })
                 .finally(() => {
                     setMock.mockRestore();
                 });
-        }));
+        });
+    });
 
     // BUG: Conflict resolution in push() at SequentialQueue.ts:569 and in
     // prepareRequest() at API/index.ts:73-74 both call getAll() which reads
@@ -971,10 +1034,10 @@ describe('API.write() persistence guarantees', () => {
     // stale. This means conflict resolvers make decisions based on incomplete
     // data, potentially failing to deduplicate or incorrectly removing requests.
     test('Issue 5: conflict resolution should read consistent queue state', async () => {
+        setHasRadio(false);
         await Onyx.multiSet({
             [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin: 'test', autoGeneratedPassword: 'passwd'},
             [ONYXKEYS.SESSION]: {authToken: 'testToken'},
-            [ONYXKEYS.NETWORK]: {isOffline: true},
         });
 
         // Intercept Onyx.set for PERSISTED_REQUESTS to control resolution order,
@@ -982,12 +1045,13 @@ describe('API.write() persistence guarantees', () => {
         type CapturedSet = {value: unknown; triggerRealSet: () => Promise<void>};
         const capturedSets: CapturedSet[] = [];
         const originalSet = Onyx.set.bind(Onyx);
-        const setMock = jest.spyOn(Onyx, 'set').mockImplementation((key, value) => {
+        const setMock = jest.spyOn(Onyx, 'set').mockImplementation(<TKey extends OnyxKey>(key: TKey, value: OnyxSetInput<TKey>) => {
             if (key === ONYXKEYS.PERSISTED_REQUESTS && Array.isArray(value) && value.length > 0) {
+                const triggerRealSet = () => originalSet(key, value);
                 return new Promise<void>((resolvePromise) => {
                     capturedSets.push({
                         value,
-                        triggerRealSet: () => originalSet(key, value as Parameters<typeof Onyx.set<typeof ONYXKEYS.PERSISTED_REQUESTS>>[1]).then(resolvePromise),
+                        triggerRealSet: () => triggerRealSet().then(resolvePromise),
                     });
                 });
             }
@@ -998,9 +1062,9 @@ describe('API.write() persistence guarantees', () => {
             // Rapidly write two commands while offline — each save() call updates
             // in-memory state immediately then fires Onyx.set (captured, not resolved).
             // save(CommandA): in-memory = [A], Onyx.set([A]) captured
-            API.write('CommandA' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+            API.write(COMMAND_A, splitParams(1));
             // save(CommandB): in-memory = [A, B], Onyx.set([A, B]) captured
-            API.write('CommandB' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+            API.write(COMMAND_B, splitParams(2));
 
             expect(capturedSets).toHaveLength(2);
             expect(PersistedRequests.getAll()).toHaveLength(2);
@@ -1016,36 +1080,26 @@ describe('API.write() persistence guarantees', () => {
             await capturedSets.at(0)?.triggerRealSet();
             await waitForBatchedUpdates();
 
-            // BUG (Issue 4): In-memory state is now [A] — CommandB was lost
-            // because the stale callback overwrote the correct [A, B] with [A].
-            expect(PersistedRequests.getAll()).toHaveLength(1);
-            expect(PersistedRequests.getAll().at(0)?.command).toBe('CommandA');
+            // FIX (Issue 4): After initialization, the connect callback is a no-op.
+            // In-memory state is authoritative — both commands survive.
+            expect(PersistedRequests.getAll()).toHaveLength(2);
 
             // Restore Onyx.set to normal before the next write
             setMock.mockRestore();
 
             // Now write CommandC with a conflict resolver that captures the queue state
             let queueSeenByResolver: Array<{command: string}> = [];
-            API.write(
-                'CommandC' as WriteCommand,
-                {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand],
-                {},
-                {
-                    checkAndFixConflictingRequest: (requests) => {
-                        queueSeenByResolver = requests.map((r) => ({command: r.command}));
-                        return {conflictAction: {type: 'push'}};
-                    },
+            const conflictResolver = {
+                checkAndFixConflictingRequest: (requests: Array<{command: string}>) => {
+                    queueSeenByResolver = requests.map((r) => ({command: r.command}));
+                    return {conflictAction: {type: 'push'}};
                 },
-            );
+            } satisfies RequestConflictResolver<OnyxKey>;
+            API.write(COMMAND_C, nameValueParams('value3'), {}, conflictResolver);
 
-            // BUG (Issue 5): The conflict resolver cannot see CommandB because the
-            // in-memory queue was corrupted by the Issue 4 out-of-order race. The stale
-            // connect callback overwrote [A, B] with [A], making CommandB invisible
-            // to the resolver. If it needed to deduplicate or resolve conflicts with
-            // CommandB, it would fail, potentially causing duplicate or conflicting requests.
-            // When fixed, the resolver should see both CommandA and CommandB.
-            // Change to: expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: 'CommandB'}));
-            expect(queueSeenByResolver).not.toContainEqual(expect.objectContaining({command: 'CommandB'}));
+            // FIX (Issue 5): With Issue 4 fixed, the conflict resolver sees the complete
+            // queue including CommandB, enabling correct deduplication decisions.
+            expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: COMMAND_B}));
         } finally {
             setMock.mockRestore();
         }

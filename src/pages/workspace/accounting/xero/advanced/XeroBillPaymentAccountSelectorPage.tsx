@@ -1,23 +1,29 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {updateXeroSyncReimbursementAccountID} from '@userActions/connections/Xero';
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -69,7 +75,6 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="XeroBillPaymentAccountSelectorPage"
             data={xeroSelectorOptions}
-            listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}

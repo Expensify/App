@@ -1,19 +1,34 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, RenderersProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {TNodeChildrenRenderer, useRendererProps} from 'react-native-render-html';
+
 type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
+
+type ConciergeLinkRendererConfig = {
+    onPress?: () => void;
+};
+
+type ConciergeLinkRenderersProps = RenderersProps & {
+    // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
+    /* eslint-disable @typescript-eslint/naming-convention */
+    'concierge-link': ConciergeLinkRendererConfig;
+};
 
 function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
@@ -22,11 +37,13 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {onPress: onPressFromProps} = useRendererProps<ConciergeLinkRenderersProps, 'concierge-link'>('concierge-link') ?? {};
 
     /**
      * Simple wrapper to create a stable reference without passing event args to navigation function.
      */
     const navigateToConciergeChat = () => {
+        onPressFromProps?.();
         navigateToConciergeChatAction(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
 

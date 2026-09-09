@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function clearUserSearchPhrase() {
     Onyx.merge(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, '');

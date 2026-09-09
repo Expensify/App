@@ -1,9 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -12,13 +11,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-type EmptyCardViewProps = {
-    /** Whether the bank account is verified */
-    isBankAccountVerified: boolean;
-    /** ID of the current policy */
-    policyID?: string;
+import React from 'react';
+import {View} from 'react-native';
 
-    /** Buttons to display */
+type EmptyCardViewProps = {
+    isBankAccountVerified: boolean;
+    policyID?: string;
     buttons: EmptyStateButton[] | undefined;
 };
 

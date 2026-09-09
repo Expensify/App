@@ -1,17 +1,23 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+
 import type {AllStyles} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
 import ImageSVG from './ImageSVG';
@@ -29,13 +35,8 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | OnyxCommon.TranslationKeyErrors | ReceiptErrors | null;
-
-    /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
-
-    /** Whether we should disable opacity */
     shouldDisableOpacity?: boolean;
 
     /** A function to run when the X button next to the error is clicked */
@@ -47,10 +48,7 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Additional styles to add to the children wrapper container after local styles. Applied to the children wrapper container */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error row text */
     errorRowTextStyles?: StyleProp<TextStyle>;
 
     /** Whether applying strikethrough to the children should be disabled */
@@ -62,10 +60,7 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     /** Whether we should render the error message above the children */
     shouldDisplayErrorAbove?: boolean;
 
-    /** Whether we should force opacity */
     shouldForceOpacity?: boolean;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
 };
 

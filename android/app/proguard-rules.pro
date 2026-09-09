@@ -51,3 +51,9 @@
 
 # https://shopify.github.io/react-native-skia/docs/getting-started/installation/#proguard
 -keep class com.shopify.reactnative.skia.** { *; }
+
+# Strip verbose and debug log calls from release builds
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}

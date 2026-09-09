@@ -1,18 +1,16 @@
 import type {OnboardingInvite} from '@src/CONST';
+
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
-type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupTags' | 'setupCategoriesAndTags';
+type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupTags' | 'setupCategoriesAndTags' | 'reviewWorkspaceSettings';
 
 /** Model of onboarding */
 type IntroSelected = {
     /** The choice that the user selected in the engagement modal */
     choice?: OnboardingPurpose;
 
-    /** The invite type */
     inviteType?: OnboardingInvite;
-
-    /** Whether the onboarding is complete */
     isInviteOnboardingComplete?: boolean;
 
     /** Task reportID for 'viewTour' type */
@@ -36,8 +34,13 @@ type IntroSelected = {
     /** Task reportID for 'setupCategoriesAndTags' type */
     setupCategoriesAndTags?: string;
 
-    /** The previous onboarding choices of the user */
+    /** Task reportID for 'reviewWorkspaceSettings' type */
+    reviewWorkspaceSettings?: string;
+
     previousChoices?: OnboardingPurpose[];
+
+    /** The personal track goal selected during onboarding */
+    personalTrackGoal?: string;
 };
 
 export default IntroSelected;

@@ -1,0 +1,96 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/ReportUtils';
+
+import {fontScale} from '@styles/typography';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type SearchActionHeaderProps = {
+    action: ReportAction;
+    /** The report this action belongs to. */
+    report: OnyxEntry<Report>;
+    /** Whether the underlying action is a whisper. Used to skip bottom margin when WhisperBanner is rendered below. */
+    isWhisper: boolean;
+    /** Tap handler for the report-name link. */
+    onPress?: () => void;
+    /** The action content to render below the header. */
+    children: React.ReactNode;
+};
+
+function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const personalDetailsList = usePersonalDetails();
+    const parentReportID = isChatThread(report) ? report.parentReportID : undefined;
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
+    let reportForHeaderReportID: string | undefined;
+    if (isInvoiceReport(parentReport)) {
+        reportForHeaderReportID = parentReport?.reportID;
+    } else if (isInvoiceReport(report)) {
+        reportForHeaderReportID = report?.reportID;
+    }
+    const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
+    const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+
+    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
+
+    return (
+        <View style={[styles.p4]}>
+            <View style={styles.webViewStyles.tagStyles.ol}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, !isWhisper ? styles.mb3 : {}]}>
+                    <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
+                    <TextLink
+                        fontSize={fontScale.micro}
+                        onPress={() => {
+                            onPress?.();
+                        }}
+                        numberOfLines={1}
+                    >
+                        {reportName}
+                    </TextLink>
+                </View>
+                {children}
+            </View>
+        </View>
+    );
+}
+
+function SearchActionHeader({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
+    const isOnSearch = useIsOnSearch();
+
+    if (!isOnSearch) {
+        return children;
+    }
+
+    return (
+        <SearchActionHeaderContent
+            action={action}
+            report={report}
+            isWhisper={isWhisper}
+            onPress={onPress}
+        >
+            {children}
+        </SearchActionHeaderContent>
+    );
+}
+
+export default SearchActionHeader;

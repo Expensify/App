@@ -1,19 +1,21 @@
-/* eslint-disable max-classes-per-file */
-// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
-import * as core from '@actions/core';
+import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
+
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
-import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
-import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
-import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
+
+import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
+
+import {useMemo} from 'react';
 import 'setimmediate';
+import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import {TextDecoder, TextEncoder} from 'util';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore/index.web';
 import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
+
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -26,6 +28,7 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 setupMockImages();
 mockFSLibrary();
 
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
@@ -77,7 +80,6 @@ jest.mock('expo-location', () => ({
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -88,13 +90,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
-    jest.spyOn(core, 'info').mockImplementation(() => {});
-    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
-
-    // Make them global to override module-level console calls
+    // Override console methods globally so module-level console calls are silenced too
     global.console = {
         ...console,
         log: jest.fn(),
@@ -118,19 +114,26 @@ jest.mock('react-native-fs', () => ({
                 res([]);
             }),
     ),
-    CachesDirectoryPath: jest.fn(),
+    exists: jest.fn(() => Promise.resolve(false)),
+    mkdir: jest.fn(() => Promise.resolve()),
+    moveFile: jest.fn(() => Promise.resolve()),
+    copyFile: jest.fn(() => Promise.resolve()),
+    writeFile: jest.fn(() => Promise.resolve()),
+    DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
+    LibraryDirectoryPath: '/mock/library',
 }));
 
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => MockedSecureStore);
-
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
+    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
+    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
+    dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
@@ -153,7 +156,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
 });
 
 jest.mock('@src/setup/telemetry', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
     navigationIntegration: {
@@ -266,12 +268,12 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
 
-            add(info: unknown) {
+            add(info: RenderInfo) {
                 this.handler(info);
             }
 
@@ -284,7 +286,6 @@ jest.mock(
 );
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
@@ -292,7 +293,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 
@@ -307,7 +308,6 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
@@ -316,10 +316,30 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
+jest.mock('react-native-nitro-fetch', () => ({
+    __esModule: true,
+    fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
+    registerTokenRefresh: jest.fn(),
+    clearTokenRefresh: jest.fn(),
+    removeFromAutoPrefetch: jest.fn(() => Promise.resolve()),
+    removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
 }));
 
 jest.mock('victory-native', () => ({
@@ -361,17 +381,14 @@ jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatLi
 // in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
 // heavy integration tests like SessionTest to exceed their timeout.
 jest.mock('@src/hooks/useDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

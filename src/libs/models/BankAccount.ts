@@ -1,8 +1,10 @@
-import {Str} from 'expensify-common';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type BankAccountJSON from '@src/types/onyx/BankAccount';
+
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
 
 type State = ValueOf<typeof CONST.BANK_ACCOUNT.STATE>;
 
@@ -125,7 +127,6 @@ class BankAccount {
      * @NOTE WARNING KEEP IN SYNC WITH THE PHP
      */
     getClientID() {
-        // eslint-disable-next-line max-len
         return `${Str.makeID(this.getMaskedAccountNumber() ?? '')}${Str.makeID(this.getAddressName() ?? '')}${Str.makeID(this.getRoutingNumber() ?? '')}${this.getTransactionType()}`;
     }
 

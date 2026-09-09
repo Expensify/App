@@ -1,14 +1,20 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {usePopoverActions} from '@components/PopoverProvider';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
+
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
+
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+
 import type PopoverWithoutOverlayProps from './types';
 
 const NOOP = () => {};
@@ -25,6 +31,7 @@ function PopoverWithoutOverlay({
     onModalHide = () => {},
     children,
     shouldDisplayBelowModals = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,18 +39,19 @@ function PopoverWithoutOverlay({
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
-        StyleUtils.getModalStyles(
-            CONST.MODAL.MODAL_TYPE.POPOVER,
-            {
+        StyleUtils.getModalStyles({
+            type: CONST.MODAL.MODAL_TYPE.POPOVER,
+            windowDimensions: {
                 windowWidth,
                 windowHeight,
                 isSmallScreenWidth: false,
             },
-            anchorPosition,
+            popoverAnchorPosition: anchorPosition,
             innerContainerStyle,
             outerStyle,
             shouldDisplayBelowModals,
-        );
+            enableEdgeToEdgeBottomSafeAreaPadding,
+        });
 
     useEffect(() => {
         let removeOnClose: () => void;
@@ -78,12 +86,21 @@ function PopoverWithoutOverlay({
             StyleUtils.getModalPaddingStyles({
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding,
+                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
                 modalContainerStyle,
                 insets,
             }),
-        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
+        [
+            StyleUtils,
+            enableEdgeToEdgeBottomSafeAreaPadding,
+            insets,
+            modalContainerStyle,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     if (!isVisible) {
@@ -91,23 +108,25 @@ function PopoverWithoutOverlay({
     }
 
     return (
-        <View
-            style={modalStyle}
-            ref={viewRef(withoutOverlayRef)}
-            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-            onClick={(e) => e.stopPropagation()}
-            dataSet={{dragArea: false}}
-        >
+        <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
             <View
-                style={{
-                    ...styles.defaultModalContainer,
-                    ...modalContainerStyle,
-                    ...modalPaddingStyles,
-                }}
+                style={modalStyle}
+                ref={viewRef(withoutOverlayRef)}
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
+                dataSet={{dragArea: false}}
             >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                <View
+                    style={{
+                        ...styles.defaultModalContainer,
+                        ...modalContainerStyle,
+                        ...modalPaddingStyles,
+                    }}
+                >
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
             </View>
-        </View>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 

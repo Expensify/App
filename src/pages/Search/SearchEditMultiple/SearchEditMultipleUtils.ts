@@ -1,8 +1,13 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getTagArrayFromName} from '@libs/TransactionUtils';
+import {isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
+import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns the longest common dependent tag prefix for the provided transactions.
@@ -61,6 +66,68 @@ function getTransactionEditContext(
 }
 
 /**
+ * Distance and per-diem transactions have a system-derived merchant that cannot be user-edited
+ * regardless of whether the transaction is reported or unreported.
+ */
+function hasCustomUnitMerchantInSelection(selectedTransactionContexts: Array<{transaction: Transaction}>): boolean {
+    return selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction) || isPerDiemRequest(transaction));
+}
+
+/**
+ * Category/Tag/Tax only apply to expense/invoice reports and unreported (track) expenses.
+ * Returns true only when every selected transaction is eligible.
+ */
+function areAllTransactionsExpenseCompatible(selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>}>): boolean {
+    return selectedTransactionContexts.every(({transaction, report}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return !isIOUReport(report);
+    });
+}
+
+/**
+ * Reported expenses check their own workspace policy; unreported (track) expenses fall back to
+ * the bulk-edit workspace policy because they have no report to resolve a per-transaction policy from.
+ */
+function isBulkEditTaxTrackingEnabled(
+    selectedTransactionContexts: Array<{transaction: Transaction; transactionPolicy: OnyxEntry<Policy>}>,
+    bulkEditPolicy: OnyxEntry<Policy>,
+    hasPerDiemOrTimeTransaction: boolean,
+): boolean {
+    if (hasPerDiemOrTimeTransaction) {
+        return false;
+    }
+    return selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return !!bulkEditPolicy?.tax?.trackingEnabled;
+        }
+        return !!transactionPolicy?.tax?.trackingEnabled;
+    });
+}
+
+/**
+ * Reported expenses check their own workspace policy; unreported expenses fall back to
+ * the bulk-edit workspace policy because they have no report to resolve a per-transaction policy from.
+ */
+function isBulkEditAttendeeTrackingEnabled(
+    selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>; transactionPolicy: OnyxEntry<Policy>}>,
+    bulkEditPolicy: OnyxEntry<Policy>,
+): boolean {
+    return selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (isInvoiceReport(report)) {
+            return false;
+        }
+
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return isAttendeeTrackingEnabled(bulkEditPolicy) && bulkEditPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+        }
+
+        return isAttendeeTrackingEnabled(transactionPolicy) && transactionPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+    });
+}
+
+/**
  * After a hard refresh, transaction/report/reportAction data may only exist in the search snapshot,
  * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
  */
@@ -113,4 +180,14 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
     return merged;
 }
 
-export {getCommonDependentTag, getTransactionEditContext, withSnapshotTransactions, withSnapshotReportActions, withSnapshotReports};
+export {
+    getCommonDependentTag,
+    getTransactionEditContext,
+    hasCustomUnitMerchantInSelection,
+    areAllTransactionsExpenseCompatible,
+    isBulkEditTaxTrackingEnabled,
+    isBulkEditAttendeeTrackingEnabled,
+    withSnapshotTransactions,
+    withSnapshotReportActions,
+    withSnapshotReports,
+};

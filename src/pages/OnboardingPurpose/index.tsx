@@ -1,7 +1,10 @@
-import React from 'react';
 import OnboardingWrapper from '@components/OnboardingWrapper';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
+import React from 'react';
+
 import type {OnboardingPurposeProps} from './types';
+
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
 function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (
@@ -9,7 +12,6 @@ function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
             <BaseOnboardingPurpose
                 shouldUseNativeStyles={false}
                 shouldEnableMaxHeight={false}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </OnboardingWrapper>

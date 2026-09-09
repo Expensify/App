@@ -1,7 +1,9 @@
-import type {OnyxMergeInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxCollectionKey, OnyxKey} from '@src/ONYXKEYS';
+
+import type {OnyxMergeInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function resetDebugDetailsDraftForm() {
     Onyx.set(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT, null);

@@ -1,25 +1,29 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useEffect, useRef} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {EmojiPickerOnModalHide, OnEmojiSelected} from '@userActions/EmojiPickerAction';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {memo, useEffect, useRef} from 'react';
 
 type EmojiPickerButtonProps = {
     /** Flag to disable the emoji picker button */
     isDisabled?: boolean;
 
-    /** Unique id for emoji picker */
     emojiPickerID?: string;
 
     /** A callback function when the button is pressed */
@@ -77,7 +81,10 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
         <Tooltip text={translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({hovered, pressed}) => [
+                    styles.chatItemEmojiButton,
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered && !isDisabled, isPressed: pressed && !isDisabled})),
+                ]}
                 disabled={isDisabled}
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
@@ -88,7 +95,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 {({hovered, pressed}) => (
                     <Icon
                         src={icons.Emoji}
-                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered && !isDisabled, isPressed: pressed && !isDisabled})})}
                     />
                 )}
             </PressableWithoutFeedback>

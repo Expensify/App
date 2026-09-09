@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
-import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
+
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
+
 import CONST from '@src/CONST';
 import {useSplashScreenActions} from '@src/SplashScreenStateContext';
+
+import React, {useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+
 import type {BaseErrorBoundaryProps} from './types';
 
 /**

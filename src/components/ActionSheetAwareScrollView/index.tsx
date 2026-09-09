@@ -2,8 +2,10 @@
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
+
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 
 function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
@@ -11,7 +13,6 @@ function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAw
 
     return (
         <Reanimated.ScrollView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             ref={onRef}
         >
@@ -19,8 +20,6 @@ function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAw
         </Reanimated.ScrollView>
     );
 }
-
-export default ActionSheetAwareScrollView;
 
 /**
  * The bottom spacing config for this action sheet is only used on Android and iOS. On other platforms,
@@ -32,7 +31,6 @@ export default ActionSheetAwareScrollView;
  */
 
 const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props) => {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
 };
 

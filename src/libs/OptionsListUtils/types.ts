@@ -1,13 +1,19 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
     Login,
     PersonalDetails,
     PersonalDetailsList,
+    Policy,
     PolicyTagLists,
     Report,
     ReportAction,
@@ -17,6 +23,9 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * IMPORTANT: This type is a performance-optimized subset of OptionData.
@@ -94,13 +103,71 @@ type SearchOptionData = Pick<
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
 >;
 
+/** Inputs captured by shell hydrators for one option-list build. */
+type LazyHydrationContext = {
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    policiesCollection: OnyxCollection<Policy>;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    policyTags: OnyxCollection<PolicyTagLists>;
+    visibleReportActionsData: VisibleReportActionsDerivedValue;
+    privateIsArchivedMap: PrivateIsArchivedMap;
+    conciergeReportID: string | undefined;
+    currentUserAccountID: number;
+
+    /** Date-fns locale used when the option list was built. */
+    dateFnsLocale: DateFnsLocale | undefined;
+
+    /** Locale used when the option list was built. */
+    translate: LocalizedTranslate;
+
+    /** Currency formatter used when the option list was built. */
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+};
+
 type SearchOption<T> = SearchOptionData & {
     item: T;
 };
 
+/** Filter/rank fields for a contact. Hydrate before rendering. */
+type PersonalDetailShell = Pick<
+    SearchOptionData,
+    // Identity
+    | 'reportID'
+    | 'keyForList'
+    | 'login'
+    | 'accountID'
+    | 'text'
+    | 'displayName'
+    | 'participantsList'
+    | 'isOptimisticPersonalDetail'
+
+    // Initialized to their falsy defaults by the shell builder; getValidOptions marks the hydrated copy.
+    | 'isSelected'
+    | 'selected'
+> & {
+    item: PersonalDetails | null;
+
+    /** Discriminates a shell from a display-ready option. */
+    isHydrated: false;
+
+    /** Builds the memoized display option. */
+    hydrate: () => HydratedPersonalDetailOption;
+};
+
+type HydratedPersonalDetailOption = SearchOption<PersonalDetails | null> & {isHydrated: true};
+
+type PersonalDetailOptionOrShell = PersonalDetailShell | HydratedPersonalDetailOption;
+
+/**
+ * The only fields filtering, ranking and de-duping read off a contact option. Both halves of
+ * PersonalDetailOptionOrShell satisfy it, so helpers typed against it accept shells without claiming the
+ * display fields exist.
+ */
+type PersonalDetailFilterRankFields = Pick<SearchOptionData, 'text' | 'displayName' | 'login' | 'accountID' | 'participantsList'>;
+
 type OptionList = {
     reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
+    personalDetails: PersonalDetailOptionOrShell[];
 };
 
 type Option = Partial<OptionData>;
@@ -120,6 +187,7 @@ type OptionTree = {
     isDisabled: boolean;
     isSelected: boolean;
     pendingAction?: PendingAction;
+    shouldHideSelectionButton?: boolean;
 } & Option;
 
 type PayeePersonalDetails = {
@@ -133,15 +201,6 @@ type PayeePersonalDetails = {
     isInteractive: boolean;
 };
 
-type SectionBase = {
-    title: string | undefined;
-    shouldShow: boolean;
-};
-
-type Section = SectionBase & {
-    data: Option[];
-};
-
 type GetValidOptionsSharedConfig = {
     includeP2P?: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -151,6 +210,7 @@ type GetValidOptionsSharedConfig = {
 };
 
 type GetValidReportsConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
     betas?: OnyxEntry<Beta[]>;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
@@ -202,17 +262,20 @@ type IsValidReportsConfig = Pick<
     | 'isTimeRequest'
 > & {
     currentUserAccountID: number;
+    currentUserLogin: string;
+    conciergeReportID: string | undefined;
 };
 
 type GetOptionsConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
-    excludeHiddenThreads?: boolean;
-    canShowManagerMcTest?: boolean;
+    excludeHidden?: boolean;
     searchString?: string;
     searchInputValue?: string;
     maxElements?: number;
@@ -222,11 +285,14 @@ type GetOptionsConfig = {
     countryCode?: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    // TODO: Remove the optional operator once all call sites pass sortedActions (https://github.com/Expensify/App/issues/66381)
     sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
+    /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
+    isOffline?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
+    dateFnsLocale: DateFnsLocale | undefined;
     searchValue: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     searchInputValue?: string;
@@ -242,6 +308,7 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -263,11 +330,12 @@ type SectionForSearchTerm = {
 
 type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
-type Options = {
+/** Keeps the shell/display union until the caller hydrates before rendering. */
+type Options<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
     recentReports: SearchOptionData[];
-    personalDetails: SearchOptionData[];
+    personalDetails: TPersonalDetail[];
     userToInvite: SearchOptionData | null;
-    currentUserOption: SearchOptionData | null | undefined;
+    currentUserOption: TPersonalDetail | null | undefined;
     workspaceChats?: SearchOptionData[];
     selfDMChat?: SearchOptionData | undefined;
 };
@@ -282,6 +350,8 @@ type PreviewConfig = {
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
+    dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };
@@ -304,14 +374,20 @@ type OrderReportOptionsConfig = {
     preferRecentExpenseReports?: boolean;
 };
 
-type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
+type ReportAndPersonalDetailOptions<TPersonalDetail extends SearchOptionData = SearchOptionData> = Pick<Options<TPersonalDetail>, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
+
+type OptionsResult<TPersonalDetail extends SearchOptionData = SearchOptionData> = {
+    options: Options<TPersonalDetail>;
+    hasMore?: boolean;
+};
 
 export type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
     GetUserToInviteConfig,
-    GetValidOptionsSharedConfig,
     GetValidReportsConfig,
+    HydratedPersonalDetailOption,
+    LazyHydrationContext,
     MemberForList,
     Option,
     OptionWithKey,
@@ -321,13 +397,15 @@ export type {
     OrderOptionsConfig,
     OrderReportOptionsConfig,
     PayeePersonalDetails,
+    PersonalDetailFilterRankFields,
+    PersonalDetailOptionOrShell,
+    PersonalDetailShell,
     PreviewConfig,
     ReportAndPersonalDetailOptions,
     SearchOption,
     SearchOptionData,
-    Section,
-    SectionBase,
     SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
+    OptionsResult,
 };

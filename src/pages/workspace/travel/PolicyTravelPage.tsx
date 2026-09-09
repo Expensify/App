@@ -1,31 +1,38 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import {openPolicyTravelPage} from '@libs/actions/TravelInvoicing';
+
+import {openPolicyTravelPage} from '@libs/actions/TravelBilling';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getTravelStep} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import BookOrManageYourTrip from './BookOrManageYourTrip';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
@@ -45,11 +52,11 @@ function WorkspaceTravelPage({
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
     const icons = useMemoizedLazyExpensifyIcons(['Exit']);
-    const illustrations = useMemoizedLazyIllustrations(['Luggage']);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
@@ -81,7 +88,13 @@ function WorkspaceTravelPage({
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;
             default:
-                return <GetStartedTravel policyID={policyID} />;
+                return (
+                    <GetStartedTravel
+                        policyID={policyID}
+                        canWriteTravelFeature={canWriteMoreFeatures}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
+                );
         }
     })();
 
@@ -99,6 +112,7 @@ function WorkspaceTravelPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -108,16 +122,14 @@ function WorkspaceTravelPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.Luggage}
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && (
+                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
-                            success={false}
                             onPress={() => {}}
                             customText={translate('common.more')}
                             options={secondaryActions}

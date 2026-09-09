@@ -1,7 +1,10 @@
-import React from 'react';
-import type {BlurEvent} from 'react-native';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {BlurEvent} from 'react-native';
+
+import React from 'react';
+
 import SplitAmountInput from './SplitAmountInput';
 import SplitPercentageInput from './SplitPercentageInput';
 
@@ -16,7 +19,6 @@ type SplitListItemInputProps = {
     formattedOriginalAmount: string;
     /** The draft percentage value while the user is editing. */
     percentageDraft?: string;
-    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
     /** State setter for the percentage draft value. */
     setPercentageDraft: React.Dispatch<React.SetStateAction<string | undefined>>;

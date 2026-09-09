@@ -1,36 +1,41 @@
-import React, {useRef} from 'react';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import type {TextInputSelectionChangeEvent} from 'react-native';
-import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+
+import React, {useRef} from 'react';
+
 import type {TextInputWithSymbolProps} from './types';
 
+import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
-    const textInputRef = useRef<HTMLFormElement | null>(null);
+    const textInputRef = useRef<BaseTextInputRef | null>(null);
 
     return (
         <BaseTextInputWithSymbol
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
-                textInputRef.current = element as HTMLFormElement;
+                textInputRef.current = element;
 
                 if (!ref) {
                     return;
                 }
 
                 if (typeof ref === 'function') {
-                    ref(element as HTMLFormElement);
+                    ref(element);
                     return;
                 }
 
                 // eslint-disable-next-line no-param-reassign
-                ref.current = element as HTMLFormElement;
+                ref.current = element;
             }}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                 onSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end);
             }}
             onPress={() => {
-                const selectionStart = (textInputRef.current?.selectionStart as number) ?? 0;
-                const selectionEnd = (textInputRef.current?.selectionEnd as number) ?? 0;
+                const input = textInputRef.current;
+                const selectionStart = input instanceof HTMLInputElement ? (input.selectionStart ?? 0) : 0;
+                const selectionEnd = input instanceof HTMLInputElement ? (input.selectionEnd ?? 0) : 0;
                 onSelectionChange(selectionStart, selectionEnd);
             }}
         />

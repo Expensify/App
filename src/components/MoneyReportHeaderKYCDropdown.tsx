@@ -1,18 +1,26 @@
-import React, {memo} from 'react';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSecondaryActionAPaymentOption} from '@libs/PaymentUtils';
+
+import {isSecondaryActionAPaymentOption, isSecondaryActionAWorkspacePolicyOption} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {memo} from 'react';
+
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
-import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
+
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import KYCWall from './KYCWall';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
@@ -21,11 +29,19 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
+    headerText?: string;
+
+    shouldPutHeaderTextAfterBackButton?: boolean;
+
+    /**
+     * Called when a workspace-policy sub-item is picked. The parent owns the full flow (guards, telemetry,
+     * then invoking `triggerKYCFlow({policy})` when ready). If omitted, defaults to `triggerKYCFlow({policy})`.
+     */
+    onWorkspacePolicySelect?: (policy: Policy, triggerKYCFlow: TriggerKYCFlow) => void;
+
     customText?: string;
 
     shouldShowSuccessStyle?: boolean;
-
-    /** Ref for the inner ButtonWithDropdownMenu */
     dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 
     /** Callback fired when the dropdown menu hides */
@@ -39,23 +55,25 @@ function MoneyReportHeaderKYCDropdown({
     applicableSecondaryActions,
     iouReport,
     onPaymentSelect,
+    onWorkspacePolicySelect,
     customText,
     shouldShowSuccessStyle,
     dropdownMenuRef,
     onOptionsMenuHide,
     ref,
+    headerText = '',
+    shouldPutHeaderTextAfterBackButton = false,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
 
     return (
         <KYCWall
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onSuccessfulKYC={onSuccessfulKYC}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -72,9 +90,17 @@ function MoneyReportHeaderKYCDropdown({
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
                     ref={dropdownMenuRef}
-                    success={shouldShowSuccessStyle ?? false}
+                    variant={(shouldShowSuccessStyle ?? false) ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
+                    onSubItemSelected={(item, _index, event) => {
+                        if (isSecondaryActionAWorkspacePolicyOption(item)) {
+                            if (onWorkspacePolicySelect) {
+                                onWorkspacePolicySelect(item.workspacePolicy, triggerKYCFlow);
+                            } else {
+                                triggerKYCFlow({policy: item.workspacePolicy});
+                            }
+                            return;
+                        }
                         if (!isSecondaryActionAPaymentOption(item)) {
                             return;
                         }
@@ -82,14 +108,17 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                    shouldPopoverUseScrollView={shouldPopoverUseScrollView(applicableSecondaryActions)}
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && styles.flex1, !!customText && styles.w100]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.w100, !!customText && styles.w100]}
+                    style={shouldDisplayNarrowVersion && !primaryAction && !customText && !isInLandscapeMode ? styles.w100 : undefined}
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
+                    menuHeaderText={headerText}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </KYCWall>

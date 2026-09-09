@@ -1,0 +1,160 @@
+import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
+import {getCardSettings} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
+import Navigation from '@navigation/Navigation';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
+    const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
+    const styles = useThemeStyles();
+    const policyID = policy?.id;
+    const policyOwner = policy?.owner ?? '';
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const errorFields = qboConfig?.errorFields;
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const travelPayableAccount = creditCards?.find((account) => account.id === qboConfig?.travelInvoicingPayableAccountID);
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
+
+    const shouldShowVendorMenuItems = useMemo(
+        () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+        [qboConfig?.nonReimbursableExpensesExportDestination],
+    );
+
+    const shouldShowCreditCardVendorMenuItem = useMemo(
+        () =>
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+        [qboConfig?.nonReimbursableExpensesExportDestination],
+    );
+
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
+    const goBack = () => goBackFromExportConnection(shouldShowVendorMenuItems, dynamicBackPath);
+
+    const menuItems = [
+        {
+            description: translate('workspace.accounting.preferredExporter'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.path)),
+            title: qboConfig?.export?.exporter ?? policyOwner,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
+        },
+        {
+            description: translate('workspace.qbo.date'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.path)),
+            title: qboConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qboConfig?.exportDate}.label`) : undefined,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
+        },
+        {
+            description: translate('workspace.accounting.exportOutOfPocket'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.path)),
+            title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
+        },
+        {
+            description: translate('workspace.qbo.exportInvoices'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.path)),
+            title: qboConfig?.receivableAccount?.name,
+            subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
+        },
+        ...(isTravelBillingEnabled
+            ? [
+                  {
+                      description: translate('workspace.common.travelInvoicing'),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
+                      title: travelPayableAccount?.name,
+                      subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
+                  },
+              ]
+            : []),
+        {
+            description: translate('workspace.accounting.exportCompanyCard'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path)),
+            brickRoadIndicator: qboConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
+            subscribedSettings: [
+                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
+                // The Default vendor row is now always visible on the company card page for whichever export destination is active, so subscribe to the matching vendor key unconditionally. `autoCreateVendor` is no longer edited from this flow. It lives on the Advanced page and is subscribed there.
+                ...(shouldShowVendorMenuItems ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                ...(shouldShowCreditCardVendorMenuItem ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR] : []),
+            ],
+        },
+        {
+            description: translate('workspace.qbo.exportExpensifyCard'),
+            title: translate('workspace.qbo.accounts.credit_card'),
+            shouldShowRightIcon: false,
+            interactive: false,
+        },
+    ];
+
+    return (
+        <ConnectionLayout
+            displayName="DynamicQuickbooksExportConfigurationPage"
+            headerTitle="workspace.accounting.export"
+            title="workspace.qbo.exportDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportDescription', integrationName)}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            onBackButtonPress={goBack}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+        >
+            {menuItems.map((menuItem) => (
+                <OfflineWithFeedback
+                    key={menuItem.description}
+                    pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qboConfig?.pendingFields)}
+                >
+                    <MenuItemWithTopDescription
+                        title={menuItem.title}
+                        interactive={menuItem?.interactive ?? true}
+                        description={menuItem.description}
+                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                        onPress={menuItem?.onPress}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
+                            (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
+                                shouldShowQBOReimbursableExportDestinationAccountError(policy))
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
+            ))}
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>
+                <RenderHTML html={translate('workspace.common.deepDiveExpensifyCard')} />
+            </View>
+        </ConnectionLayout>
+    );
+}
+
+export default withPolicyConnections(DynamicQuickbooksExportConfigurationPage);

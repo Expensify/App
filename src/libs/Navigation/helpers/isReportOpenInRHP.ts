@@ -1,7 +1,9 @@
-import type {NavigationState} from '@react-navigation/native';
 import {ALL_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
 
 const isReportOpenInRHP = (state: NavigationState | undefined): boolean => {
     const lastRoute = state?.routes?.at(-1);

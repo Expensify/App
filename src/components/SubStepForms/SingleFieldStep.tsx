@@ -1,28 +1,31 @@
-import React, {useRef} from 'react';
-import type {InputModeOptions} from 'react-native';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
-    ForwardedFSClassProps & {
-        /** The ID of the form */
-        formID: TFormID;
+import type {InputModeOptions} from 'react-native';
 
-        /** The title of the form */
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
+    ForwardedFSClassProps & {
+        formID: TFormID;
         formTitle: string;
 
         /** The disclaimer to show below the form title */
@@ -31,25 +34,15 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
         /** The validation function to call when the form is submitted */
         validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** The ID of the form input */
         inputId: string;
-
-        /** The label of the input */
         inputLabel: string;
-
-        /** The mode of the input */
         inputMode?: InputModeOptions;
 
         /** The default values for the form */
         defaultValue: string;
 
-        /** Whether to show help links */
         shouldShowHelpLinks?: boolean;
-
-        /** Max length of the field */
         maxLength?: number;
 
         /** Should the submit button be enabled when offline */

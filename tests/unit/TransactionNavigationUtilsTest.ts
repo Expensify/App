@@ -7,8 +7,11 @@ import {
     hasLoadedReportActions,
     isThreadReportDeleted,
 } from '@libs/TransactionNavigationUtils';
+
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     isDeletedAction: jest.fn(),
@@ -18,12 +21,12 @@ const mockedIsDeletedAction = jest.mocked(isDeletedAction);
 const DUPLICATES_REVIEW_URL = '/r/duplicates/review/123';
 const ENCODED_DUPLICATES_REVIEW_URL = `/r/${encodeURIComponent('/duplicates/review/123')}`;
 
-function createReportMetadata(overrides: Partial<ReportMetadata> = {}): ReportMetadata {
+function createReportMetadata(overrides: Partial<ReportLoadingState> = {}): ReportLoadingState {
     return {
         hasOnceLoadedReportActions: false,
         isLoadingInitialReportActions: true,
         ...overrides,
-    } as ReportMetadata;
+    } as ReportLoadingState;
 }
 
 describe('TransactionNavigationUtils', () => {
@@ -55,21 +58,21 @@ describe('TransactionNavigationUtils', () => {
 
     describe('isThreadReportDeleted', () => {
         it('returns true for a closed report without reportID', () => {
-            const report = {statusNum: CONST.REPORT.STATUS_NUM.CLOSED} as Report;
+            const report = createMock<Report>({statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
 
             expect(isThreadReportDeleted(report, createReportMetadata())).toBe(true);
         });
 
         it('returns true when report actions are loaded and reportID is missing', () => {
-            expect(isThreadReportDeleted({} as Report, createReportMetadata({hasOnceLoadedReportActions: true}))).toBe(true);
+            expect(isThreadReportDeleted(createMock<Report>({}), createReportMetadata({hasOnceLoadedReportActions: true}))).toBe(true);
         });
 
         it('returns false when report exists', () => {
-            expect(isThreadReportDeleted({reportID: '123'} as Report, createReportMetadata({hasOnceLoadedReportActions: true}))).toBe(false);
+            expect(isThreadReportDeleted(createMock<Report>({reportID: '123'}), createReportMetadata({hasOnceLoadedReportActions: true}))).toBe(false);
         });
 
         it('returns false while actions are not loaded yet', () => {
-            expect(isThreadReportDeleted({} as Report, createReportMetadata())).toBe(false);
+            expect(isThreadReportDeleted(createMock<Report>({}), createReportMetadata())).toBe(false);
         });
     });
 
@@ -121,7 +124,7 @@ describe('TransactionNavigationUtils', () => {
 
     describe('getParentReportActionDeletionStatus', () => {
         it('marks parent action as deleted when pending delete is set', () => {
-            const parentReportAction = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as ReportAction;
+            const parentReportAction = createMock<ReportAction>({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
             const result = getParentReportActionDeletionStatus({parentReportAction});
 
@@ -132,7 +135,7 @@ describe('TransactionNavigationUtils', () => {
         it('marks parent action as deleted when action is deleted', () => {
             mockedIsDeletedAction.mockReturnValue(true);
 
-            const result = getParentReportActionDeletionStatus({parentReportAction: {reportActionID: '1'} as ReportAction});
+            const result = getParentReportActionDeletionStatus({parentReportAction: createMock<ReportAction>({reportActionID: '1'})});
 
             expect(result.isParentActionDeleted).toBe(true);
             expect(result.wasParentActionDeleted).toBe(true);
@@ -143,7 +146,7 @@ describe('TransactionNavigationUtils', () => {
                 parentReportID: '123',
                 parentReportActionID: '456',
                 parentReportAction: undefined,
-                parentReportMetadata: createReportMetadata({hasOnceLoadedReportActions: true}),
+                parentReportLoadingState: createReportMetadata({hasOnceLoadedReportActions: true}),
             });
 
             expect(result.isParentActionMissingAfterLoad).toBe(true);
@@ -163,8 +166,8 @@ describe('TransactionNavigationUtils', () => {
             const result = getParentReportActionDeletionStatus({
                 parentReportID: '123',
                 parentReportActionID: '456',
-                parentReportAction: {reportActionID: '456'} as ReportAction,
-                parentReportMetadata: createReportMetadata({hasOnceLoadedReportActions: true}),
+                parentReportAction: createMock<ReportAction>({reportActionID: '456'}),
+                parentReportLoadingState: createReportMetadata({hasOnceLoadedReportActions: true}),
             });
 
             expect(result.isParentActionDeleted).toBe(false);
@@ -177,7 +180,7 @@ describe('TransactionNavigationUtils', () => {
                 parentReportID: '123',
                 parentReportActionID: '456',
                 parentReportAction: undefined,
-                parentReportMetadata: createReportMetadata(),
+                parentReportLoadingState: createReportMetadata(),
                 isOffline: true,
             });
 

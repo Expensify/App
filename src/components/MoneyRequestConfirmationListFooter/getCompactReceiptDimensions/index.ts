@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+
 import type GetCompactReceiptDimensions from './types';
 
 const getCompactReceiptDimensions: GetCompactReceiptDimensions = ({windowWidth, horizontalMargin, containerWidth, aspectRatio}) => {

@@ -1,12 +1,16 @@
-import type {RefObject} from 'react';
-import React, {useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
+
+import React, {useCallback} from 'react';
 
 type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     index?: number;
@@ -14,7 +18,6 @@ type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     /** The function to get a distance to shift the tooltip horizontally */
     getTooltipShiftX?: (index: number) => number;
 
-    /** The Account ID for the tooltip */
     accountID?: number;
 
     /** The name to display in bold */

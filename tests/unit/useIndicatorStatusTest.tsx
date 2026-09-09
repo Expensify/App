@@ -1,13 +1,22 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
+
 import CONST from '@src/CONST';
 import initWithOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {IndicatorTestCase} from '../utils/IndicatorTestUtils';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const userID = 'johndoe12@expensify.com';
@@ -15,7 +24,7 @@ const otherUserID = 'otheruser@expensify.com';
 
 const brokenCardFeed = {
     feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
+    policyAccountID: 12345,
 };
 
 const cardFeedErrorTestCases = {
@@ -23,7 +32,7 @@ const cardFeedErrorTestCases = {
         name: 'has policy card feed error if admin',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS,
-        policyIDWithErrors: '1',
+        indicatorPolicyID: '1',
     },
     employee: {
         name: 'has account card feed error if employee (non-admin)',
@@ -37,86 +46,86 @@ const TEST_CASES = {
         name: 'has policy errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS,
-        policyIDWithErrors: '2',
+        indicatorPolicyID: '2',
     },
     hasCustomUnitsError: {
         name: 'has custom units error',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR,
-        policyIDWithErrors: '1',
+        indicatorPolicyID: '1',
     },
     hasEmployeeListError: {
         name: 'has employee list error',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR,
-        policyIDWithErrors: '3',
+        indicatorPolicyID: '3',
     },
     hasSyncErrors: {
         name: 'has sync errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
-        policyIDWithErrors: '4',
+        indicatorPolicyID: '4',
     },
     hasUserWalletErrors: {
         name: 'has user wallet errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasPaymentMethodError: {
         name: 'has payment method error',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasSubscriptionErrors: {
         name: 'has subscription errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasReimbursementAccountErrors: {
         name: 'has reimbursement account errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasLoginListError: {
         name: 'has login list error',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasWalletTermsErrors: {
         name: 'has wallet terms errors',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasLoginListInfo: {
         name: 'has login list info',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasSubscriptionInfo: {
         name: 'has subscription info',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasPendingCardInfo: {
         name: 'has pending card info',
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
     hasPolicyAdminCardFeedErrors: cardFeedErrorTestCases.admin,
     hasLockedBankAccount: {
         name: 'has locked bank account',
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
-        policyIDWithErrors: undefined,
+        indicatorPolicyID: undefined,
     },
 } as const satisfies Record<string, IndicatorTestCase>;
 
@@ -145,19 +154,17 @@ const TEST_CASES_NON_ADMIN = {
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean) =>
-    ({
+    createMock<OnyxMultiSetInput>({
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
             owner: isAdmin ? userID : otherUserID,
             role: isAdmin ? 'admin' : 'user',
-            workspaceAccountID: brokenCardFeed.workspaceAccountID,
+            policyAccountID: brokenCardFeed.policyAccountID,
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
-                          errors: {
-                              error: 'Something went wrong',
-                          },
+                          errors: createMock<Errors>({error: 'Something went wrong'}),
                       }
                     : undefined,
         },
@@ -179,7 +186,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             owner: userID,
             role: isAdmin ? 'admin' : 'user',
             employeeList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 [userID]: {
                     email: userID,
                     errors:
@@ -243,20 +249,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                       }
                     : undefined,
         },
-        [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            [userID]: {
-                partnerName: 'John Doe',
+        [ONYXKEYS.LOGINS]: {
+            [`1_${userID}`]: {
+                partnerID: 1,
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
-                errorFields:
-                    status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR
-                        ? {
-                              field: {
-                                  error: 'Something went wrong',
-                              },
-                          }
-                        : undefined,
+                errorFields: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR ? createMock<ErrorFields>({field: {error: 'Something went wrong'}}) : undefined,
             },
         },
         [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {
@@ -276,13 +274,13 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             card1: {
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
                 lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
             },
             card2: {
                 cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+                fundID: String(brokenCardFeed.policyAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
             },
         },
@@ -297,7 +295,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                 },
             ],
         },
-    }) as OnyxMultiSetInput;
+    });
 
 describe('useIndicatorStatusTest', () => {
     beforeAll(() => {
@@ -328,13 +326,13 @@ describe('useIndicatorStatusTest', () => {
             const {status} = result.current;
             expect(status).toBe(testCase.status);
         });
-        it('returns correct policyIDWithErrors', async () => {
+        it('returns correct indicatorPolicyID', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
             await act(async () => {
                 await waitForBatchedUpdates();
             });
-            const {policyIDWithErrors} = result.current;
-            expect(policyIDWithErrors).toBe(testCase.policyIDWithErrors);
+            const {indicatorPolicyID} = result.current;
+            expect(indicatorPolicyID).toBe(testCase.indicatorPolicyID);
         });
     });
     describe.each(Object.values(TEST_CASES_NON_ADMIN))('$name', (testCase) => {

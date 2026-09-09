@@ -1,0 +1,319 @@
+import Checkbox from '@components/Checkbox';
+import ErrorMessageRow from '@components/ErrorMessageRow';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import getGridTemplateColumns from './getGridTemplateColumns';
+import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
+import {useTableContext, useTableRowSemanticID} from './TableContext';
+
+type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
+    /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
+    accessible?: true;
+
+    /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
+    accessibilityLabel: string;
+
+    /** Whether or not the table row is pressable or not */
+    interactive: boolean;
+
+    disabled?: boolean;
+    rowIndex: number;
+
+    /** Attributes for when the client is offline and there is an error related to the table row */
+    offlineWithFeedback?: OfflineWithFeedbackProps;
+
+    /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
+    checkboxReplacementElement?: React.ReactNode;
+
+    /** Optional content rendered below the row grid */
+    rowFooter?: React.ReactNode;
+};
+
+export default function TableRow({
+    children,
+    accessible,
+    accessibilityLabel,
+    rowIndex,
+    disabled,
+    sentryLabel,
+    interactive,
+    onPress,
+    offlineWithFeedback,
+    checkboxReplacementElement,
+    rowFooter,
+    id,
+    'aria-hidden': ariaHidden,
+    focusable,
+    fullDisabled,
+    tabIndex,
+    ...props
+}: TableRowProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {
+        processedData,
+        columns,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        isMobileSelectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal = false,
+        tableListMetadata,
+        dynamicGridTemplateColumns,
+    } = useTableContext();
+    const semanticRowID = useTableRowSemanticID();
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
+
+    // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
+    // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
+    // tables keep the original shouldUseNarrowLayout behavior. Visual layout still uses shouldUseNarrowTableLayout.
+    const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
+    const shouldEnableMobileSelectionLongPress = isSmallScreenWidth && (shouldEnableSelectionInNarrowPaneModal || !isInNarrowPaneModal);
+
+    const item = processedData.at(rowIndex);
+    const rowCount = processedData.length;
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
+    // The tracks resolved from the columns' content are shared by the header and every row, so they take precedence over
+    // the static ones. They're only ever set on wide web layouts.
+    const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
+    const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
+
+    const isDisabled = !!disabled || isAccessibilityHidden;
+    const isFirstRow = rowIndex === 0;
+    const isLastRow = rowIndex === rowCount - 1;
+
+    if (selectionEnabled && isSelectionCheckboxVisible) {
+        gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
+    }
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight: !!item?.shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.transparent,
+    });
+
+    if (!item) {
+        return null;
+    }
+
+    const tableRowPressableStyles = [
+        styles.mh5,
+        styles.highlightBG,
+        styles.userSelectNone,
+        !isFirstRow && styles.borderTop,
+        isLastRow && styles.tableBottomRadius,
+        item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
+        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+    ];
+
+    const tableRowContentContainerStyles = [
+        styles.flex1,
+        styles.gap3,
+        animatedHighlightStyle,
+        isLastRow && styles.tableBottomRadius,
+        shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
+        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
+    ];
+
+    const tableRowContentStyles = [
+        styles.flex1,
+        styles.flexRow,
+        styles.alignItemsCenter,
+        styles.alignContentCenter,
+        styles.gap3,
+        styles.dFlex,
+        // Use Grid on web when available (will override flex if supported)
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
+    ];
+
+    const tableRowPressableHoverStyle = (() => {
+        if (isDisabled || !interactive) {
+            return undefined;
+        }
+        if (item.selected) {
+            return styles.activeComponentBG;
+        }
+        return styles.hoveredComponentBG;
+    })();
+
+    const renderChildren = (state: PressableStateCallbackType) => {
+        if (typeof children === 'function') {
+            return children(state);
+        }
+
+        return children;
+    };
+
+    const handleCheckboxPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (getShiftKeyFromEvent(event)) {
+            tableMethods.handleMultipleRowSelection(item.keyForList);
+            return;
+        }
+
+        tableMethods.handleSingleRowSelection(item.keyForList);
+    };
+
+    const renderSelectionCheckbox = () => {
+        const checkbox = checkboxReplacementElement ?? (
+            <Checkbox
+                shouldStopMouseDownPropagation
+                containerStyle={styles.m0}
+                style={styles.flex1}
+                isChecked={!!item.selected}
+                disabled={isAccessibilityHidden || !!item.disabled || !!item.isSelectionDisabled}
+                accessibilityLabel={translate('common.select')}
+                onPress={(event) => handleCheckboxPress(event)}
+                tabIndex={isAccessibilityHidden ? -1 : undefined}
+            />
+        );
+
+        // When table semantics apply (web wide layout), the checkbox occupies the leading grid column and is exposed as
+        // a table cell to keep the row's cell count aligned with `aria-colcount` (which counts the selection column).
+        // The wrapper needs no sizing style: the CSS grid track (`variables.tableCheckboxColumnWidth`) sizes the cell and
+        // the checkbox fills it via its own flex. Otherwise the checkbox is rendered directly, without an extra wrapper
+        // that would shift its alignment in the native and narrow card layouts.
+        if (!isTableSemanticsEnabled) {
+            return checkbox;
+        }
+
+        return <View {...getCellAccessibilityProps(true)}>{checkbox}</View>;
+    };
+
+    const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (isDisabled || !interactive) {
+            return;
+        }
+
+        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+            onPress?.(event);
+            return;
+        }
+
+        if (item.disabled) {
+            return;
+        }
+
+        if (!item.isSelectionDisabled) {
+            handleCheckboxPress(event);
+        }
+    };
+
+    const handleRowLongPress = () => {
+        if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
+            return;
+        }
+
+        tableMethods.setMobileSelectionModalRowKey(item.keyForList);
+    };
+
+    return (
+        <OfflineWithFeedback
+            {...offlineWithFeedback}
+            shouldShowErrorMessages={false}
+        >
+            <PressableWithFeedback
+                accessible={accessible}
+                accessibilityLabel={accessibilityLabel}
+                id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
+                aria-hidden={isAccessibilityHidden ? true : undefined}
+                style={tableRowPressableStyles}
+                sentryLabel={sentryLabel}
+                interactive={interactive}
+                disabled={isDisabled}
+                hoverStyle={tableRowPressableHoverStyle}
+                pressDimmingValue={!interactive ? undefined : 1}
+                role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
+                onMouseDown={(e) => {
+                    const target = e?.target;
+
+                    if (!(target instanceof HTMLElement)) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (target.tagName === CONST.ELEMENT_NAME.INPUT) {
+                        return;
+                    }
+
+                    if (target.closest('[role="switch"]') || target.closest('[role="checkbox"]')) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    e.preventDefault();
+                }}
+                onPress={(event) => handleRowPress(event)}
+                onLongPress={handleRowLongPress}
+                {...props}
+                {...inertProps}
+                focusable={isAccessibilityHidden ? false : focusable}
+                fullDisabled={isAccessibilityHidden || fullDisabled}
+                tabIndex={isAccessibilityHidden ? -1 : tabIndex}
+            >
+                {(state) => {
+                    const rowCells = (
+                        <>
+                            {!!isSelectionCheckboxVisible && renderSelectionCheckbox()}
+                            {renderChildren(state)}
+                        </>
+                    );
+
+                    return (
+                        // When semantics apply, these two layout wrappers are marked presentational so the cells become
+                        // direct children of the row in the accessibility tree. macOS VoiceOver otherwise sees a generic
+                        // group between the row and its cells and cannot navigate columns (Ctrl+Option+Up/Down).
+                        <Animated.View
+                            style={tableRowContentContainerStyles}
+                            role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                        >
+                            {/* Each cell is also tagged with a 1-based aria-colindex so the screen reader can align columns across rows. */}
+                            <View
+                                style={tableRowContentStyles}
+                                role={isTableSemanticsEnabled ? CONST.ROLE.PRESENTATION : undefined}
+                            >
+                                {isTableSemanticsEnabled ? assignCellColumnIndexes(rowCells) : rowCells}
+                            </View>
+
+                            {rowFooter}
+
+                            {!!offlineWithFeedback?.errors && (
+                                <ErrorMessageRow
+                                    errors={offlineWithFeedback.errors}
+                                    dismissError={offlineWithFeedback.dismissError}
+                                    onDismiss={offlineWithFeedback.onClose}
+                                />
+                            )}
+                        </Animated.View>
+                    );
+                }}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
+    );
+}

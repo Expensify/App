@@ -1,8 +1,12 @@
 import {Dimensions} from 'react-native';
 
-function getBottomSuggestionPadding(bottom: number): number {
+function getBottomSuggestionPadding(bottom: number, isInLandscapeMode: boolean): number {
     const {height} = Dimensions.get('window');
     const basePadding = 30;
+
+    if (isInLandscapeMode) {
+        return basePadding;
+    }
 
     // Calculate what percentage of the screen height the bottom position represents
     const bottomPercentageToHeight = (bottom / height) * 100;

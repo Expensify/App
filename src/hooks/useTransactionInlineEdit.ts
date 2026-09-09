@@ -1,0 +1,265 @@
+import {useSearchSelectionContext} from '@components/Search/SearchContext';
+
+import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
+import {
+    editTransactionAmountInline,
+    editTransactionCategoryInline,
+    editTransactionDateInline,
+    editTransactionDescriptionInline,
+    editTransactionMerchantInline,
+    editTransactionTagInline,
+    getTransactionEditPermissions,
+} from '@libs/actions/TransactionInlineEdit';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+/**
+ * Centralizes inline-editing logic for a transaction row so that permission
+ * derivation, Onyx subscriptions, and edit handlers live in one place rather
+ * than being duplicated across every surface that renders a transaction.
+ */
+import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+
+import {useCurrencyListActions} from './useCurrencyList';
+import useDelegateAccountID from './useDelegateAccountID';
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
+import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
+import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
+import usePersonalPolicy from './usePersonalPolicy';
+import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import usePolicyForTransaction from './usePolicyForTransaction';
+import useSelfDMReport from './useSelfDMReport';
+
+type UseTransactionInlineEditParams = {
+    transactionID: string;
+
+    /**
+     * Search snapshot hash.
+     * When provided, edit functions will optimistically update the snapshot row.
+     * Omit (or pass undefined) when editing from outside the Search table.
+     */
+    hash?: number;
+
+    /**
+     * Lightweight report action hint from the current surface.
+     * Search rows already have this in snapshot data, which lets the hook avoid
+     * scanning all report actions just to recover the thread/report action IDs.
+     */
+    linkedReportAction?: OnyxEntry<ReportAction>;
+};
+
+type UseTransactionInlineEditReturn = {
+    canEditDate: boolean;
+    canEditMerchant: boolean;
+    canEditDescription: boolean;
+    canEditCategory: boolean;
+    canEditAmount: boolean;
+    canEditTag: boolean;
+    transactionThreadReportID: string | undefined;
+    onEditDate: (newDate: string) => void;
+    onEditMerchant: (newMerchant: string) => void;
+    onEditDescription: (newDescription: string) => void;
+    onEditCategory: (newCategory: string) => void;
+    onEditAmount: (newAmount: number) => void;
+    onEditTag: (newTag: string) => void;
+    /**
+     * Ref that should be written in onPressIn and checked in onPress to suppress
+     * row navigation when a cell edit is being dismissed.
+     */
+    wasEditingOnMouseDownRef: React.RefObject<boolean>;
+};
+
+function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+    const reportID = transaction?.reportID;
+    const isUnreported = isExpenseUnreported(transaction);
+    const selfDMReport = useSelfDMReport();
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const effectiveParentReport = isUnreported ? selfDMReport : parentReport;
+    const effectiveParentReportID = effectiveParentReport?.reportID;
+
+    const [liveParentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [liveSelfDMReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+    const parentReportForAction = isUnreported ? (liveSelfDMReport ?? selfDMReport) : (effectiveParentReport ?? liveParentReport);
+
+    const linkedReportActionID = linkedReportAction?.reportActionID;
+
+    // Use original Onyx here because the useOnyx wrapper can read the partial Search snapshot report actions, which may miss
+    // the workflow (submitted/forwarded) actions that canEditMoneyRequest needs to evaluate for the submitter.
+    const [parentReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
+    const resolvedParentReportAction = linkedReportActionID
+        ? parentReportActions?.[linkedReportActionID]
+        : getIOUActionForTransactionID(Object.values(parentReportActions ?? {}), transactionID);
+
+    const parentReportAction = resolvedParentReportAction ?? linkedReportAction;
+
+    const transactionThreadReportID = linkedReportAction?.childReportID ?? parentReportAction?.childReportID ?? transaction?.transactionThreadReportID;
+
+    const chatReportID = effectiveParentReport?.chatReportID;
+
+    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags.
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const reportPolicyID = effectiveParentReport?.policyID;
+    const policyID = isUnreported ? activePolicyID : reportPolicyID;
+
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID,
+        action: CONST.IOU.ACTION.EDIT,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        isPerDiemRequest: isPerDiemRequest(transaction),
+    });
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const [liveTransactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reportPolicyID)}`);
+    const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    // Use original Onyx here because the useOnyx wrapper can read partial Search snapshot policy data instead of the full policy object.
+    const [completePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
+
+    const originalTransactionID = transaction?.comment?.originalTransactionID;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+
+    // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
+    // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
+    // the non-inline edit flow (see DynamicIOURequestStepDate) and avoids subscribing to the full collections.
+    const {duplicateTransactions, duplicateTransactionViolations} = useLiveDuplicateTransactionsAndViolations([transactionID]);
+
+    const {hasSelectedTransactions} = useSearchSelectionContext();
+
+    const isPerDiem = isPerDiemRequest(transaction);
+    const {shouldSelectPolicy, policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiem);
+
+    const isTrackExpense = isTrackExpenseReportNew(transactionThreadReport, effectiveParentReport, parentReportAction);
+
+    const editPolicy = completePolicy ?? policy;
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(editPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+
+    const {isOffline} = useNetwork();
+    const personalPolicy = usePersonalPolicy();
+
+    const permissions = getTransactionEditPermissions({
+        transaction,
+        parentReportAction,
+        parentReport: effectiveParentReport,
+        parentReportActions,
+        policy: completePolicy ?? policy,
+        transactionThreadReport,
+        policyCategories,
+        policyTags,
+        transactionThreadNVP,
+        chatReportNVP,
+        reportNameValuePairs,
+        originalTransaction,
+        disabled: hasSelectedTransactions,
+        shouldSelectPolicyForUnreported: shouldSelectPolicy,
+    });
+
+    const wasEditingOnMouseDownRef = useRef(false);
+
+    const getEditParams = (): TransactionInlineEditParams => {
+        return {
+            hash,
+            transactionID,
+            transaction,
+            parentReport: parentReportForAction,
+            parentReportAction,
+            transactionThreadReport: transactionThreadReport ?? liveTransactionThreadReport,
+            policy: completePolicy ?? policy,
+            policyForTrackExpense: isTrackExpense ? policyForMovingExpenses : undefined,
+            policyCategories,
+            policyTags,
+            reportPolicyTags,
+            policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
+            isOffline,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed ?? false,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
+            conciergeChat,
+            distanceOriginalPolicy,
+            personalDetailsList,
+            delegateAccountID,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
+            transactions: duplicateTransactions,
+            transactionViolations: duplicateTransactionViolations,
+            betas,
+            introSelected,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmail: session?.email ?? '',
+        };
+    };
+
+    const onEditDate = (newDate: string) => {
+        editTransactionDateInline(getEditParams(), newDate, personalPolicy?.outputCurrency);
+    };
+
+    const onEditMerchant = (newMerchant: string) => {
+        editTransactionMerchantInline(getEditParams(), newMerchant);
+    };
+
+    const onEditDescription = (newDescription: string) => {
+        editTransactionDescriptionInline(getEditParams(), newDescription);
+    };
+
+    const onEditCategory = (newCategory: string) => {
+        editTransactionCategoryInline(getEditParams(), newCategory);
+    };
+
+    const onEditAmount = (newAmount: number) => {
+        editTransactionAmountInline(getEditParams(), newAmount);
+    };
+
+    const onEditTag = (newTag: string) => {
+        editTransactionTagInline(getEditParams(), newTag);
+    };
+
+    return {
+        ...permissions,
+        transactionThreadReportID,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    };
+}
+
+export default useTransactionInlineEdit;

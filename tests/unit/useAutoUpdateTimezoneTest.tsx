@@ -1,14 +1,18 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-// eslint-disable-next-line no-restricted-syntax
+
 import * as PersonalDetails from '@userActions/PersonalDetails';
+
+import React from 'react';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
 describe('useAutoUpdateTimezone', () => {
-    const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
+    const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
     const updateAutomaticTimezoneSpy = jest.spyOn(PersonalDetails, 'updateAutomaticTimezone');
 
     const originalDateTimeFormat = Intl.DateTimeFormat;
@@ -36,13 +40,15 @@ describe('useAutoUpdateTimezone', () => {
 
     it('updates timezone when automatic and mismatch', () => {
         setSystemTimezone('America/Los_Angeles');
-        mockUseCurrentUserPersonalDetails.mockReturnValue({
-            accountID: 1,
-            timezone: {
-                automatic: true,
-                selected: 'Europe/Warsaw',
-            },
-        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        mockUseCurrentUserPersonalDetails.mockReturnValue(
+            createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({
+                accountID: 1,
+                timezone: {
+                    automatic: true,
+                    selected: 'Europe/Warsaw',
+                },
+            }),
+        );
 
         render(<TestComponent />);
 
@@ -55,14 +61,33 @@ describe('useAutoUpdateTimezone', () => {
         );
     });
 
+    it('does not call update when selected timezone matches system timezone (with backwards compatibility)', () => {
+        setSystemTimezone('Asia/Calcutta');
+        mockUseCurrentUserPersonalDetails.mockReturnValue(
+            createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({
+                accountID: 1,
+                timezone: {
+                    automatic: true,
+                    selected: 'Asia/Kolkata',
+                },
+            }),
+        );
+
+        render(<TestComponent />);
+
+        expect(updateAutomaticTimezoneSpy).not.toHaveBeenCalled();
+    });
+
     it('does not call update when selected matches system timezone', () => {
-        mockUseCurrentUserPersonalDetails.mockReturnValue({
-            accountID: 1,
-            timezone: {
-                automatic: true,
-                selected: 'America/New_York',
-            },
-        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        mockUseCurrentUserPersonalDetails.mockReturnValue(
+            createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({
+                accountID: 1,
+                timezone: {
+                    automatic: true,
+                    selected: 'America/New_York',
+                },
+            }),
+        );
 
         render(<TestComponent />);
 
@@ -70,13 +95,15 @@ describe('useAutoUpdateTimezone', () => {
     });
 
     it('does not call update when automatic is false', () => {
-        mockUseCurrentUserPersonalDetails.mockReturnValue({
-            accountID: 1,
-            timezone: {
-                automatic: false,
-                selected: 'America/Los_Angeles',
-            },
-        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        mockUseCurrentUserPersonalDetails.mockReturnValue(
+            createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({
+                accountID: 1,
+                timezone: {
+                    automatic: false,
+                    selected: 'America/Los_Angeles',
+                },
+            }),
+        );
 
         render(<TestComponent />);
 
@@ -85,13 +112,15 @@ describe('useAutoUpdateTimezone', () => {
 
     it('does not call update when system timezone is invalid', () => {
         setSystemTimezone('');
-        mockUseCurrentUserPersonalDetails.mockReturnValue({
-            accountID: 1,
-            timezone: {
-                automatic: true,
-                selected: 'America/Los_Angeles',
-            },
-        } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
+        mockUseCurrentUserPersonalDetails.mockReturnValue(
+            createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({
+                accountID: 1,
+                timezone: {
+                    automatic: true,
+                    selected: 'America/Los_Angeles',
+                },
+            }),
+        );
 
         render(<TestComponent />);
 

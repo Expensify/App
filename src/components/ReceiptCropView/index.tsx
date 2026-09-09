@@ -1,18 +1,24 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import ImageSize from 'react-native-image-size';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import LoadingIndicator from '@components/LoadingIndicator';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
 import variables from '@styles/variables';
+
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
+import ImageSize from 'react-native-image-size';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
 type CropRect = {
     x: number;
@@ -22,15 +28,9 @@ type CropRect = {
 };
 
 type ReceiptCropViewProps = {
-    /** URI of the image to crop */
     imageUri: string;
-
-    /** Callback when crop rectangle changes */
     onCropChange?: (crop: CropRect) => void;
-
-    /** Initial crop rectangle (optional) */
     initialCrop?: CropRect;
-
     isAuthTokenRequired?: boolean;
 };
 
@@ -610,6 +610,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
                 ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
             >
                 <View style={[styles.flex1, styles.w100]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: imageUri}}
                         resizeMode={RESIZE_MODES.contain}

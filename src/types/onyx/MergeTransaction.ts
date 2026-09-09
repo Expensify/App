@@ -1,4 +1,6 @@
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {IOURequestType} from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
@@ -20,7 +22,6 @@ type MergeTransaction = {
     /** Amount which user want to keep */
     amount: number;
 
-    /** The currency the user wants to */
     currency: string;
 
     /** Merchant which user want to keep */
@@ -38,10 +39,7 @@ type MergeTransaction = {
     /** NVPs of the transaction that we want to keep */
     comment: Comment;
 
-    /** Whether the transaction is reimbursable */
     reimbursable: boolean;
-
-    /** Whether the transaction is billable */
     billable: boolean;
 
     /** The receipt object associated with the transaction */
@@ -50,10 +48,7 @@ type MergeTransaction = {
     /** The date of the transaction */
     created: string;
 
-    /** The report ID of the transaction */
     reportID: string;
-
-    /** The report name of the transaction */
     reportName: string;
 
     /** Custom unit data for distance requests */
@@ -65,22 +60,23 @@ type MergeTransaction = {
     /** Routes for distance requests */
     routes?: Routes;
 
-    /** The iou request type of the transaction */
     iouRequestType?: IOURequestType;
 
-    /** The attendees of the transaction */
-    attendees?: Attendee[];
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
 
-    /** ID of the original transaction */
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    odometerStartImage?: FileObject | string;
+    odometerEndImage?: FileObject | string;
+    attendees?: Attendee[];
     originalTransactionID?: string;
 
     /** Tax percentage value of the transaction */
     taxValue: string;
 
-    /** Tax amount of the transaction */
     taxAmount: number;
-
-    /** Tax code of the transaction */
     taxCode: string;
 
     /** Tax name to display in merge transaction flow */

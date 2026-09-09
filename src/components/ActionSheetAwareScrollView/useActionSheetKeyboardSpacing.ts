@@ -1,10 +1,13 @@
-import {useEffect} from 'react';
-import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import type Reanimated from 'react-native-reanimated';
-import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import type Reanimated from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
+
+import {useEffect} from 'react';
+import {useKeyboardHandler} from 'react-native-keyboard-controller';
+import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+
 import {Actions, States, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 
 const KeyboardState = {
@@ -75,7 +78,7 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
     const {transitionActionSheetStateWorklet: transition, resetStateMachine} = useActionSheetAwareScrollViewActions();
 
     // Reset state machine when component unmounts
-    // eslint-disable-next-line arrow-body-style
+
     useEffect(() => {
         return () => resetStateMachine();
     }, [resetStateMachine]);
@@ -98,7 +101,6 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         [],
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const position = useScrollViewOffset(scrollViewAnimatedRef);
     const spacing = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.get();

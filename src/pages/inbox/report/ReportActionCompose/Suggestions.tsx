@@ -1,12 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef} from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import type {TextSelection} from '@components/Composer/types';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
+
 import usePrevious from '@hooks/usePrevious';
+
+import type {ForwardedRef} from 'react';
+import type {TextInputSelectionChangeEvent} from 'react-native';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {SuggestionsRef} from './ReportActionCompose';
+
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 
@@ -14,10 +19,7 @@ type SuggestionProps = {
     /** The current input value */
     value: string;
 
-    /** The current selection value */
     selection: TextSelection;
-
-    /** Callback to update the current selection */
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
@@ -29,13 +31,8 @@ type SuggestionProps = {
     /** Report composer focus state */
     isComposerFocused?: boolean;
 
-    /** Callback to reset the keyboard input */
     resetKeyboardInput?: () => void;
-
-    /** Whether the auto suggestion picker is large */
     isAutoSuggestionPickerLarge?: boolean;
-
-    /** The height of the composer */
     composerHeight?: number;
 
     /** If current composer is connected with report from group policy */
@@ -44,7 +41,6 @@ type SuggestionProps = {
     /** The policyID of the report connected to current composer */
     policyID?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<SuggestionsRef>;
 };
 
@@ -71,7 +67,7 @@ function Suggestions({
     const {isDraggingOver} = useDragAndDropState();
     const prevIsDraggingOver = usePrevious(isDraggingOver);
 
-    const getSuggestions = useCallback(() => {
+    const getSuggestions = () => {
         if (suggestionEmojiRef.current?.getSuggestions) {
             const emojiSuggestions = suggestionEmojiRef.current.getSuggestions();
             if (emojiSuggestions.length > 0) {
@@ -87,45 +83,45 @@ function Suggestions({
         }
 
         return [];
-    }, []);
+    };
 
     /**
      * Clean data related to EmojiSuggestions
      */
-    const resetSuggestions = useCallback(() => {
+    const resetSuggestions = () => {
         suggestionEmojiRef.current?.resetSuggestions();
         suggestionMentionRef.current?.resetSuggestions();
-    }, []);
+    };
 
     /**
      * Listens for keyboard shortcuts and applies the action
      */
-    const triggerHotkeyActions = useCallback((e: KeyboardEvent) => {
+    const triggerHotkeyActions = (e: KeyboardEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.triggerHotkeyActions(e);
         const mentionHandler = suggestionMentionRef.current?.triggerHotkeyActions(e);
         return emojiHandler ?? mentionHandler;
-    }, []);
+    };
 
-    const onSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
+    const onSelectionChange = (e: TextInputSelectionChangeEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;
-    }, []);
+    };
 
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+    const updateShouldShowSuggestionMenuToFalse = () => {
         suggestionEmojiRef.current?.updateShouldShowSuggestionMenuToFalse();
         suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
-    }, []);
+    };
 
-    const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
+    const setShouldBlockSuggestionCalc = (shouldBlock: boolean) => {
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
-    }, []);
-    const getIsSuggestionsMenuVisible = useCallback((): boolean => {
+    };
+    const getIsSuggestionsMenuVisible = (): boolean => {
         const isEmojiVisible = suggestionEmojiRef.current?.getIsSuggestionsMenuVisible() ?? false;
         const isSuggestionVisible = suggestionMentionRef.current?.getIsSuggestionsMenuVisible() ?? false;
         return isEmojiVisible || isSuggestionVisible;
-    }, []);
+    };
 
     useImperativeHandle(
         ref,
@@ -164,13 +160,11 @@ function Suggestions({
         <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
                 resetKeyboardInput={resetKeyboardInput}
             />
             <SuggestionMention
                 ref={suggestionMentionRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
         </View>

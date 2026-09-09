@@ -18,6 +18,8 @@ Workspace Admins can choose between two reimbursement methods when paying an app
 
 The payment method is selected when the Workspace Admin clicks **Pay** on an approved report.
 
+**Note:** For reports containing only non-reimbursable expenses (e.g. company card expenses), direct reimbursement is not available. The only payment option is **Pay elsewhere**.
+
 [Learn about report statuses and actions](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 ---
@@ -38,7 +40,6 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
   - United Kingdom (GBP)
   - European Union (EUR)
   - Australia (AUD)
-  - Singapore (SGD)
 
   Global reimbursement can be used to reimburse members in 190+ countries, depending on supported banking rails. [Learn how to set up Global Reimbursement on a Workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
@@ -51,13 +52,15 @@ The steps to send reimbursement are the same for ACH reimbursement, global reimb
 
 To pay one report:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. On the report you wish to reimburse, select **Pay**.
 4. Choose a payment method:
    - Select a connected Workspace business bank account to send direct reimbursement.
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 5. Select **Confirm**.
+
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the report is in EUR, only EUR bank accounts appear as payment options.
 
 Once confirmed, the report status updates to **Paid**.
 
@@ -69,7 +72,7 @@ Workspace Admins can also pay multiple reports at the same time.
 
 To pay reports in bulk:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Reports**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
 4. Select **Selected**.
@@ -79,9 +82,11 @@ To pay reports in bulk:
    - Select **Pay elsewhere** to mark the report as paid outside Expensify.
 7. Confirm the payment.
 
+**Note:** Only bank accounts that match the report's currency are shown. For example, if the reports are in EUR, only EUR bank accounts appear as payment options. If the selected reports contain more than one currency, direct reimbursement is not available — select **Pay elsewhere** to record the payments, or pay same-currency reports in separate batches.
+
 Once confirmed, Expensify processes the transfers and the report statuses update to **Paid**.
 
-**Note:** Each selected report is processed as a separate transaction. 
+**Note:** Each selected report is processed as a separate transaction. If the selected reports have different currencies, only **Pay elsewhere** is available. To use a connected business bank account for direct reimbursement, select reports that share the same currency.
 
 ---
 
@@ -127,6 +132,10 @@ Expensify does not issue checks. Workspace Admins can select **Pay elsewhere** a
 ## What is the difference between ACH reimbursement and global reimbursement?
 
 ACH reimbursement applies to US-based USD payments. Global reimbursement supports international payments and multiple currencies.
+
+## Why is direct reimbursement not available for some reports?
+
+If a report contains only non-reimbursable expenses (e.g. company card expenses), direct reimbursement (ACH or global reimbursement) is not offered. Only **Pay elsewhere** is available, because non-reimbursable expenses are paid by the company directly and do not require reimbursement to the employee.
 
 ## When is Pay elsewhere used?
 

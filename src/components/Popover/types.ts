@@ -1,33 +1,25 @@
-import type {RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
+
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {Dimensions} from '@src/types/utils/Layout';
 
+import type {RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
+
 type PopoverProps = BaseModalProps &
     ChildrenProps & {
-        /** The anchor position of the popover */
         anchorPosition?: PopoverAnchorPosition;
-
-        /** The anchor alignment of the popover */
         anchorAlignment?: AnchorAlignment;
-
-        /** The anchor ref of the popover */
         anchorRef: RefObject<View | HTMLDivElement | Text | null>;
-
-        /** Whether disable the animations */
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
         withoutOverlay?: boolean;
 
-        /** The dimensions of the popover */
         popoverDimensions?: Dimensions;
-
-        /** The ref of the popover */
         withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 
         /** Whether we want to show the popover on the right side of the screen */
@@ -38,6 +30,13 @@ type PopoverProps = BaseModalProps &
 
         /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */
         shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+         * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+         * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+         */
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     };
 
 export default PopoverProps;

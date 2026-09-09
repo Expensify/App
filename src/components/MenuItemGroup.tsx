@@ -1,7 +1,8 @@
-import React, {createContext, useContext} from 'react';
 import useSingleExecution from '@hooks/useSingleExecution';
 import type {Action} from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+
+import React, {createContext, useContext} from 'react';
 
 type MenuItemGroupStateContextProps = {
     isExecuting: boolean;
@@ -16,7 +17,6 @@ const MenuItemGroupStateContext = createContext<MenuItemGroupStateContextProps |
 const MenuItemGroupActionsContext = createContext<MenuItemGroupActionsContextProps | null>(null);
 
 type MenuItemGroupProps = {
-    /* Actual content wrapped by this component */
     children: React.ReactNode;
 
     /** Whether or not to use the single execution hook */

@@ -1,6 +1,9 @@
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {View} from 'react-native';
+
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, isOnSeparateLine = false}: EmojiWithTooltipProps) {

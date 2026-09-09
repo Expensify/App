@@ -1,14 +1,15 @@
+import type {Merge} from 'type-fest';
+
 // Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
-/* eslint-disable rulesdir/no-api-in-views */
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
-import type {Merge} from 'type-fest';
+
 import pkg from '../../package.json';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
-import {post} from './Network';
+import MainQueueStore from './Network/MainQueueStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
@@ -25,7 +26,7 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return MainQueueStore.enqueue(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
@@ -113,7 +114,7 @@ const Log = new Logger({
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);
     },
-    maxLogLinesBeforeFlush: 150,
+    maxLogLinesBeforeFlush: 500,
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });

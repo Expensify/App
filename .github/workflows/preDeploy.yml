@@ -12,26 +12,30 @@ jobs:
 
   lint:
     uses: ./.github/workflows/lint.yml
+    secrets: inherit
 
-  prettier:
-    uses: ./.github/workflows/prettier.yml
+  oxfmt:
+    uses: ./.github/workflows/oxfmt.yml
 
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
+  bunTests:
+    uses: ./.github/workflows/bunTests.yml
+
   confirmPassingBuild:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: [typecheck, lint, test]
+    needs: [typecheck, lint, test, bunTests]
     if: ${{ always() }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
 
       - name: Exit failed workflow
-        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' || needs.bunTests.result == 'failure' }}
         run: |
-          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}"
+          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}, bunTests: ${{ needs.bunTests.result }}"
           exit 1
 
   chooseDeployActions:
@@ -42,7 +46,7 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
 
       - name: Get merged pull request
         id: getMergedPullRequest

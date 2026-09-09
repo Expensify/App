@@ -1,24 +1,32 @@
-import truncate from 'lodash/truncate';
-import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     getBankAccountRoute,
+    getInvoiceReceiverPolicyID,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData} from '@src/types/onyx';
+import type {AccountData, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import {areInvoicesEnabledSelector} from '@selectors/Policy';
+import truncate from 'lodash/truncate';
+
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -32,6 +40,10 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
+    /** Report data from the Search snapshot, used as a fallback while the live Onyx report hasn't loaded yet */
+    selectedReport?: OnyxEntry<Report>;
+    /** Chat report data from the Search snapshot, used as a fallback while the live Onyx chat report hasn't loaded yet */
+    selectedChatReport?: OnyxEntry<Report>;
     lastPaymentMethod?: string | undefined;
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
@@ -51,6 +63,8 @@ type UseBulkPayOptionReturnType = {
 function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
+    selectedReport,
+    selectedChatReport,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
@@ -65,16 +79,21 @@ function useBulkPayOptions({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const [liveIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    // SearchBulkActionsButton is rendered outside SearchScopeProvider, so the useOnyx read above doesn't fall back to the Search snapshot.
+    const iouReport = liveIouReport ?? selectedReport;
+    const [liveChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const chatReport = liveChatReport ?? selectedChatReport;
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+    const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const activeAdminPolicies = useActiveAdminPolicies();
-    const isIOUReport = isIOUReportUtil(selectedReportID);
-    const isExpenseReport = isExpenseReportUtil(selectedReportID);
-    const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
+    const isIOUReport = isIOUReportUtil(iouReport);
+    const isExpenseReport = isExpenseReportUtil(iouReport);
+    const isInvoiceReport = isInvoiceReportUtil(iouReport);
     const shouldShowPayElsewhereOption = !isInvoiceReport;
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(selectedReportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
@@ -89,7 +108,7 @@ function useBulkPayOptions({
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                return accountData?.type === requiredAccountType && !isPartiallySetup;
+                return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',
@@ -108,7 +127,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({
@@ -122,10 +141,10 @@ function useBulkPayOptions({
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
-    if (!selectedReportID || !selectedPolicyID) {
-        bulkPayButtonOptions = undefined;
-    } else if (onlyShowPayElsewhere) {
+    if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
     } else {
         bulkPayButtonOptions = [];
 
@@ -143,6 +162,7 @@ function useBulkPayOptions({
                         iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         shouldIgnoreKeyForRendering: true,
+                        shouldIgnoreCompactStyle: true,
                         additionalData: {
                             bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -192,7 +212,7 @@ function useBulkPayOptions({
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,
                     onSelected: () => {
-                        const bankAccountRoute = getBankAccountRoute(chatReport);
+                        const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                         Navigation.navigate(bankAccountRoute);
                     },
                 };

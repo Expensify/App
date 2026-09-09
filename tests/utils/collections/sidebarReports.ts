@@ -1,9 +1,12 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
+
+import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import type {OnyxCollection} from 'react-native-onyx';
+
 import createCollection from './createCollection';
 import {createRandomReport} from './reports';
 
@@ -130,4 +133,4 @@ function createSidebarTestData(): {
     };
 }
 
-export {createSidebarReport, createSidebarReportsCollection, createSidebarTestData};
+export {createSidebarReportsCollection, createSidebarTestData};

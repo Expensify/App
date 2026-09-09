@@ -1,18 +1,28 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useCardFeeds from '@hooks/useCardFeeds';
+import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomPolicy from '../../utils/collections/policies';
+import type {Domain} from '@src/types/onyx';
 
+import Onyx from 'react-native-onyx';
+
+import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
+
+const currentUserAccountID = 999;
 const domainID = 19475968;
 const mockPolicyID = '123456';
 const workspaceAccountID = 11111111;
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: workspaceAccountID};
 
-const mockedFeeds = {
+const linkedFeedDomainID = 22222222;
+
+const mockedFeeds = createMock<CombinedCardFeeds>({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'vcf#19475968': {
         liabilityType: 'personal',
@@ -29,13 +39,27 @@ const mockedFeeds = {
         customFeedName: 'Custom feed name 1',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
-};
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- Feed keys use the `vcf#<id>` format from the backend
+    'vcf#22222222': {
+        liabilityType: 'personal',
+        pending: false,
+        domainID: linkedFeedDomainID,
+        customFeedName: 'Linked feed',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+        linkedPolicyIDs: [mockPolicyID],
+    },
+});
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: currentUserAccountID}),
+}));
+
 describe('useIsAllowedToIssueCompanyCard', () => {
     beforeAll(() => {
         Onyx.init({
@@ -43,20 +67,30 @@ describe('useIsAllowedToIssueCompanyCard', () => {
         });
     });
     beforeEach(async () => {
+        await Onyx.clear();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
     });
     it('should return true if domain feed and access is granted', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainID}`, true);
-        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
+        const domain = createMock<Domain>({});
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`] = currentUserAccountID;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`, domain);
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(true);
     });
 
     it('should return false if domain feed and access is not granted', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainID}`, false);
-        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`,
+            createMock<Domain>({
+                validated: true,
+                accountID: domainID,
+                email: '+@test.com',
+            }),
+        );
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(false);
     });
@@ -65,7 +99,7 @@ describe('useIsAllowedToIssueCompanyCard', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(true);
     });
@@ -74,7 +108,25 @@ describe('useIsAllowedToIssueCompanyCard', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
             role: CONST.POLICY.ROLE.USER,
         });
-        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
+        const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
+        expect(result?.current).toBe(false);
+    });
+    it('should return true if feed is shared via linkedPolicyIDs and user is admin', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#22222222');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
+        const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
+        expect(result?.current).toBe(true);
+    });
+    it('should return false if feed is shared via linkedPolicyIDs and user is not an admin', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#22222222');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
+            role: CONST.POLICY.ROLE.USER,
+        });
+        jest.mocked(useCardFeeds).mockReturnValue([mockedFeeds, {status: 'loaded'}, undefined, {}, 0]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(false);
     });

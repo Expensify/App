@@ -1,4 +1,15 @@
 import CONST from '@src/CONST';
+import type {Report, Transaction} from '@src/types/onyx';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import replaceAllDigits from './replaceAllDigits';
+import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
+import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported} from './TransactionUtils';
+import {getMerchantError} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -83,23 +94,6 @@ function validatePercentage(amount: string, allowExceedingHundred = false, allow
 }
 
 /**
- * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
- * the original character will be preserved.
- */
-function replaceAllDigits(text: string, convertFn: (char: string) => string): string {
-    return text
-        .split('')
-        .map((char) => {
-            try {
-                return convertFn(char);
-            } catch {
-                return char;
-            }
-        })
-        .join('');
-}
-
-/**
  * Handles negative amount flipping by toggling the negative state and removing the '-' prefix
  * @param amount - The amount string to process
  * @param allowFlippingAmount - Whether flipping amount is allowed
@@ -119,8 +113,163 @@ function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boole
     return amount;
 }
 
+const nonZeroMoneyRequestTypes = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+
+/**
+ * Validates a money request amount according to business rules.
+ *
+ * @param amount - Amount in backend format (cents as integer)
+ * @param iouType - Type of IOU (PAY, INVOICE, SPLIT, REQUEST, SUBMIT, etc.)
+ * @param allowNegative - Whether negative amounts are allowed
+ * @param isIOUReport - Whether this is an IOU report (zero amounts not allowed)
+ * @param isP2P - Whether this is a peer-to-peer transaction
+ */
+function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<typeof CONST.IOU.TYPE>, allowNegative = true, isP2P = false): boolean {
+    if (amount === undefined || amount === null || Number.isNaN(amount)) {
+        return false;
+    }
+
+    if (amount < 0 && !allowNegative) {
+        return false;
+    }
+
+    const absoluteAmount = Math.abs(amount);
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && isP2P) {
+        return absoluteAmount >= 1;
+    }
+
+    if (nonZeroMoneyRequestTypes.has(iouType)) {
+        return absoluteAmount >= 1;
+    }
+
+    return true;
+}
+
+/**
+ * Whether a manually entered tax amount exceeds the maximum allowed tax amount (the tax computed from the
+ * selected tax rate and the expense amount). `0` is a valid tax amount.
+ *
+ * @param currentAmount - The entered tax amount, as a frontend string (e.g. "1.50")
+ * @param maxTaxAmount - The maximum allowed tax amount, in the smallest currency units
+ * @param decimals - Number of decimals for the currency
+ */
+function isTaxAmountInvalid(currentAmount: string, maxTaxAmount: number, decimals: number): boolean {
+    return Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(maxTaxAmount), decimals);
+}
+
+/**
+ * Determines whether a merchant value is required for the given report/transaction — i.e. whether leaving the
+ * merchant empty is disallowed. Workspace expenses require a merchant; unreported expenses, IOU requests,
+ * and invoices allow an empty merchant.
+ */
+function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction && isExpenseUnreported(transaction)) {
+        return false;
+    }
+    return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+}
+
+/**
+ * Validates a merchant value according to business rules.
+ *
+ * @param merchant - The merchant name to validate
+ * @param transaction - The transaction to validate merchant for (used to determine if clearing is allowed)
+ * @param report - The parent report for the transaction (used to determine if IOU clearing is allowed)
+ * @returns Whether the merchant value is valid
+ */
+function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
+    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
+}
+
+type AmountHasUnsavedChangesParams = {
+    typedAmount: string;
+    committedAmount: number;
+    isCreateEntry: boolean;
+    selectedCurrency: string;
+    originalCurrency: string;
+    isSignChanged?: boolean;
+};
+
+/**
+ * Whether the amount step has unsaved input. A sign flip alone counts as a change; otherwise emptiness is judged on
+ * the raw string (so a typed "0" counts) and the change in backend units (so "5" vs "5.00" isn't a false positive);
+ * a currency change counts on its own.
+ */
+function getAmountHasUnsavedChanges({typedAmount, committedAmount, isCreateEntry, selectedCurrency, originalCurrency, isSignChanged = false}: AmountHasUnsavedChangesParams): boolean {
+    if (isSignChanged) {
+        return true;
+    }
+
+    const currencyChanged = selectedCurrency !== originalCurrency;
+    if (isCreateEntry) {
+        return typedAmount !== '' || committedAmount !== 0 || currencyChanged;
+    }
+    const typedAmountInBackendUnits = typedAmount ? convertToBackendAmount(Number.parseFloat(typedAmount)) : 0;
+    return typedAmountInBackendUnits !== committedAmount || currencyChanged;
+}
+
+/**
+ * Whether a raw-string money-request step (hours, manual distance) has unsaved input.
+ */
+function getStringFieldHasUnsavedChanges(typedValue: string, committedValue: string, isCreateEntry: boolean): boolean {
+    return isCreateEntry ? typedValue !== '' || committedValue !== '' : typedValue !== committedValue;
+}
+
+/**
+ * Whether the distance (map) step has unsaved waypoints.
+ */
+function getWaypointsHasUnsavedChanges(
+    transaction: OnyxEntry<Transaction>,
+    committedWaypoints: WaypointCollection | undefined,
+    currentWaypoints: WaypointCollection | undefined,
+    isCreateEntry: boolean,
+): boolean {
+    if (isCreateEntry) {
+        return doesMoneyRequestDraftHaveUserInput(transaction);
+    }
+    // No committed baseline yet (splits skip the backup; a normal edit's async backup may not have landed) — treat as unchanged.
+    if (!committedWaypoints) {
+        return false;
+    }
+    return haveWaypointAddressesChanged(committedWaypoints, currentWaypoints);
+}
+
+/**
+ * Determines whether the date field should be shown on the money request confirmation surface.
+ * This is the single source of truth shared by the confirmation footer (where the date field is rendered)
+ * and the confirmation-step validation (where a missing date is blocked), so the two never drift out of sync.
+ */
+function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistanceRequest: boolean): boolean {
+    return shouldShowSmartScanFields || isDistanceRequest;
+}
+
+/**
+ * Whether the required amount is still missing on the money request confirmation surface.
+ * `isAmountSet` is only ever set by the manual flow (scan, per diem, distance and time populate the amount
+ * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
+ * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
+ * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
+ */
+function isConfirmationAmountMissing(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType' | 'isAmountSet'>>): boolean {
+    return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
+}
+
+/**
+ * Whether the required date is still missing on the money request confirmation surface.
+ * Gating on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker keeps
+ * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
+ * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
+ */
+function isConfirmationDateMissing(transaction: OnyxEntry<Transaction>, shouldShowDate: boolean, isReadOnly: boolean): boolean {
+    return shouldShowDate && !isReadOnly && isCreatedMissing(transaction);
+}
+
 export {
     addLeadingZero,
+    isConfirmationAmountMissing,
+    isConfirmationDateMissing,
+    shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,
     stripDecimalsFromAmount,
@@ -129,4 +278,11 @@ export {
     validateAmount,
     validatePercentage,
     handleNegativeAmountFlipping,
+    isValidMoneyRequestAmount,
+    isTaxAmountInvalid,
+    isMerchantRequired,
+    isValidMerchant,
+    getAmountHasUnsavedChanges,
+    getStringFieldHasUnsavedChanges,
+    getWaypointsHasUnsavedChanges,
 };

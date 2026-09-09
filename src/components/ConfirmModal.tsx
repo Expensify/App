@@ -1,14 +1,21 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import type BaseModalProps from './Modal/types';
+
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
-import type BaseModalProps from './Modal/types';
 
 type ConfirmModalProps = {
     /** Title of the modal */
@@ -20,7 +27,6 @@ type ConfirmModalProps = {
     /** A callback to call when the form has been closed */
     onCancel?: () => void;
 
-    /** A callback to call when backdrop is pressed */
     onBackdropPress?: () => void;
 
     /** Modal visibility */
@@ -35,16 +41,11 @@ type ConfirmModalProps = {
     /** Modal content text/element */
     prompt?: string | ReactNode;
 
-    /** Whether we should use the success button color */
-    success?: boolean;
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
 
-    /** Is the action destructive */
-    danger?: boolean;
-
-    /** Whether we should disable the confirm button when offline */
+    buttonVariant?: ButtonVariant;
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
-    /** Whether we should show the cancel button */
     shouldShowCancelButton?: boolean;
 
     /** Callback method fired when the modal is hidden */
@@ -59,46 +60,25 @@ type ConfirmModalProps = {
     /** Fill color for the Icon */
     iconFill?: string | false;
 
-    /** Icon width */
     iconWidth?: number;
-
-    /** Icon height */
     iconHeight?: number;
-
-    /** Should the icon be centered */
     shouldCenterIcon?: boolean;
-
-    /** Whether to show the dismiss icon */
     shouldShowDismissIcon?: boolean;
-
-    /** Styles for title container */
     titleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
-
-    /** Styles for icon */
+    subtitleStyles?: StyleProp<TextStyle>;
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
-    /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
-
-    /** Whether to reverse the order of the stacked buttons */
     shouldReverseStackedButtons?: boolean;
-
-    /** Image to display with content */
     image?: IconAsset;
-
-    /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
-
-    /** Whether to fit the image to the container */
+    imageWidth?: number;
+    imageHeight?: number;
     shouldFitImageToContainer?: boolean;
 
     /**
@@ -113,22 +93,34 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether to show a loading indicator next to the title */
+    isTitleLoading?: boolean;
+
     /** Whether to handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
 
-    /** Whether to ignore the back handler during transition */
     shouldIgnoreBackHandlerDuringTransition?: boolean;
 
     /** Merged into the modal container after default confirm styles (e.g. `width` overrides `variables.sideBarWidth` on wide screens). */
     innerContainerStyle?: ViewStyle;
+
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
+
+    /** Force the confirm button to use the success style even when no cancel button is shown */
+    shouldUseSuccessStyleForConfirm?: boolean;
 };
 
+/**
+ * @deprecated Use @hooks/useConfirmModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function ConfirmModal({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
-    danger = false,
+    subtitle,
+    subtitleStyles,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     onCancel = () => {},
     onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -146,6 +138,8 @@ function ConfirmModal({
     onConfirm,
     image,
     imageStyles,
+    imageWidth,
+    imageHeight,
     shouldFitImageToContainer = false,
     iconWidth,
     iconHeight,
@@ -157,9 +151,12 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isTitleLoading,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
     innerContainerStyle,
+    shouldEnablePromptScroll = false,
+    shouldUseSuccessStyleForConfirm,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -180,6 +177,7 @@ function ConfirmModal({
             onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
+            shouldTreatModalAsCovering
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={innerContainerStyle ? {...styles.pv0, ...innerContainerStyle} : styles.pv0}
@@ -187,6 +185,7 @@ function ConfirmModal({
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ConfirmContent
                 title={title}
@@ -197,8 +196,9 @@ function ConfirmModal({
                 confirmText={confirmText}
                 cancelText={cancelText}
                 prompt={prompt}
-                success={success}
-                danger={danger}
+                subtitle={subtitle}
+                subtitleStyles={subtitleStyles}
+                buttonVariant={buttonVariant}
                 isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}
@@ -218,8 +218,13 @@ function ConfirmModal({
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
                 imageStyles={imageStyles}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isTitleLoading={isTitleLoading}
+                shouldEnablePromptScroll={shouldEnablePromptScroll}
+                shouldUseSuccessStyleForConfirm={shouldUseSuccessStyleForConfirm}
             />
         </Modal>
     );

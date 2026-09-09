@@ -11,7 +11,7 @@ Travel admins can add supplier programs to ensure corporate discounts and direct
 
 ## How to access the travel tool
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In New Expensify:** Click the **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
 **Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
@@ -38,7 +38,7 @@ Under the **Air** tab, there are two configuration types: **Corporate discount c
 
 **Corporate discount codes**
 
-1. Click the green **+** button.
+1. Click the **+** button.
 2. Fill out the required fields:
    - **Vendor name**
    - **Company name**

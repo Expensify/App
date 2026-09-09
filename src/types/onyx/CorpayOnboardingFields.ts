@@ -1,13 +1,11 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Picklist */
 type Picklist = Array<{
-    /** Option id */
     id: string;
-    /** Option name */
     name: string;
-    /** Option string value  */
     stringValue: string;
 }>;
 

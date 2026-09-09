@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {TupleToUnion} from 'type-fest';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,30 +10,45 @@ import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+
 import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useCallback, useMemo, useRef} from 'react';
+
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
     policyID: string;
+
+    /** Whether the current user can edit miscellaneous settings. */
+    canWriteMoreFeatures: boolean;
+
+    /** Shows the read-only access modal. */
+    showReadOnlyModal: () => void;
 };
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 // TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
-function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
+function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnlyModal}: WorkspaceInvoiceVBASectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -47,11 +61,15 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {showConfirmModal} = useConfirmModal();
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
     const isPopoverBottomMount = shouldUseNarrowLayout;
-    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const eligibleBusinessBankAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency);
+    const hasValidExistingAccounts = eligibleBusinessBankAccounts.length > 0;
+    const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
+    const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
+    const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
+    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -100,10 +118,17 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID, personalPolicyID);
+        if (paymentMethod.selectedPaymentMethodType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || !bankAccountID) {
+            return;
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID]);
+
+        const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
+        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
+            setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
+        }
+
+        deletePaymentBankAccount(bankAccountID, personalPolicyID);
+    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
@@ -124,10 +149,25 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         }
     };
 
+    const continueAddBankAccountFlow = () => {
+        if (hasValidExistingAccounts && !shouldShowContinueModal) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+            return;
+        }
+        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddBankAccountFlow());
+
     const onAddBankAccountPress = () => {
+        if (!canWriteMoreFeatures) {
+            showReadOnlyModal();
+            return;
+        }
+
         if (!isSupportedGlobalReimbursement) {
             showConfirmModal({
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 title: translate('workspace.bankAccount.workspaceCurrency'),
                 prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
                 confirmText: translate('workspace.bankAccount.updateToUSD'),
@@ -144,11 +184,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             return;
         }
 
-        if (hasValidExistingAccounts && !shouldShowContinueModal) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
             return;
         }
-        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+
+        continueAddBankAccountFlow();
     };
 
     const threeDotsMenuItems = useMemo(() => {
@@ -186,7 +227,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             onSelected: () => {
                 closeModal(() => {
                     showConfirmModal({
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         title: translate('walletPage.deleteAccount'),
                         prompt: translate('walletPage.deleteConfirmation'),
                         confirmText: translate('common.delete'),
@@ -239,13 +280,13 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
-                shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
+                shouldSkipDefaultAccountValidation
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
-                threeDotsMenuItems={threeDotsMenuItems}
+                threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
+                addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                policyID={policyID}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
         </Section>

@@ -1,15 +1,21 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
-import Button from './Button';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type DotLottieAnimation from './LottieAnimations/types';
+
+import Button from './ButtonComposed';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -25,7 +31,6 @@ type FeatureListProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
-    /** The component to display custom subtitle */
     renderSubtitle?: () => ReactNode;
 
     /** Text of the call to action button */
@@ -37,32 +42,27 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
-    /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
     illustration: DotLottieAnimation | IconAsset | undefined;
 
-    /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
-    /** Customize the Illustration container */
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
-
-    /** Custom content to display in the footer */
     footer?: ReactNode;
-
-    /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
+
+    /** Additional styles to apply to the CTA button inner container */
+    buttonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to apply to the CTA button on hover */
+    buttonHoverStyles?: StyleProp<ViewStyle>;
 };
 
 function FeatureList({
@@ -80,6 +80,8 @@ function FeatureList({
     contentPaddingOnLargeScreens,
     footer,
     isButtonDisabled = false,
+    buttonInnerStyles,
+    buttonHoverStyles,
     renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
@@ -122,15 +124,18 @@ function FeatureList({
                 </View>
                 {!!ctaText && (
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
-                        success
+                        innerStyles={buttonInnerStyles}
+                        hoverStyles={buttonHoverStyles}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isDisabled={isButtonDisabled}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
-                    />
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 )}
                 {!!footer && footer}
             </View>

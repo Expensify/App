@@ -1,22 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
+import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type CompanyOwnersListUBOProps = {
     /** Method called when user confirms data */
@@ -25,20 +31,14 @@ type CompanyOwnersListUBOProps = {
     /** Method called when user presses on one of UBOs to edit its data */
     handleUBOEdit: (value: string) => void;
 
-    /** List of UBO keys */
     beneficialOwnerKeys: string[];
-
-    /** Info is user UBO */
     isUserUBO: boolean;
-
-    /** Info about other existing UBOs */
     isAnyoneElseUBO: boolean;
 };
 
 const REQUESTOR_PERSONAL_INFO_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}: CompanyOwnersListUBOProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -58,21 +58,14 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
             const beneficialOwnerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
-                <MenuItem
+                <MenuItemAvatarNavigation
                     key={ownerKey}
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
-                    wrapperStyle={[styles.ph5]}
-                    icon={icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
+                    accountID={CONST.DEFAULT_NUMBER_ID}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
                     }}
-                    iconWidth={40}
-                    iconHeight={40}
-                    interactive
-                    shouldShowRightIcon
-                    displayInDefaultIconColor
                 />
             );
         });
@@ -87,18 +80,17 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
             <View>
                 <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                 {isUserUBO && (
-                    <MenuItem
-                        title={`${requestorData.firstName} ${requestorData.lastName}`}
-                        description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                        wrapperStyle={[styles.ph5]}
-                        icon={icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        iconWidth={40}
-                        iconHeight={40}
-                        interactive={false}
-                        shouldShowRightIcon={false}
-                        displayInDefaultIconColor
-                    />
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar accountID={CONST.DEFAULT_NUMBER_ID} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{`${requestorData.firstName} ${requestorData.lastName}`}</MenuItem.Title>
+                                <MenuItem.Description>{`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}</MenuItem.Description>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
                 {extraBeneficialOwners}
             </View>
@@ -112,14 +104,15 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     />
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
                     isDisabled={isOffline}
                     style={[styles.w100]}
                     onPress={handleUBOsConfirmation}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

@@ -1,3 +1,7 @@
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Base settings that can appear at root level or nested under feed type */
@@ -11,7 +15,6 @@ type ExpensifyCardSettingsBase = {
     /** The total amount of cash back earned thus far */
     earnedCashback?: number;
 
-    /** The date of the last settlement */
     monthlySettlementDate?: Date;
 
     /** Whether monthly option should appear in the settlement frequency settings */
@@ -23,7 +26,7 @@ type ExpensifyCardSettingsBase = {
     /** The bank account chosen for the card settlement */
     paymentBankAccountID?: number;
 
-    /** Whether the card program (e.g., Travel Invoicing) is enabled */
+    /** Whether the card program (e.g., Travel Billing) is enabled */
     isEnabled?: boolean;
 
     /** The previous bank account chosen for the card settlement, used for reverting failed updates */
@@ -41,7 +44,9 @@ type ExpensifyCardSettingsBase = {
     /** The preferred policy for the domain card */
     preferredPolicy?: string;
 
-    /** The Marqeta business token */
+    /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
+    linkedPolicyIDs?: string[];
+
     marqetaBusinessToken?: number;
 
     /** Name of the domain card was issued for */
@@ -56,34 +61,94 @@ type ExpensifyCardSettingsBase = {
     /** Number of the bank account used for the card settlement */
     paymentBankAccountNumber?: string;
 
+    /** Whether Expensify Card cash back should be applied toward payment of the Expensify bill */
+    shouldApplyCashbackToBill?: boolean;
+
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Per-user monthly spend limit for travel billing cards (in cents) */
+    monthlySpendLimitPerUser?: number;
+
     /** Currency for the card program (e.g. USD, GBP, EUR) */
     currency?: string;
 
     /** Owner email for the card program */
     ownerEmail?: string;
+
+    /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
+    pendingSettlementAmount?: number;
+
+    /** Amount (in cents) held on a sent Consolidated Travel Billing invoice that is awaiting payment by the customer */
+    pendingInvoiceAmount?: number;
+
+    /** Recipient of the travel settlement invoice; non-empty when the workspace pays by invoice instead of an ACH debit */
+    invoiceTo?: string;
+
+    /** Additional recipients who receive a copy of the travel settlement invoice */
+    shareWith?: string[];
 };
+
+/** Spend rule filter condition */
+type ExpensifyCardRuleFilter = {
+    /** The left side of the filter condition (e.g., 'merchant') */
+    left: ExpensifyCardRuleFilter | string;
+
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The right side of the filter condition */
+    right: ExpensifyCardRuleFilter | string[] | string;
+};
+
+/** Expensify card rule data model */
+type ExpensifyCardRule = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Date the rule was created */
+    created: string;
+
+    /** Filter AST evaluated for the transaction */
+    filters: ExpensifyCardRuleFilter;
+
+    /** Action to take when the rule is matched */
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+}>;
+
+/** Nested program settings with offline feedback support for optimistic updates */
+type NestedExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>;
 
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
     ExpensifyCardSettingsBase & {
         /** Nested Expensify Card settings keyed by feed country from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        US?: ExpensifyCardSettingsBase;
+
+        /**
+         *
+         */
+        US?: NestedExpensifyCardSettings;
         /** Nested settings for pre-2024 US card program from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        CURRENT?: ExpensifyCardSettingsBase;
+
+        /**
+         *
+         */
+        CURRENT?: NestedExpensifyCardSettings;
         /** Nested settings for UK/EU card program from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        GB?: ExpensifyCardSettingsBase;
-        /** Nested Travel Invoicing settings from backend */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        TRAVEL_US?: ExpensifyCardSettingsBase;
+
+        /**
+         *
+         */
+        GB?: NestedExpensifyCardSettings;
+        /** Nested Travel Billing settings from backend */
+
+        /**
+         *
+         */
+        TRAVEL_US?: NestedExpensifyCardSettings;
+
+        /** Spend rules for the feed keyed by rule ID - stringified JSON of ExpensifyCardRule */
+        cardRules?: Record<string, ExpensifyCardRule>;
 
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;
@@ -91,4 +156,4 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 export default ExpensifyCardSettings;
-export type {ExpensifyCardSettingsBase};
+export type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings, ExpensifyCardRule, ExpensifyCardRuleFilter};

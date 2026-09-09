@@ -1,7 +1,8 @@
-import {fs} from 'memfs';
-import type {FsPromisesApi} from 'memfs/lib/node/types';
+import type {IFs} from 'memfs';
 
-type PromisesMock = FsPromisesApi;
+import {fs} from 'memfs';
+
+type PromisesMock = IFs['promises'];
 
 const promisesMock: PromisesMock = fs.promises;
 

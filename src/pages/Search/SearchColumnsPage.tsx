@@ -1,14 +1,18 @@
-import React from 'react';
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getCustomColumnDefault, getCustomColumns} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import React from 'react';
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -19,9 +23,10 @@ function SearchColumnsPage() {
     const allTypeCustomColumns = getCustomColumns(queryType);
     const allGroupCustomColumns = getCustomColumns(groupBy);
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
-    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
+    const defaultTypeCustomColumns = [...getCustomColumnDefault(queryType)];
+    const shouldRequireViolationsColumn = !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
 
-    const currentColumns = searchAdvancedFiltersForm?.columns ?? [];
+    const currentColumns = [...(searchAdvancedFiltersForm?.columns ?? [])];
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
     // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
@@ -40,6 +45,14 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
     ]);
 
+    if (shouldRequireViolationsColumn) {
+        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        insertColumnBeforeTotalAmount(defaultTypeCustomColumns, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        if (currentColumns.length > 0) {
+            insertColumnBeforeTotalAmount(currentColumns, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        }
+    }
+
     const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
@@ -50,7 +63,6 @@ function SearchColumnsPage() {
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters, {
             sortBy: currentQueryJSON?.sortBy,
             sortOrder: currentQueryJSON?.sortOrder,
-            limit: currentQueryJSON?.limit,
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});

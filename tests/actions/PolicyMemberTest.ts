@@ -1,22 +1,29 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
-import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
+import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import type {MockFetch} from '../utils/TestHelper';
+
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -29,8 +36,8 @@ describe('actions/PolicyMember', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -41,10 +48,8 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+            const fakeReportAction = createRandomReportAction(0);
+            fakeReportAction.actionName = CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -57,16 +62,22 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
-                        if (!isEmptyObject(reportAction)) {
-                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
-                            expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        if (!reportAction) {
+                            throw new Error('Expected the optimistic report action to exist');
                         }
+                        if (isEmptyObject(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be populated');
+                        }
+                        if (!ReportActionsUtils.isActionableJoinRequest(reportAction)) {
+                            throw new Error('Expected the optimistic report action to be an actionable join request');
+                        }
+                        expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice).toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
+                        expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
                 });
@@ -76,7 +87,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`,
-                    waitForCollectionCallback: false,
                     callback: (reportActions) => {
                         Onyx.disconnect(connection);
 
@@ -116,7 +126,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -143,7 +152,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
@@ -159,7 +167,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         resolve();
@@ -195,7 +202,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -211,7 +217,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -241,12 +246,11 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.errorFields).toBeFalsy();
@@ -262,7 +266,6 @@ describe('actions/PolicyMember', () => {
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    waitForCollectionCallback: false,
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         expect(policy?.isLoading).toBeFalsy();
@@ -273,9 +276,94 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
+        it('should set optimistic loading state', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.errorFields).toBeFalsy();
+                        expect(policy?.isLoading).toBeTruthy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
+                        resolve();
+                    },
+                });
+            });
+        });
     });
 
     describe('addMembersToWorkspace', () => {
+        const currentUser = {accountID: 1, displayName: 'Current User', email: 'current@example.com'};
+
         it('Add a new member to a workspace', async () => {
             const policyID = '1';
             const defaultApprover = 'approver@gmail.com';
@@ -288,14 +376,13 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (policyResult) => {
                         Onyx.disconnect(connection);
                         const newEmployee = policyResult?.employeeList?.[newUserEmail];
@@ -311,7 +398,38 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
-        it('Add new members with admin/auditor role to the #admins room', async () => {
+        it('uses new personal details onyx data to decide new-member success-data participants instead of the deprecated copy', () => {
+            const policyID = '1';
+            const policy = {...createRandomPolicy(Number(policyID))};
+
+            const presentMemberEmail = 'present@example.com';
+            const presentMemberAccountID = 4321;
+            const absentMemberEmail = 'absent@example.com';
+            const absentMemberAccountID = 8765;
+
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([absentMemberEmail], [absentMemberAccountID], TestHelper.formatPhoneNumber);
+
+            const {membersChats} = Member.buildAddMembersToWorkspaceOnyxData(
+                {[presentMemberEmail]: presentMemberAccountID, [absentMemberEmail]: absentMemberAccountID},
+                newPersonalDetailsOnyxData,
+                policy,
+                [],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                undefined,
+            );
+
+            const findSuccessReportUpdate = (email: string) => {
+                const reportID = membersChats.reportCreationData[email]?.reportID;
+                return membersChats.onyxSuccessData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            };
+
+            // The known member keeps their optimistic participant ({}); the unknown member's participant is removed (null).
+            expect(findSuccessReportUpdate(presentMemberEmail)).toHaveProperty(['value', 'participants', `${presentMemberAccountID}`], {});
+            expect(findSuccessReportUpdate(absentMemberEmail)).toHaveProperty(['value', 'participants', `${absentMemberAccountID}`], null);
+        });
+
+        it('Add new members with admin/scoped admin role to the #admins room', async () => {
             // Given a policy and an #admins room
             const policyID = '1';
             const adminRoomID = '1';
@@ -319,8 +437,8 @@ describe('actions/PolicyMember', () => {
             const ownerAccountID = 1;
             const adminAccountID = 1234;
             const adminEmail = 'admin@example.com';
-            const auditorAccountID = 1235;
-            const auditorEmail = 'auditor@example.com';
+            const cardAdminAccountID = 1235;
+            const cardAdminEmail = 'card-admin@example.com';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
             const policy = {
@@ -337,18 +455,18 @@ describe('actions/PolicyMember', () => {
                 },
             });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [auditorAccountID]: {login: auditorEmail},
+                [cardAdminAccountID]: {login: cardAdminEmail},
             });
 
-            // When adding a new admin, auditor, and user members
+            // When adding a new admin, scoped admin, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[cardAdminEmail]: cardAdminAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.CARD_ADMIN, currentUser, {});
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be added to the #admins room optimistically
+            // Then only the admin and scoped admin should be added to the #admins room optimistically
             const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
@@ -359,7 +477,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
-            expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
+            expect(adminRoom?.participants?.[cardAdminAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
 
             // and removed if the account is optimistic
@@ -374,7 +492,113 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(adminRoomSuccess?.participants?.[adminAccountID]).toBeUndefined();
-            expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
+            expect(adminRoomSuccess?.participants?.[cardAdminAccountID]).toBeTruthy();
+        });
+
+        it('overrides the invited role to Editor on Submit workspaces, regardless of what the caller passes', async () => {
+            // Given a Submit (submit2026) workspace
+            const policyID = '1';
+            const newUserEmail = 'editor@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            mockFetch?.pause?.();
+            // When the caller passes ROLE.USER for a Submit workspace
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
+
+            await waitForBatchedUpdates();
+
+            // Then the optimistic employee entry is created with the Editor role
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
+                        expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.EDITOR);
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('does NOT override the role on non-Submit (paid) workspaces', async () => {
+            // Given a Collect (team) workspace
+            const policyID = '1';
+            const newUserEmail = 'user@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            mockFetch?.pause?.();
+            // When the caller passes ROLE.USER on a non-Submit workspace
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
+
+            await waitForBatchedUpdates();
+
+            // Then the role stays as the caller-provided value (no Editor override)
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
+                        expect(newEmployee?.role).toBe(CONST.POLICY.ROLE.USER);
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('adds new editors on Submit workspaces to the #admins room', async () => {
+            // Given a Submit workspace with an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const ownerAccountID = 1;
+            const editorAccountID = 4321;
+            const editorEmail = 'editor@example.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.SUBMIT),
+                approver: 'approver@example.com',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                policyID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When inviting a new member on a Submit workspace (role is forced to Editor)
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace({[editorEmail]: editorAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
+
+            await waitForBatchedUpdates();
+
+            // Then the new editor is added to the #admins room optimistically
+            const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoom?.participants?.[editorAccountID]).toBeTruthy();
+
+            await mockFetch?.resume?.();
         });
 
         it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
@@ -407,7 +631,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, {});
 
             await waitForBatchedUpdates();
 
@@ -432,10 +656,118 @@ describe('actions/PolicyMember', () => {
             });
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(false);
         });
+
+        it('should unarchive existing expense report via the explicit reportActionsList param (not the deprecated onyx fallback)', async () => {
+            // Given an archived workspace expense chat + expense report AND no REPORT_ACTIONS seeded in Onyx
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const expenseReportID = '2';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+            const policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+                ownerAccountID: userAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+
+            // Build the REPORT_PREVIEW action outside Onyx and pass it explicitly
+            const expenseAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: expenseReportID,
+            };
+            const reportActionsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`]: {
+                    [expenseAction.reportActionID]: expenseAction,
+                },
+            };
+
+            // When adding the user with the explicit reportActionsList argument
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, {}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, currentUser, reportActionsList);
+
+            await waitForBatchedUpdates();
+
+            const isExpenseReportArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isExpenseReportArchived).toBe(false);
+        });
+
+        describe('buildAddMembersToWorkspaceOnyxData currentUser dependency', () => {
+            const buildForCurrentUser = (currentUserInput: {accountID: number; displayName?: string; email?: string; avatar?: string}) =>
+                Member.buildAddMembersToWorkspaceOnyxData(
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    {'new-member@example.com': 9001},
+                    {},
+                    createRandomPolicy(101),
+                    [],
+                    CONST.POLICY.ROLE.USER,
+                    currentUserInput,
+                    undefined,
+                );
+
+            type BuildResult = ReturnType<typeof buildForCurrentUser>;
+            type ReportActionsUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+            type ReportActionsValueUpdate = Extract<ReportActionsUpdate, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
+            type ReportActionsValue = NonNullable<ReportActionsValueUpdate['value']>;
+            type ReportActionUpdateEntry = NonNullable<ReportActionsValue[string]>;
+
+            const findOptimisticCreatedAction = (optimisticData: BuildResult['optimisticData']): ReportActionUpdateEntry | undefined => {
+                const reportActionsUpdates = optimisticData.filter(
+                    (update): update is ReportActionsValueUpdate =>
+                        (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE) && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                );
+                for (const update of reportActionsUpdates) {
+                    const createdAction = Object.values(update.value ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+                    if (createdAction) {
+                        return createdAction;
+                    }
+                }
+                return undefined;
+            };
+
+            it('actorAccountID on the optimistic CREATED action equals currentUser.accountID', () => {
+                const {optimisticData: dataForA} = buildForCurrentUser({accountID: 42, displayName: 'A', email: 'a@example.com'});
+                const {optimisticData: dataForB} = buildForCurrentUser({accountID: 99, displayName: 'B', email: 'b@example.com'});
+
+                expect(findOptimisticCreatedAction(dataForA)?.actorAccountID).toBe(42);
+                expect(findOptimisticCreatedAction(dataForB)?.actorAccountID).toBe(99);
+            });
+
+            it('person text on the optimistic CREATED action equals currentUser.displayName when defined', () => {
+                const {optimisticData} = buildForCurrentUser({accountID: 1, displayName: 'Alice Smith', email: 'alice@example.com'});
+                expect(findOptimisticCreatedAction(optimisticData)?.person?.at(0)?.text).toBe('Alice Smith');
+            });
+
+            it('person text on the optimistic CREATED action falls back to currentUser.email when displayName is undefined', () => {
+                const {optimisticData} = buildForCurrentUser({accountID: 1, email: 'fallback@example.com'});
+                expect(findOptimisticCreatedAction(optimisticData)?.person?.at(0)?.text).toBe('fallback@example.com');
+            });
+
+            it('avatar on the optimistic CREATED action equals currentUser.avatar when defined', () => {
+                const avatar = 'https://avatar.example/me.png';
+                const {optimisticData} = buildForCurrentUser({accountID: 1, displayName: 'Alice', email: 'alice@example.com', avatar});
+                expect(findOptimisticCreatedAction(optimisticData)?.avatar).toBe(avatar);
+            });
+        });
     });
 
     describe('removeMembers', () => {
-        it('Remove members with admin/auditor role from the #admins room', async () => {
+        it('Remove members with admin role from the #admins room', async () => {
             // Given a policy and an #admins room
             const policyID = '1';
             const adminRoomID = '1';
@@ -475,7 +807,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
-            // When removing am admin, auditor, and user members
+            // When removing an admin, auditor, and user members
             mockFetch?.pause?.();
             const memberEmailsToAccountIDs = {
                 [adminEmail]: adminAccountID,
@@ -486,7 +818,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be removed from the #admins room
+            // Then only the admin should be removed from the #admins room
             const optimisticAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
@@ -496,13 +828,11 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.length).toBe(2);
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.length).toBe(1);
             expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(adminAccountID))?.pendingAction).toBe(
                 CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))?.pendingAction).toBe(
-                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))).toBeUndefined();
             await mockFetch?.resume?.();
 
             const successAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
@@ -547,14 +877,14 @@ describe('actions/PolicyMember', () => {
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
                 connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
                         verified: true,
                         accountID: '123456',
                         options: {
-                            data: {} as NetSuiteConnectionData,
-                            config: {
+                            data: createMock<NetSuiteConnectionData>({}),
+                            config: createMock<NetSuiteConnectionConfig>({
                                 exporter: adminEmail,
-                            } as NetSuiteConnectionConfig,
+                            }),
                         },
                         lastSync: {
                             errorDate: '',
@@ -565,8 +895,8 @@ describe('actions/PolicyMember', () => {
                             source: 'NEWEXPENSIFY',
                             successfulDate: '',
                         },
-                    } as NetSuiteConnection,
-                } as Connections,
+                    }),
+                },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
@@ -705,11 +1035,13 @@ describe('actions/PolicyMember', () => {
         });
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
-        it('should remove "detached" members', async () => {
+        it('should not remove unrelated members that only lack personal details', async () => {
             const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
-            const detachedUserEmail = 'detacheduser@gmail.com';
+            // Two members whose personal details aren't loaded, unrelated to the member being removed.
+            const missingDetailsEmail1 = 'missing1@gmail.com';
+            const missingDetailsEmail2 = 'missing2@gmail.com';
             const ownerAccountID = 1;
             const userAccountID = 4321;
 
@@ -723,7 +1055,8 @@ describe('actions/PolicyMember', () => {
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
-                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail1]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail2]: {role: CONST.POLICY.ROLE.USER},
                 },
             };
 
@@ -743,8 +1076,56 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Only the selected member is removed; the other missing-details members stay.
             expect(employeeList?.[userEmail]).toBeUndefined();
-            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[missingDetailsEmail1]).toBeDefined();
+            expect(employeeList?.[missingDetailsEmail2]).toBeDefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
+        });
+
+        it('should also remove the paired login of a member invited by a secondary login', async () => {
+            const policyID = '23456';
+            const ownerEmail = 'owner@gmail.com';
+            const primaryEmail = 'primary@gmail.com';
+            const secondaryEmail = 'secondary@gmail.com';
+            const ownerAccountID = 1;
+            const primaryAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [primaryAccountID]: {login: primaryEmail},
+            });
+
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                // primaryLoginsInvited maps the secondary login used at invite time to the primary login the backend returns.
+                primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [primaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [secondaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Remove the primary (rendered) login; the paired secondary entry should be cleared as well.
+            Member.removeMembers(policy, [primaryEmail], {[primaryEmail]: primaryAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyResult?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[primaryEmail]).toBeUndefined();
+            expect(employeeList?.[secondaryEmail]).toBeUndefined();
             expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });
@@ -756,23 +1137,20 @@ describe('actions/PolicyMember', () => {
             const policy = createRandomPolicy(Number(policyID));
 
             // When importing 1 new member to the workspace
-            Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAdded');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
+            expect(importFinalModal.pendingMessageKey).toBeUndefined();
+        });
+
+        it('should include a role permission warning when restricted roles are replaced', async () => {
+            const policy = createRandomPolicy(1);
+
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER}], true);
+
+            expect(importFinalModal.pendingMessageKey).toBe('spreadsheet.importMembersRolePermissionWarning');
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -781,26 +1159,14 @@ describe('actions/PolicyMember', () => {
             const policy = createRandomPolicy(Number(policyID));
 
             // When importing multiple new members to the workspace
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'user@gmail.com', role: 'user'},
                 {email: 'user2@gmail.com', role: 'user'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAdded');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -818,23 +1184,11 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 existing member to the workspace with the same role
-            Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersNoneAddedOrUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual(undefined);
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -852,23 +1206,11 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 existing member with a different role
-            Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
-
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 1});
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -891,26 +1233,14 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing multiple existing members with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -928,26 +1258,14 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing 1 new member and 1 existing member with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -970,28 +1288,16 @@ describe('actions/PolicyMember', () => {
             };
 
             // When importing multiple new members and multiple existing members with a different role
-            Member.importPolicyMembers(policy, [
+            const importFinalModal = await Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: 'new_user2@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
 
-            await waitForBatchedUpdates();
-
-            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
-            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
     });
 
@@ -1013,13 +1319,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the draft should be saved to the correct Onyx key
-            const draft = await new Promise<typeof invitedEmailsToAccountIDs | null | undefined>((resolve) => {
+            const draft = await new Promise<InvitedEmailsToAccountIDs | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as typeof invitedEmailsToAccountIDs | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1058,10 +1363,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1095,10 +1399,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1128,10 +1431,9 @@ describe('actions/PolicyMember', () => {
             const savedDraft1 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID1}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1139,10 +1441,9 @@ describe('actions/PolicyMember', () => {
             const savedDraft2 = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID2}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1172,10 +1473,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1204,10 +1504,9 @@ describe('actions/PolicyMember', () => {
             const draft = await new Promise<Record<string, number> | null | undefined>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`,
-                    waitForCollectionCallback: false,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value as Record<string, number> | null | undefined);
+                        resolve(value);
                     },
                 });
             });
@@ -1360,6 +1659,43 @@ describe('actions/PolicyMember', () => {
             expect(clearedMembersDraft).toEqual({});
             expect(clearedRoleDraft).toBeFalsy();
             expect(clearedApproverDraft).toBeFalsy();
+        });
+    });
+
+    describe('imported spreadsheet member role (migrated @react-navigation role picker, #90855)', () => {
+        it('setImportedSpreadsheetMemberRole stores the selected role in Onyx', async () => {
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+
+            const role = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE);
+
+            // The role is now lifted into Onyx (previously it lived only in the parent's useState)
+            expect(role).toBe(CONST.POLICY.ROLE.ADMIN);
+        });
+
+        it('setImportedSpreadsheetMemberData stores the imported member data in Onyx', async () => {
+            const memberData = [{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}];
+            Member.setImportedSpreadsheetMemberData(memberData);
+            await waitForBatchedUpdates();
+
+            const storedData = await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
+
+            expect(storedData).toEqual(memberData);
+        });
+
+        it('clearImportedSpreadsheetMemberData clears BOTH the member data and the lifted role, so re-entering the import flow resets the role to its default', async () => {
+            // Simulate an in-progress import where a non-default role (Admin) was picked
+            Member.setImportedSpreadsheetMemberData([{email: 'importtest@example.com', role: '', submitsTo: '', forwardsTo: ''}]);
+            Member.setImportedSpreadsheetMemberRole(CONST.POLICY.ROLE.ADMIN);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // The unmount cleanup (ImportedMembersConfirmationPage) / re-entering the flow must clear both keys
+            Member.clearImportedSpreadsheetMemberData();
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA)).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE)).toBeFalsy();
         });
     });
 });

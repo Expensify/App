@@ -1,9 +1,11 @@
+import type CONST from '@src/CONST';
+
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
-import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -13,17 +15,11 @@ import type TransactionViolations from './TransactionViolation';
  * The attributes of a report.
  */
 type ReportAttributes = {
-    /**
-     * The name of the report.
-     */
     reportName: string;
     /**
      * Whether the report is empty (has no visible messages).
      */
     isEmpty: boolean;
-    /**
-     * The status of the brick road.
-     */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     /**
      * Whether the report requires attention from current user.
@@ -37,23 +33,25 @@ type ReportAttributes = {
      * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
      */
     actionTargetReportActionID?: string;
-    /**
-     * The errors of the report.
-     */
     reportErrors: Errors;
     /**
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**
  * The derived value for report attributes.
  */
 type ReportAttributesDerivedValue = {
-    /**
-     * The report attributes.
-     */
     reports: Record<string, ReportAttributes>;
     /**
      * The locale used to compute the report attributes.
@@ -94,9 +92,6 @@ type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
  * The errors of a card.
  */
 type CardErrors = {
-    /**
-     * The errors of the card.
-     */
     errors?: Card['errors'];
     /**
      * The form field errors of the card.
@@ -127,24 +122,26 @@ type CardFeedErrorState = {
      */
     hasFeedErrors: boolean;
 
-    /**
-     * Whether some workspace has errors.
-     */
     hasWorkspaceErrors: boolean;
 
     /**
-     * Whether some feed connection is broken.
+     * Whether some feed connection is broken. This stays true for as long as the connection is broken, so the
+     * Company cards page keeps offering the "log into your bank" fix and the reconnect can complete.
      */
     isFeedConnectionBroken: boolean;
+
+    /**
+     * Whether we should still actively prompt the user about the broken connection (the RBR dots and the
+     * time-sensitive home task). Unlike `isFeedConnectionBroken` this turns false once the connection has been
+     * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
+     */
+    shouldPromptBrokenConnection: boolean;
 };
 
 /**
  * The errors of a card feed.
  */
 type FeedErrors = CardFeedErrorState & {
-    /**
-     * The errors of the feed.
-     */
     feedErrors?: Errors;
     /**
      * The errors of all cards for a specific feed within a workspace/domain.
@@ -155,16 +152,6 @@ type FeedErrors = CardFeedErrorState & {
      */
     workspaceErrors?: Errors;
 };
-
-/**
- * The ID of a card feed in the errors map/object.
- */
-type CardFeedId = CompanyCardFeedWithNumber;
-
-/**
- * The errors of all card feeds by workspace account ID and feed name with domain ID.
- */
-type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 
 /**
  * The errors of all card feeds.
@@ -180,44 +167,13 @@ type CardFeedErrors = {
      */
     cardFeedErrors: CardFeedErrorsObject;
 
-    /**
-     * The cards with a broken feed connection.
-     */
     cardsWithBrokenFeedConnection: Record<string, Card>;
-
-    /**
-     * The personal cards with a broken connection.
-     */
     personalCardsWithBrokenConnection: Record<string, Card>;
-
-    /**
-     * Whether to show the RBR for each workspace account ID.
-     */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
-
-    /**
-     * Whether to show the RBR for each feed name with domain ID.
-     */
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
-
-    /**
-     * The errors of all card feeds.
-     */
     all: CardFeedErrorState;
-
-    /**
-     * The errors of company cards.
-     */
     companyCards: CardFeedErrorState;
-
-    /**
-     * The errors of expensify card.
-     */
     expensifyCard: CardFeedErrorState;
-
-    /**
-     * The errors of personal card.
-     */
     personalCard: CardFeedErrorState;
 };
 
@@ -230,34 +186,6 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  * The derived value for merged non-personal and workspace card feeds.
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
-
-/**
- * Metadata for todo search results.
- */
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-/**
- * The derived value for todos.
- */
-type TodosDerivedValue = {
-    /** Reports that need to be submitted */
-    reportsToSubmit: Report[];
-    /** Reports that need to be approved */
-    reportsToApprove: Report[];
-    /** Reports that need to be paid */
-    reportsToPay: Report[];
-    /** Reports that need to be exported */
-    reportsToExport: Report[];
-    /** Transactions grouped by report ID */
-    transactionsByReportID: Record<string, Transaction[]>;
-};
 
 /**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
@@ -276,7 +204,20 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
+/**
+ * The accountIDs of every Expensify Guide known to the personal details list, sorted ascending.
+ * Lets callers check for a guide participant without re-scanning the whole list (see issue #66413).
+ */
+type GuideAccountIDsDerivedValue = number[];
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -288,11 +229,9 @@ export type {
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    AllCardFeedErrorsMap,
+    LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     CardFeedErrorsObject,
-    FeedErrors,
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,

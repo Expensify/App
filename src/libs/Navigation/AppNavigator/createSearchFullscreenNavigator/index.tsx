@@ -1,25 +1,33 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
 import SearchSidebar from '@components/Navigation/SearchSidebar';
+
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+
 import createPlatformStackNavigatorComponent from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomEffectsHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@navigation/PlatformStackNavigation/types';
-import SearchFullscreenRouter from './SearchFullscreenRouter';
-import useCustomState from './useCustomState';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
+import SearchFullscreenRouter from './SearchFullscreenRouter';
+import getCustomState from './useCustomState';
+
+function SearchFullscreenNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
 const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent('SearchFullscreenNavigator', {
     createRouter: addPushParamsRouterExtension(SearchFullscreenRouter),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomEffects,
-    useCustomState,
+    Effects: SearchFullscreenNavigatorEffects,
+    getCustomState,
     ExtraContent: SearchSidebar,
 });
 

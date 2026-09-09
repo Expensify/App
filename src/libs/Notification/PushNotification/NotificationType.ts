@@ -1,6 +1,7 @@
+import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+
 import type {OnyxKey} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
     REPORT_ACTION: 'reportAction',
@@ -49,4 +50,4 @@ type TransactionPushNotificationData<TUpdate extends AnyOnyxServerUpdate> = Base
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationTypes, NotificationDataMap, PushNotificationData, AnyPushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};
+export type {NotificationTypes, NotificationDataMap, PushNotificationData, AnyPushNotificationData};
