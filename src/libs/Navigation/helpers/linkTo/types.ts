@@ -1,6 +1,7 @@
 type ActionPayloadParams = {
+    [key: string]: unknown;
     screen?: string;
-    params?: unknown;
+    params?: ActionPayloadParams;
     path?: string;
 };
 

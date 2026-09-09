@@ -14,7 +14,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 
 import {getActionFromState} from '@react-navigation/core';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
@@ -29,15 +29,27 @@ const defaultLinkToOptions = {
 } satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar'>;
 
 /**
- * The split router reads `shouldSkipInitialSidebar` from the innermost screen params. The `getMinimalAction`
- * function reduces the action to a variable depth, so walk to the deepest `params` before tagging the leaf.
+ * The split router reads `shouldSkipInitialSidebar` from the innermost screen params. Walk through nested
+ * navigator payloads so destinations with and without their own params receive the transient marker.
  */
-function addSkipInitialSidebarParam(params: unknown): Record<string, unknown> {
-    const navigationParams = params && typeof params === 'object' ? params : {};
-    if ('params' in navigationParams && navigationParams.params && typeof navigationParams.params === 'object') {
+function addSkipInitialSidebarParam(params: ActionPayloadParams | undefined): ActionPayloadParams {
+    const navigationParams = params ?? {};
+    if (typeof navigationParams.screen === 'string') {
         return {...navigationParams, params: addSkipInitialSidebarParam(navigationParams.params)};
     }
     return {...navigationParams, shouldSkipInitialSidebar: true};
+}
+
+function hasParamsPayload(action: NavigationAction): action is NavigationAction & {payload: {params?: ActionPayloadParams}} {
+    return !!action.payload && 'params' in action.payload;
+}
+
+function addSkipInitialSidebarParamToAction(action: NavigationAction): NavigationAction {
+    if (!hasParamsPayload(action)) {
+        return action;
+    }
+
+    return {...action, payload: {...action.payload, params: addSkipInitialSidebarParam(action.payload.params)}};
 }
 
 /**
@@ -245,7 +257,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const isTargetAtTabRoot = ROOT_TAB_SCREENS.has(focusedRouteFromPath?.name ?? '');
     if (currentActiveScreen && targetActiveScreen && currentActiveScreen !== targetActiveScreen && !isTargetAtTabRoot) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-        navigation.dispatch(action);
+        navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(action) : action);
         return;
     }
 
@@ -295,9 +307,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (shouldSkipInitialSplitNavigatorSidebar && minimalAction.payload && 'params' in minimalAction.payload && minimalAction.payload.params) {
-        minimalAction.payload.params = addSkipInitialSidebarParam(minimalAction.payload.params);
-    }
     if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
@@ -305,5 +314,5 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     ) {
         minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
-    navigation.dispatch(minimalAction);
+    navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

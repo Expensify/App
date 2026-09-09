@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -189,6 +190,70 @@ describe('Navigate', () => {
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
         });
 
+        it('removes the sidebar marker when the Workspace split navigator is already mounted', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [
+                                                    {name: SCREENS.WORKSPACES_LIST},
+                                                    {
+                                                        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                        state: {
+                                                            index: 1,
+                                                            routes: [
+                                                                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: 'workspace-a'}},
+                                                                {name: SCREENS.WORKSPACE.PROFILE, params: {policyID: 'workspace-a'}},
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const rootState = navigationRef.current?.getRootState();
+            if (!rootState) {
+                throw new Error('Expected the navigation state to be initialized');
+            }
+            const workspaceState = rootState.routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
+            expect(workspaceSplitState?.routes.at(-1)?.params).toEqual({policyID: 'workspace-a'});
+            expect(getPathFromState(rootState)).toBe('/workspaces/workspace-a/members');
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterGoBack?.routes.at(-1)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.PROFILE);
+        });
+
         it('removes the internal sidebar marker without leaving empty params', () => {
             render(
                 <TestNavigationContainer
@@ -219,6 +284,7 @@ describe('Navigate', () => {
 
             const activeTabState = navigationRef.current?.getRootState().routes.at(-1)?.state;
             const settingsSplit = activeTabState?.routes.findLast((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(settingsSplit?.state?.routes).toHaveLength(1);
             expect(settingsSplit?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
             expect(settingsSplit?.state?.routes.at(-1)?.params).toBeUndefined();
         });
