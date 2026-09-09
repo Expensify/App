@@ -713,12 +713,12 @@ describe('OnyxUpdatesTest', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}` as const;
             PusherUtils.subscribeToMultiEvent('test.pusher.order', (data) => Onyx.update(data));
 
-            const first = OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {sequence: 1}}]));
-            const second = OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {sequence: 2}}]));
+            const first = OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {reportName: 'first'}}]));
+            const second = OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.order', [{onyxMethod: 'merge', key: reportKey, value: {reportName: 'second'}}]));
             await Promise.all([first, second]);
             await waitForBatchedUpdates();
 
-            expect(await getOnyxValue(reportKey)).toStrictEqual({sequence: 2});
+            expect(await getOnyxValue(reportKey)).toStrictEqual({reportName: 'second'});
         });
     });
 });
