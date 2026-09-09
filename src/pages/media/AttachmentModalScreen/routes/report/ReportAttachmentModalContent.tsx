@@ -152,7 +152,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     };
 
     return (
-        <AttachmentModalContainer<typeof SCREENS.REPORT_ATTACHMENTS>
+        <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}

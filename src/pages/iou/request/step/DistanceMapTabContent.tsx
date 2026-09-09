@@ -13,8 +13,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -36,12 +34,14 @@ type LoadingState = {
     isLoading: boolean;
 };
 
+type DraggableListRef = React.ComponentRef<typeof DraggableList<string>>;
+
 type DistanceMapTabContentProps = {
     waypointItems: string[];
     waypoints: WaypointCollection;
     extractKey: (key: string) => string;
     updateWaypoints: (data: {data: string[]}) => void;
-    scrollViewRef: React.RefObject<RNScrollView | null>;
+    scrollViewRef: React.RefObject<DraggableListRef | null>;
     renderItem: (params: RenderItemParams<string>) => React.JSX.Element;
     navigateToWaypointEditPage: (index: number) => void;
     transaction: OnyxEntry<Transaction>;
@@ -97,7 +97,7 @@ function DistanceMapTabContent({
                     data={waypointItems}
                     keyExtractor={extractKey}
                     onDragEnd={updateWaypoints}
-                    ref={scrollViewRef as never}
+                    ref={scrollViewRef}
                     renderItem={renderItem}
                     ListFooterComponent={
                         !isInLandscapeMode ? (
@@ -140,3 +140,4 @@ function DistanceMapTabContent({
 DistanceMapTabContent.displayName = 'DistanceMapTabContent';
 
 export default DistanceMapTabContent;
+export type {DraggableListRef};

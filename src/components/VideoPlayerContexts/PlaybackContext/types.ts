@@ -1,7 +1,9 @@
+import type {VideoViewRef} from '@components/VideoPlayer/types';
+
 import type {Report} from '@src/types/onyx';
 
-import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import type {ComponentRef, RefObject} from 'react';
+import type {VideoPlayer, VideoPlayerStatus} from 'expo-video';
+import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -100,7 +102,7 @@ type PlaybackActionsContextValues = {
      */
     shareVideoPlayerElements: (
         playerRef: VideoPlayer | null,
-        viewRef: ComponentRef<typeof VideoView> | null,
+        viewRef: VideoViewRef | null,
         parent: View | HTMLDivElement | null,
         child: View | HTMLDivElement | null,
         isUploading: boolean,
@@ -163,14 +165,14 @@ type PlaybackContextVideoRefs = {
     /**
      * Reference to the current VideoView instance.
      */
-    viewRef: RefObject<ComponentRef<typeof VideoView> | null>;
+    viewRef: RefObject<VideoViewRef | null>;
 
     /**
      * Updates the current player and view references.
      * @param playerRef Reference to the VideoPlayer.
      * @param viewRef Reference to the VideoView.
      */
-    updateRefs: (playerRef: VideoPlayer | null, viewRef: ComponentRef<typeof VideoView> | null) => void;
+    updateRefs: (playerRef: VideoPlayer | null, viewRef: VideoViewRef | null) => void;
 };
 
 /**

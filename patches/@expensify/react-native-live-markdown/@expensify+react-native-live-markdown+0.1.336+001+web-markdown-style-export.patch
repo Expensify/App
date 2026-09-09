@@ -1,0 +1,14 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web.d.ts b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web.d.ts
+index 95ac240..fb5e2f4 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web.d.ts
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.web.d.ts
+@@ -38,7 +38,7 @@ type HTMLMarkdownElement = HTMLElement & {
+ };
+ declare const MarkdownTextInput: React.ForwardRefExoticComponent<MarkdownTextInputProps & React.RefAttributes<MarkdownTextInput>>;
+ export default MarkdownTextInput;
+-export type { MarkdownNativeEvent, MarkdownTextInputProps, MarkdownTextInputElement, HTMLMarkdownElement };
++export type { MarkdownNativeEvent, MarkdownTextInputProps, MarkdownTextInputElement, HTMLMarkdownElement, MarkdownStyle };
+ declare function getWorkletRuntime(): void;
+ export { getWorkletRuntime };
+ //# sourceMappingURL=MarkdownTextInput.web.d.ts.map
+\ No newline at end of file

@@ -31,7 +31,7 @@ function ShareDetailsAttachmentModalContent({route, navigation}: AttachmentModal
 
     const modalType = useReportAttachmentModalType(source);
     return (
-        <AttachmentModalContainer<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>
+        <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}

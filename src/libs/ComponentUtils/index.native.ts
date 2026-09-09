@@ -12,10 +12,10 @@ const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'none';
  * Clears a text input on the UI thread using a custom clear command
  * that bypasses the event count check.
  */
-function forceClearInput(animatedInputRef: AnimatedRef<Component> | AnimatedRef<NativeMethods>) {
+function forceClearInput<TRef extends Component | NativeMethods>(animatedInputRef: AnimatedRef<TRef>) {
     'worklet';
 
-    dispatchCommand(animatedInputRef as AnimatedRef<Component>, 'clear');
+    dispatchCommand(animatedInputRef, 'clear');
 }
 
 export {ACCESSIBILITY_ROLE_FORM, forceClearInput};

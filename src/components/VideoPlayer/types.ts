@@ -1,8 +1,16 @@
 import type CONST from '@src/CONST';
 
-import type {SourceLoadEventPayload} from 'expo-video';
+import type {SourceLoadEventPayload, VideoView} from 'expo-video';
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+
+type WebVideoViewRef = {
+    enterFullscreen: () => Promise<void>;
+    nativeRef: {current: HTMLVideoElement | null};
+};
+
+type VideoViewRef = unknown extends ComponentRef<typeof VideoView> ? WebVideoViewRef : ComponentRef<typeof VideoView>;
 
 type VideoPlayerProps = {
     /**
@@ -72,3 +80,4 @@ type VideoPlayerProps = {
 };
 
 export default VideoPlayerProps;
+export type {VideoViewRef};

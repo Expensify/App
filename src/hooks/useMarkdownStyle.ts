@@ -10,6 +10,11 @@ import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 
+/** Narrows `key` to a key that actually exists on `obj`, since not every `MarkdownStyle` key is present on every platform's styling object. */
+function hasKey<T extends Record<string, unknown>>(obj: T, key: PropertyKey): key is keyof T {
+    return key in obj;
+}
+
 function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
     const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeEmojisWithinText;
@@ -94,6 +99,7 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
                 maxHeight: variables.inlineImagePreviewMaxSize,
                 borderRadius: variables.componentBorderRadius,
                 marginTop: 4,
+                marginBottom: 4,
             },
             loadingIndicator: {
                 primaryColor: theme.spinner,
@@ -104,11 +110,12 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
 
         if (excludeStyles.length) {
             for (const key of excludeStyles) {
-                const style: Record<string, unknown> | undefined = styling[key as keyof typeof styling] as Record<string, unknown> | undefined;
-                if (style) {
-                    for (const styleKey of Object.keys(style)) {
-                        style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
-                    }
+                if (!hasKey(styling, key)) {
+                    continue;
+                }
+                const style: Record<string, unknown> = styling[key];
+                for (const styleKey of Object.keys(style)) {
+                    style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
                 }
             }
         }

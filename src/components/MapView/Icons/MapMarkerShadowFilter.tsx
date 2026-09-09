@@ -7,11 +7,9 @@ type MapMarkerShadowFilterProps = {
     height: string;
 };
 
-const SvgDefs = Defs as React.ComponentType<{children?: React.ReactNode}>;
-
 function MapMarkerShadowFilter({id, width, height}: MapMarkerShadowFilterProps) {
     return (
-        <SvgDefs>
+        <Defs>
             <Filter
                 id={id}
                 x="0"
@@ -28,7 +26,7 @@ function MapMarkerShadowFilter({id, width, height}: MapMarkerShadowFilterProps) 
                     floodOpacity={0.06}
                 />
             </Filter>
-        </SvgDefs>
+        </Defs>
     );
 }
 

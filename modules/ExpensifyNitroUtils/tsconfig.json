@@ -1,11 +1,13 @@
 {
-    // The native app project, not the root solution: the solution owns no compiler options.
-    "extends": "../../tsconfig.app.native.json",
+    // Shared compiler options only. Extending the native app project inherits its
+    // `exclude` of `modules/ExpensifyNitroUtils/**`, which leaves this program empty.
+    "extends": "../../tsconfig.base.json",
     "compilerOptions": {
-        // Without this the app project's build info path is inherited and this module would write
-        // over it.
         "tsBuildInfoFile": "./tsconfig.ts7.tsbuildinfo",
-        "outDir": "./lib"
+        "outDir": "./lib",
+        "types": [],
+        "lib": ["ESNext"],
+        "moduleSuffixes": [".ios", ".android", ".native", ""]
     },
     "include": ["src/**/*"]
 }

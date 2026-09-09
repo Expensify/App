@@ -484,7 +484,7 @@ if (typeof window !== 'undefined') {
     /**
      * Pusher socket for debugging purposes
      */
-    (window as {getPusherInstance?: () => unknown}).getPusherInstance = () => socket;
+    (window as typeof window & {getPusherInstance?: () => unknown}).getPusherInstance = () => socket;
 }
 
 const MobilePusher: PusherModule = {
