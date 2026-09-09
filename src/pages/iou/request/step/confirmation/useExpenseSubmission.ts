@@ -1003,23 +1003,21 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
-            if (currentUserLogin) {
+            // receiptFiles can hold an entry for a transaction no longer being submitted, so count actual writes rather than positions in transactions.
+            const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
+            if (currentUserLogin && scannedItems.length > 0) {
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
-                // Receipts without a file are skipped, so the first split is tracked here rather than by loop index.
-                let isFirstSplitInBatch = true;
-                for (const [index, item] of transactions.entries()) {
+
+                // The action hardcodes shouldDeferForSearch:false, so reserve here when a scan will actually write and land back on Search.
+                if (shouldDeferSplitForSearch) {
+                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                }
+
+                for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
-                    if (!transactionReceiptFile) {
-                        continue;
-                    }
-                    // The action hardcodes shouldDeferForSearch:false, so reserve here when a scan actually writes and lands back on Search.
-                    if (shouldDeferSplitForSearch) {
-                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                    }
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
-                    // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                     startSplitBill({
                         getCurrencyDecimals,
                         participants: selectedParticipants,
@@ -1036,9 +1034,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
-                        shouldPlaySound: index === transactions.length - 1,
+                        shouldPlaySound: index === scannedItems.length - 1,
                         optimisticSplitChatReportID,
-                        isFirstSplitInBatch,
+                        isFirstSplitInBatch: index === 0,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
@@ -1047,7 +1045,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         delegateAccountID,
                         formatPhoneNumber,
                     });
-                    isFirstSplitInBatch = false;
                 }
                 if (shouldHandleNavigation) {
                     dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);

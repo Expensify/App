@@ -902,6 +902,33 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
         });
 
+        it('does not dismiss when a leftover receipt matches no transaction being submitted', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
+            // The receipt is keyed to a transaction that is no longer being submitted, so nothing is written.
+            const receiptFiles: Record<string, Receipt> = {'stale-transaction': {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
         it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
             const firstSplit = buildTransaction({transactionID: 'transaction-1'});
