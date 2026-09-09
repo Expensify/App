@@ -26,13 +26,8 @@ const RE_EMOJI_OPEN_OR_CLOSE = /(<emoji[^>]*>)(?:<emoji[^>]*>)+|(<\/emoji[^>]*>)
 const RE_BR_CLEANUP = /(?:\s*<br\s*\/?>)+\s*(<\/(?:ul|ol)>)|(<\/li>)(?:\s*<br\s*\/?>)+\s*(?=<(?:li|\/(?:ul|ol))>)/gi;
 
 type RenderHTMLProps = {
-    /** HTML string to render */
     html: string;
-
-    /** Callback to handle link press */
     onLinkPress?: LinkPressHandler;
-
-    /** Callback to handle concierge-link press */
     onConciergeLinkPress?: ConciergeLinkPressHandler;
 
     /** Whether the rendered text should be selectable */

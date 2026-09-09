@@ -36,11 +36,18 @@ type UseMarkAsReadParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** All sorted actions (the full chain), scanned for unread messages when the app regains focus. Defaults to the visible actions. */
+    sortedReportActions?: OnyxTypes.ReportAction[];
+
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
 
-    /** Identifies the list surface consuming the hook; concurrent surfaces must use distinct scopes */
+    /** Identifies the list surface consuming the hook. Concurrent surfaces must use distinct scopes. */
     scopeKey?: string;
+
+    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    shouldRequireScreenFocus?: boolean;
 };
 
 type UseMarkAsReadResult = {
@@ -56,9 +63,11 @@ function useMarkAsRead({
     report,
     transactionThreadReport,
     sortedVisibleReportActions,
+    sortedReportActions,
     isScrolledToEnd,
     hasNewerActions,
     scopeKey = 'default',
+    shouldRequireScreenFocus = false,
 }: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -112,7 +121,13 @@ function useMarkAsRead({
         }
 
         didMarkReportAsReadInitially.current = true;
+
+        if (hasNewerActions || !isScrolledToEnd) {
+            return;
+        }
+
         readNewestAction(reportID, isReportActionsLoaded);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
@@ -120,6 +135,10 @@ function useMarkAsRead({
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
         if (reportID !== prevReportIDByScope.get(scopeKey)) {
+            return;
+        }
+
+        if (shouldRequireScreenFocus && !isFocused) {
             return;
         }
 
@@ -176,7 +195,7 @@ function useMarkAsRead({
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = isScrolledToEnd;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
+        const hasUnreadReportAction = (sortedReportActions ?? sortedVisibleReportActions).some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&

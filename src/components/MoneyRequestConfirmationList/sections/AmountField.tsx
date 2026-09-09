@@ -13,6 +13,7 @@ import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoney
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
+import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
@@ -88,8 +89,10 @@ function AmountField({
         ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
         : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
-    // amount itself is the missing value.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && !transactionSlice?.isAmountSet;
+    // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
+    // error from, so a scan expense (where the amount is populated programmatically and `isAmountSet` is never set)
+    // can't show a phantom required error under a perfectly good amount.
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -268,7 +271,7 @@ function AmountField({
         if (isInlineAmountInvalid && shouldDisplayFieldError) {
             setFormError('common.error.invalidAmount');
         } else if (!isInlineAmountInvalid) {
-            clearFormErrors(['common.error.invalidAmount', 'common.error.fieldRequired']);
+            clearFormErrors(['common.error.invalidAmount']);
         }
 
         buildAndSaveSplitShares(parsedAmount, effectiveCurrency);

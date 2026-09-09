@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import useIsReportVisible from '@hooks/useIsReportVisible';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
@@ -48,7 +49,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -69,7 +70,6 @@ const EmptyParentReportActionForTransactionThread = undefined;
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
 type MoneyRequestReportListProps = {
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -107,10 +107,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     }, [reportScrollManager]);
 
     const didLayout = useRef(false);
-    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
-    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const isReportVisible = useIsReportVisible(shouldUseNarrowLayout);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -141,14 +139,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
     });
-    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
+    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isReportVisible);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
-    // The ref holds the report we already scrolled for, so the scroll fires only once per report open.
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
@@ -226,9 +223,11 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         report,
         transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
+        sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
         scopeKey: 'moneyRequestReport',
+        shouldRequireScreenFocus: true,
     });
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -572,18 +571,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     );
 }
 
-/**
- * Public money-request report actions list. Thin wrapper that keys the content per report so all
- * hook state (unread marker time, pagination cursors, scroll refs) resets on report switch — the
- * same contract `ReportActionsList` gets from its `key={report.reportID}` consumers.
- */
 function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
 
     return (
         <MoneyRequestReportActionsListContent
-            key={reportIDFromRoute}
+            key={reportIDFromRoute ?? ''}
             reportIDFromRoute={reportIDFromRoute}
             onLayout={onLayout}
         />

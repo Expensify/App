@@ -82,7 +82,6 @@ type WorkspaceDetails = {
 };
 
 type ConnectionWithLastSyncData = {
-    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
 
@@ -819,6 +818,12 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
+/**
+ * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
+ */
+const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
+    (isPolicyAdmin(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
+
 const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
     return !!policyID && policyID === policy?.id;
 };
@@ -1104,6 +1109,53 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
 }
 
 /**
+ * Checks whether a policy tag is selectable under a given parent tag path.
+ * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
+ * while tags without a filter apply everywhere.
+ */
+function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
+    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+}
+
+/**
+ * Finds the policy tag at a single tag list level that matches a tag name.
+ * Dependent tag lists can hold same-named child tags under different parents (stored under unique
+ * record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
+ */
+function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagPath: string): ValueOf<PolicyTags> | undefined {
+    const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
+        if (!levelTag || levelTag.name !== tagName) {
+            return false;
+        }
+        return matchesParentTagPath(levelTag, parentTagPath);
+    };
+
+    const directMatch = levelTags[tagName];
+    return matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
+}
+
+function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
+    if (!policyTags) {
+        return false;
+    }
+    const tagComponents = getTagArrayFromName(tagValue);
+    const sortedTagLists = getTagLists(policyTags);
+
+    return tagComponents.every((component, index) => {
+        if (!component) {
+            return true;
+        }
+        const levelTags = sortedTagLists.at(index)?.tags;
+        if (!levelTags) {
+            return false;
+        }
+        const tag = findPolicyTagAtLevel(levelTags, component, tagComponents.slice(0, index).join(':'));
+        return !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
+}
+
+/**
  * Checks if a policy has any custom categories (categories not in the default list)
  */
 function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boolean {
@@ -1284,20 +1336,7 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
                 return '';
             }
 
-            // Dependent tag lists can hold same-named child tags under different parents (stored under unique
-            // record keys), so a tag only matches by name when its parent filter also matches the parent tag path.
-            const parentTagPath = tagParts.slice(0, index).join(':');
-            const matchesTagAtLevel = (levelTag: ValueOf<PolicyTags> | undefined): levelTag is ValueOf<PolicyTags> => {
-                if (!levelTag || levelTag.name !== tagName) {
-                    return false;
-                }
-                const filterRegex = levelTag.rules?.parentTagsFilter ?? levelTag.parentTagsFilter;
-                return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
-            };
-
-            const directMatch = levelTags[tagName];
-            const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            return getGLCodeFromPolicyTag(matchingTag);
+            return getGLCodeFromPolicyTag(findPolicyTagAtLevel(levelTags, tagName, tagParts.slice(0, index).join(':')));
         })
         .filter(Boolean)
         .join(', ');
@@ -1477,6 +1516,7 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
         CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
         CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
@@ -3180,6 +3220,9 @@ export {
     getTagListName,
     getTagLists,
     hasTags,
+    isTagInPolicy,
+    findPolicyTagAtLevel,
+    matchesParentTagPath,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,
@@ -3219,6 +3262,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
     isPolicyEmployee,
     arePolicyRulesEnabled,

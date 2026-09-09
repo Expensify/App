@@ -30,7 +30,7 @@ type UseMoneyRequestReportVisibleActionsParams = {
 };
 
 type UseMoneyRequestReportVisibleActionsResult = {
-    /** Actions to render in the unified list — oldest-first, because this view starts at the top and is not inverted */
+    /** Actions to render in the unified list. Oldest-first, because this view starts at the top and is not inverted. */
     visibleReportActions: OnyxTypes.ReportAction[];
 
     /** The same visible actions in the newest-first domain shared hooks like `useMarkAsRead` expect */
@@ -56,8 +56,6 @@ function useMoneyRequestReportVisibleActions({
     shouldShowHarvestCreatedAction,
     isOffline,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
-    // Scoped selector: subscribing to the whole derived value re-renders this view on any report-action
-    // change anywhere in the app; the selector keeps the ref stable while this report's slice is unchanged.
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
     const visibleReportActionsNewestFirst = reportActions.filter((reportAction) => {
@@ -83,7 +81,6 @@ function useMoneyRequestReportVisibleActions({
         return true;
     });
 
-    // We are reversing actions because in this view we are starting at the top and don't use an inverted list
     const visibleReportActions = visibleReportActionsNewestFirst.slice().reverse();
     const lastAction = visibleReportActionsNewestFirst.at(0);
     const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActions, isOffline);
