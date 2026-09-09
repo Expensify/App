@@ -2940,14 +2940,28 @@ function isOneOnOneChat(report: OnyxEntry<Report>, currentUserAccountID?: number
  * in accountIDList makes OpenReport fail with "Email not found". The server resolves a DM from the
  * emailList alone, the same way navigateToAndOpenReport creates one.
  */
-function getOneOnOneChatParticipants(report: OnyxEntry<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, currentUserAccountID: number | undefined): Array<{login: string}> {
+function getOneOnOneChatParticipants(
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number | undefined,
+): Array<{login: string; accountID?: number}> {
     if (!currentUserAccountID || !isOneOnOneChat(report, currentUserAccountID)) {
         return [];
     }
     return Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID)
-        .map((accountID) => ({login: personalDetails?.[accountID]?.login ?? ''}))
+        .map((accountID) => {
+            const personalDetail = personalDetails?.[accountID];
+            // An invited user's accountID is generated locally (see generateAccountID) and does not exist on
+            // the server yet, so sending it in accountIDList makes OpenReport fail with "Email not found".
+            // A real accountID is still sent so the server can resolve the DM unambiguously when the cached
+            // login is stale or is a secondary login.
+            return {
+                login: personalDetail?.login ?? '',
+                ...(personalDetail?.isOptimisticPersonalDetail ? {} : {accountID}),
+            };
+        })
         .filter((participant) => !!participant.login);
 }
 

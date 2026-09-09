@@ -12102,8 +12102,8 @@ describe('ReportUtils', () => {
             participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
         };
 
-        it('should return the other participant of a 1:1 DM with their login only', () => {
-            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toEqual([{login: 'other@test.com'}]);
+        it('should return the other participant of a 1:1 DM with their login and real accountID', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toStrictEqual([{login: 'other@test.com', accountID: OTHER_ACCOUNT_ID}]);
         });
 
         it('should not send a locally generated accountID for an invited user who has no account yet', () => {
