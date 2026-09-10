@@ -83,6 +83,9 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={cachedPreviewSource ?? processedPreviewSource}
+            // Only an uploaded attachment's ID names one picture. Images without one get a positional ID from
+            // getHtmlWithAttachmentID, and an edit can put a different picture at the same position.
+            recyclingKey={isAttachmentOrReceipt ? attachmentID : undefined}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}

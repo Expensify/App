@@ -47,6 +47,9 @@ type ImageWithSizeCalculationProps = {
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 /**
@@ -68,6 +71,7 @@ function ImageWithSizeCalculation({
     onLoad,
     resizeMode,
     previewUri,
+    recyclingKey,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
@@ -98,6 +102,7 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             previewUri={previewUri}
+            recyclingKey={recyclingKey}
         />
     );
 }
