@@ -22,9 +22,9 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {openExternalLink} from '@userActions/Link';
-
 import variables from '@styles/variables';
+
+import {openExternalLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
