@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Zoeken',
         reports: 'Rapporten',
         spend: 'Uitgaven',
+        insights: 'Inzichten',
         find: 'Zoeken',
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
@@ -4611,6 +4612,7 @@ ${amount} voor ${merchant} - ${date}`,
             travel: 'Reizen',
             members: 'Leden',
             accounting: 'Boekhouding',
+            mcp: 'MCP',
             receiptPartners: 'Bonpartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
@@ -4748,6 +4750,25 @@ ${amount} voor ${merchant} - ${date}`,
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
+        },
+        mcp: {
+            connectors: 'Connectoren',
+            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
+            connect: 'Verbinden',
+            helpPrompt: 'Hulp nodig bij het verbinden?',
+            helpLink: 'Lees onze handleiding.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'van Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'van Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'van OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6504,6 +6525,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Boekhouding',
                 subtitle: 'Synchroniseer je grootboekrekeningschema en meer.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
+            },
             receiptPartners: {
                 title: 'Bonpartners',
                 subtitle: 'Automatisch bonnetjes importeren.',
@@ -8010,6 +8035,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
                 categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
                 categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Het geselecteerde belastingtarief is nu de standaard voor je werkruimte, waardoor deze regel niet meer geldig is. Kies een ander belastingtarief.',
+                addTaxRateFirstTitle: 'Voeg eerst een belastingtarief toe',
+                addTaxRateFirstPrompt: 'Categorielimieten stellen een standaardbelastingtarief in. Voeg een ander belastingtarief toe dan de standaard van je werkruimte om ze te gebruiken.',
+                createRuleFromExpenseAction: 'Maak een regel',
+                createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -9447,7 +9478,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
-            has: {submittedViolation: 'Ingediende overtreding'},
+            has: {submittedViolation: 'Ingediende overtreding', approvedViolation: 'Goedgekeurde schending'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Verzenden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
