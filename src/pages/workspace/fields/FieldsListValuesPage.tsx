@@ -60,6 +60,28 @@ type FieldsListValuesPageProps = {
     testID: string;
 };
 
+type FieldsListValuesTableHeaderProps = {
+    /** Action buttons to display in a separate row when needed */
+    headerButtons: React.ReactNode;
+    /** Whether to render the action buttons above the list subtitle */
+    shouldDisplayButtonsInSeparateLine: boolean;
+    /** Translated subtitle for the current field type */
+    subtitle: string;
+};
+
+function FieldsListValuesTableHeader({headerButtons, shouldDisplayButtonsInSeparateLine, subtitle}: FieldsListValuesTableHeaderProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
+            </View>
+        </>
+    );
+}
+
 function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, featureName, policyFeature, getValueSettingsRoute, getAddValueRoute, testID}: FieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -331,6 +353,13 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
     const headerButtons = getHeaderButtons();
+    const tableHeaderComponent = (
+        <FieldsListValuesTableHeader
+            headerButtons={headerButtons}
+            shouldDisplayButtonsInSeparateLine={shouldDisplayButtonsInSeparateLine}
+            subtitle={translate(listInputSubtitleKey)}
+        />
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -358,14 +387,12 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate(listInputSubtitleKey)}</Text>
-                </View>
+                {isInvoicePage && tableHeaderComponent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}
                     selectionEnabled={canWrite}
                     selectedKeys={selectedKeys}
+                    headerComponent={isInvoicePage ? undefined : tableHeaderComponent}
                     onRowSelectionChange={setSelectedKeys}
                     isInvoicePage={isInvoicePage}
                 />

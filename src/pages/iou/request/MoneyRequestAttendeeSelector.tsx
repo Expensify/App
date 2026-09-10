@@ -241,6 +241,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
                 onConfirm: confirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
