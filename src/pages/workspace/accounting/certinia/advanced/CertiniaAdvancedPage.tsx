@@ -1,10 +1,14 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -21,18 +25,21 @@ import {
 } from '@userActions/connections/FinancialForce';
 
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
 function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const policyID = policy?.id;
-    const config = policy?.connections?.financialforce?.config;
+    const {config, data} = policy?.connections?.financialforce ?? {};
     const advancedConfig = config?.advanced;
     const isPSA = !!config?.hasPSA;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path);
+    const advancedPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path}` : undefined;
+    const selectedFxExpenseAccountName = data?.expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount)?.name;
 
     return (
         <ConnectionLayout
@@ -118,6 +125,18 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     errors={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS)}
                     onCloseError={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 />
+            )}
+            {!isPSA && isGlobalReimbursementFXEnabled && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        title={selectedFxExpenseAccountName}
+                        description={translate('workspace.certinia.fxExpenseAccount')}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        onPress={!advancedPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path, advancedPath))}
+                        brickRoadIndicator={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
             )}
         </ConnectionLayout>
     );
