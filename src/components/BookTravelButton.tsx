@@ -32,20 +32,15 @@ import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = WithSentryLabel & {
     text: string;
     activePolicyID?: string;
-
-    /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
-
-    /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
-
     shouldShowVerifyAccountModal?: boolean;
 
     /** Whether to render a large button */

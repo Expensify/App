@@ -11,7 +11,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -19,7 +19,6 @@ import Text from './Text';
 const ICON_SIZE = variables.iconSizeNormal;
 
 type BaseWidgetItemProps = {
-    /** Icon to display */
     icon: IconAsset;
 
     /** Primary title text */
@@ -31,7 +30,6 @@ type BaseWidgetItemProps = {
     /** Text for the CTA button */
     ctaText: string;
 
-    /** Callback when CTA is pressed */
     onCtaPress: () => void;
 
     /** The visual variant of the CTA button */

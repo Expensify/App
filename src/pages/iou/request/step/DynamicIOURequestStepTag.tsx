@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
@@ -119,6 +119,7 @@ function DynamicIOURequestStepTag({
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const parentTransactionTag = useMemo(() => {
         if (!isEditingSplit) {
             return '';
@@ -175,6 +176,7 @@ function DynamicIOURequestStepTag({
                 parentReport,
                 iouReportOwnerLogin,
                 tag: updatedTag,
+                tagListIndex,
                 policy,
                 policyTagList: policyTags,
                 policyRecentlyUsedTags,
@@ -190,6 +192,7 @@ function DynamicIOURequestStepTag({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             saveAndNavigateBack();
             return;
