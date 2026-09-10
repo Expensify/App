@@ -1676,6 +1676,27 @@ describe('ReportActionsUtils', () => {
             // Then the action should not be filtered out as an unsupported action type
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
+
+        it('should encode a workspace name that contains markup so it is not rendered as HTML', () => {
+            // Given a workspace name containing a tag that RenderHTML would render and that htmlToText would turn into a newline
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: 'Ops<br>Team',
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then the HTML form should carry the name encoded, so RenderHTML shows it as typed instead of breaking the line
+            expect(message).toContain('Ops&lt;br&gt;Team');
+            expect(message).not.toContain('Ops<br>Team');
+
+            // And the plain-text surfaces should decode it back to the name as typed, on a single line
+            expect(Parser.htmlToText(message)).toBe('rate updated to $0.67 / mi for the new workspace - Ops<br>Team');
+        });
     });
 
     describe('getReportActionText', () => {

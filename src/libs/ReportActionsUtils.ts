@@ -3417,6 +3417,10 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 /**
  * Builds the Concierge system message explaining that the distance rate of an expense was updated automatically.
  * It is the single source of the copy for every surface (the report, the LHN preview, copy to clipboard), so the message is localized everywhere.
+ *
+ * The returned string is HTML: it is rendered through `RenderHTML` in the report and returned as the `html` fragment of the action,
+ * and every plain-text surface (LHN preview, thread title, clipboard) runs it back through `Parser.htmlToText`.
+ * `policyName` is therefore HTML-encoded, so a workspace name is always shown as typed instead of being interpreted as markup.
  */
 function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {rate, currency, unit, policyName, changeType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
@@ -3427,12 +3431,13 @@ function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate
 
     // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
     const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unit}`;
+    const encodedPolicyName = Str.htmlEncode(policyName);
 
     if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
-        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName});
+        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName: encodedPolicyName});
     }
 
-    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName});
+    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName: encodedPolicyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
