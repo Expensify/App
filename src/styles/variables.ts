@@ -243,7 +243,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    // Distance from the top of the screen to the centered search router popover on wide layout.
+    searchRouterPopoverTopOffset: 40,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,

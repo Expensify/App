@@ -5,8 +5,11 @@ import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileIOS} from '@libs/Browser';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -16,6 +19,7 @@ import {Dimensions} from 'react-native';
 const isMobileWebIOS = isMobileIOS();
 
 function SearchRouterModal() {
+    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
@@ -57,13 +61,16 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 6, top: 6}}
+            // Wide layout: horizontally center the popover and offset it from the top of the screen.
+            popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: 0, top: variables.searchRouterPopoverTopOffset}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
             onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
+            // Wide layout: layer a wider/lighter shadow behind the centered popover for extra separation from the background.
+            innerContainerStyle={shouldUseNarrowLayout ? undefined : styles.searchRouterPopoverShadow}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer
