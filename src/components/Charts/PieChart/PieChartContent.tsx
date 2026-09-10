@@ -1,6 +1,6 @@
 import ChartSkeleton from '@components/Charts/ChartSkeleton';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
+import {TOOLTIP_BAR_GAP, useChartLabelFormats, useMeasuredChartSize, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
@@ -10,8 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-
-import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -36,8 +34,7 @@ type PieChartProps = ChartProps & {
 function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [canvasWidth, setCanvasWidth] = useState(0);
-    const [canvasHeight, setCanvasHeight] = useState(0);
+    const {onLayout, width: canvasWidth, height: canvasHeight, measuredSize} = useMeasuredChartSize();
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
@@ -46,11 +43,6 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const cursorX = useSharedValue(0);
     const cursorY = useSharedValue(0);
     const tooltipPosition = useSharedValue({x: 0, y: 0});
-
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setCanvasWidth(event.nativeEvent.layout.width);
-        setCanvasHeight(event.nativeEvent.layout.height);
-    };
 
     // Calculate pie geometry
     const radius = Math.min(canvasWidth, canvasHeight) / 2;
@@ -153,7 +145,14 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     if (isLoading) {
-        return <ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />;
+        return (
+            <View
+                style={styles.chartContent}
+                onLayout={onLayout}
+            >
+                <ChartSkeleton view={CONST.SEARCH.VIEW.PIE} />
+            </View>
+        );
     }
 
     if (data.length === 0) {
@@ -165,10 +164,11 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             <GestureDetector gesture={combinedGesture}>
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
-                    onLayout={handleLayout}
+                    onLayout={onLayout}
                 >
                     {processedSlices.length > 0 && (
                         <PolarChart
+                            explicitSize={measuredSize}
                             data={processedSlices}
                             labelKey="label"
                             valueKey="value"
