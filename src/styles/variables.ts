@@ -31,7 +31,7 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
-    contentHeaderMobileHeight: getValueUsingPixelRatio(64, 100),
+    contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),

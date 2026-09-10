@@ -2912,8 +2912,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
         },
 
-        headerBarMobileHeight: {
-            height: variables.contentHeaderMobileHeight,
+        headerBarNarrowHeight: {
+            height: variables.contentHeaderNarrowHeight,
         },
 
         imageViewContainer: {

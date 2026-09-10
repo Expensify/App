@@ -14,18 +14,16 @@ type ContentHeaderHeight = {
 };
 
 /**
- * Returns the height of the page header bar. Mobile uses a shorter header so that pages with several fixed elements
- * (header, footer button, tab bar) keep as much vertical space as possible for scrollable content.
+ * Returns the height of the page header bar. Narrow layouts use a shorter header so that pages with several fixed
+ * elements (header, footer button, tab bar) keep as much vertical space as possible for scrollable content.
  */
 function useContentHeaderHeight(): ContentHeaderHeight {
     const styles = useThemeStyles();
-    // The shorter header is a mobile-only change, so the RHP on a wide screen must keep the taller header.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return {
-        contentHeaderHeight: isSmallScreenWidth ? variables.contentHeaderMobileHeight : variables.contentHeaderHeight,
-        contentHeaderHeightStyle: isSmallScreenWidth ? styles.headerBarMobileHeight : styles.headerBarHeight,
+        contentHeaderHeight: shouldUseNarrowLayout ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight,
+        contentHeaderHeightStyle: shouldUseNarrowLayout ? styles.headerBarNarrowHeight : styles.headerBarHeight,
     };
 }
 
