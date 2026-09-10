@@ -262,9 +262,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                             });
                             return true;
                         });
-                })
-                .then(() => {
-                    return Onyx.set(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR, false);
                 });
         })
         .catch((error) => {
