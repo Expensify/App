@@ -30,6 +30,7 @@ import type {
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import type {
     GroupedItem,
+    QueryFilterKey,
     QueryFilters,
     ReportFieldKey,
     ReportFieldTextKey,
@@ -168,6 +169,7 @@ import {
     getReportOrDraftReport,
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
+    getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasOnlyNonReimbursableTransactions,
@@ -221,7 +223,6 @@ import {
     getTag,
     getTaxAmount,
     getTaxName,
-    getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
@@ -280,6 +281,7 @@ type GetReportSectionsParams = {
     isActionLoadingSet: ReadonlySet<string> | undefined;
     isOffline: boolean | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
@@ -294,6 +296,7 @@ type GetTransactionSectionsParams = {
     translate: LocalizedTranslate;
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     isAttendeesEnabledForMovingPolicy?: boolean;
@@ -648,6 +651,7 @@ type GetSectionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     currentSearch?: SearchKey;
@@ -767,7 +771,7 @@ function getSuggestedSearches(
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
     activeExpensifyCardFeedID?: string,
-): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+): Record<SearchKey, SearchTypeMenuItem> {
     // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
     // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
     const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
@@ -1278,8 +1282,6 @@ function getTransactionItemCommonFormattedProperties(
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
-    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
-
     const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate, formatPhoneNumber});
 
     // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
@@ -1289,8 +1291,8 @@ function getTransactionItemCommonFormattedProperties(
         formattedTo = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(to?.accountID), translate, formatPhoneNumber});
     }
 
-    const isDeleted = isDeletedTransaction(transactionItem);
-    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
+    // formattedTotal is the Amount column's sort key and holds the same signed value the row displays.
+    const formattedTotal = getTransactionDisplayAmount(transactionItem, report, policy);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
@@ -2258,6 +2260,7 @@ function getTransactionsSections({
     translate,
     isActionLoadingSet,
     bankAccountList,
+    rules,
     reportActions = {},
     queryJSON,
     isAttendeesEnabledForMovingPolicy,
@@ -2341,7 +2344,7 @@ function getTransactionsSections({
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
             const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
@@ -2554,6 +2557,7 @@ function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): Ony
  *
  * Do not use directly, use only via `getSections()` facade.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getActions(
     data: OnyxTypes.SearchResults['data'],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
@@ -2563,6 +2567,7 @@ function getActions(
     currentUserAccountID: number,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    rules: OnyxCollection<OnyxTypes.Rule>,
     reportActions: OnyxTypes.ReportAction[] = [],
     precomputedTransactionsForReport?: OnyxTypes.Transaction[],
 ): SearchTransactionAction[] {
@@ -2660,7 +2665,7 @@ function getActions(
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
@@ -3156,6 +3161,7 @@ function getReportSections({
     formatPhoneNumber,
     isActionLoadingSet,
     bankAccountList,
+    rules,
     reportActions = {},
     queryJSON,
     onyxPersonalDetailsList,
@@ -3213,7 +3219,19 @@ function getReportSections({
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
+                const allActions = getActions(
+                    data,
+                    allViolations,
+                    key,
+                    currentSearch,
+                    currentUserEmail,
+                    currentAccountID,
+                    bankAccountList,
+                    reportMetadata,
+                    rules,
+                    actions,
+                    allReportTransactions,
+                );
 
                 const fromDetails =
                     mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -3346,7 +3364,7 @@ function getReportSections({
             );
 
             const transactionReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transaction = {
                 ...transactionItem,
@@ -3397,7 +3415,7 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: SearchFilterKey; value: string | number} | undefined {
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilterKey; value: string | number} | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
@@ -3422,7 +3440,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
     }
 }
 
-function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
+function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
@@ -4007,6 +4025,7 @@ function getSections({
     translate,
     formatPhoneNumber,
     bankAccountList,
+    rules,
     groupBy,
     reportActions,
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -4044,6 +4063,7 @@ function getSections({
             formatPhoneNumber,
             isActionLoadingSet,
             bankAccountList,
+            rules,
             reportActions,
             queryJSON,
             onyxPersonalDetailsList,
@@ -4087,6 +4107,7 @@ function getSections({
         translate,
         isActionLoadingSet,
         bankAccountList,
+        rules,
         reportActions,
         queryJSON,
         isAttendeesEnabledForMovingPolicy,
@@ -4908,11 +4929,9 @@ type ShareProps = {
  */
 function getOverflowMenu(
     icons: OverflowMenuIconsType,
-    itemName: string,
-    hash: number,
-    inputQuery: string,
+    savedSearchID: string,
     translate: LocalizedTranslate,
-    showDeleteModal: (hash: number) => void,
+    showDeleteModal: (savedSearchID: string) => void,
     isMobileMenu?: boolean,
     closeMenu?: () => void,
     shareProps?: ShareProps,
@@ -4924,7 +4943,7 @@ function getOverflowMenu(
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute({name: encodeURIComponent(itemName), jsonQuery: inputQuery}));
+                Navigation.navigate(ROUTES.SEARCH_SAVED_SEARCH_RENAME.getRoute(savedSearchID));
             },
             icon: icons.Pencil,
             shouldShowRightIcon: false,
@@ -4950,7 +4969,7 @@ function getOverflowMenu(
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
                 }
-                showDeleteModal(hash);
+                showDeleteModal(savedSearchID);
             },
             icon: icons.Trashcan,
             shouldShowRightIcon: false,
@@ -4959,6 +4978,24 @@ function getOverflowMenu(
             shouldCloseAllModals: true,
         },
     ];
+}
+
+function savedSearchIDToSearchKey(id: string): SearchKey {
+    return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
+}
+
+/**
+ * Returns the last query used for a search key.
+ *
+ * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
+ */
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+    const searchFilter = searchFilters?.[searchKey];
+    return typeof searchFilter === 'object' ? searchFilter.query : undefined;
+}
+
+function searchKeyToSavedSearchID(key: SearchKey | undefined) {
+    return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
 
 /**
@@ -6128,6 +6165,16 @@ function isReportFieldKey(key: string): key is ReportFieldKey {
     return key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
 }
 
+/**
+ * Normalizes any report field key (`reportFieldOn-`, `reportFieldNot-`, ...) to the plain `reportField-<name>` form that
+ * search query filters hold. Every prefix ends in a hyphen, and the field name itself may contain hyphens, so only the
+ * first one is treated as the separator.
+ */
+function getReportFieldTextKey(key: ReportFieldKey): ReportFieldTextKey {
+    const reportFieldName = key.slice(key.indexOf('-') + 1);
+    return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${reportFieldName}`;
+}
+
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
     label: string;
@@ -6142,6 +6189,7 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     dateFnsLocale: DateFnsLocale | undefined,
@@ -6150,23 +6198,26 @@ function mapFiltersFormToLabelValueList(
 ): SearchFilter[];
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     dateFnsLocale: DateFnsLocale | undefined,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper: (filterKey: MappedFilterKey) => T,
+    mapper: (filterKey: MappedFilterKey, isDefault: boolean) => T,
 ): Array<SearchFilter & T>;
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     dateFnsLocale: DateFnsLocale | undefined,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
-    mapper?: (filterKey: MappedFilterKey) => Record<string, unknown>,
+    mapper?: (filterKey: MappedFilterKey, isDefault: boolean) => Record<string, unknown>,
 ): SearchFilter[] {
-    const filters: SearchFilter[] = [];
+    const defaultFilters: SearchFilter[] = [];
+    const nonDefaultFilters: SearchFilter[] = [];
     const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -6190,13 +6241,14 @@ function mapFiltersFormToLabelValueList(
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
-                filters.push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax)});
+                const isDefault = defaultSearchQueryFilterKeys.has(syntax);
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax, isDefault)});
             }
             continue;
         }
 
         // Handle report field filters - only add once
-        if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        if (isReportFieldKey(key)) {
             if (addedGroups.has(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 continue;
             }
@@ -6204,8 +6256,9 @@ function mapFiltersFormToLabelValueList(
             const value = getReportFieldDisplayValue(searchAdvancedFiltersForm, translate, dateFnsLocale);
             if (value) {
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
-                filters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
+                const isDefault = defaultSearchQueryFilterKeys.has(getReportFieldTextKey(key));
+                const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, isDefault);
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
             }
             continue;
         }
@@ -6221,11 +6274,12 @@ function mapFiltersFormToLabelValueList(
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
-            filters.push({key: baseKey, label, value, ...mapper?.(key)});
+            const isDefault = defaultSearchQueryFilterKeys.has(baseKey);
+            (isDefault ? defaultFilters : nonDefaultFilters).push({key: baseKey, label, value, ...mapper?.(key, isDefault)});
         }
     }
 
-    return filters;
+    return [...defaultFilters, ...nonDefaultFilters];
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
@@ -7064,6 +7118,7 @@ function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
+    rules: OnyxCollection<OnyxTypes.Rule>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7088,7 +7143,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7102,7 +7157,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules);
           });
 }
 
@@ -7218,6 +7273,9 @@ export {
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
+    getLastSearchQuery,
+    savedSearchIDToSearchKey,
+    searchKeyToSavedSearchID,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,

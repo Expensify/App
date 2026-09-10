@@ -14,6 +14,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
+    Rule,
     Transaction,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
@@ -210,6 +211,7 @@ type ComputeReportName = {
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     pendingDeleteMemberAccountIDs?: string[];
+    rules: OnyxCollection<Rule>;
 };
 
 function generateArchivedReportName(reportName: string): string {
@@ -503,6 +505,7 @@ function computeReportNameBasedOnReportAction({
     currentUserAccountID,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    rules,
 }: {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
@@ -517,6 +520,7 @@ function computeReportNameBasedOnReportAction({
     currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    rules: OnyxCollection<Rule>;
 }): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -535,6 +539,7 @@ function computeReportNameBasedOnReportAction({
                 isTrackIntentUser,
                 policy: reportPolicy,
                 report: parentReport,
+                rules,
             })
         ) {
             return translate('iou.markedAsDone', getOriginalMessage(parentReportAction)?.message);
@@ -1096,6 +1101,7 @@ function computeReportName({
     convertToDisplayStringWithoutCurrency,
     getCurrencySymbol,
     pendingDeleteMemberAccountIDs,
+    rules,
 }: ComputeReportName): string {
     if (!report?.reportID) {
         return '';
@@ -1119,6 +1125,7 @@ function computeReportName({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
+        rules,
     });
 
     if (parentReportActionBasedName) {
@@ -1153,6 +1160,7 @@ function computeReportName({
             getCurrencySymbol,
             // TODO: pass the true data in the next PR, issue https://github.com/Expensify/App/issues/66421
             pendingDeleteMemberAccountIDs: undefined,
+            rules,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translate);
     }

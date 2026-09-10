@@ -26,7 +26,7 @@ import React from 'react';
 import {Platform, View} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import QAAuthTestToolRows from './QAAuthTestToolRows';

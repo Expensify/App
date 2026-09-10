@@ -36,14 +36,14 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer, searchUserInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -79,17 +79,24 @@ type SearchRouterProps = {
     ref?: React.Ref<View>;
 };
 
+function searchForReportsAndUsersInServer(searchInput: string) {
+    searchInServer(searchInput);
+    searchUserInServer(searchInput);
+}
+
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
-    const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -102,7 +109,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const {query: pendingInitialQuery, isFromSearchPageSearchButton} = peekPendingRouterState();
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchHash} = useSearchQueryContext();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -224,6 +231,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
+                    rules,
                     policy: contextualReportPolicy,
                     sortedActions,
                     conciergeReportID,
@@ -303,6 +311,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isTrackIntentUser,
             dateFnsLocale,
             convertToDisplayString,
+            rules,
         ],
     );
 
@@ -375,6 +384,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
+                const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
+                if (currentSearchHash !== updatedQueryJSON?.hash) {
+                    resetSearchKey(updatedQueryJSON);
+                }
                 Navigation.navigate(
                     ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
                 );
@@ -383,7 +396,18 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setAutocompleteQueryValue, setTextInputValue, setShouldResetSearchQuery, isFromSearchPageSearchButton, policies],
+        [
+            autocompleteSubstitutions,
+            currentUserAccountID,
+            currentSearchHash,
+            onRouterClose,
+            setAutocompleteQueryValue,
+            setTextInputValue,
+            setShouldResetSearchQuery,
+            resetSearchKey,
+            isFromSearchPageSearchButton,
+            policies,
+        ],
     );
 
     const onListItemPress = useCallback(
@@ -536,7 +560,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldShowOfflineMessage
                     wrapperStyle={styles.searchRouterBorder}
                     wrapperFocusedStyle={styles.borderColorFocus}
-                    isSearchingForReports={!!isSearchingForReports}
+                    isSearchingForReports={!!isSearchingForReports || !!isSearchingForUsers}
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
@@ -546,7 +570,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             <DeferredAutocompleteList
                 autocompleteQueryValue={textInputValue.trim() === '' ? '' : debouncedAutocompleteQueryValue}
                 inputQueryValue={textInputValue}
-                handleSearch={searchInServer}
+                handleSearch={searchForReportsAndUsersInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}

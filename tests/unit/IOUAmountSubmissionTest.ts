@@ -224,6 +224,7 @@ describe('AmountSubmission', () => {
                 conciergeReportID: undefined,
                 conciergeChat: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
                 ...overrides,
             };
         };
