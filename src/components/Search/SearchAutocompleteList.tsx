@@ -203,6 +203,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -279,6 +280,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
     }, [
         listOptions,
@@ -298,6 +300,7 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -792,7 +795,9 @@ function SearchAutocompleteList({
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
