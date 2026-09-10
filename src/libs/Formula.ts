@@ -385,7 +385,7 @@ function formatReimbursementAmount(amount: number | undefined, currency: string 
         return '';
     }
 
-    // Only a malformed source currency reaches '' here now, since the modifier is already validated above.
+    // The modifier is validated above, so only a malformed source currency reaches '' here.
     const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
     return formattedAmount === null || formattedAmount === '' ? part.definition : formattedAmount;
 }
