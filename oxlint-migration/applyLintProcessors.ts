@@ -15,8 +15,8 @@
  * actually reports.
  *
  * Piping through here restores the old meaning without duplicating either stage: it imports the
- * production processors and runs them over the report. It is not a second implementation, and it
- * dies with this directory.
+ * production processors and runs them over the report, then rebuilds the report from what they
+ * returned. It is not a second implementation, and it dies with this directory.
  *
  * The third stage, `Seatbelt`, is deliberately NOT run. It is a ratchet on pre-existing debt rather
  * than a lint semantic, so demoting grandfathered errors here would compare a filtered ESLint set
@@ -49,18 +49,31 @@ function readArgument(name: string): string | undefined {
 }
 
 /**
- * Identity of a finding, stable across `normalizeESLintResults`. The processors filter rather than
- * rewrite, so surviving messages can be matched back to the entries they came from. Serialized
- * rather than joined on a separator, so a message containing the separator cannot collide with a
- * different finding. `line`/`column` mirror the `?? 0` fallback the normalizer applies to messages
- * ESLint reports without a position.
+ * Put a processed message back into ESLint's own message shape.
+ *
+ * The output is rebuilt from the processed messages rather than by filtering the input report down to
+ * the ones that survived. `StratifyNoDeprecated` rewrites `ruleID`, so matching a processed message
+ * back to the entry it came from on any key involving the rule name silently drops every finding it
+ * touched: 235 `@typescript-eslint/no-deprecated` errors, measured 2026-09-10. Emitting forwards
+ * carries the rewritten IDs through instead, which is what the repo's own gate reports and what
+ * `norm_es` in ruleMap.py folds back for the comparison.
+ *
+ * `LintMessage` is a subset of an ESLint message: `nodeType`, `messageId` and `fatal` are dropped by
+ * `normalizeESLintResults` and cannot be recovered here. Nothing downstream of this script reads
+ * them (`compareFullRepo.py` reads `filePath`, `ruleId`, `line` and `severity`), so they stay lost.
  */
-function keyOf(filePath: string, ruleID: string | null, line: number | undefined, column: number | undefined, message: string): string {
-    return JSON.stringify([filePath, ruleID ?? '', line ?? 0, column ?? 0, message]);
-}
-
-function keyOfMessage(message: LintMessage): string {
-    return keyOf(message.filePath, message.ruleID, message.line, message.column, message.message);
+function toESLintMessage(message: LintMessage) {
+    return {
+        ruleId: message.ruleID,
+        severity: message.severity,
+        message: message.message,
+        line: message.line,
+        column: message.column,
+        endLine: message.endLine,
+        endColumn: message.endColumn,
+        suggestions: message.suggestions,
+        fix: message.fix,
+    };
 }
 
 const inputPath = readArgument('--in');
@@ -87,9 +100,15 @@ for (const processor of [new ReactCompilerFilter(), new StratifyNoDeprecated()])
     messages = await processor.process(messages, context);
 }
 
-const survivors = new Set(messages.map(keyOfMessage));
+const byFile = new Map<string, LintMessage[]>();
+for (const message of messages) {
+    const list = byFile.get(message.filePath) ?? [];
+    list.push(message);
+    byFile.set(message.filePath, list);
+}
+
 const filtered = report.map((file) => {
-    const kept = file.messages.filter((message) => survivors.has(keyOf(file.filePath, message.ruleId, message.line, message.column, message.message)));
+    const kept = (byFile.get(file.filePath) ?? []).map(toESLintMessage);
     const errorCount = kept.filter((message) => message.severity >= LINT_SEVERITY.ERROR).length;
     return {
         ...file,
@@ -101,6 +120,12 @@ const filtered = report.map((file) => {
         fixableWarningCount: kept.filter((message) => !!message.fix && message.severity < LINT_SEVERITY.ERROR).length,
     };
 });
+
+const emitted = filtered.reduce((total, file) => total + file.messages.length, 0);
+if (emitted !== messages.length) {
+    console.error(`applyLintProcessors: ${messages.length - emitted} message(s) belong to a file absent from the input report.`);
+    process.exit(2);
+}
 
 const outputText = JSON.stringify(filtered);
 if (outputPath) {
