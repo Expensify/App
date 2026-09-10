@@ -10,16 +10,12 @@ import type {Ref} from 'react';
 import type {Animated, StyleProp, View, ViewStyle} from 'react-native';
 
 type TabSelectorProps = MaterialTopTabBarProps & {
-    /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
-
-    /* Callback fired when tab is long pressed */
     onLongTabPress?: (key: string) => void;
 
     /** Callback to register focus trap container element */
     onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
 
-    /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
 
     /** Whether tabs should have equal width */
@@ -36,7 +32,6 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Localized title to display. */
     title: string;
 
-    /** Test identifier used to find elements in tests. */
     testID?: string;
 
     /** Text to display on the badge on the tab. */
@@ -54,7 +49,6 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Called instead of selecting the tab when it is disabled. Keeps the tab pressable so it can explain why it is locked. */
     disabledAction?: () => void | Promise<void>;
 
-    /** Pending action for the tab. */
     pendingAction?: PendingAction;
 
     /** Optional ref forwarded to this tab's pressable element, e.g. to anchor a popover to this specific tab. */
@@ -69,25 +63,15 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
 };
 
 type TabSelectorBaseProps<K extends string = string> = {
-    /** Tabs to render. */
     tabs: Array<TabSelectorBaseItem<K>>;
-
-    /** Key of the currently active tab. */
     activeTabKey: K | undefined;
-
-    /** Called when a tab is pressed with its key. */
     onTabPress?: (key: K) => void;
-
-    /* Callback fired when tab is long pressed */
     onLongTabPress?: (key: K) => void;
-
-    /* Callback fired when active tab is pressed */
     onActiveTabPress?: (key: K) => void;
 
     /** Animated position from a navigator (optional). */
     position?: Animated.AnimatedInterpolation<number>;
 
-    /** Whether to show the label when the tab is inactive. */
     shouldShowLabelWhenInactive?: boolean;
 
     /** Whether tabs should have equal width. */
@@ -98,19 +82,16 @@ type TabSelectorBaseProps<K extends string = string> = {
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
-    /** Key of the tab */
     tabKey: string;
 
     /** Function to call when onPress */
     onPress?: () => void;
 
-    /* Callback fired when tab is long pressed */
     onLongPress?: () => void;
 
     /** Icon to display on tab */
     icon?: IconAsset;
 
-    /** Title of the tab */
     title?: string;
 
     /** Animated background color value for the tab button */
@@ -125,10 +106,7 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Whether this tab is active */
     isActive?: boolean;
 
-    /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
-
-    /** Test identifier used to find elements in tests */
     testID?: string;
 
     /** Whether tabs should have equal width */
@@ -149,7 +127,6 @@ type TabSelectorItemProps = WithSentryLabel & {
     /** Called instead of selecting the tab when it is disabled. Keeps the tab pressable so it can explain why it is locked. */
     disabledAction?: () => void | Promise<void>;
 
-    /** Pending action for the tab. */
     pendingAction?: PendingAction;
 
     /** Optional ref forwarded to the tab's pressable element. */
@@ -157,14 +134,7 @@ type TabSelectorItemProps = WithSentryLabel & {
 };
 
 type AnimationConfigBase = {
-    /**
-     * The number of routes.
-     */
     routesLength: number;
-
-    /**
-     * The index of the current tab.
-     */
     tabIndex: number;
 
     /**
@@ -172,21 +142,11 @@ type AnimationConfigBase = {
      */
     affectedTabs: number[];
 
-    /**
-     * The animated position interpolation.
-     */
     position: Animated.AnimatedInterpolation<number> | undefined;
-
-    /**
-     * Whether the tab is active.
-     */
     isActive: boolean;
 };
 
 type GetBackgroundColorConfig = AnimationConfigBase & {
-    /**
-     * The theme colors.
-     */
     theme: ThemeColors;
 };
 
