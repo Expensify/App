@@ -52,6 +52,7 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
+    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -131,6 +132,7 @@ import {
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
@@ -206,6 +208,7 @@ type GetTrackExpenseInformationParams = {
     policyType?: CreatableWorkspaceType;
     isDraftChatReport: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type DeleteTrackExpenseParams = {
@@ -890,6 +893,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserLocalCurrency,
         policyType,
         getCurrencyDecimals,
+        rules,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1066,7 +1070,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1081,6 +1085,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             iouReport = {...iouReport};
@@ -1676,6 +1681,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         writeBarrier,
+        rules,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1788,6 +1794,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -1947,6 +1954,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
+    }
+
     deferredAPIWrite?.();
 
     if (!requestMoneyInformation.isRetry) {
@@ -1985,6 +1996,7 @@ function convertBulkTrackedExpensesToIOU({
     isTrackIntentUser,
     formatPhoneNumber,
     getCurrencyDecimals,
+    rules,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -2003,6 +2015,7 @@ function convertBulkTrackedExpensesToIOU({
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2125,6 +2138,7 @@ function convertBulkTrackedExpensesToIOU({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2459,6 +2473,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserLocalCurrency,
         getCurrencyDecimals,
         writeBarrier,
+        rules,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2628,6 +2643,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
         getCurrencyDecimals,
+        rules,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;

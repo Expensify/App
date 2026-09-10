@@ -41,7 +41,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -61,6 +61,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
         ...rest,
     });
 }
@@ -203,7 +204,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal, undefined);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -245,6 +246,7 @@ describe('actions/Transaction', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -690,7 +692,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -730,6 +732,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -805,6 +808,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -874,7 +878,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -914,6 +918,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -989,6 +994,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -1061,7 +1067,7 @@ describe('actions/Transaction', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1103,6 +1109,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -1187,6 +1194,7 @@ describe('actions/Transaction', () => {
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -1259,7 +1267,7 @@ describe('actions/Transaction', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1302,6 +1310,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -1328,7 +1337,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, {rules: undefined});
                 }
                 await waitForBatchedUpdates();
 
@@ -1414,6 +1423,7 @@ describe('actions/Transaction', () => {
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: allReportActions,

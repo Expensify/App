@@ -49,6 +49,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Boolean flag set whenever we are searching for users in the server */
+    RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
+
     /** Boolean flag indicating a SignInWithShortLivedAuthToken request is in flight. RAM-only so an interrupted request never persists a stuck `true` to IndexedDB and blocks future reauth attempts. */
     RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN: 'isAuthenticatingWithShortLivedToken',
 
@@ -503,7 +506,6 @@ const ONYXKEYS = {
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
     /** Is app in beta version */
-    IS_BETA: 'isBeta',
 
     /** Whether we're checking if the room is public or not */
     RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
@@ -678,6 +680,9 @@ const ONYXKEYS = {
     /** Session-scoped flag: user dismissed the "enable notifications" banner in the Concierge chat */
     RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER: 'hasDismissedConciergeNotificationBanner',
 
+    /** Session-scoped record of the latest expense edit that could become a merchant rule, driving the "Create a rule" callout */
+    RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
+
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
     /** Stores the information about duplicated workspace */
@@ -718,6 +723,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
+
+    /** Stores the last query for each suggested/saved search */
+    SEARCH_FILTERS: 'nvp_searchFilters',
 
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
@@ -770,6 +778,9 @@ const ONYXKEYS = {
 
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
+
+    /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
+    RAM_ONLY_CORPAY_PAY_MODAL: 'corpayPayModal',
 
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
@@ -1321,6 +1332,8 @@ const ONYXKEYS = {
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
         DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
+        CAMPFIRE_CREDENTIALS_FORM: 'campfireCredentialsForm',
+        CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1474,6 +1487,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
+    [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1581,6 +1595,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.SEARCH_FILTERS]: OnyxTypes.SearchFilters;
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
@@ -1727,7 +1742,6 @@ type OnyxValuesMapping = {
         | typeof CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
-    [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
@@ -1750,6 +1764,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;
@@ -1784,6 +1799,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER]: boolean;
+    [ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION]: OnyxTypes.MerchantRuleSuggestion;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
@@ -1826,6 +1842,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL]: OnyxTypes.CorpayPayModal;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;

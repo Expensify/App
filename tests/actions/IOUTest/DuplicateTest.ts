@@ -1703,6 +1703,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(requestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -1749,6 +1750,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1820,6 +1822,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1883,6 +1886,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1939,6 +1943,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2010,6 +2015,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2090,6 +2096,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2157,6 +2164,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2216,6 +2224,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2285,6 +2294,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2339,6 +2349,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2387,6 +2398,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2436,6 +2448,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2487,6 +2500,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2544,6 +2558,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2616,6 +2631,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2689,6 +2705,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2745,6 +2762,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2812,6 +2830,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2996,6 +3015,7 @@ describe('actions/Duplicate', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participantsPolicyTags: {},
             conciergeChat: undefined,
+            rules: undefined,
             ...overrides,
         });
 
@@ -3559,6 +3579,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3616,6 +3637,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3733,6 +3755,7 @@ describe('actions/Duplicate', () => {
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
+            rules: undefined,
             ...overrides,
         });
 

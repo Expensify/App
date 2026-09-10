@@ -56,6 +56,7 @@ type CreateTrackExpenseParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
