@@ -27,7 +27,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>;
@@ -84,6 +83,33 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
         [savePreference, translate, currentPreference, selectedValue],
     );
 
+    // Rendered as the list footer so the invoice-item sub-menu sits directly under the options and the Save button stays pinned to the bottom of the screen.
+    const invoiceItemFooterContent = useMemo(() => {
+        if (config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT) {
+            return null;
+        }
+        return (
+            <OfflineWithFeedback
+                key={translate('workspace.netsuite.invoiceItem.label')}
+                pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
+            >
+                <MenuItemWithTopDescription
+                    description={translate('workspace.netsuite.invoiceItem.label')}
+                    title={selectedItem ? selectedItem.name : undefined}
+                    interactive
+                    shouldShowRightIcon
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path));
+                    }}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        );
+    }, [config?.invoiceItemPreference, config?.pendingFields, config?.errorFields, policyID, selectedItem, translate]);
+
     // Update focused index when the current preference changes (after an error reverts the selection)
     useEffect(() => {
         const selectedIndex = options.findIndex((option) => option.isSelected);
@@ -103,6 +129,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
             displayName="DynamicNetSuiteInvoiceItemPreferenceSelectPage"
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
         >
             <OfflineWithFeedback
@@ -121,6 +148,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                     }}
                     ListItem={SingleSelectListItem}
                     confirmButtonOptions={confirmButtonOptions}
+                    listFooterContent={invoiceItemFooterContent}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
@@ -128,28 +156,6 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                     addBottomSafeAreaPadding
                 />
             </OfflineWithFeedback>
-            {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
-                <View style={[styles.flexGrow1, styles.flexShrink1]}>
-                    <OfflineWithFeedback
-                        key={translate('workspace.netsuite.invoiceItem.label')}
-                        pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.netsuite.invoiceItem.label')}
-                            title={selectedItem ? selectedItem.name : undefined}
-                            interactive
-                            shouldShowRightIcon
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path));
-                            }}
-                            brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
-                </View>
-            )}
         </ConnectionLayout>
     );
 }
