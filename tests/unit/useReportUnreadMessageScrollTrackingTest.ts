@@ -286,6 +286,29 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
 
+        it('does not show the pill for a non-inverted report aligned to top', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: false,
+                    shouldBeAlignedToTop: true,
+                }),
+            );
+
+            act(() => {
+                offsetRef.current = shortHistoryScrollOffset;
+                result.current.trackVerticalScrolling(emptyScrollEventMock);
+            });
+
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+
         it('does not show the pill from the scroll offset when the chat has an unread marker', () => {
             const offsetRef = {current: 0};
             const {result} = renderReadChatHook(offsetRef, 1);

@@ -40,7 +40,15 @@ import {
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    canUserPerformWriteAction,
+    chatIncludesChronosWithID,
+    getReportLastVisibleActionCreated,
+    isHarvestCreatedExpenseReport,
+    isUnread,
+    shouldReportAlignToTop,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import Visibility from '@libs/Visibility';
 
@@ -475,6 +483,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         unreadMarkerReportActionIndex,
         isInverted: false,
         hasNewerActions,
+        shouldBeAlignedToTop: shouldReportAlignToTop(report, parentReportAction),
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
