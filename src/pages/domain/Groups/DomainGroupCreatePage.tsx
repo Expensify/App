@@ -69,15 +69,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
 
-    // Gate on hasAdminPolicies too so this toggle stays in sync with the Preferred Workspace toggle above: the card
-    // override is meaningless without a preferred workspace, and the Preferred Workspace toggle itself locks once the
-    // last admin workspace is gone. Otherwise, if the last admin workspace is removed from another device, this toggle
-    // would stay on and interactive while the Preferred Workspace toggle is locked.
-    const canEnableCardPreferredWorkspace = preferredWorkspace && hasAdminPolicies && isDomainUsingCard;
-    // Derive the effective value instead of trusting the local state alone: if the domain loses its card feed or its
-    // last admin workspace while the page is open (e.g. removed from another device), the setting must not stay on.
-    // Otherwise the toggle would render on but locked, and the group would be created with a stale "on" value.
-    const isCardPreferredWorkspaceActive = expensifyCardPreferredWorkspace && canEnableCardPreferredWorkspace;
+    // Each toggle's dependency (an admin workspace for Preferred Workspace, a card feed for Card preferred workspace)
+    // can disappear while this page is open, e.g. removed from another device. We don't silently flip what the person
+    // set: the toggle keeps its value, we surface the problem when they press Create (see onSubmit), and a toggle is
+    // only locked once it is off while its condition is unmet, mirroring how it would be locked from the start.
+    const canEnablePreferredWorkspace = hasAdminPolicies;
+    const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
 
     useEffect(() => {
         return () => {
@@ -112,6 +109,26 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         return errors;
                     }}
                     onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM>) => {
+                        // A dependency may have been removed from another device after the person enabled a toggle. Rather
+                        // than silently turning the toggle off, surface it here so it's clear why the choice can't be applied.
+                        if (preferredWorkspace && !hasAdminPolicies) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.noWorkspacesMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
+                        if (expensifyCardPreferredWorkspace && !isDomainUsingCard) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
                         createDomainSecurityGroup(
                             domainAccountID,
                             {
@@ -122,7 +139,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                                 enableStrictPolicyRules: strictlyEnforceWorkspaceRules,
                                 enableRestrictedPrimaryPolicy: preferredWorkspace,
                                 restrictedPrimaryPolicyID: preferredPolicyID ?? firstAdminPolicy?.id,
-                                overridePreferredPolicyWithCardPolicy: isCardPreferredWorkspaceActive,
+                                overridePreferredPolicyWithCardPolicy: expensifyCardPreferredWorkspace,
                             },
                             defaultGroupForNewMembers,
                             defaultSecurityGroupID,
@@ -189,7 +206,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
                         isActive={preferredWorkspace}
-                        disabled={!hasAdminPolicies}
+                        disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
                         disabledAction={() => {
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -225,8 +242,8 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
-                        isActive={isCardPreferredWorkspaceActive}
-                        disabled={!canEnableCardPreferredWorkspace}
+                        isActive={expensifyCardPreferredWorkspace}
+                        disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
                         disabledAction={() => {
                             // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
                             if (isCardEligibilityLoading) {

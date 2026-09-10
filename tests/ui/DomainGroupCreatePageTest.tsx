@@ -148,7 +148,7 @@ describe('DomainGroupCreatePage Card preferred workspace toggle', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('turns the toggle off and re-locks it when the card feed is removed after it was switched on', async () => {
+    it('keeps the card toggle exactly as set when the card feed is removed, and only locks it once it is manually turned off', async () => {
         // Given an admin who enabled the card preferred workspace toggle on a domain that has a company card feed
         await setupAdminDomain();
         await act(async () => {
@@ -169,37 +169,78 @@ describe('DomainGroupCreatePage Card preferred workspace toggle', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the toggle flips back off and locks, instead of staying on but locked (and creating the group with a stale value)
+        // Then the toggle stays on and interactive (not silently flipped or locked): its value is kept as the person set it
+        const cardSwitch = await screen.findByRole(CONST.ROLE.SWITCH, {name: cardToggleName(), checked: true});
+        expect(cardSwitch.props.accessibilityLabel).not.toContain(TestHelper.translateLocal('common.locked'));
+
+        // And only once the person manually turns it off does it lock, mirroring how it would be locked from the start
+        fireEvent.press(cardSwitch);
+        await waitForBatchedUpdatesWithAct();
         expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: lockedCardToggleName(), checked: false})).toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('turns the toggle off and re-locks it when the last admin workspace is removed after it was switched on', async () => {
+    it('blocks Create with an error when a card feed was removed while the card toggle is still on, instead of silently changing it', async () => {
         // Given an admin who enabled the card preferred workspace toggle on a domain that has a company card feed
-        const policy = await setupAdminDomain();
+        await setupAdminDomain();
         await act(async () => {
             await Onyx.merge(domainMemberKey, {settings: {companyCards: {[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {liabilityType: 'personal'}}}});
         });
         const {unmount} = renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        fireEvent.changeText(await screen.findByLabelText(TestHelper.translateLocal('common.name')), 'My group');
         fireEvent.press(await screen.findByRole(CONST.ROLE.SWITCH, {name: preferredWorkspaceToggleName()}));
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(await screen.findByRole(CONST.ROLE.SWITCH, {name: cardToggleName()}));
         await waitForBatchedUpdatesWithAct();
-        expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: cardToggleName(), checked: true})).toBeOnTheScreen();
 
-        // When the last admin workspace is removed (e.g. from another device) while the create page is still open
+        // When the card feed is removed (e.g. from another device) while the toggle is still on, and Create is pressed
+        await act(async () => {
+            await Onyx.merge(domainMemberKey, {settings: {companyCards: {[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: null}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('domain.groups.createGroupSubmitButton')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the creation flow surfaces the error explaining the missing dependency instead of creating the group
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('blocks Create with an error when the last admin workspace was removed while the preferred workspace toggle is still on', async () => {
+        // Given an admin who enabled the preferred workspace toggle
+        const policy = await setupAdminDomain();
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(await screen.findByLabelText(TestHelper.translateLocal('common.name')), 'My group');
+        fireEvent.press(await screen.findByRole(CONST.ROLE.SWITCH, {name: preferredWorkspaceToggleName()}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the last admin workspace is removed (e.g. from another device) while the toggle is still on, and Create is pressed
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, null);
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the card toggle flips back off and locks in sync with the now-locked Preferred Workspace toggle,
-        // instead of staying on and interactive
-        expect(await screen.findByRole(CONST.ROLE.SWITCH, {name: lockedCardToggleName(), checked: false})).toBeOnTheScreen();
+        // The preferred workspace toggle stays on and interactive, not silently flipped
+        const preferredWorkspaceSwitch = await screen.findByRole(CONST.ROLE.SWITCH, {name: preferredWorkspaceToggleName(), checked: true});
+        expect(preferredWorkspaceSwitch.props.accessibilityLabel).not.toContain(TestHelper.translateLocal('common.locked'));
+
+        fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('domain.groups.createGroupSubmitButton')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the creation flow surfaces the error explaining the missing workspace instead of creating the group
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('domain.groups.noWorkspacesMessage'))).toBeOnTheScreen();
+        });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
