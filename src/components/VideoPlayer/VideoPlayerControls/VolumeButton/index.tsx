@@ -21,7 +21,6 @@ import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimat
 import {scheduleOnRN} from 'react-native-worklets';
 
 type VolumeButtonProps = {
-    /** Style for the volume button. */
     style?: StyleProp<ViewStyle>;
 
     /** Is button icon small. */
