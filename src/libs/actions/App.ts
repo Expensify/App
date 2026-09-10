@@ -1018,6 +1018,13 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
     Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
 }
 
+/**
+ * Clears the Corpay pay modal signal for the current session.
+ */
+function clearCorpayPayModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -1038,6 +1045,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
+    clearCorpayPayModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

@@ -511,6 +511,8 @@ const translations = {
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
+        corpayPayModalTitle: 'Pay report',
+        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
@@ -3264,6 +3266,7 @@ const translations = {
         unread: 'Unread',
         markAllAsRead: 'Mark all as read',
         markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
+        markAllTodosAsReadConfirmationPrompt: 'Are you sure you want to mark all to-do chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
@@ -11149,6 +11152,7 @@ const translations = {
         notVerified: 'Not verified',
         retry: 'Retry',
         requestSent: 'Request sent',
+        requestAccessError: "We couldn't send your request. Please try again.",
         verifyDomain: {
             title: 'Verify domain',
             beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
@@ -11208,12 +11212,12 @@ const translations = {
             setMetadataGenericError: "Couldn't set SAML MetaData",
         },
         accessRestricted: {
-            title: 'Access restricted',
-            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
-            companyCardManagement: 'Company card management',
-            accountCreationAndDeletion: 'Account creation and deletion',
-            workspaceCreation: 'Workspace creation',
-            samlSSO: 'SAML SSO',
+            headerTitle: 'Access restricted',
+            title: 'Verification required',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> or request access from existing admins.</centered-text></muted-text>`,
+            requestAdminAccess: 'Request admin access',
+            verifyYourself: 'Verify yourself',
         },
         addDomain: {
             title: 'Add domain',
@@ -11227,7 +11231,6 @@ const translations = {
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
             requestAccess: 'Ask for admin access',
-            requestAccessError: "We couldn't send your request. Please try again.",
         },
         domainAdded: {
             title: 'Domain added',
