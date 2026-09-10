@@ -332,6 +332,20 @@ describe('usePolicyIndicatorChecks', () => {
     });
 
     describe('domain error statuses', () => {
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const;
+
+        const createDomainFixture = (domainAdminRequesters: Domain['domain_adminRequesters']): Domain => ({
+            validated: true,
+            accountID: 1,
+            email: 'domain.com',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            domain_defaultSecurityGroupID: '',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            domain_adminRequesters: domainAdminRequesters,
+        });
+
         beforeEach(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -349,6 +363,36 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.domainErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+        });
+
+        it('returns HAS_DOMAIN_ERRORS for an adminship request error while that request is still pending', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [domainKey]: createDomainFixture({[requesterAccountID]: 'read'}),
+                    [domainErrorsKey]: {adminshipRequesterErrors: {[requesterAccountID]: {errors: {timestamp: 'Approve error'}}}},
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+        });
+
+        it('does not return HAS_DOMAIN_ERRORS once the request is gone, since no row is left to dismiss the error from', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [domainKey]: createDomainFixture({}),
+                    [domainErrorsKey]: {adminshipRequesterErrors: {[requesterAccountID]: {errors: {timestamp: 'Approve error'}}}},
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainErrorStatus).toBeUndefined();
         });
     });
 

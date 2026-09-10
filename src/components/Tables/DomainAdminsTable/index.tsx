@@ -33,7 +33,7 @@ type DomainAdminRequestRowData = TableData & {
     accountID: number;
     name: string;
     email: string;
-    disabled?: boolean;
+    canApprove: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     approve: () => void;

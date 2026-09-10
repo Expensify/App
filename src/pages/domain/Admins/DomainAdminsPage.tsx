@@ -129,7 +129,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => clearAdminError(domainAccountID, accountID),
+                dismissError: () => clearAdminError(domainAccountID, accountID, !!details?.isOptimisticPersonalDetail),
             };
         });
 
@@ -152,7 +152,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                   accountID,
                   name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                   email: formatPhoneNumber(login),
-                  disabled: !login,
+                  canApprove: !!login,
                   errors: getLatestError(errors),
                   pendingAction,
                   approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),

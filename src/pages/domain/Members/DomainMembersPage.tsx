@@ -132,7 +132,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     if (!defaultSecurityGroupID) {
                         return;
                     }
-                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction);
+                    clearDomainMemberError(domainAccountID, accountID, login, defaultSecurityGroupID, customProps?.pendingAction, !!details?.isOptimisticPersonalDetail);
                 },
             };
         });

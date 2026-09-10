@@ -769,14 +769,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
-        >
-    > = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -805,15 +798,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     ];
 
     if (isOptimisticAccount) {
-        const clearOptimisticPersonalDetails: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
             value: {
                 [accountID]: null,
             },
-        };
-        successData.push(clearOptimisticPersonalDetails);
-        failureData.push(clearOptimisticPersonalDetails);
+        });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -979,12 +970,19 @@ function approveDomainAdminshipRequest(domainAccountID: number, accountID: numbe
 /**
  * Removes an error and pending actions after trying to add admin
  */
-function clearAdminError(domainAccountID: number, accountID: number) {
+function clearAdminError(domainAccountID: number, accountID: number, isOptimisticAccount = false) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [PERMISSION_KEY]: null,
     });
+
+    // The account only ever existed to carry the failed add, so dismissing it takes the placeholder details with it.
+    if (isOptimisticAccount) {
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: null,
+        });
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         adminErrors: {
@@ -1087,15 +1085,23 @@ function declineDomainAdminshipRequest(domainAccountID: number, accountID: numbe
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+    // The requester is dropped only once the decline lands, not optimistically: while offline the entry has to survive so
+    // the row keeps rendering with its `DELETE` pending action, and on failure it has to survive so the row can show the error.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: null},
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 adminshipRequester: {
-                    [accountID]: {
-                        pendingAction: null,
-                    },
+                    [accountID]: null,
                 },
             },
         },
@@ -1388,7 +1394,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
 /**
  * Removes an error and pending actions after trying to add member. It clears errors for both email and accountID
  */
-function clearDomainMemberError(domainAccountID: number, accountID: number, email: string, defaultSecurityGroupID: string, pendingAction?: PendingAction) {
+function clearDomainMemberError(domainAccountID: number, accountID: number, email: string, defaultSecurityGroupID: string, pendingAction?: PendingAction, isOptimisticAccount = false) {
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
 
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -1399,6 +1405,13 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
                 },
             },
         } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
+    }
+
+    // The account only ever existed to carry the failed add, so dismissing it takes the placeholder details with it.
+    if (isOptimisticAccount) {
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: null,
+        });
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {

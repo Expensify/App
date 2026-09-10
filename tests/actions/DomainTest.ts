@@ -284,7 +284,7 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
-    it('addAdminToDomain - adds and clears optimistic personal details for optimistic accounts', () => {
+    it('addAdminToDomain - adds optimistic personal details, clears them on success and keeps them on failure', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const accountID = 456;
@@ -316,12 +316,9 @@ describe('actions/Domain', () => {
                         value: {[accountID]: null},
                     }),
                 ]),
-                failureData: expect.arrayContaining([
-                    expect.objectContaining({
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {[accountID]: null},
-                    }),
-                ]),
+                // Kept on failure so the errored row still renders with its dismiss button.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
             },
         );
 
@@ -483,6 +480,30 @@ describe('actions/Domain', () => {
             expect(pendingActionUpdate.value).toEqual({adminshipRequester: {[accountID]: {pendingAction: null}}});
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect(errorsUpdate.value).toEqual({adminshipRequesterErrors: {[accountID]: {errors: expect.any(Object)}}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('drops the requester only once the decline succeeds, so the row survives offline and on failure', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+
+            declineDomainAdminshipRequest(domainAccountID, accountID);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const domainUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(domainUpdate.value).toEqual({domain_adminRequesters: {[accountID]: null}});
+            expect(pendingActionUpdate.value).toEqual({adminshipRequester: {[accountID]: null}});
+
+            // The requester has to stay put until then: offline the row renders from its pending action, and on failure it
+            // renders to show the error, so neither the optimistic nor the failure data may touch the domain.
+            const domainKeyUpdate = expect.objectContaining({key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`});
+            expect(TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData')).toEqual(expect.not.arrayContaining([domainKeyUpdate]));
+            expect(TestHelper.getRequiredOnyxUpdates(onyxData, 'failureData')).toEqual(expect.not.arrayContaining([domainKeyUpdate]));
 
             apiWriteSpy.mockRestore();
         });
@@ -918,6 +939,44 @@ describe('actions/Domain', () => {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             callback: (pendingActions) => {
                 expect(pendingActions?.member?.[email]).toBeFalsy();
+            },
+        });
+    });
+
+    it('clearDomainMemberError - clears the placeholder personal details for an optimistic account', async () => {
+        const domainAccountID = 123;
+        const email = 'user@test.com';
+        const optimisticAccountID = generateAccountID(email);
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [optimisticAccountID]: {accountID: optimisticAccountID, login: email, isOptimisticPersonalDetail: true},
+        });
+
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, '', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true);
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            callback: (personalDetails) => {
+                expect(personalDetails?.[optimisticAccountID]).toBeFalsy();
+            },
+        });
+    });
+
+    it('clearDomainMemberError - keeps the personal details of a real account', async () => {
+        const domainAccountID = 123;
+        const accountID = 456;
+        const email = 'user@test.com';
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: {accountID, login: email},
+        });
+
+        clearDomainMemberError(domainAccountID, accountID, email, '', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            callback: (personalDetails) => {
+                expect(personalDetails?.[accountID]?.login).toBe(email);
             },
         });
     });

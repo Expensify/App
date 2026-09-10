@@ -13,10 +13,8 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {accountIDSelector} from '@selectors/Session';
 
@@ -40,11 +38,10 @@ type PolicyIndicatorChecksResult = {
 function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
-    const hasPendingDomainAdminRequestsSelector = (domains: OnyxCollection<Domain>) =>
-        Object.values(domains ?? {}).some((domain) => hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID));
-    const [hasPendingDomainAdminRequests] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: hasPendingDomainAdminRequestsSelector});
+    const hasPendingDomainAdminRequests = Object.values(allDomains ?? {}).some((domain) => hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID));
 
     const {cleanPolicies, policiesWithCardFeedErrors, isPolicyAdmin: isAdminOfPolicyWithCardFeedErrors} = usePoliciesWithCardFeedErrors();
 
@@ -80,9 +77,14 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],
     ];
     const domainChecks: Array<[IndicatorStatus, boolean]> = [
-        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors))],
+        [
+            CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS,
+            Object.entries(allDomainErrors ?? {}).some(([key, domainErrors]) =>
+                hasDomainErrors(domainErrors, allDomains?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, ONYXKEYS.COLLECTION.DOMAIN)]),
+            ),
+        ],
     ];
-    const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, !!hasPendingDomainAdminRequests]];
+    const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, hasPendingDomainAdminRequests]];
 
     const activePolicyErrorCheck = policyErrorChecks.find(([, value]) => value);
     const activePolicyInfoCheck = policyInfoChecks.find(([, value]) => value);

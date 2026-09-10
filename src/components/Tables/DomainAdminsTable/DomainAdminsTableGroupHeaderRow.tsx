@@ -32,7 +32,7 @@ export default function DomainAdminsTableGroupHeaderRow({item, rowIndex}: Domain
             accessibilityLabel={item.label}
         >
             <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
-                <Text style={styles.labelStrong}>{item.label}</Text>
+                <Text style={[styles.textMicroBoldSupporting, styles.lh14]}>{item.label}</Text>
             </View>
         </Table.Row>
     );

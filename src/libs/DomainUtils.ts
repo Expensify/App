@@ -7,7 +7,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasPendingAdminRequestsSelector, isAdminSelector} from '@selectors/Domain';
+import {hasPendingAdminRequestsSelector, isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@selectors/Domain';
 
 import {getLatestError} from './ErrorUtils';
 
@@ -40,22 +40,28 @@ function hasDomainGroupsErrors(domainErrors?: DomainErrors): boolean {
 
 /**
  * Checks if domain has any errors. Used to determine whether to show a red brick road indicator on domain row.
+ *
+ * Pass the domain to skip adminship request errors that no longer have a row, see `hasDomainAdminsErrors`.
  */
-function hasDomainErrors(domainErrors?: DomainErrors): boolean {
+function hasDomainErrors(domainErrors?: DomainErrors, domain?: OnyxEntry<Domain>): boolean {
     if (!domainErrors) {
         return false;
     }
 
-    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors) || hasDomainMembersErrors(domainErrors) || hasDomainGroupsErrors(domainErrors);
+    return !isEmptyObject(domainErrors.errors) || hasDomainAdminsErrors(domainErrors, domain) || hasDomainMembersErrors(domainErrors) || hasDomainGroupsErrors(domainErrors);
 }
 
 /**
  * Checks if domain has any admin-related errors (admin errors, adminship request errors, or settings errors like technical contact/billing card).
  */
-function hasDomainAdminsErrors(domainErrors?: DomainErrors): boolean {
+function hasDomainAdminsErrors(domainErrors?: DomainErrors, domain?: OnyxEntry<Domain>): boolean {
+    const pendingRequesterAccountIDs = domain ? pendingAdminRequesterAccountIDsSelector(domain) : undefined;
+
     return (
         Object.values(domainErrors?.adminErrors ?? {}).some((admin) => !isEmptyObject(admin?.errors)) ||
-        Object.values(domainErrors?.adminshipRequesterErrors ?? {}).some((requester) => !isEmptyObject(requester?.errors)) ||
+        Object.entries(domainErrors?.adminshipRequesterErrors ?? {}).some(
+            ([accountID, requester]) => !isEmptyObject(requester?.errors) && (!pendingRequesterAccountIDs || pendingRequesterAccountIDs.includes(Number(accountID))),
+        ) ||
         hasDomainAdminsSettingsErrors(domainErrors)
     );
 }

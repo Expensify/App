@@ -59,6 +59,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         domainAccountID,
         domainErrors,
         hasPendingAdminRequests,
+        domain,
         icons,
     }).map((item) => ({
         ...item,

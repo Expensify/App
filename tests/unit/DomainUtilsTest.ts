@@ -131,6 +131,36 @@ describe('DomainUtils', () => {
             };
             expect(hasDomainAdminsErrors(domainErrors)).toBe(true);
         });
+
+        describe('when the domain is passed', () => {
+            const requesterDomain = (domainAdminRequesters: Domain['domain_adminRequesters']): Domain => ({
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: domainAdminRequesters,
+            });
+            const domainErrors: DomainErrors = {
+                errors: {},
+                adminshipRequesterErrors: {[adminID]: {errors: {timestamp1: 'Approve/deny error'}}},
+            };
+
+            it('should return true while that request is still pending', () => {
+                expect(hasDomainAdminsErrors(domainErrors, requesterDomain({[adminID]: 'read'}))).toBe(true);
+            });
+
+            it('should return false once that request is no longer pending, since no row can dismiss the error', () => {
+                expect(hasDomainAdminsErrors(domainErrors, requesterDomain({}))).toBe(false);
+                expect(hasDomainErrors(domainErrors, requesterDomain({}))).toBe(false);
+            });
+
+            it('should still report an admin error for an account that is no longer a requester', () => {
+                const errorsOnAdmin: DomainErrors = {...domainErrors, adminErrors: {[adminID]: {errors: {timestamp1: 'Admin error'}}}};
+                expect(hasDomainAdminsErrors(errorsOnAdmin, requesterDomain({}))).toBe(true);
+            });
+        });
     });
 
     describe('hasPendingDomainAdminRequestsToReview', () => {

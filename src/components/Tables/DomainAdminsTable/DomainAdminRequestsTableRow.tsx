@@ -32,7 +32,7 @@ export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdmi
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const accessibilityLabel = [item.name, item.email].filter(Boolean).join(', ');
-    const isActionDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || item.disabled;
+    const isRequestPending = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const actionButtons = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
@@ -40,7 +40,7 @@ export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdmi
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.approve}
-                isDisabled={isActionDisabled}
+                isDisabled={isRequestPending || !item.canApprove}
                 accessibilityLabel={[translate('common.approve'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_APPROVE}
             >
@@ -49,7 +49,7 @@ export default function DomainAdminRequestsTableRow({item, rowIndex}: DomainAdmi
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={item.deny}
-                isDisabled={isActionDisabled}
+                isDisabled={isRequestPending}
                 accessibilityLabel={[translate('common.deny'), item.name].filter(Boolean).join(', ')}
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REQUEST_DENY}
             >

@@ -90,7 +90,7 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainErrors(domainErrors), isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
+                brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainErrors(domainErrors, domain), isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }

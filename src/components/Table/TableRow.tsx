@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -126,17 +126,23 @@ export default function TableRow({
         return null;
     }
 
-    // A group header only labels the rows below it, so it's shorter than a data row and keeps that height on every layout.
-    const rowHeightStyle = (() => {
-        if (isGroupHeader) {
-            return styles.tableGroupRowHeight;
-        }
-        return shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight;
-    })();
+    // A group header only labels the rows below it, so it sizes to its own content rather than being pinned to a data-row
+    // height, and keeps the same padding on every layout.
+    let rowHeightStyle: ViewStyle | undefined = styles.tableRowHeight;
+    let rowVerticalPaddingStyle: ViewStyle = styles.tableRowVerticalPadding;
+    let rowContentHeightStyle: ViewStyle | undefined = styles.tableRowContentHeight;
+    if (isGroupHeader) {
+        rowHeightStyle = undefined;
+        rowContentHeightStyle = undefined;
+    } else if (shouldUseNarrowTableLayout) {
+        rowHeightStyle = styles.tableRowHeightCompact;
+        rowVerticalPaddingStyle = styles.tableRowVerticalPaddingCompact;
+        rowContentHeightStyle = styles.tableRowContentHeightCompact;
+    }
 
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.highlightBG,
+        isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
@@ -150,7 +156,7 @@ export default function TableRow({
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout && !isGroupHeader ? styles.pv4 : styles.pv2,
+        rowVerticalPaddingStyle,
     ];
 
     const tableRowContentStyles = [
@@ -160,6 +166,7 @@ export default function TableRow({
         styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
+        rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
         !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];

@@ -143,6 +143,18 @@ describe('domainSelectors', () => {
             const domain = createDomainFixture({empty: true});
             expect(adminAccountIDsSelector(domain)).toEqual([]);
         });
+
+        it('Should list an account once when several permission keys point at it', () => {
+            const domain = createDomainFixture({
+                admins: [
+                    ['0', 123],
+                    ['123', 123],
+                    ['1', 321],
+                ],
+            });
+
+            expect(adminAccountIDsSelector(domain)).toEqual([123, 321]);
+        });
     });
 
     describe('technicalContactSettingsSelector', () => {
