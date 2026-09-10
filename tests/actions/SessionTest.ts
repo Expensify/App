@@ -132,7 +132,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
@@ -150,7 +150,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it aborts cleanly without redirecting to sign in
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         redirectToSignInSpy.mockRestore();
@@ -175,7 +175,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
@@ -200,7 +200,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
 
         redirectToSignInSpy.mockRestore();
@@ -228,7 +228,7 @@ describe('Session', () => {
 
             // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
             // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
-            expect(results).toEqual([false, false, false]);
+            expect(results).toEqual([{wasSuccessful: false}, {wasSuccessful: false}, {wasSuccessful: false}]);
             expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
             expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
 
@@ -1106,6 +1106,52 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBeUndefined();
+        });
+
+        /**
+         * The server preference is lifted out of the payload by name, but every other NVP OldDot sends goes
+         * through the same loop, so what the loop does with each kind of value is worth pinning down.
+         */
+        describe('the values OldDot sends', () => {
+            const transitionWith = async (values: Record<string, unknown>) => {
+                await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+                await waitForBatchedUpdates();
+
+                const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+
+                const hybridAppSettings = {...buildHybridAppSettings(false), ...values} as Parameters<typeof SessionUtil.setupNewDotAfterTransitionFromOldDot>[0];
+                await SessionUtil.setupNewDotAfterTransitionFromOldDot(hybridAppSettings, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const updates = onyxUpdateSpy.mock.calls.at(0)?.at(0) ?? [];
+                onyxUpdateSpy.mockRestore();
+
+                return updates;
+            };
+
+            test('merges a real value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: {classicRedirect: {dismissed: false}}});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: {classicRedirect: {dismissed: false}}}]));
+            });
+
+            test('merges false rather than reading it as absent', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: false});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: false}]));
+            });
+
+            test('passes null through, so OldDot can clear a key', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: null});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: null}]));
+            });
+
+            test('skips undefined instead of writing a placeholder over the stored value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: undefined});
+
+                expect(updates.map((update) => update.key)).not.toContain(ONYXKEYS.NVP_TRY_NEW_DOT);
+            });
         });
     });
     describe('isSupportAuthToken', () => {

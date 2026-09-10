@@ -179,6 +179,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -192,6 +193,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -205,6 +207,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -226,6 +229,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
         });
@@ -249,6 +253,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
         });
@@ -267,6 +272,7 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
+            isDraftChatReport: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {reportID: '123'},
@@ -300,6 +306,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

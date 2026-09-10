@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
@@ -53,7 +53,6 @@ type DecisionModalProps = {
     /** Callback when modal has fully disappeared */
     onModalHide?: () => void;
 
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Whether to handle browser navigation back to close the modal */

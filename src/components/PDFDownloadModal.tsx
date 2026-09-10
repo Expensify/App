@@ -11,7 +11,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import Modal from './Modal';
@@ -34,7 +34,6 @@ type PDFDownloadModalProps = {
     /** Whether the download button uses the success (green) style once the PDF is ready */
     shouldUseSuccessButton?: boolean;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether this modal should count as covering the product marketing window */
