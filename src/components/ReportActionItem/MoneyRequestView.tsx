@@ -87,7 +87,6 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
-    getTripIDFromTransactionParentReportID,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -565,27 +564,19 @@ function MoneyRequestView({
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
-    const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
+    const [tripRoomReportID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string | undefined => {
+            if (!transaction?.comment?.tripID || !allReportNameValuePairs) {
+                return undefined;
+            }
+
+            const tripRoomReportNameValuePairsKey = Object.keys(allReportNameValuePairs).find((key) => allReportNameValuePairs[key]?.tripData?.tripID === transaction.comment?.tripID);
+            return tripRoomReportNameValuePairsKey?.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+        },
+    });
+    const [tripRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${tripRoomReportID}`);
+    const tripID = transaction?.comment?.tripID;
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
-
-    const transactionTripID = transaction?.comment?.tripID;
-
-    // Trip rooms are the grandparent report, so check that first before scanning the collection.
-    const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> => {
-        if (!transactionTripID || !reports) {
-            return undefined;
-        }
-        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
-        const match =
-            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
-        if (!match?.reportID) {
-            return undefined;
-        }
-        return match;
-    };
-    const [tripRoomReport] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
-    const tripRoomReportID = tripRoomReport?.reportID;
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
 

@@ -17,6 +17,7 @@ type UpcomingReservation = ReservationData & {
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
     const tripRoomReports = useTripRoomReports();
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     return useMemo(() => {
@@ -31,7 +32,8 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
             if (report.ownerAccountID !== accountID) {
                 continue;
             }
-            const reservations = getReservationsFromTripReport(report);
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+            const reservations = getReservationsFromTripReport(report, reportNameValuePairs);
             for (const resData of reservations) {
                 const startDate = new Date(resData.reservation.start.date);
                 if (Number.isNaN(startDate.getTime())) {
@@ -44,7 +46,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         }
 
         return upcoming.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
-    }, [tripRoomReports, accountID]);
+    }, [tripRoomReports, accountID, allReportNameValuePairs]);
 }
 
 export default useUpcomingTravelReservations;

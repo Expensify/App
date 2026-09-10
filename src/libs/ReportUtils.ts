@@ -12055,10 +12055,6 @@ function shouldCreateNewMoneyRequestReport(
     );
 }
 
-function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
-    return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
-}
-
 /** Precomputed report-action error state used to make per-transaction RBR checks O(1). */
 type ActionErrorsByTransaction = {
     /** A non-money-request action (or money-request action without an IOUTransactionID) has errors, flagging every transaction. */
@@ -14872,7 +14868,6 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
-    getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
     changeMoneyRequestHoldStatus,
