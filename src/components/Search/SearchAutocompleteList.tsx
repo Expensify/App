@@ -179,7 +179,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -261,6 +261,7 @@ function SearchAutocompleteList({
         return getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -318,6 +319,7 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

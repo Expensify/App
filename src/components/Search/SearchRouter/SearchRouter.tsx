@@ -81,7 +81,7 @@ type SearchRouterProps = {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -224,6 +224,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
@@ -314,6 +315,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             isTrackIntentUser,
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
         ],
     );
 

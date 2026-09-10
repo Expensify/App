@@ -271,6 +271,7 @@ type IsValidReportsConfig = Pick<
 type GetOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;

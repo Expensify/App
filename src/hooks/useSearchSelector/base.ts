@@ -187,7 +187,7 @@ function useSearchSelectorBase({
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -291,6 +291,7 @@ function useSearchSelectorBase({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -327,6 +328,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -369,6 +371,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -413,6 +416,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,

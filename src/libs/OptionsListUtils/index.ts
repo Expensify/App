@@ -6,7 +6,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import {convertToFrontendAmountAsInteger, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -16,7 +16,6 @@ import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-import {formatToParts} from '@libs/NumberFormatUtils';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -276,28 +275,11 @@ function fallbackLocaleCompare(a: string, b: string): number {
 }
 
 /**
- * Fallback for callers that cannot provide the hook-bound convertToDisplayStringWithoutCurrency.
- * Mirrors CurrencyListContextProvider's implementation against the active locale, reading currency
- * decimals through CurrencyUtils' module-scope Onyx fallback.
+ * Fallback for the non-React option builders that cannot provide the hook-bound convertToDisplayStringWithoutCurrency. Those builders never
+ * render a chat preview; every preview caller threads the context implementation from useCurrencyListActions().
  */
 function fallbackConvertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
-    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
-    const decimals = getCurrencyDecimals(sanitizedCurrency);
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-    return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
-        style: 'currency',
-        currency: sanitizedCurrency,
-
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-        // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: decimals,
-        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2,
-    })
-        .filter((x) => x.type !== 'currency')
-        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
-        .map((x) => x.value)
-        .join('');
+    return convertToDisplayStringWithoutCurrencyForLocale(IntlStore.getCurrentLocale(), amountInCents, currencyCode, getCurrencyDecimals);
 }
 
 /**
@@ -438,6 +420,7 @@ type CreateOptionParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isTrackIntentUser?: boolean;
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
@@ -484,6 +467,7 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     dateFnsLocale,
     isTrackIntentUser,
     conciergeReportID,
@@ -603,6 +587,7 @@ function createOption({
                           visibleReportActionsData,
                           translate: translateFn,
                           convertToDisplayString,
+                          convertToDisplayStringWithoutCurrency,
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
@@ -1411,6 +1396,7 @@ type CreateOptionFromReportParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 function createOptionFromReport({
@@ -1431,6 +1417,7 @@ function createOptionFromReport({
     visibleReportActionsData = {},
     isTrackIntentUser,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1439,6 +1426,7 @@ function createOptionFromReport({
         ...createOption({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             accountIDs,
             personalDetails,
             report,
@@ -2011,6 +1999,7 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig & {
         translate: LocalizedTranslate;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+        convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
         currentUserAccountID?: number;
         currentUserLogin?: string;
@@ -2043,6 +2032,7 @@ function prepareReportOptionsForDisplay(
         personalDetails,
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         currentUserAccountID,
         currentUserLogin,
         cardList,
@@ -2090,6 +2080,7 @@ function prepareReportOptionsForDisplay(
                 visibleReportActionsData,
                 translate,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
@@ -2582,6 +2573,7 @@ function getValidOptions(
 type SearchOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
     betas?: Beta[];
@@ -2656,6 +2648,7 @@ function getSearchOptions({
     isTrackIntentUser,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
         options,
@@ -2668,6 +2661,7 @@ function getSearchOptions({
         {
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             betas,
             includeRecentReports,
             includeMultipleParticipantReports: true,

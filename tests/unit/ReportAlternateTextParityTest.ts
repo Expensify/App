@@ -15,7 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
@@ -99,6 +99,7 @@ function getAlternateText({
         translate: translateLocal,
         dateFnsLocale: undefined,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         localeCompare,
         isReportArchived,
         lastActionReport,

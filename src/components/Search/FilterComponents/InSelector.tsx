@@ -49,7 +49,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
@@ -90,6 +90,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
@@ -115,6 +116,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             {
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isReportArchived,
                 personalDetails,
                 policy,
@@ -141,6 +143,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             : getSearchOptions({
                   dateFnsLocale,
                   convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
                   options,
                   draftComments,
                   betas: undefined,

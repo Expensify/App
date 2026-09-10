@@ -121,7 +121,7 @@ function useAutocompleteSuggestions({
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -255,6 +255,7 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 betas: betas ?? [],
@@ -303,6 +304,7 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 betas: betas ?? [],
