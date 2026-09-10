@@ -52,8 +52,8 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         };
     }, []);
 
-    // Plaid feeds: isRefreshing is cleared by importPlaidAccounts on both success and failure; a failure also sets
-    // errors, which BankConnection renders instead of closing the panel.
+    // Plaid feeds: importPlaidAccounts clears isRefreshing on both success and failure. A failure also sets errors,
+    // which BankConnection renders, so the panel has to stay open for them.
     useEffect(() => {
         if (prevIsRefreshing !== true || isRefreshing || !isEmptyObject(assignCard?.errors)) {
             return;

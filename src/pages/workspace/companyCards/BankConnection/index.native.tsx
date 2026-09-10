@@ -73,7 +73,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
-    // Set by importPlaidAccounts failureData while repairing an existing feed
+    // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
@@ -109,7 +109,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
-        // A failed import is rendered instead; clearing isRefreshing must not fall through to the healthy-feed close below.
+        // A failed import is rendered instead. Clearing isRefreshing must not fall through to the healthy feed close below.
         if (hasImportError) {
             return;
         }
@@ -122,11 +122,10 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                     return;
                 }
-                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
-                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
                 if (!assignCard?.isRefreshing) {
-                    // The host pages only render the connection steps, so an assign flow that detoured here is not
-                    // resumed: the panel closes and the admin assigns the card again on the reconnected feed.
                     Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                     return;
                 }

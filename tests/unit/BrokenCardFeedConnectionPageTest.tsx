@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Bypass the HOC and render the inner component directly
+// The policy loading HOC would need a full policy in Onyx before rendering anything, which these tests do not care about
 jest.mock('@pages/workspace/withPolicyAndFullscreenLoading', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
@@ -29,6 +29,7 @@ jest.mock('@pages/workspace/companyCards/BankConnection', () => ({
     __esModule: true,
 
     default: () => {
+        // jest.mock factories are hoisted above imports, so the module has to be required inside
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="BankConnection" />;
@@ -39,6 +40,7 @@ jest.mock('@pages/workspace/companyCards/addNew/PlaidConnectionStep', () => ({
     __esModule: true,
 
     default: () => {
+        // jest.mock factories are hoisted above imports, so the module has to be required inside
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="PlaidConnectionStep" />;
@@ -49,6 +51,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => ({
     __esModule: true,
 
     default: () => {
+        // jest.mock factories are hoisted above imports, so the module has to be required inside
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const {View} = require('react-native');
         return <View testID="NotFoundPage" />;
@@ -75,6 +78,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 const mockUseCardFeeds = jest.mocked(useCardFeeds);
+// Required after the mocks above are registered so the page picks up the mocked HOC and children
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const BrokenCardFeedConnectionPage = require('@pages/workspace/companyCards/BrokenCardFeedConnectionPage').default;
 

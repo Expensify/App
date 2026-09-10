@@ -1383,7 +1383,7 @@ function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainI
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
-    // Start from a clean record.
+    // An abandoned assign flow can leave errors or cardToAssign behind, which BankConnection would read as a failed import or as a Plaid token.
     clearAssignCardStepAndData();
     setAssignCardStepAndData({
         currentStep,
