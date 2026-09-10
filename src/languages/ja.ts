@@ -10745,6 +10745,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'お知らせです！このエクスポートはサイズが大きすぎるため、検索条件に一致した最初の 50,000 件のレポートに制限されています。',
     },
     domain: {
         notVerified: '未確認',

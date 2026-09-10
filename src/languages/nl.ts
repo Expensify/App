@@ -10862,6 +10862,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Let op! Deze export was te groot en is beperkt tot de eerste 50.000 rapporten die aan je zoekopdracht voldeden.',
     },
     domain: {
         notVerified: 'Niet geverifieerd',

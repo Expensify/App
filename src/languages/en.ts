@@ -11101,6 +11101,7 @@ const translations = {
         dismiss: 'Dismiss',
         readyTitle: 'Your file is ready!',
         readyBody: "If it didn't automatically download, use the button below.",
+        truncatedBody: 'Heads up! This export was too large and has been limited to the first 50,000 reports that matched your search.',
         downloadFile: 'Download file',
         failedTitle: 'Export failed',
         csvFailedBody: 'Your export could not be completed. Please try again later.',
