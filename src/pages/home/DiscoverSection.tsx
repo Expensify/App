@@ -30,7 +30,7 @@ const MAX_NUMBER_OF_LINES_TITLE = 4;
 function DiscoverSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {values, cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardMarginHorizontal} = useLayoutSpacing();
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const styles = useThemeStyles();
@@ -75,7 +75,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
-                style={[{marginHorizontal: values.cardPadding}, styles.mb5]}
+                style={[cardMarginHorizontal, styles.mb5]}
                 sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>

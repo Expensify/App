@@ -47,7 +47,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {values, cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardPaddingBottom, cardEdgeToEdge} = useLayoutSpacing();
     const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
     const isBankAccountFullySetup = !!policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
     const connectedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
@@ -131,7 +131,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
-                <ScrollView style={[styles.w100, cardPaddingHorizontal, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, {paddingBottom: values.cardPadding}]}>
+                <ScrollView style={[styles.w100, cardPaddingHorizontal, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, cardPaddingBottom]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                     <PaymentMethodList
                         onPress={handleItemPress}

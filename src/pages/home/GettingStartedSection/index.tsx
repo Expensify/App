@@ -26,7 +26,7 @@ import useGettingStartedItems from './hooks/useGettingStartedItems';
 function GettingStartedSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {values, cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -67,7 +67,7 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={[cardPaddingHorizontal, {paddingBottom: values.cardPadding}]}>
+            <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
                 <PressableWithoutFeedback
                     onPress={openAdminsRoom}
                     accessibilityLabel={footerHelpText}

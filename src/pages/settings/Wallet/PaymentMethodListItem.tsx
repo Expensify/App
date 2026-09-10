@@ -140,7 +140,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {values, cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, cardPaddingLeft} = useLayoutSpacing();
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInLockedState = isBusinessBankAccountLocked(item);
@@ -332,7 +332,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 </View>
             )}
             {isChaseAccountConnectedViaPlaid && (
-                <View style={[styles.pb3, {paddingLeft: values.cardPadding}]}>
+                <View style={[styles.pb3, cardPaddingLeft]}>
                     <PressableWithFeedback
                         onPress={() => openExternalLink(CONST.CHASE_ACCOUNT_NUMBER_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}

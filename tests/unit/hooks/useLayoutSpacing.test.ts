@@ -16,6 +16,9 @@ describe('useLayoutSpacing', () => {
         expect(result.current.cardPadding).toEqual({padding: layoutSpacing.cardPadding.narrow});
         expect(result.current.cardPaddingHorizontal).toEqual({paddingHorizontal: layoutSpacing.cardPadding.narrow});
         expect(result.current.cardEdgeToEdge).toEqual({marginHorizontal: -layoutSpacing.cardPadding.narrow});
+        expect(result.current.cardPaddingBottom).toEqual({paddingBottom: layoutSpacing.cardPadding.narrow});
+        expect(result.current.cardPaddingLeft).toEqual({paddingLeft: layoutSpacing.cardPadding.narrow});
+        expect(result.current.cardMarginHorizontal).toEqual({marginHorizontal: layoutSpacing.cardPadding.narrow});
         expect(result.current.pageGutter).toEqual({paddingHorizontal: layoutSpacing.pageGutter.narrow});
         expect(result.current.pageGutterMargin).toEqual({marginHorizontal: layoutSpacing.pageGutter.narrow});
     });
