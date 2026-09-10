@@ -162,11 +162,14 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, should
                 {Platform.OS === 'web' ? (
                     <View style={styles.navigationTabBarBlur} />
                 ) : (
-                    <BlurView
-                        intensity={NAVIGATION_TAB_BAR_BLUR_INTENSITY}
-                        tint={themePreference === CONST.THEME.DARK || themePreference === CONST.THEME.DARK_CONTRAST ? 'dark' : 'light'}
-                        style={styles.navigationTabBarBlur}
-                    />
+                    <>
+                        <BlurView
+                            intensity={NAVIGATION_TAB_BAR_BLUR_INTENSITY}
+                            tint={themePreference === CONST.THEME.DARK || themePreference === CONST.THEME.DARK_CONTRAST ? 'dark' : 'light'}
+                            style={styles.navigationTabBarBlur}
+                        />
+                        <View style={styles.navigationTabBarTint} />
+                    </>
                 )}
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}

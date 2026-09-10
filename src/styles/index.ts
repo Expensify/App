@@ -739,21 +739,30 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // Fills the pill behind the tabs. The tint sits on top of the blur, so it reads as frosted glass.
-        // On web the tint and blur are authored here, because expo-blur's web build overrides any
-        // backgroundColor passed to it with one derived from its own tint and intensity.
+        // Fills the pill behind the tabs. On web the tint and blur are authored here, because expo-blur's web build
+        // overrides any backgroundColor passed to it with one derived from its own tint and intensity. On native the
+        // blur layer stays colorless: it maps to a UIVisualEffectView, whose own background color composites against
+        // the material differently on device than in the simulator, so navigationTabBarTint carries the tint instead.
         navigationTabBarBlur: {
             position: 'absolute',
             top: 0,
             right: 0,
             bottom: 0,
             left: 0,
-            ...(Platform.OS === 'web'
-                ? {
-                      backgroundColor: theme.floatingTabBarBGWeb,
-                      backdropFilter: 'saturate(180%) blur(8px)',
-                  }
-                : {backgroundColor: theme.floatingTabBarBG}),
+            ...(Platform.OS === 'web' && {
+                backgroundColor: theme.floatingTabBarBGWeb,
+                backdropFilter: 'saturate(180%) blur(8px)',
+            }),
+        },
+
+        // Native only: painted over the blur so the pill's tint renders the same on device and in the simulator.
+        navigationTabBarTint: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: theme.floatingTabBarBG,
         },
 
         // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
