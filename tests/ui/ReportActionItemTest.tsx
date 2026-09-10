@@ -3048,8 +3048,8 @@ describe('ReportActionItem', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}tripReportDates`, {
                     tripData: {
                         tripID: 'trip-1',
-                        startDate: '2026-01-01',
-                        endDate: '2026-01-03',
+                        startDate: '2026-01-01T12:00:00Z',
+                        endDate: '2026-01-03T12:00:00Z',
                     },
                 });
             });
@@ -3059,7 +3059,7 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getAllByText(/2026/).length).toBeGreaterThan(0);
+            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
