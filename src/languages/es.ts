@@ -1853,6 +1853,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Habilita las etiquetas en el espacio de trabajo para editar los detalles del gasto o eliminar la etiqueta de este gasto.',
             confirmText: 'Eliminar etiqueta',
         },
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `se actualizó la tasa a ${rate} para el nuevo espacio de trabajo - ${policyName}`,
+        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
+            `tasa actualizada a ${rate} para el nuevo espacio de trabajo del informe: ${policyName}`,
     },
     transactionMerge: {
         listPage: {

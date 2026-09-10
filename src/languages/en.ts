@@ -1911,8 +1911,7 @@ const translations = {
         // @context "rate" is the distance rate of an expense (an amount of money per mile or kilometer), not a price, a fee or a rating. "rate" is lowercase because the sentence continues a system message.
         conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `rate updated to ${rate} for the new workspace - ${policyName}`,
         // @context "rate" is the distance rate of an expense (an amount of money per mile or kilometer), not a price, a fee or a rating. Shown when the expense report was moved to another workspace, so the workspace of the report is the one that changed.
-        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `rate updated to ${rate} for the new report’s workspace - ${policyName}`,
+        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) => `rate updated to ${rate} for the new report’s workspace - ${policyName}`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),

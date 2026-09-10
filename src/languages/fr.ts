@@ -1868,6 +1868,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Active les tags dans l’espace de travail pour modifier les détails de la dépense ou supprimer le tag de cette dépense.',
             confirmText: 'Supprimer le tag',
         },
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `taux mis à jour à ${rate} pour le nouvel espace de travail - ${policyName}`,
+        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
+            `taux mis à jour à ${rate} pour le nouvel espace de travail de la note de frais - ${policyName}`,
     },
     transactionMerge: {
         listPage: {
