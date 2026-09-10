@@ -40,6 +40,7 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
             style={[
                 styles.pageWrapper,
                 shouldStyleAsCard && styles.cardSectionContainer,
+                shouldStyleAsCard && styles.pageGutterMargin(shouldUseNarrowLayout),
                 styles.workspaceSection,
                 styles.ph8,
                 shouldUseNarrowLayout ? styles.pv10 : styles.pv12,

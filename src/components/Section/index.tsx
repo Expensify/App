@@ -124,7 +124,7 @@ function Section({
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, styles.pageGutterMargin(shouldUseNarrowLayout), containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
@@ -166,7 +166,13 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8)), centralPaneContainerStyle]}>
+            <View
+                style={[
+                    styles.w100,
+                    isCentralPane && (contentPaddingOnLargeScreens && !shouldUseNarrowLayout ? contentPaddingOnLargeScreens : styles.cardPadding(shouldUseNarrowLayout)),
+                    centralPaneContainerStyle,
+                ]}
+            >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
