@@ -1,5 +1,5 @@
-import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 
 jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
     __esModule: true,

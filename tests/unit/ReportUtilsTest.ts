@@ -346,6 +346,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'mock-route'),
+}));
+
 jest.mock('@libs/PolicyUtils', () => {
     const actualPolicyUtils = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
     const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');

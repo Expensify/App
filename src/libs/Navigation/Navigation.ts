@@ -47,9 +47,9 @@ import type {
 import {getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
 import getFocusedReportParams from './helpers/getFocusedReportParams';
-import getActiveRoute from './helpers/getActiveRoute';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
