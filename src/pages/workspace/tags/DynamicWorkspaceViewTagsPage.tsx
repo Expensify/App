@@ -137,14 +137,15 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 return;
             }
 
-            const parentTagsFilter = tag?.rules?.parentTagsFilter;
-            const workspaceTagSettingsSuffix = parentTagsFilter
+            const parentTagsFilter = tag?.rules?.parentTagsFilter ?? tag?.parentTagsFilter;
+            const tagSettingsSuffix = parentTagsFilter
                 ? `${DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
                 : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name);
+            const settingsTagSettingsSuffix = parentTagsFilter
+                ? `${DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
+                : DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name);
 
-            Navigation.navigate(
-                isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name)) : createDynamicRoute(workspaceTagSettingsSuffix),
-            );
+            Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsTagSettingsSuffix) : createDynamicRoute(tagSettingsSuffix));
         },
         [canWriteTags, isQuickSettingsFlow, orderWeight],
     );

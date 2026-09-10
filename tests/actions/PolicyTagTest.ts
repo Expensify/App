@@ -2547,6 +2547,44 @@ describe('actions/Policy', () => {
                 expect(updatedPolicyTags[tagListName].tags[tagName].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             }
         });
+
+        it('should update GL code for a dependent tag stored under a unique record key', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Project';
+            const fakePolicyTags: PolicyTagLists = {
+                [tagListName]: {
+                    name: tagListName,
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Engineering$'}},
+                    },
+                },
+            };
+            const newGLCode = 'NEW_GL_CODE_789';
+
+            mockFetch.pause();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            setPolicyTagGLCode({
+                policyID: fakePolicy.id,
+                tagName: 'Roadshow',
+                tagListIndex: 1,
+                glCode: newGLCode,
+                policyTags: fakePolicyTags,
+                parentTagsFilter: '^Engineering$',
+            });
+            await waitForBatchedUpdates();
+
+            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.tags['Roadshow-1']['GL Code']).toBe(newGLCode);
+            expect(updatedPolicyTags?.[tagListName]?.tags.Roadshow['GL Code']).toBeUndefined();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('createPolicyTag with onboarding task completion', () => {
