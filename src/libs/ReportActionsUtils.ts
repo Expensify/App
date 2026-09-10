@@ -3416,11 +3416,11 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 
 /**
  * Builds the Concierge system message explaining that the distance rate of an expense was updated automatically.
- * It is the single source of the copy for every surface (the report, the LHN preview, copy to clipboard), so the message is localized everywhere.
+ * It is the single source of the copy for every surface (the report, the LHN preview, the thread title, copy to clipboard), so the message is localized everywhere.
  *
- * The returned string is HTML: it is rendered through `RenderHTML` in the report and returned as the `html` fragment of the action,
- * and every plain-text surface (LHN preview, thread title, clipboard) runs it back through `Parser.htmlToText`.
- * `policyName` is therefore HTML-encoded, so a workspace name is always shown as typed instead of being interpreted as markup.
+ * The returned string is plain text and `policyName` is interpolated as typed, so it is not safe to hand to `RenderHTML` on its own.
+ * The LHN preview, thread title, and clipboard consume it directly; the report body and the action's `html` fragment wrap it in `<muted-text>`,
+ * which is what `getTravelUpdateMessage` and `getDynamicExternalWorkflowRoutedMessage` do with their own plain-text output.
  */
 function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {rate, currency, unit, policyName, changeType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
