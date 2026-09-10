@@ -22395,8 +22395,8 @@ describe('ReportUtils', () => {
             const action = {...createRandomReportAction(7)};
             const derivedName = 'Derived Report Name';
 
-            const resultWithDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, undefined, undefined, derivedName);
-            const resultWithoutDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, undefined, undefined, undefined);
+            const resultWithDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, derivedName);
+            const resultWithoutDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, undefined);
 
             expect(resultWithDerived).toBe(derivedName);
             expect(resultWithDerived).not.toBe(resultWithoutDerived);
@@ -22405,7 +22405,7 @@ describe('ReportUtils', () => {
         it('should return empty string when report is undefined even with derivedReportName', () => {
             const action = {...createRandomReportAction(8)};
 
-            const result = getChatListItemReportName(action, undefined, undefined, undefined, [], translateLocal, undefined, undefined, 'Derived Name');
+            const result = getChatListItemReportName(action, undefined, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, 'Derived Name');
             expect(result).toBe('');
         });
 
