@@ -12,6 +12,7 @@ import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import type * as ShouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,7 +61,7 @@ jest.mock('@hooks/useInFlightRequests', () => ({
 }));
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@pages/inbox/report/shouldDisplayNewMarkerOnReportAction', () => ({
-    ...jest.requireActual<typeof import('@pages/inbox/report/shouldDisplayNewMarkerOnReportAction')>('@pages/inbox/report/shouldDisplayNewMarkerOnReportAction'),
+    ...jest.requireActual<typeof ShouldDisplayNewMarkerOnReportAction>('@pages/inbox/report/shouldDisplayNewMarkerOnReportAction'),
     getUnreadMarkerReportAction: jest.fn(() => [null, -1]),
 }));
 
