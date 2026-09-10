@@ -753,11 +753,6 @@ describe('actions/IOU', () => {
             };
         }
 
-        /** The rail keys each flag by instance, so a test asks which transactions are flagged rather than indexing the record by ID. */
-        function getFlaggedTransactionIDs(pendingNewTransactionIDs: Record<string, unknown> | undefined) {
-            return Object.keys(pendingNewTransactionIDs ?? {}).map((flagKey) => parsePendingNewTransactionFlagKey(flagKey)?.transactionID);
-        }
-
         function getPendingNewTransactionIDsFromOnyx(reportID: string) {
             return new Promise<Record<string, unknown> | undefined>((resolve) => {
                 const connection = Onyx.connect({
@@ -975,6 +970,42 @@ describe('actions/IOU', () => {
             // Then no expense-added growl is queued
             const growlTransactionIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
             expect(growlTransactionIDs?.['new-inbox-tx-2']).toBeUndefined();
+        });
+
+        it('leaves no highlight flags anywhere when splits move out to a different report', async () => {
+            // Given splits that leave the expense report entirely (each lands in its own other report). Nothing should
+            // be flagged on the source report, and the destination reports are never opened by this flow either, so
+            // no rail entry may be left behind for any of them.
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+            const expenseReport = {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, parentReportID: 'parent-report-1', chatReportID: 'chat-report-1'} as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, expenseReport);
+            const existingTx = {transactionID: 'existing-tx-3', reportID: EXPENSE_REPORT_ID, amount: 1000};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-3`, existingTx);
+            const params = buildBaseParams({
+                expenseReport,
+                allReportsList: {[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]: expenseReport},
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}existing-tx-3`]: existingTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'moved-tx-1', reportID: 'other-report-1', statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'moved-tx-2', reportID: 'other-report-2', statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then neither the source report nor the destination reports carry stranded highlight flags
+            const sourceRail = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(sourceRail?.['moved-tx-1']).toBeUndefined();
+            expect(sourceRail?.['moved-tx-2']).toBeUndefined();
+            expect((await getPendingNewTransactionIDsFromOnyx('other-report-1'))?.['moved-tx-1']).toBeUndefined();
+            expect((await getPendingNewTransactionIDsFromOnyx('other-report-2'))?.['moved-tx-2']).toBeUndefined();
         });
     });
 });
