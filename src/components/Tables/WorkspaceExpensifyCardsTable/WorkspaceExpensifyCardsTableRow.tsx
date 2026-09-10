@@ -134,7 +134,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                     accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
                                     canEdit={!!item.canEditName}
                                     onSave={item.onRenameName}
-                                    displayTextStyle={styles.textLabelSupporting}
+                                    displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
                                 />
                             )}
                         </View>
