@@ -10,7 +10,7 @@ import SentryDebugIdPlugin from './sentryDebugIdPlugin.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// This file lives in config/repack. The project root is two levels up.
+// This file lives in config/repack; the project root is two levels up.
 const projectRoot = path.resolve(__dirname, '../..');
 
 /**
@@ -146,7 +146,7 @@ export default Repack.defineRspackConfig((env) => {
                             // SWC's equivalent of Metro's `inlineRequires`, required to tolerate
                             // the app's import cycles. Without it the app crashes on boot.
                             lazyImports: true,
-                            // Re.Pack parses every non-TS file with hermes-parser. This restores Metro's
+                            // Re.Pack parses every non-TS file with hermes-parser; this restores Metro's
                             // pragma gate so only Flow files pay for it. See the shim for details.
                             hermesParserPath: path.resolve(__dirname, './hermesParserShim.mjs'),
                         },
@@ -207,10 +207,7 @@ export default Repack.defineRspackConfig((env) => {
             /Module not found: Can't resolve 'react-native-worklets-core'/,
             /Module not found: Can't resolve '@shopify\/react-native-skia'/,
             /'`setUpTests` is available only in Jest environment\.'/,
-            // @sentry/react-native optionally requires expo-updates, which this app does not install.
-            // Metro tolerates the optional require silently.
             /Can't resolve 'expo-updates'/,
-            // react-native-reanimated's jestUtils does a dynamic `require` Metro never analyses statically.
             /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
         ],
     };

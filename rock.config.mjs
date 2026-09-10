@@ -9,13 +9,8 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true';
 const useMetro = process.env.BUNDLER === 'metro';
 const isPublicAccess = !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY;
 
-// `rock run:ios` / `run:android` boot the dev server with every configured platform, so Re.Pack
-// spins up one rspack compiler per platform and both bundles fight for CPU. Re.Pack's start command
-// honours `--platform`, so inject it for the platform actually being run. The plugin's own config
-// argument cannot do this: `@rock-js/plugin-repack` returns `start: startDevServer` unbound, so its
-// `pluginConfig` never reaches the dev server.
-// Plain `rock start` is untouched and keeps every platform. Use `npx rock start --platform ios` to
-// narrow that manually.
+// `rock run:*` starts the dev server for every configured platform, so Re.Pack compiles both and
+// they fight for CPU. Inject `--platform` for the one being run. `rock start` keeps both.
 const runPlatform = process.argv.find((arg) => arg === 'run:ios' || arg === 'run:android')?.split(':')[1];
 
 const bundlerRepack = (api) => {

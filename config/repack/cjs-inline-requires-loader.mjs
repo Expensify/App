@@ -113,7 +113,7 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
             // Interop-wrapped imports first, then Metro's plugin for the bare `require` form.
             plugins: [inlineInteropRequiresPlugin, inlineRequiresPlugin],
             sourceMaps,
-            // The minifier handles formatting. Keeping newlines makes build output readable.
+            // The minifier handles formatting; keeping newlines makes build output readable.
             compact: false,
         });
 
