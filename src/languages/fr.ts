@@ -8014,8 +8014,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 enableCategoriesToUnlockTitle: 'Activer les catégories ?',
                 enableCategoriesToUnlockPrompt: 'Activez les catégories (dans Plus de fonctionnalités) pour déverrouiller.',
                 enableCategoriesAndRequirePrompt: 'Voulez-vous vraiment activer les catégories et les rendre obligatoires pour toutes les dépenses ?',
-                enableTagsPrompt: 'Sei sicuro di voler abilitare i tag? Potrai renderli obbligatori per tutte le spese non appena avrai almeno un tag.',
-                noTagsToRequirePrompt: 'Non hai ancora nessun tag. Crea un tag.',
+                enableTagsPrompt: 'Voulez-vous vraiment activer les tags ? Vous pourrez les rendre obligatoires pour toutes les dépenses une fois que vous aurez au moins un tag.',
+                noTagsToRequirePrompt: "Vous n'avez aucun tag. Veuillez créer un tag.",
                 noCategoriesToRequirePrompt: 'Vous n’avez aucune catégorie. Veuillez créer une catégorie.',
             },
             expenseReportRules: {

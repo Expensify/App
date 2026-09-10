@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {canMemberRead, getApprovalWorkflow, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow, isControlPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -66,7 +66,8 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const isEditing = issueNewCard?.isEditing;
-    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
+    // Card spend rules stay Control-only even though the general Rules feature is now available to Collect too.
+    const areSpendRulesAvailable = isControlPolicy(policy) && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const nextStep = useMemo(() => {
         if (isEditing) {

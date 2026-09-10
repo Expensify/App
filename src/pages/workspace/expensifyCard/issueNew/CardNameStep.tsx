@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
@@ -49,7 +49,8 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
     });
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
-    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
+    // Card spend rules stay Control-only even though the general Rules feature is now available to Collect too.
+    const areSpendRulesAvailable = isControlPolicy(policy) && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
