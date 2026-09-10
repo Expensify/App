@@ -2,8 +2,11 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {createContext, useContext, useEffect, useState} from 'react';
 
-/** The text slots a `MenuItem` row can contribute to its label, in the order they are announced */
-const MENU_ITEM_LABEL_SLOTS = ['title', 'description'] as const;
+/**
+ * Label slots a `MenuItem` row can contribute, in the order they are announced. Keyed by line rather
+ * than role, so the announced order matches the visual one for both field and navigation rows.
+ */
+const MENU_ITEM_LABEL_SLOTS = ['top', 'bottom'] as const;
 
 type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
 
@@ -35,7 +38,7 @@ const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityActions 
 
 /**
  * Contributes text to the label `MenuItem.Root` derives. Registered under a fixed slot key so the
- * announced order is deterministic (`title`, then `description`) regardless of mount/render timing
+ * announced order is deterministic (`top`, then `bottom`) regardless of mount/render timing.
  * No-op when `text` is empty or when rendered outside a `MenuItem.Root`.
  */
 function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | undefined) {
@@ -100,7 +103,7 @@ function useKeyedRegistry<TKey, TValue>() {
 
 /** Assembles the row's accessibility label from what its sub-components registered, plus the value for `MenuItemAccessibilityContext.Provider` */
 function useMenuItemAccessibility() {
-    // Text contributed by Title/Description children, keyed by slot
+    // Text contributed by the text leaves, keyed by the line each one occupies
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useKeyedRegistry<MenuItemLabelSlot, string>();
 
     // Facts contributed by any child, keyed by the fact
@@ -119,4 +122,5 @@ function useMenuItemAccessibility() {
 }
 
 export default MenuItemAccessibilityContext;
+export type {MenuItemLabelSlot};
 export {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityLabel, useMenuItemAccessibilityAnnouncement, useMenuItemAccessibility};

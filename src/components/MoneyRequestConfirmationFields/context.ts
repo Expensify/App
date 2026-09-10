@@ -23,10 +23,10 @@ type ConfirmationFieldsContextValue = {
     isReadOnly: boolean;
     didConfirm: boolean;
     isEditingSplitBill: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     isPolicyExpenseChat: boolean;
 
     // Mode — *what kind* of expense is being confirmed
+    isScanRequest: boolean;
     isDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;

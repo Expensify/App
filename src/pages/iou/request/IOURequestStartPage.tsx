@@ -11,7 +11,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -159,9 +158,6 @@ function IOURequestStartPage({
         return undefined;
     }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
-
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
         report,
@@ -172,7 +168,6 @@ function IOURequestStartPage({
         iouType,
         policy,
         skipKeyboardDismissForPerDiem: true,
-        isNewManualExpenseFlowEnabled,
     });
 
     useEffect(() => {
@@ -214,7 +209,7 @@ function IOURequestStartPage({
     // it, so PAY is the only type this has to add back.)
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
-    const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
+    const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [initialIsNegative, setInitialIsNegative] = useState(false);
     const [isAmountNegative, setIsAmountNegative] = useState(false);
@@ -308,14 +303,14 @@ function IOURequestStartPage({
             canSendInvoice={iouRequestStartPolicies?.canSendInvoiceFromAnyWorkspace}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
+                shouldEnableKeyboardAvoidingView
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM || shouldEnableManualConfirmationMaxHeight}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                {/* If the new manual expense flow is enabled, the confirmation screen is shown on the start page, so we do not want to disable the drag and drop provider in that case */}
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && !(isNewManualExpenseFlowEnabled && selectedTab === CONST.TAB_REQUEST.MANUAL)}>
+                {/* The confirmation screen is shown on the start page for the manual tab, so we do not want to disable the drag and drop provider in that case */}
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && selectedTab !== CONST.TAB_REQUEST.MANUAL}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}
