@@ -258,6 +258,33 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).not.toHaveBeenCalled();
     });
 
+    it('should not mark the report as read on report change when the list is not scrolled to the end', () => {
+        const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const incomingAction: OnyxTypes.ReportAction = {...createRandomReportAction(2), created: '2023-01-01 11:00:00.000', actorAccountID: 2};
+
+        mockIsUnread = false;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: props.actions,
+                    isScrolledToEnd: false,
+                    hasNewerActions: false,
+                    scopeKey: 'notScrolledToEnd',
+                }),
+            {initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[]}},
+        );
+        readNewestAction.mockClear();
+
+        mockIsUnread = true;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
     it('should mark the report as read on focus return when the unread action is only in the full action chain', () => {
         const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
         const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
