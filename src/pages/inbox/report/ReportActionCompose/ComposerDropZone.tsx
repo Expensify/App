@@ -68,6 +68,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
@@ -79,7 +80,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
     const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
+    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, rules, isReportArchived, isRestrictedToPreferredPolicy).length;
     const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
     const shouldDisplayDualDropZone = canModifyReceipt || hasMoneyRequestOptions;
 
