@@ -4,7 +4,6 @@ import {write} from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
-import {getIsOffline} from '@libs/NetworkState';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 
@@ -108,9 +107,10 @@ function toggleEmojiReaction(
     paramSkinTone: number,
     currentUserAccountID: number,
     reportActions: OnyxEntry<ReportActions>,
+    isOffline: boolean,
     ignoreSkinToneOnCompare = false,
 ) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, getIsOffline());
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
 
     if (!originalReportID) {
         return;
