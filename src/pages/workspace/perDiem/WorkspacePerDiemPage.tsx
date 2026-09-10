@@ -27,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renamePerDiemDestinationInline, renamePerDiemSubrateInline, updatePerDiemAmountInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -177,12 +178,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedSubRateKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const perDiemRows: PerDiemTableRowData[] = useMemo(
         () =>
             allSubRates
                 .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                 .map((subRate) => {
                     const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    const canEdit = canWritePerDiem && !isDeleting && !isSelectionModeActive;
 
                     return {
                         keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
@@ -191,13 +197,20 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         destination: subRate.destination,
                         subRateName: subRate.subRateName,
                         rate: subRate.rate,
+                        currency: subRate.currency,
                         formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
                         disabled: isDeleting,
                         pendingAction: subRate.pendingAction,
+                        canEditDestination: canEdit,
+                        canEditSubrate: canEdit,
+                        canEditAmount: canEdit,
                         action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
+                        onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
+                        onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
+                        onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
                     };
                 }),
-        [allSubRates, isOffline, openSubRateDetails],
+        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
     );
 
     const secondaryActions = useMemo(() => {

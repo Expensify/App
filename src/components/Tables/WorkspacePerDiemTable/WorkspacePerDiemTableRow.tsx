@@ -1,9 +1,11 @@
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,6 +17,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {PerDiemTableRowData} from '.';
+
+import WorkspacePerDiemAmountCell from './WorkspacePerDiemAmountCell';
 
 type WorkspacePerDiemTableRowProps = {
     /** Data about the per diem subrate */
@@ -30,6 +34,7 @@ type WorkspacePerDiemTableRowProps = {
 function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: WorkspacePerDiemTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
@@ -72,11 +77,12 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             style={[styles.flex1]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.destination}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={item.destination}
+                                accessibilityLabel={translate('common.destination')}
+                                canEdit={item.canEditDestination && !item.disabled}
+                                onSave={item.onRenameDestination}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}
@@ -86,25 +92,27 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             style={[styles.flex1]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.subRateName}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={item.subRateName}
+                                accessibilityLabel={translate('common.subrate')}
+                                canEdit={item.canEditSubrate && !item.disabled}
+                                onSave={item.onRenameSubrate}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.alignItemsEnd]}
+                            style={[styles.flex1, styles.alignItemsEnd, styles.editableCellColumn]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={item.formattedAmount}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <WorkspacePerDiemAmountCell
+                                rate={item.rate}
+                                currency={item.currency}
+                                displayText={item.formattedAmount}
+                                canEdit={item.canEditAmount && !item.disabled}
+                                onSave={item.onChangeAmount}
                             />
                         </View>
                     )}

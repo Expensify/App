@@ -9,7 +9,9 @@ import {
     shouldShowExpensifyCardFixedLimitType,
 } from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getDistanceRateNameError, getDistanceRateValueError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
+import {getPerDiemAmountError, getPerDiemNameError, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
@@ -37,6 +39,7 @@ import type {ValueOf} from 'type-fest';
 import {renamePolicyCategory} from './Category';
 import {updatePolicyDistanceRateName, updatePolicyDistanceRateValue} from './DistanceRate';
 import {updateWorkspaceMembersRole} from './Member';
+import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from './PerDiem';
 import {renamePolicyTag} from './Tag';
 
 /**
@@ -220,6 +223,55 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
     updateExpensifyCardLimit(workspaceAccountID, card.cardID, nextLimit, getExpensifyCardNewAvailableSpend(card, nextLimit), oldLimit, card.availableSpend, card.nameValuePairs?.isVirtual);
 }
 
+/**
+ * Renames a per diem destination from an inline table edit. Destination is stored on the rate, so
+ * every subrate row for that destination updates together, matching the RHP. Silently no-ops when
+ * the name is unchanged or fails validation (matching the Spend inline-edit behavior).
+ */
+function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
+    const sanitized = sanitizePerDiemName(newName);
+
+    if (sanitized === currentName || getPerDiemNameError(newName)) {
+        return;
+    }
+
+    editPerDiemRateDestination(policyID, rateID, customUnit, sanitized);
+}
+
+/**
+ * Renames a per diem subrate from an inline table edit. Sanitizes the input and delegates to the
+ * canonical rename action. Silently no-ops when the name is unchanged or fails validation
+ * (matching the Spend inline-edit behavior, where an invalid edit reverts to the original
+ * value without an error).
+ */
+function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
+    const sanitized = sanitizePerDiemName(newName);
+
+    if (sanitized === currentName || getPerDiemNameError(newName)) {
+        return;
+    }
+
+    editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, sanitized);
+}
+
+/**
+ * Updates a per diem amount from an inline table edit. `newAmount` is the frontend dollar
+ * string. Silently no-ops when the amount is unchanged or fails validation (matching the Spend
+ * inline-edit behavior).
+ */
+function updatePerDiemAmountInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentRate: number, newAmount: string): void {
+    if (getPerDiemAmountError(newAmount)) {
+        return;
+    }
+
+    const backendAmount = convertToBackendAmount(Number(newAmount));
+    if (backendAmount === currentRate) {
+        return;
+    }
+
+    editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
+}
+
 export {
     renameCategoryInline,
     renameTagInline,
@@ -230,4 +282,7 @@ export {
     updateMemberRoleInline,
     updateExpensifyCardLimitTypeInline,
     updateExpensifyCardLimitInline,
+    renamePerDiemDestinationInline,
+    renamePerDiemSubrateInline,
+    updatePerDiemAmountInline,
 };

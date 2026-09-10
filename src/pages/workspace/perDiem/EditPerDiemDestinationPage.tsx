@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPerDiemNameError, getPerDiemNameErrorMessage, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -50,13 +51,10 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+            const nameError = getPerDiemNameError(values.destination);
 
-            const destinationTrimmed = values.destination.trim();
-
-            if (!destinationTrimmed) {
-                errors.destination = translate('common.error.fieldRequired');
-            } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', destinationTrimmed.length, CONST.MAX_LENGTH_256);
+            if (nameError) {
+                errors.destination = getPerDiemNameErrorMessage(translate, nameError, values.destination);
             }
 
             return errors;
@@ -66,7 +64,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
 
     const editDestination = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newDestination = values.destination.trim();
+            const newDestination = sanitizePerDiemName(values.destination);
             if (newDestination !== selectedRate?.name) {
                 editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
             }
