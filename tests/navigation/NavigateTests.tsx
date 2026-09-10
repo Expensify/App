@@ -305,6 +305,54 @@ describe('Navigate', () => {
             expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
         });
 
+        it('keeps the Reports tab under the Beta overrides RHP when the full screen match is skipped', () => {
+            // Given the Reports tab is active, as when the Test Tools modal was opened from a report and then dismissed
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1'}}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            // When navigating to the Beta overrides page the same way the Test Tools menu does
+            act(() => {
+                Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
+            });
+
+            // Then the RHP is opened and the Reports tab stays underneath instead of Settings > Troubleshoot
+            const rootState = navigationRef.current?.getRootState();
+            const lastRootRoute = rootState?.routes.at(-1);
+            expect(lastRootRoute?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            expect(lastRootRoute?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.BETA_OVERRIDES);
+
+            const tabState = rootState?.routes.at(0)?.state;
+            const activeTab = tabState?.routes.at(tabState.index ?? 0);
+            expect(activeTab?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+        });
+
         it('preserves report navigation history when opening a workspace from an RHP', () => {
             render(
                 <TestNavigationContainer
