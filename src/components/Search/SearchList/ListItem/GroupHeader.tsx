@@ -8,6 +8,7 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -94,6 +95,7 @@ function GroupHeader({
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
@@ -372,7 +374,7 @@ function GroupHeader({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 wrapperStyle={[
-                    styles.mh5,
+                    pageGutterMargin,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth

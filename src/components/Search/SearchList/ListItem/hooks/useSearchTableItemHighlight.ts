@@ -1,4 +1,5 @@
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ type UseSearchTableItemHighlightParams = {
  */
 function useSearchTableItemHighlight({shouldHighlight = false, isSelected = false, isLastItem = false}: UseSearchTableItemHighlightParams = {}) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -49,7 +51,7 @@ function useSearchTableItemHighlight({shouldHighlight = false, isSelected = fals
                     vertical: variables.tableRowPaddingVertical,
                 }),
         ],
-        pressableWrapperStyle: [styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]],
+        pressableWrapperStyle: [pageGutterMargin, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]],
     };
 }
 

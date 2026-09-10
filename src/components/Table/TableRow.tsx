@@ -6,6 +6,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -71,6 +72,7 @@ export default function TableRow({
 }: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -123,7 +125,7 @@ export default function TableRow({
     }
 
     const tableRowPressableStyles = [
-        styles.mh5,
+        pageGutterMargin,
         styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
