@@ -11,10 +11,16 @@ const meta = {
     messages: {
         layoutSpacingConditional:
             'Do not pick `{{spacing}}` by switching on `{{test}}`. Use the matching style from `useLayoutSpacing()` (src/styles/layoutSpacing.ts) so the value stays in one place.',
+        layoutSpacingConditionalKnown: 'Replace `{{test}} ? styles.{{narrow}} : styles.{{wide}}` with `{{replacement}}` from `useLayoutSpacing()` (src/styles/layoutSpacing.ts).',
     },
 };
 
 const LAYOUT_FLAGS = new Set(['shouldUseNarrowLayout', 'isSmallScreenWidth', 'isMediumScreenWidth', 'isLargeScreenWidth', 'isExtraSmallScreenWidth']);
+const KNOWN_REPLACEMENTS = {
+    'ph5:ph8': 'cardPaddingHorizontal',
+    'p5:p8': 'cardPadding',
+    'mhn5:mhn8': 'cardEdgeToEdge',
+};
 const SPACING_CLASS_PATTERN = /^[pm](?:h|l|r|hn|ln|rn)?\d+$/;
 const TS_WRAPPER_TYPES = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
 
@@ -68,8 +74,21 @@ function create(context) {
             if (!flagName) {
                 return;
             }
-            const spacing = findSpacingClassName(node.consequent) ?? findSpacingClassName(node.alternate);
+            const narrow = findSpacingClassName(node.consequent);
+            const wide = findSpacingClassName(node.alternate);
+            const spacing = narrow ?? wide;
             if (!spacing) {
+                return;
+            }
+            const isNegated = unwrap(node.test).type === 'UnaryExpression';
+            const pair = isNegated ? `${wide}:${narrow}` : `${narrow}:${wide}`;
+            const replacement = KNOWN_REPLACEMENTS[pair];
+            if (replacement && getSpacingClassName(node.consequent) && getSpacingClassName(node.alternate)) {
+                context.report({
+                    node,
+                    messageId: 'layoutSpacingConditionalKnown',
+                    data: {test: isNegated ? `!${flagName}` : flagName, narrow: narrow, wide: wide, replacement},
+                });
                 return;
             }
             context.report({

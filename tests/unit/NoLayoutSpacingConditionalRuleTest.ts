@@ -67,15 +67,15 @@ describe('no-layout-spacing-conditional', () => {
         invalid: [
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;',
-                errors: [{messageId: 'layoutSpacingConditional', data: {spacing: 'ph5', test: 'shouldUseNarrowLayout'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', narrow: 'ph5', wide: 'ph8', replacement: 'cardPaddingHorizontal'}}],
             },
             {
                 code: 'const style = isSmallScreenWidth ? styles.p5 : styles.p8;',
-                errors: [{messageId: 'layoutSpacingConditional', data: {spacing: 'p5', test: 'isSmallScreenWidth'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'isSmallScreenWidth', narrow: 'p5', wide: 'p8', replacement: 'cardPadding'}}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', narrow: 'mhn5', wide: 'mhn8', replacement: 'cardEdgeToEdge'}}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8];',
@@ -87,15 +87,15 @@ describe('no-layout-spacing-conditional', () => {
             },
             {
                 code: 'const style = !shouldUseNarrowLayout ? styles.ph8 : styles.ph5;',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: '!shouldUseNarrowLayout', narrow: 'ph8', wide: 'ph5', replacement: 'cardPaddingHorizontal'}}],
             },
             {
                 code: 'const style = layout.shouldUseNarrowLayout ? styles.ph5 : styles.ph8;',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
             },
             {
                 code: 'const jsx = <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]} />;',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.pl5 : styles.pl8;',
@@ -109,7 +109,7 @@ describe('no-layout-spacing-conditional', () => {
         invalid: [
             {
                 code: 'const style = shouldUseNarrowLayout ? (styles.ph5 as ViewStyle) : styles.ph8;',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
             },
         ],
     });
