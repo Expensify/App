@@ -34,14 +34,22 @@ import ROUTE_TO_NAVIGATION_TAB from './NavigationTabBar/ROUTE_TO_NAVIGATION_TAB'
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
 /**
- * Avatar of the signed-in user that navigates to the Account tab. Hosts render it unconditionally —
- * it hides itself when the beta is off or the user is anonymous.
+ * Avatar of the signed-in user that navigates to the Account tab.
  */
 function AccountAvatarButton() {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || isAnonymousUserUtil(session)) {
+        return null;
+    }
+
+    return <AccountAvatarButtonContent />;
+}
+
+function AccountAvatarButtonContent() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {status} = useAccountTabIndicatorStatus();
     const isFocused = useIsFocused();
 
@@ -52,15 +60,10 @@ function AccountAvatarButton() {
     });
     const isSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
 
-    const shouldRenderButton = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && !isAnonymousUserUtil(session);
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
-        shouldRenderButton && isFocused,
+        isFocused,
     );
-
-    if (!shouldRenderButton) {
-        return null;
-    }
 
     const navigateToAccount = () => {
         hideProductTrainingTooltip();
