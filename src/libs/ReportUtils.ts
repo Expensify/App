@@ -129,6 +129,7 @@ import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
+import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -146,7 +147,6 @@ import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
-import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
