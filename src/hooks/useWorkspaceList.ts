@@ -25,11 +25,6 @@ type UseWorkspaceListParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
     shouldSortSelectedToTop?: boolean;
-
-    /**
-     * Policy IDs to pin to the top of the list, defaulting to `selectedPolicyIDs`. Pass the saved value when the list checks an unsaved
-     * draft selection, so checking a row highlights it without reordering the list under the user.
-     */
     policyIDsToSortToTop?: string[];
     includeArchivedPolicy?: boolean;
 };

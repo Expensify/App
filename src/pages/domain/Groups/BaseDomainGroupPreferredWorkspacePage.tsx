@@ -1,8 +1,7 @@
 /**
  * Shared preferred-workspace selector for domain groups. Both the group-create and group-edit
  * pages delegate to this component; it renders the admin workspace list with a search field and
- * gates access behind DomainNotFoundPageWrapper. Callers choose how a pick commits: immediately on
- * row press, or staged until Save via `shouldConfirmSelection`.
+ * gates access behind DomainNotFoundPageWrapper.
  */
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -38,16 +37,13 @@ type BaseDomainGroupPreferredWorkspacePageProps = {
     /** AccountID of the domain */
     domainAccountID: number;
 
-    /** The policy ID of the saved preferred workspace. It stays in the list even when the user is not its admin, and it is the row focused on open. */
+    /** The policy ID of the saved preferred workspace */
     selectedPolicyID: string | undefined;
 
-    /** Commits the picked workspace. Fired on row press, or on Save when `shouldConfirmSelection` is set. */
+    /** Called with the policy ID of the workspace the user picked */
     onSelectWorkspace: (policyID: string) => void;
 
-    /**
-     * Whether picking a row only stages the choice, leaving a Save button to commit it. Set it wherever committing on
-     * press would change the layout or navigate away, which WCAG 3.2.2 "On Input" disallows without an explicit confirm.
-     */
+    /** Whether a pick is staged behind a Save button, which WCAG 3.2.2 "On Input" requires when committing navigates away */
     shouldConfirmSelection?: boolean;
 
     /** Called when the back button is pressed */
@@ -77,8 +73,6 @@ function BaseDomainGroupPreferredWorkspacePage({
     const {translate, localeCompare} = useLocalize();
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
-
-    // The saved workspace drives which rows the list contains and which one opens focused, so staging a pick can't drop it or move the list under the user.
     const checkedPolicyID = draftPolicyID ?? selectedPolicyID;
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});

@@ -75,7 +75,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
-        // This page never pinned a workspace to the top, so keep the plain alphabetical order instead of pinning the row the user just checked.
+        // This page never pinned a workspace to the top, so don't start now that checking a row sets selectedPolicyIDs.
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
@@ -86,8 +86,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         showButton: true,
         text: translate('common.save'),
         onConfirm: () => selectPolicy(draftPolicyID),
-        // Unlike the other two pickers, selectPolicy also advances the flow (it navigates to navigateTo), so confirming the
-        // already-active workspace is a real action. Gate on whether a row is checked, not on whether the value changed.
+        // selectPolicy also advances the flow, so re-confirming the already-active workspace is a real action rather than a no-op.
         isDisabled: !draftPolicyID,
     };
 
