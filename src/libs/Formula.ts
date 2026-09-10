@@ -372,19 +372,12 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 }
 
 /**
- * Whether a display-currency modifier is neither `nosymbol` nor a usable currency code.
- */
-function isInvalidCurrencyModifier(displayCurrency: string | undefined): boolean {
-    const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
-    return !!trimmedDisplayCurrency && trimmedDisplayCurrency !== NO_CURRENCY_SYMBOL && !isValidCurrencyCode(trimmedDisplayCurrency);
-}
-
-/**
  * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
  */
 function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
     // Check the modifier first so a bad one falls back to the raw token even before any amount exists.
-    if (isInvalidCurrencyModifier(format)) {
+    const trimmedFormat = format?.trim().toUpperCase();
+    if (trimmedFormat && trimmedFormat !== NO_CURRENCY_SYMBOL && !isValidCurrencyCode(trimmedFormat)) {
         return part.definition;
     }
 
@@ -650,7 +643,7 @@ function formatAmount(
             }
 
             // Return empty string for an unrecognized display currency so the placeholder is preserved upstream.
-            if (isInvalidCurrencyModifier(trimmedDisplayCurrency)) {
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
                 return '';
             }
 
