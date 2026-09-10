@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useMarkAsRead from '@hooks/useMarkAsRead';
+import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import type Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
@@ -91,6 +91,7 @@ function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> =
 describe('useMarkAsRead', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        resetMarkAsReadScopes();
         mockIsUnread = true;
         mockIsVisible = true;
         mockHasFocus = true;

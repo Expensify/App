@@ -67,6 +67,12 @@ function releaseScope(scopeKey: string, instanceID: number) {
     scopeOwners.set(scopeKey, owners);
 }
 
+/** Test-only: clears the module-level scope tracking so state doesn't leak between test cases. */
+function resetMarkAsReadScopes() {
+    scopeOwners.clear();
+    lastInstanceID = 0;
+}
+
 type UseMarkAsReadParams = {
     reportID: string;
     report: OnyxEntry<OnyxTypes.Report>;
@@ -274,3 +280,4 @@ function useMarkAsRead({
 }
 
 export default useMarkAsRead;
+export {resetMarkAsReadScopes};
