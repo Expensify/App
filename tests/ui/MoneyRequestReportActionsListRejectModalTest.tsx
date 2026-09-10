@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -131,7 +131,7 @@ jest.mock('@components/ButtonWithDropdownMenu', () => {
 const mockOriginalRejectOnSelected = jest.fn();
 const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
 const mockUseNetwork = jest.mocked(useNetwork);
-const mockUseUnreadMarker = jest.mocked(useUnreadMarker);
+const mockUseUnreadMarker = jest.mocked(jest.requireMock<typeof useUnreadMarker>('@hooks/useUnreadMarker'));
 jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
@@ -308,9 +308,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         });
 
         renderComponent();
-        await waitForBatchedUpdatesWithAct();
 
-        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isReportUnread: false}));
+        await waitFor(() => expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isReportUnread: false})));
     });
 
     it('should NOT show reject educational modal when explanation HAS been dismissed', async () => {
