@@ -80,10 +80,11 @@ function BulkActionBarContent<TValueType>({
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
-    // Esc clears the selection, but not while a popover or RHP is open over the bar: modals dismiss on keyup, shortcuts
-    // run on keydown, so ordering can't defer to them, and `isVisible` is what both set.
+    // Esc clears the selection, but not while a popover or RHP is open (or opening) over the bar: modals dismiss on
+    // keyup, shortcuts run on keydown, so ordering can't defer to them. `willAlertModalBecomeVisible` covers the open
+    // animation, `isVisible` covers everything after, and an RHP only ever sets the latter.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.isVisible});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.willAlertModalBecomeVisible && !modal?.isVisible});
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
