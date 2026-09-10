@@ -24,8 +24,10 @@ const mockSelfDMReport: Report = createSelfDM(1, ACCOUNT_ID);
 const workspaceChat: Report = {...createPolicyExpenseChat(2), policyID: POLICY_ID, ownerAccountID: ACCOUNT_ID};
 
 // Auto-reporting is on, so without the track-expense carve-out the default target resolves to the workspace chat.
-const mockDefaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, autoReporting: true};
+const defaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, autoReporting: true};
+let mockDefaultExpensePolicy: Policy | undefined = defaultExpensePolicy;
 const mockPersonalPolicy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), id: PERSONAL_POLICY_ID, autoReporting: true};
+let mockIsRestrictedToPreferredPolicy = false;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -35,6 +37,15 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({
     __esModule: true,
     default: () => mockDefaultExpensePolicy,
+}));
+
+jest.mock('@hooks/usePreferredPolicy', () => ({
+    __esModule: true,
+    default: () => ({
+        isRestrictedToPreferredPolicy: mockIsRestrictedToPreferredPolicy,
+        preferredPolicyID: undefined,
+        isRestrictedPolicyCreation: false,
+    }),
 }));
 
 jest.mock('@hooks/usePersonalPolicy', () => ({
@@ -73,6 +84,8 @@ describe('useDefaultParticipants', () => {
     });
 
     afterEach(async () => {
+        mockDefaultExpensePolicy = defaultExpensePolicy;
+        mockIsRestrictedToPreferredPolicy = false;
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
         });
@@ -97,6 +110,32 @@ describe('useDefaultParticipants', () => {
         const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
 
         expect(participants).toEqual([expect.objectContaining({reportID: mockSelfDMReport.reportID, isSelfDM: true, selected: true})]);
+    });
+
+    it.each([
+        {description: 'there is no eligible group workspace', policyIDs: []},
+        {description: 'there are multiple eligible group workspaces', policyIDs: ['workspacePolicy1', 'workspacePolicy2']},
+    ])('should seed the self DM for a personal destination when $description', async ({policyIDs}) => {
+        mockDefaultExpensePolicy = undefined;
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, mockPersonalPolicy);
+        for (const policyID of policyIDs) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...createRandomPolicy(policyID === 'workspacePolicy1' ? 4 : 5, CONST.POLICY.TYPE.TEAM), id: policyID});
+        }
+
+        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
+
+        expect(participants).toEqual([expect.objectContaining({reportID: mockSelfDMReport.reportID, isSelfDM: true, selected: true})]);
+    });
+
+    it('should preserve the restricted preferred workspace when the active destination is personal', async () => {
+        mockIsRestrictedToPreferredPolicy = true;
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, mockPersonalPolicy);
+
+        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
+
+        expect(participants).toEqual([expect.objectContaining({reportID: workspaceChat.reportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true})]);
     });
 
     it('should seed the self DM for a track expense instead of the default workspace chat', async () => {
