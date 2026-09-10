@@ -1608,9 +1608,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
             reportsNotSubmittedTitle: 'Rapporten indienen',
             reportsNotMarkedAsDoneTitle: 'Rapporten markeren als voltooid',
-            reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen uitgaven gepauzeerd of in behandeling zijn en probeer het opnieuw.',
+            reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen onkosten vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
             reportsNotMarkedAsDoneDescription:
-                'Deze rapporten konden niet worden gemarkeerd als voltooid. Controleer of er geen uitgaven gepauzeerd of in behandeling zijn en probeer het opnieuw.',
+                'Deze rapporten konden niet als voltooid worden gemarkeerd. Controleer of er geen onkostendeclaraties vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },

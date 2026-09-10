@@ -1614,9 +1614,9 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotSubmittedTitle: 'Berichte einreichen',
             reportsNotMarkedAsDoneTitle: 'Berichte als erledigt markieren',
             reportsNotSubmittedDescription:
-                'Diese Berichte konnten nicht eingereicht werden. Stellen Sie sicher, dass keine Ausgaben angehalten oder ausstehend sind, und versuchen Sie es erneut.',
+                'Diese Berichte konnten nicht eingereicht werden. Stellen Sie sicher, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
             reportsNotMarkedAsDoneDescription:
-                'Diese Berichte konnten nicht als erledigt markiert werden. Stellen Sie sicher, dass keine Ausgaben angehalten oder ausstehend sind, und versuchen Sie es erneut.',
+                'Diese Berichte konnten nicht als erledigt markiert werden. Prüfen Sie, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
