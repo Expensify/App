@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';

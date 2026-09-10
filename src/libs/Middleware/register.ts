@@ -3,6 +3,7 @@ import {addMiddleware} from '@libs/Request';
 import {
     FailureTracking,
     FraudMonitoring,
+    GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
@@ -12,6 +13,7 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -51,8 +53,14 @@ function registerMiddlewares() {
     // Handle supportal permission denial centrally
     addMiddleware(SupportalPermission);
 
+    // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
+    addMiddleware(GlobalReimbursementPayError);
+
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
+
+    // Rewrites the remaining serialized requests when the response maps an optimistic agent accountID to the server-assigned one.
+    addMiddleware(ReplaceOptimisticAgentAccountID);
 
     addMiddleware(Pagination);
 

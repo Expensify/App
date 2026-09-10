@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Buscar',
         reports: 'Relatórios',
         spend: 'Gastos',
+        insights: 'Insights',
         find: 'Localizar',
         searchWithThreeDots: 'Buscar...',
         next: 'Próximo',
@@ -463,6 +464,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
         enableGlobalReimbursements: 'Ativar reembolsos globais',
+        corpayPayModalTitle: 'Pagar relatório',
+        corpayPayModalPrompt:
+            'Esta pessoa que enviou o relatório tem uma conta bancária que não é em USD. Ative os reembolsos globais para pagar o relatório, ou peça para adicionar uma conta bancária em USD.',
         purchaseAmount: 'Valor da compra',
         originalAmount: 'Valor original',
         frequency: 'Frequência',
@@ -2287,6 +2291,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            betaOverrides: 'Substituições de betas',
+            betaOverridesDescription:
+                'As substituições se aplicam apenas a este dispositivo e afetam somente as verificações do frontend. Uma beta mantém uma substituição apenas enquanto ela difere das betas da sua conta, então alternar de volta remove a substituição. “Redefinir todas as substituições” restaura os valores da sua conta. Algumas betas também são controladas pelo backend, então podem falhar no nível da solicitação.',
+            resetAllOverrides: 'Redefinir todas as substituições',
+            overridden: 'Substituída',
             qaAuth: 'Autenticação de QA (Cloudflare)',
             qaAuthRunProbe: 'Executar sondagem',
             qaAuthSession: 'Sessão de autenticação de QA',
@@ -3147,6 +3156,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'Não lidas',
         markAllAsRead: 'Marcar tudo como lido',
         markAllAsReadConfirmationPrompt: 'Tem certeza de que deseja marcar todos os chats como lidos?',
+        markAllTodosAsReadConfirmationPrompt: 'Tem certeza de que deseja marcar como lidos todos os chats pendentes?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `em ${policyName}`,
@@ -4601,6 +4611,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viagens',
             members: 'Membros',
             accounting: 'Contabilidade',
+            mcp: 'MCP',
             receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
@@ -4737,6 +4748,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
             description: 'Ótimas notícias 🎉. Entre em contato conosco se precisarem de ajuda com a configuração.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
+            connect: 'Conectar',
+            helpPrompt: 'Precisa de ajuda para conectar?',
+            helpLink: 'Leia nosso guia.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'da Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'da Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'da OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6504,6 +6534,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e muito mais.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
+            },
             receiptPartners: {
                 title: 'Parceiros de recibos',
                 subtitle: 'Importe recibos automaticamente.',
@@ -7020,6 +7054,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7100,9 +7136,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportSyncBillPayments':
                             return 'Sincronizando relatórios reembolsados e pagamentos de contas';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Importando códigos de imposto';
+                            return 'Importando códigos de impostos';
                         case 'quickbooksOnlineCheckConnection':
-                            return `Verificando conexão com ${integrationName}`;
+                            return `Verificando a conexão com ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
                             return `Importando dados de ${integrationName}`;
                         case 'startingImportXero':
@@ -7123,7 +7159,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Ainda sincronizando dados com o QuickBooks... Certifique-se de que o Web Connector está em execução';
                         case 'quickbooksOnlineSyncTitle':
-                            return `Sincronizando dados do ${integrationName}`;
+                            return `Sincronizando dados de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
@@ -7155,7 +7191,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'xeroSyncImportTaxRates':
                             return 'Sincronizando taxas de imposto';
                         case 'xeroCheckConnection':
-                            return 'Verificando conexão com o Xero';
+                            return 'Verificando conexão com Xero';
                         case 'xeroSyncTitle':
                             return 'Sincronizando dados do Xero';
                         case 'netSuiteSyncConnection':
@@ -7204,7 +7240,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'intacctImportTitle':
                             return 'Importando dados do Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Sincronizando dados do Certinia';
+                            return 'Sincronizando dados Certinia';
                         case 'financialForceSyncStep':
                             return 'Sincronizando conexão Certinia';
                         case 'financialForceSyncCategories':
@@ -7222,7 +7258,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensões';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Marcando relatórios como reembolsados';
+                            return 'Marcar relatórios como reembolsados';
                         case 'rilletSyncTitle':
                             return 'Sincronizando dados do Rillet';
                         case 'rilletSyncConnection':
@@ -7238,11 +7274,23 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'dualEntrySyncPayments':
                             return 'Sincronizando pagamentos a fornecedores';
                         case 'dualEntrySyncCardSettlements':
-                            return 'Sincronizando liquidações do cartão';
+                            return 'Sincronizando liquidações de cartão';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Sincronizando acertos de viagem';
+                        case 'campfireSyncTitle':
+                            return 'Sincronizando dados do Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Inicializando conexão com o Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Carregando dados';
+                        case 'campfireSyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'campfireSyncCardSettlements':
+                            return 'Sincronizando liquidações de cartão';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         default: {
-                            return `Tradução ausente para etapa: ${stage}`;
+                            return `Tradução ausente para o estágio: ${stage}`;
                         }
                     }
                 },
@@ -7283,6 +7331,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',
@@ -7590,6 +7639,12 @@ ${reportName}`,
                 description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + DualEntry. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração DualEntry para maior visibilidade financeira.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Nossa integração com a DualEntry está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Aproveite a sincronização automática e reduza lançamentos manuais com a integração Expensify + Campfire. Alinhe dimensões de categorização de despesas e a sincronização de impostos à sua configuração Campfire para maior visibilidade financeira.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Nossa integração com a Campfire está disponível apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprovações Avançadas',
@@ -7993,6 +8048,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
                 categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
                 categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'A alíquota de imposto selecionada agora é o padrão do seu workspace, então esta regra não é mais válida. Escolha uma alíquota de imposto diferente.',
+                addTaxRateFirstTitle: 'Adicione uma alíquota de imposto primeiro',
+                addTaxRateFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Adicione uma taxa diferente da padrão do seu espaço de trabalho para usá-las.',
+                createRuleFromExpenseAction: 'Criar regra',
+                createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
             },
             categoryRules: {
                 title: 'Regras de categoria',
@@ -8514,6 +8575,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
             subtitle: 'Exija que os membros do seu domínio façam login via logon único, restrinja a criação de workspaces e muito mais.',
+        },
+        campfire: {
+            campfireSetup: 'Configuração do Campfire',
+            enterCredentials: 'Insira sua chave de API do Campfire',
+            howToFindAPIKey:
+                '<strong>Encontrando sua chave de API.</strong><ol><li>Faça login no Campfire</li><li>Vá para Configurações -> Chaves de API</li><li>Crie a chave de API</li><li>Cole a chave de API abaixo</li></ol>',
+            subsidiary: 'Subsidiária',
+            subsidiarySelectDescription: 'Escolha a subsidiária no Campfire da qual você gostaria de importar dados.',
+            noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
+            noSubsidiariesFoundDescription: 'Adicione uma entidade no Campfire e sincronize a conexão novamente',
         },
     },
     getAssistancePage: {
@@ -10862,6 +10933,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         notVerified: 'Não verificado',
         retry: 'Tentar novamente',
         requestSent: 'Solicitação enviada',
+        requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         verifyDomain: {
             title: 'Verificar domínio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10922,12 +10994,12 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             setMetadataGenericError: 'Não foi possível definir os metadados SAML',
         },
         accessRestricted: {
-            title: 'Acesso restrito',
-            subtitle: (domainName: string) => `Verifique se você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
-            companyCardManagement: 'Gerenciamento de cartão corporativo',
-            accountCreationAndDeletion: 'Criação e exclusão de conta',
-            workspaceCreation: 'Criação de workspace',
-            samlSSO: 'SSO SAML',
+            headerTitle: 'Acesso restrito',
+            title: 'Verificação necessária',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Verifique-se como administrador autorizado da empresa para <strong>${domainName}</strong> ou solicite acesso aos administradores existentes.</centered-text></muted-text>`,
+            requestAdminAccess: 'Solicitar acesso de administrador',
+            verifyYourself: 'Verifique-se',
         },
         addDomain: {
             title: 'Adicionar domínio',
@@ -10941,7 +11013,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             title: 'Domínio já configurado. Solicitar acesso?',
             description: 'Alguém já configurou este domínio no Expensify. Quer solicitar acesso de administrador?',
             requestAccess: 'Solicitar acesso de administrador',
-            requestAccessError: 'Não foi possível enviar sua solicitação. Tente novamente.',
         },
         domainAdded: {
             title: 'Domínio adicionado',
