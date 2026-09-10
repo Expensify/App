@@ -95,7 +95,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD + 100;
+                offsetRef.current = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
             rerender({});
@@ -154,7 +154,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD - 100;
+                offsetRef.current = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD - 100;
                 result.current.trackVerticalScrolling(emptyScrollEventMock);
             });
 
@@ -225,6 +225,76 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(onUnreadActionVisibleLocalMockFn).toHaveBeenCalledTimes(1);
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+    });
+
+    describe('latest messages pill in a read chat', () => {
+        const onTrackScrollingMockFn = jest.fn();
+        const shortHistoryScrollOffset = 600;
+
+        const renderReadChatHook = (offsetRef: {current: number}, unreadMarkerReportActionIndex = -1) =>
+            renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex,
+                    isInverted: true,
+                }),
+            );
+
+        it('shows the pill when a short history is scrolled up past the visible threshold', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderReadChatHook(offsetRef);
+
+            act(() => {
+                offsetRef.current = shortHistoryScrollOffset;
+                result.current.trackVerticalScrolling(emptyScrollEventMock);
+            });
+
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+        });
+
+        it('keeps the pill visible across consecutive scroll events at the same offset', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderReadChatHook(offsetRef);
+            const visibilityPerScrollEvent: boolean[] = [];
+
+            for (let i = 0; i < 4; i++) {
+                act(() => {
+                    offsetRef.current = shortHistoryScrollOffset;
+                    result.current.trackVerticalScrolling(emptyScrollEventMock);
+                });
+                visibilityPerScrollEvent.push(result.current.isFloatingMessageCounterVisible);
+            }
+
+            expect(visibilityPerScrollEvent).toEqual([true, true, true, true]);
+        });
+
+        it('does not show the pill while still near the newest message', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderReadChatHook(offsetRef);
+
+            act(() => {
+                offsetRef.current = 100;
+                result.current.trackVerticalScrolling(emptyScrollEventMock);
+            });
+
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+
+        it('does not show the pill from the scroll offset when the chat has an unread marker', () => {
+            const offsetRef = {current: 0};
+            const {result} = renderReadChatHook(offsetRef, 1);
+
+            act(() => {
+                offsetRef.current = shortHistoryScrollOffset;
+                result.current.trackVerticalScrolling(emptyScrollEventMock);
+            });
+
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
     });
