@@ -761,8 +761,6 @@ describe('OnyxUpdateManager', () => {
         await applyOnyxUpdatesReliably(update, {shouldRunSync: true});
 
         expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
-
-        SequentialQueue.unpause();
     });
 
     describe('in-flight reconnect coverage', () => {

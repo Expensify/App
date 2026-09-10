@@ -720,6 +720,145 @@ describe('OnyxUpdatesTest', () => {
 
             expect(await getOnyxValue(reportKey)).toStrictEqual({reportName: 'second'});
         });
+
+        it('keeps the effective watermark behind the failed update after a later WRITE flushes', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.write-marker-failed', () => Promise.reject(new Error('handler failed')));
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.write-marker-failed')).catch(() => {});
+            await waitForBatchedUpdates();
+
+            // When a WRITE lands after the failure and its deferred flush succeeds
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 29,
+                lastUpdateID: 30,
+                request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}`, value: {}}]},
+            });
+            await waitForBatchedUpdates();
+            await flushQueue();
+            await waitForBatchedUpdates();
+
+            // Then the range the gap fetch asks from still starts below the failed update, so 11-20 is refetched
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+            expect(OnyxUpdates.getEffectiveLastUpdateID()).toBe(10);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 25})).toBe(true);
+        });
+
+        it('applies an Airship update that arrives after an earlier one failed to apply', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            const reportID = NumberUtils.rand64();
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            const airshipUpdate = (lastUpdateID: number, data: Array<OnyxServerUpdate<typeof reportKey>>): OnyxUpdatesFromServer<typeof reportKey> => ({
+                type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+                previousUpdateID: lastUpdateID - 10,
+                lastUpdateID,
+                updates: [{eventType: '', data}],
+            });
+
+            const updateSpy = jest.spyOn(Onyx, 'update').mockRejectedValueOnce(new Error('storage write failed'));
+            await expect(OnyxUpdates.apply(airshipUpdate(20, [{onyxMethod: 'merge', key: reportKey, value: {reportID: 'failed'}}]))).rejects.toThrow('storage write failed');
+            await waitForBatchedUpdates();
+
+            await OnyxUpdates.apply(airshipUpdate(30, [{onyxMethod: 'merge', key: reportKey, value: {reportID}}]));
+            await waitForBatchedUpdates();
+            updateSpy.mockRestore();
+
+            expect(await getOnyxValue(reportKey)).toStrictEqual({reportID});
+        });
+
+        it('does not hold the watermark for a failure a completed full reconnect already covered', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            let failHeldApply: (error: Error) => void = () => {};
+            PusherUtils.subscribeToMultiEvent(
+                'test.pusher.covered-failure',
+                () =>
+                    new Promise<void>((resolve, reject) => {
+                        failHeldApply = reject;
+                    }),
+            );
+
+            // Given a Pusher apply still in flight
+            const heldApply = OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.covered-failure'));
+            const heldApplyRejects = expect(heldApply).rejects.toThrow('storage write failed');
+            await waitForBatchedUpdates();
+
+            // When a full reconnect re-downloads everything and only then does that apply fail
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 0,
+                lastUpdateID: 500,
+                request: {command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, data: {}},
+                response: {jsonCode: 200, onyxData: []},
+            });
+            await waitForBatchedUpdates();
+            failHeldApply(new Error('storage write failed'));
+            await heldApplyRejects;
+            await waitForBatchedUpdates();
+
+            // Then the next update advances normally instead of paying for a gap that is already closed
+            PusherUtils.subscribeToMultiEvent('test.pusher.covered-ok', () => Promise.resolve());
+            await OnyxUpdates.apply(pusherUpdate(510, 'test.pusher.covered-ok'));
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(510);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 510, updateType: CONST.ONYX_UPDATE_TYPES.PUSHER})).toBe(false);
+        });
+
+        it('releases the hold when the failed update is redelivered and applies', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            let attempt = 0;
+            PusherUtils.subscribeToMultiEvent('test.pusher.redelivered', () => {
+                attempt += 1;
+                return attempt === 1 ? Promise.reject(new Error('handler failed')) : Promise.resolve();
+            });
+
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.redelivered')).catch(() => {});
+            await waitForBatchedUpdates();
+
+            // When the same update is replayed from the deferred queue and applies, its range is covered
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.redelivered'));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(20);
+
+            // Then the next update is not blocked behind a hold nothing would clear
+            await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.redelivered'));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
+        });
+
+        it('does not advance onto the failed update for a response that covers nothing below it', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.uncovered', () => Promise.reject(new Error('handler failed')));
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.uncovered')).catch(() => {});
+            await waitForBatchedUpdates();
+
+            // A READ response carries the server's latest update ID with no previousUpdateID, so it proves nothing
+            // about the range below it, even when that ID happens to be the one that failed.
+            const reportID = NumberUtils.rand64();
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 0,
+                lastUpdateID: 20,
+                request: {command: 'OpenReport', data: {}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual({reportID});
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 20})).toBe(true);
+        });
     });
 });
 
