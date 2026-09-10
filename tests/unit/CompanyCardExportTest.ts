@@ -729,98 +729,10 @@ describe('getExportMenuItem - unsupported connections', () => {
 });
 
 describe('getPolicyCardExportSettings + getCardExportAccountTitle', () => {
-    const connectionsToTest = [
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.QBO,
-            policy: createBasePolicy({
-                quickbooksOnline: {
-                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                    data: {creditCards: QBO_CREDIT_CARDS},
-                },
-            }),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT,
-            matchingAccountID: 'qbo-cc-1',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            policy: createBasePolicy({xero: {config: {export: {nonReimbursableAccount: 'xero-bank-1'}}, data: {bankAccounts: XERO_BANK_ACCOUNTS}}}),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT,
-            matchingAccountID: 'xero-bank-2',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-            policy: createBasePolicy({
-                netsuite: {options: {config: {nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL}, data: {vendors: NETSUITE_VENDORS}}},
-            }),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_VENDOR,
-            matchingAccountID: 'ns-vendor-2',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-            policy: createBasePolicy({
-                intacct: {config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL}}, data: {vendors: INTACCT_VENDORS}},
-            }),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_INTACCT_EXPORT_VENDOR,
-            matchingAccountID: 'intacct-vendor-2',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.QBD,
-            policy: createQBDPolicy(),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT,
-            matchingAccountID: '80000104-1746639411',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.RILLET,
-            policy: createBasePolicy({
-                rillet: {
-                    config: {
-                        export: {
-                            exportToMultipleAccounts: true,
-                            reimbursable: CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL,
-                            nonReimbursable: CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE,
-                            creditCardAccountCode: '2100',
-                        },
-                    },
-                    data: {accounts: RILLET_ACCOUNTS},
-                },
-            }),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
-            matchingAccountID: 'rillet-2',
-        },
-        {
-            name: CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
-            policy: createBasePolicy({
-                dualEntry: {
-                    config: {
-                        export: {
-                            exportToMultipleAccounts: true,
-                            reimbursable: CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL,
-                            nonReimbursable: CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE,
-                            creditCardAccountID: 'de-1',
-                        },
-                    },
-                    data: {accounts: DUALENTRY_ACCOUNTS},
-                },
-            }),
-            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT,
-            matchingAccountID: 'de-2',
-        },
-    ] as const;
-
-    it.each(
-        connectionsToTest.flatMap(({name, policy, nvpKey, matchingAccountID}) => [
-            {name, policy, card: createCardWithExportNVP(nvpKey, matchingAccountID), label: `${name} - matched NVP`},
-            {name, policy, card: createCardWithExportNVP(nvpKey), label: `${name} - unset NVP (default)`},
-            {name, policy, card: createCardWithExportNVP(nvpKey, CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE), label: `${name} - DEFAULT_EXPORT_TYPE`},
-        ]),
-    )('$label: getCardExportAccountTitle matches getExportMenuItem().title', ({name, policy, card}) => {
-        const settings = getPolicyCardExportSettings(name, MOCK_POLICY_ID, translate, policy);
-        const legacyResult = getExportMenuItem(name, MOCK_POLICY_ID, translate, themeStyles, policy, card);
-
-        expect(getCardExportAccountTitle(settings, card)).toBe(legacyResult?.title);
-        expect(settings?.shouldShowMenuItem).toBe(legacyResult?.shouldShowMenuItem);
-    });
-
+    // getExportMenuItem is a thin composition of these two functions (see utils.tsx), and every case above already
+    // exercises both of them through it with real title/shouldShowMenuItem assertions. So this describe only covers
+    // behavior that is specific to calling the two functions directly, the way the tables do: resolving many cards
+    // against one settings object, and the settings-not-found guard the unassigned-card row relies on.
     it('resolves a different title per card feed when a single settings object is reused across Rillet cards', () => {
         const policy = createBasePolicy({
             rillet: {
