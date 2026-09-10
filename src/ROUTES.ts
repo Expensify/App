@@ -2081,6 +2081,11 @@ const ROUTES = {
         },
     },
 
+    INSIGHTS: {
+        route: 'insights/:dashboardID',
+        getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
+    },
+
     EXPENSE_REPORT_RHP: {
         route: 'e/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {

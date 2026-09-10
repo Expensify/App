@@ -43,6 +43,7 @@ export default function setupMockLegendList() {
             ) => {
                 const onLoadRef = ReactActual.useRef(onLoad);
                 const listMetricsRef = ReactActual.useRef<{contentLength: number; scroll: number; scrollLength: number} | undefined>(undefined);
+                const reachedEdgesRef = ReactActual.useRef({end: false, start: false});
                 onLoadRef.current = onLoad;
 
                 ReactActual.useEffect(() => {
@@ -86,6 +87,8 @@ export default function setupMockLegendList() {
                     const contentLength = isHorizontal ? contentSize.width : contentSize.height;
                     const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
                     const distanceFromEnd = contentLength - visibleLength - offset;
+                    const isWithinEndThreshold = distanceFromEnd <= visibleLength * (onEndReachedThreshold ?? 0.5);
+                    const isWithinStartThreshold = offset <= visibleLength * (onStartReachedThreshold ?? 0.5);
                     listMetricsRef.current = {
                         contentLength,
                         scroll: offset,
@@ -93,10 +96,16 @@ export default function setupMockLegendList() {
                     };
                     onScroll?.(event);
 
-                    if (distanceFromEnd <= visibleLength * (onEndReachedThreshold ?? 0.5)) {
+                    if (!isWithinEndThreshold) {
+                        reachedEdgesRef.current.end = false;
+                    } else if (!reachedEdgesRef.current.end) {
+                        reachedEdgesRef.current.end = true;
                         onEndReached?.({distanceFromEnd});
                     }
-                    if (offset <= visibleLength * (onStartReachedThreshold ?? 0.5)) {
+                    if (!isWithinStartThreshold) {
+                        reachedEdgesRef.current.start = false;
+                    } else if (!reachedEdgesRef.current.start) {
+                        reachedEdgesRef.current.start = true;
                         onStartReached?.({distanceFromStart: offset});
                     }
                 };
