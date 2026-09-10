@@ -789,6 +789,9 @@ describe('actions/SendInvoice', () => {
         it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
             const phoneNumber = '+12025550123';
             const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
+            const receiverAccountID = 456;
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- this it callback spies on API.write once; the rule's ancestor token scan combines otherwise independent tests
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const transaction = createMock<Transaction>({
@@ -800,7 +803,7 @@ describe('actions/SendInvoice', () => {
                 merchant: 'Phone Invoice',
                 participants: [
                     {accountID: 123, isSender: true, policyID: 'workspace_test'},
-                    {accountID: 456, isSender: false, login: phoneNumber},
+                    {accountID: receiverAccountID, isSender: false, login: phoneNumber},
                 ],
             });
 
@@ -823,7 +826,7 @@ describe('actions/SendInvoice', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {456: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
+                            value: {[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
                         }),
                     ]),
                 }),
