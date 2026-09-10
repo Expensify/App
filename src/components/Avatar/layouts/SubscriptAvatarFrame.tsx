@@ -13,7 +13,6 @@ type SubscriptAvatarFrameProps = {
     /** Size of the subscript stack */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Style for the avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Content of the primary slot */
