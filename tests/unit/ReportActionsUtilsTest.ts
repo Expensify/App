@@ -1613,7 +1613,24 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
             // Then it should name the new workspace and the formatted rate
-            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mi for the new workspace - Hal's Burgers");
+            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mile for the new workspace - Hal's Burgers");
+        });
+
+        it('should translate the distance unit instead of showing the raw unit key', () => {
+            // Given an action whose rate is expressed in kilometers
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                policyName: "Hal's Burgers",
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should use the translated unit label rather than the raw 'km' key
+            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / kilometer for the new workspace - Hal's Burgers");
         });
 
         it('should describe a report that moved to another workspace', () => {
@@ -1630,7 +1647,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
             // Then it should say the workspace of the report changed
-            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mi for the new report’s workspace - Hal's Burgers");
+            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mile for the new report’s workspace - Hal's Burgers");
         });
 
         it('should fall back to the text of the action when the rate details are missing', () => {
@@ -1695,7 +1712,7 @@ describe('ReportActionsUtils', () => {
             expect(message).not.toContain('Ops<br>Team');
 
             // And the plain-text surfaces should decode it back to the name as typed, on a single line
-            expect(Parser.htmlToText(message)).toBe('rate updated to $0.67 / mi for the new workspace - Ops<br>Team');
+            expect(Parser.htmlToText(message)).toBe('rate updated to $0.67 / mile for the new workspace - Ops<br>Team');
         });
     });
 

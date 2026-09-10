@@ -1312,7 +1312,7 @@ describe('ReportAlternateTextUtils', () => {
             });
 
             // Then it should be built from the translation rather than the text the backend provided
-            expect(lastMessage).toBe("rate updated to $0.67 / mi for the new workspace - Hal's Burgers");
+            expect(lastMessage).toBe("rate updated to $0.67 / mile for the new workspace - Hal's Burgers");
         });
         it('ADD_AGENT_RULE action', async () => {
             const report: Report = createRandomReport(0, undefined);
