@@ -176,6 +176,9 @@ function useMarkAsRead({
         }
 
         readNewestAction(reportID, isReportActionsLoaded);
+        // `hasNewerActions` and `isScrolledToEnd` are read but intentionally left out of the deps: this effect is the
+        // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
+        // mark the report as read long after mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
