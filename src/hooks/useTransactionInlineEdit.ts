@@ -38,7 +38,6 @@ import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import {useLiveDuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -153,7 +152,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const {isBetaEnabled} = usePermissions();
 
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
     // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
@@ -223,7 +221,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
             betas,
-            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             introSelected,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmail: session?.email ?? '',

@@ -1,4 +1,4 @@
-import {BetaConfigurationContext, BetasContext, BetaOverridesContext} from '@components/OnyxListItemProvider';
+import {BetaConfigurationContext, BetasContext} from '@components/OnyxListItemProvider';
 
 import Permissions from '@libs/Permissions';
 
@@ -13,10 +13,9 @@ let permissionKey: PermissionKey;
 export default function usePermissions(): UsePermissions {
     const betas = useContext(BetasContext);
     const betaConfiguration = useContext(BetaConfigurationContext);
-    const betaOverrides = useContext(BetaOverridesContext);
     return useMemo(() => {
         const permissions: UsePermissions = {
-            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides),
+            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration),
         };
 
         for (permissionKey in Permissions) {
@@ -27,5 +26,5 @@ export default function usePermissions(): UsePermissions {
         }
 
         return permissions;
-    }, [betas, betaConfiguration, betaOverrides]);
+    }, [betas, betaConfiguration]);
 }

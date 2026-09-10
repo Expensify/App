@@ -648,7 +648,6 @@ describe('TransactionInlineEdit', () => {
                 transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
                 transactionViolations: {},
                 betas: [],
-                isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 currentUserEmail: '',
