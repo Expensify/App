@@ -216,9 +216,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    // Last-accessed lookup runs on leave/delete, not on every report or NVP write.
-    const [lastAccessedReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
@@ -397,7 +394,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID;
+        // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -425,8 +423,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
-        lastAccessedReportNameValuePairs,
-        reports,
         guideAccountIDs,
     ]);
 
@@ -1039,7 +1035,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
-                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID, lastAccessedReportNameValuePairs, reports)?.reportID,
+                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID,
                 },
             );
             return;
@@ -1096,8 +1092,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
-        lastAccessedReportNameValuePairs,
-        reports,
         guideAccountIDs,
         reportActionsForOriginalReportID,
         moneyRequestReport,

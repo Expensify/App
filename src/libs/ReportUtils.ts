@@ -2533,17 +2533,6 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
     return lodashMaxBy(filteredReports, (a) => [(a?.reportID && lastVisitTimes?.[a.reportID]) ?? '', a?.lastReadTime ?? '']);
 }
 
-type FindLastAccessedReportOptions = {
-    /** Whether to exclude domain rooms that are on the defaultRooms beta. */
-    ignoreDomainRooms: boolean;
-    /** Guide account IDs used when filtering domain rooms. */
-    guideAccountIDs?: GuideAccountIDsDerivedValue;
-    /** Whether to prefer the policy admins room when one exists. */
-    openOnAdminRoom?: boolean;
-    /** Report ID to exclude from the result (e.g. the report being left). */
-    excludeReportID?: string;
-};
-
 /** Fields of a Report that `findLastAccessedReport` callers consume. */
 type LastAccessedReport = Pick<Report, 'reportID' | 'policyID' | 'chatType'>;
 
@@ -2554,15 +2543,22 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
     return {reportID: report.reportID, policyID: report.policyID, chatType: report.chatType};
 }
 
-/** Pure selector; callers pass the collections, so it has no Onyx subscription of its own. */
-function findLastAccessedReportSelector(
-    reports: OnyxCollection<Report>,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
-    lastVisitTimes: Record<string, string>,
-    options: FindLastAccessedReportOptions,
+/**
+ * Finds the last accessed report for navigation fallbacks using the module-scoped
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
+ * `reports` let a caller pass its own subscribed collections and fall back to the
+ * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ */
+function findLastAccessedReport(
+    ignoreDomainRooms: boolean,
+    guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
+    openOnAdminRoom = false,
+    excludeReportID?: string,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
-    const {ignoreDomainRooms, guideAccountIDs, openOnAdminRoom = false, excludeReportID} = options;
-    let reportsValues = Object.values(reports ?? {});
+    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
+    let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
         const adminReport = reportsValues.find((report) => getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
@@ -2596,14 +2592,14 @@ function findLastAccessedReportSelector(
     reportsValues =
         reportsValues.filter((report) => {
             const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`;
-            const isArchived = isArchivedReport(reportNameValuePairs?.[reportNameValuePairsKey]);
+            const isArchived = isArchivedReport(reportNameValuePairsCollection?.[reportNameValuePairsKey]);
             return !isSystemChat(report) && !isArchived;
         }) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the last-visit-times map.
     // If we have no visit data we'll return most recent report owned by user.
-    if (isEmptyObject(lastVisitTimes)) {
+    if (isEmptyObject(allReportLastVisitTimes)) {
         const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
@@ -2611,29 +2607,7 @@ function findLastAccessedReportSelector(
         }
         return toLastAccessedReport(lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? ''));
     }
-    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, lastVisitTimes));
-}
-
-/**
- * Finds the last accessed report for navigation fallbacks using the module-scoped
- * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
- * `reports` let a caller pass its own subscribed collections and fall back to the
- * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
- */
-function findLastAccessedReport(
-    ignoreDomainRooms: boolean,
-    guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
-    openOnAdminRoom = false,
-    excludeReportID?: string,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reports?: OnyxCollection<Report>,
-): LastAccessedReport | undefined {
-    return findLastAccessedReportSelector(reports ?? deprecatedAllReports, reportNameValuePairs ?? allReportNameValuePair, allReportLastVisitTimes, {
-        ignoreDomainRooms,
-        guideAccountIDs,
-        openOnAdminRoom,
-        excludeReportID,
-    });
+    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes));
 }
 
 /**
