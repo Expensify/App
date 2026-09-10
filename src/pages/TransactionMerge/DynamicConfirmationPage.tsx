@@ -93,8 +93,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const selfDMSourceIOUAction =
         selfDMReport?.reportID && sourceTransaction ? getIOUActionForTransactionID(Object.values(selfDMReportActions ?? {}), sourceTransaction.transactionID) : undefined;
-    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
     const sourceThreadReportID = sourceIOUAction?.childReportID ?? selfDMSourceIOUAction?.childReportID;
+    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
     const [sourceIOUActionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
 
     // Build the merged transaction data for display
