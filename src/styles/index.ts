@@ -959,7 +959,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            // This is to match production build after ButtonComposed migration.
+            // This is to match production build after the Button composition migration.
             ...spacing.ph6,
         },
 
