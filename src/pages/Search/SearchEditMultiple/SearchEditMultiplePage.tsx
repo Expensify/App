@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -85,6 +85,7 @@ function SearchEditMultiplePage() {
     });
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -116,6 +117,7 @@ function SearchEditMultiplePage() {
                 policy: transactionPolicy,
                 reportNameValuePairs,
                 reportActions,
+                rules,
             });
         });
 
@@ -233,6 +235,7 @@ function SearchEditMultiplePage() {
                 personalDetailsList,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.

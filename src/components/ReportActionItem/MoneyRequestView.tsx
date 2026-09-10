@@ -393,6 +393,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
@@ -401,7 +402,9 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
     const canEdit =
-        isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy, parentReportActions) && isEditable;
+        isMoneyRequestAction(parentReportAction) &&
+        canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, moneyRequestReport, policy, parentReportActions) &&
+        isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -414,7 +417,7 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy);
+        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, rules, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -427,6 +430,7 @@ function MoneyRequestView({
             isChatReportArchived,
             reportNameValuePairs,
             transaction,
+            rules,
         }) ||
             (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
@@ -440,6 +444,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const canEditDate =
@@ -453,6 +458,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
@@ -469,6 +475,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         canEditDistanceOrRate;
 
@@ -483,6 +490,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         canEditDistanceOrRate;
 
@@ -498,6 +506,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
@@ -539,6 +548,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
@@ -720,6 +730,7 @@ function MoneyRequestView({
             isTrackIntentUser,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     };
 
@@ -747,6 +758,7 @@ function MoneyRequestView({
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     };
 
@@ -888,6 +900,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };
@@ -926,6 +939,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };
@@ -953,6 +967,7 @@ function MoneyRequestView({
                 parentReport,
                 iouReportOwnerLogin,
                 tag: updatedTag,
+                tagListIndex,
                 policy,
                 policyTagList,
                 policyRecentlyUsedTags: undefined,
@@ -967,6 +982,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };

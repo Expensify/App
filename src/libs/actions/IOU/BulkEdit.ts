@@ -161,6 +161,7 @@ type UpdateMultipleMoneyRequestsParams = {
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function writeBulkEditMoneyRequest(
@@ -206,6 +207,7 @@ function updateMultipleMoneyRequests({
     personalDetailsList,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -291,6 +293,7 @@ function updateMultipleMoneyRequests({
                 policy: transactionPolicy,
                 reportNameValuePairs,
                 reportActions: transactionReportActions,
+                rules,
             });
         };
 
