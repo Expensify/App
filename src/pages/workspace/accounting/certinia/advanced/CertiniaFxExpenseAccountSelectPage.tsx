@@ -3,10 +3,11 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearFinancialForceErrorField, updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
@@ -32,7 +33,7 @@ type ExpenseAccountListItem = ListItem & {
 function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const {config, data} = policy?.connections?.financialforce ?? {};
     const expenseAccounts = data?.expenseAccounts ?? [];
@@ -45,6 +46,9 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         keyForList: account.id,
         isSelected: config?.fxExpenseAccount === account.id,
     }));
+
+    // A Certinia chart of accounts runs to hundreds of General Ledger Accounts, so the list needs a search box.
+    const {filteredData, textInputOptions} = useSelectionListSearch(dataOptions);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -75,9 +79,10 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={!isGlobalReimbursementFXEnabled}
+            shouldBeBlocked={!canConfigureCurrencyConversionFees}
             displayName="CertiniaFxExpenseAccountSelectPage"
-            data={dataOptions}
+            data={filteredData}
+            textInputOptions={textInputOptions}
             headerContent={listHeaderComponent}
             onSelectRow={selectAccount}
             shouldSingleExecuteRowSelect
@@ -87,7 +92,7 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
-            errors={getLatestErrorField(config, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}
+            errors={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}
         />

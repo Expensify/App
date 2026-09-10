@@ -424,7 +424,7 @@ function getAccountingIntegrationData(
                   ];
             const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
                 ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
-                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
+                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');

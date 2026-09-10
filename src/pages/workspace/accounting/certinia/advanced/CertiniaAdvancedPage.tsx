@@ -2,15 +2,15 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -32,7 +32,7 @@ import React from 'react';
 function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const {config, data} = policy?.connections?.financialforce ?? {};
     const advancedConfig = config?.advanced;
@@ -126,7 +126,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 />
             )}
-            {!isPSA && isGlobalReimbursementFXEnabled && (
+            {!isPSA && canConfigureCurrencyConversionFees && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
@@ -134,7 +134,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         description={translate('workspace.certinia.fxExpenseAccount')}
                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
                         onPress={!advancedPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path, advancedPath))}
-                        brickRoadIndicator={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             )}
