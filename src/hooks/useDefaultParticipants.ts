@@ -1,3 +1,4 @@
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
@@ -57,16 +58,20 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {selfDMReport, isLoading: isLoadingSelfDMReport} = useResolvedSelfDMReport();
+    const [activePolicyID, activePolicyIDResult] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => (activePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`] : undefined),
+    });
     const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
-
     const accountID = currentUserPersonalDetails.accountID;
 
     const isLoading =
         isNewManualExpenseFlowEnabled &&
-        (!accountID || isLoadingSelfDMReport || isLoadingOnyxValue(policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult));
+        (!accountID ||
+            isLoadingSelfDMReport ||
+            isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult));
 
     const participants = useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {
@@ -93,7 +98,10 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         }
 
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-        const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+        // An explicit personal/non-group active policy is the user's Self-DM destination. Do not let the
+        // group-policy fallback from useDefaultExpensePolicy or auto-reporting replace that destination.
+        const hasExplicitPersonalDestination = !!activePolicyID && !!activePolicy && !isGroupPolicy(activePolicy);
+        const defaultTargetReport = hasExplicitPersonalDestination || !shouldAutoReport ? selfDMReport : getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
         isNewManualExpenseFlowEnabled,
@@ -102,6 +110,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         transaction?.isFromGlobalCreate,
         transaction?.isFromFloatingActionButton,
         iouType,
+        activePolicyID,
+        activePolicy,
         defaultExpensePolicy,
         amountOwed,
         userBillingGracePeriodEnds,
