@@ -729,7 +729,6 @@
 "../../src/libs/Middleware/Logging.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Middleware/Pagination.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Middleware/SaveResponseInOnyx.ts"	"no-restricted-syntax"	1
-"../../src/libs/migrations/MoveFilesOutOfDocuments/index.native.ts"	"@typescript-eslint/no-restricted-imports"	1
 "../../src/libs/models/BankAccount.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ModifiedExpenseMessage.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/ModifiedExpenseMessage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
