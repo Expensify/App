@@ -9703,6 +9703,30 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
+        it('should let an admin delete a draft report they did not submit from its report preview', async () => {
+            // Given an open (draft) expense report submitted by someone else, on a policy the current user administers
+            const draftReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID + 1,
+                policyID: '9002-policy',
+            };
+            const reportPreviewAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actorAccountID: currentUserAccountID + 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: draftReport.reportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
+
+            // Then the admin can delete it, because deleting a preview deletes the whole report
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID)).toBe(true);
+        });
+
         it('should return true for demo transaction', () => {
             const transaction = {
                 ...createRandomTransaction(1),

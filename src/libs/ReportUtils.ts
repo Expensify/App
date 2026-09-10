@@ -3445,8 +3445,8 @@ function canDeleteReportAction(
     }
 
     if (isReportPreviewAction(reportAction)) {
-        // The preview action lives in the chat report, but the deletion applies to the money request report it previews,
-        // which is also what `transactions` and `childReportActions` describe.
+        // Deleting a preview deletes the money request report it previews, which is also what `transactions` and
+        // `childReportActions` describe.
         return canDeleteMoneyRequestReport(
             getReportOrDraftReport(reportAction.childReportID),
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
