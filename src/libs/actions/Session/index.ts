@@ -889,16 +889,15 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
     }
 
     const login = credentials.login;
-    waitForUserSignIn().then(() => {
+    // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
+    Navigation.waitForProtectedRoutes().then(() => {
         // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
         if (login && deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
             return;
         }
-        Navigation.waitForProtectedRoutes().then(() => {
-            // Rebuilt like a cold start restore of this path, and the navigator only ever produced valid routes.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
-        });
+        // Rebuilt like a cold start restore of this path, and the navigator only ever produced valid routes.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
     });
 }
 
