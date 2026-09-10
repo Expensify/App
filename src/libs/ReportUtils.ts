@@ -10282,7 +10282,7 @@ type ShouldReportBeInOptionListParams = {
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
-    derivedIsEmptyReport?: boolean;
+    derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
 };
 

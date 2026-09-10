@@ -1731,6 +1731,7 @@ function isValidReport(
     draftComment: string | undefined,
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
+    derivedIsEmptyReport: boolean | undefined,
 ): boolean {
     const {
         betas = [],
@@ -1776,6 +1777,7 @@ function isValidReport(
         currentUserAccountID,
         conciergeReportID,
         hasGuidesEmails,
+        derivedIsEmptyReport,
     });
 
     if (!shouldBeInOptionList) {
@@ -2181,6 +2183,7 @@ function getValidOptions(
                 chatReport,
                 // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
             );
         };
 

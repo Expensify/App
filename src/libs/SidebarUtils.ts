@@ -968,7 +968,7 @@ function getOptionData({
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
-function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport?: boolean): boolean {
+function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
     // The `lastActorAccountID` guard matches getOptionData: it keeps chats whose only visible message was
     // deleted out of the Unread tab even though isUnread() can still be true (lastVisibleActionCreated isn't reset).
     return (

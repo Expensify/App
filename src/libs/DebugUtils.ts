@@ -1519,7 +1519,7 @@ function getReasonForShowingRowInLHN({
     currentUserAccountID?: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
-    derivedIsEmptyReport?: boolean;
+    derivedIsEmptyReport: boolean | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;

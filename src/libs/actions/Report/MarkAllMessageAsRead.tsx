@@ -37,8 +37,8 @@ Onyx.connectWithoutView({
  */
 function markAllMessagesAsRead(
     reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>,
-    reportIDs?: string[],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    reportIDs: string[] | undefined,
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
 ) {
     if (isAnonymousUser()) {
         return;
