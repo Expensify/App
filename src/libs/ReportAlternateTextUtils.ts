@@ -15,6 +15,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    Rule,
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
@@ -456,6 +457,7 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
     currentUserAccountID,
+    rules,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -480,6 +482,7 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    rules: OnyxCollection<Rule>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -650,6 +653,7 @@ function getLastMessageTextForReport({
                 report,
                 isTrackIntentUser,
                 policy,
+                rules,
             })
                 ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
                 : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
@@ -1112,6 +1116,7 @@ type GetReportAlternateTextParams = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -1144,6 +1149,7 @@ function getReportAlternateText({
     dateFnsLocale,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
+    rules,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1197,6 +1203,7 @@ function getReportAlternateText({
             lastAction,
             isTrackIntentUser,
             currentUserAccountID,
+            rules,
         });
     }
 

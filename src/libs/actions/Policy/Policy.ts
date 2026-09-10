@@ -26,6 +26,7 @@ import type {
     EnablePolicyHRParams,
     EnablePolicyInvoiceFieldsParams,
     EnablePolicyInvoicingParams,
+    EnablePolicyMCPParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
@@ -951,8 +952,8 @@ function setWorkspaceApprovalMode(
     currentUserAccountID: number,
     currentUserEmail: string,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<Rule>,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
-    rules?: OnyxCollection<Rule>,
 ) {
     if (!policy) {
         return;
@@ -1034,6 +1035,7 @@ function setWorkspaceApprovalMode(
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser,
+                rules,
             });
 
             reportsOptimisticData.push({
@@ -5021,6 +5023,54 @@ function enablePolicyHR(policyID: string, enabled: boolean) {
     }
 }
 
+function enablePolicyMCP(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isMCPEnabled: enabled,
+                    pendingFields: {
+                        isMCPEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isMCPEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isMCPEnabled: !enabled,
+                    pendingFields: {
+                        isMCPEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyMCPParams = {policyID, enabled};
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature();
+    }
+}
+
 function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -8013,6 +8063,7 @@ export {
     enableCompanyCards,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,

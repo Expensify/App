@@ -959,7 +959,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            // This is to match production build after ButtonComposed migration.
+            // This is to match production build after the Button composition migration.
             ...spacing.ph6,
         },
 
@@ -4441,6 +4441,45 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
+        merchantRuleCalloutContainer: {
+            backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
+        // Both occupy that strip, so the callout sits one layer above: it is dismissible, and the "New messages" pill
+        // underneath it stays reachable once the callout is gone.
+        merchantRuleCalloutOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.t0,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 101,
+        },
+
+        // Floats above the composer without taking height, so the conversation does not jump when it appears.
+        merchantRuleCalloutComposerOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.bFull,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 100,
+        },
+
+        merchantRuleCalloutText: {
+            ...textVariants.label,
+            color: theme.textReversed,
+            // Banner sets breakAll on its container, which would split this sentence mid-word
+            ...wordBreak.breakWord,
+        },
+
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, so text and link
+        // use the reversed colors.
+        merchantRuleCalloutAction: {
+            ...textVariants.labelStrong,
+            color: theme.linkReversed,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
@@ -5476,7 +5515,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersClearButton: {
+        searchFiltersResetButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
