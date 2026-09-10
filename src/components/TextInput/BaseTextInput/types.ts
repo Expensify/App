@@ -14,22 +14,17 @@ import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib
 type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = ForwardedFSClassProps &
     WithSentryLabel & {
-        /** Input label */
         label?: string;
 
         /** Name attribute for the input */
         name?: string;
 
-        /** Input value */
         value?: string;
 
         /** Default value - used for non controlled inputs */
         defaultValue?: string;
 
-        /** Input value placeholder */
         placeholder?: string;
-
-        /** Error text to display */
         errorText?: string;
 
         /** Icon to display in right side of text input */
@@ -41,7 +36,6 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Whether to include padding to the icon container */
         includeIconPadding?: boolean;
 
-        /** Customize the TextInput container */
         textInputContainerStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
@@ -50,16 +44,12 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Customizes the touchable wrapper of the TextInput component */
         touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
-        /** Customize the main container */
         containerStyles?: StyleProp<ViewStyle>;
-
-        /** input style */
         inputStyle?: StyleProp<TextStyle>;
 
         /** If present, this prop forces the label to remain in a position where it will not collide with input text */
         forceActiveLabel?: boolean;
 
-        /** Should the input auto focus? */
         autoFocus?: boolean;
 
         /** Disable the virtual keyboard  */
@@ -101,13 +91,8 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Hint text to display below the TextInput */
         hint?: string;
 
-        /** Whether the hint should be rendered as HTML */
         shouldRenderHintAsHTML?: boolean;
-
-        /** Prefix character */
         prefixCharacter?: string;
-
-        /** Suffix character */
         suffixCharacter?: string;
 
         /** Whether autoCorrect functionality should enable  */
@@ -138,13 +123,8 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Should there be an error displayed */
         hasError?: boolean;
 
-        /** On Press handler */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
-
-        /** Should loading state should be displayed */
         isLoading?: boolean;
-
-        /** Type of autocomplete */
         autoCompleteType?: string;
 
         /** List of markdowns that won't be styled as a markdown */
@@ -156,46 +136,25 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Custom parser function for RNMarkdownTextInput */
         parser?: (input: string) => MarkdownRange[];
 
-        /** Whether the clear button should be displayed */
         shouldShowClearButton?: boolean;
 
         /** Whether to apply styles when input is disabled */
         shouldUseDisabledStyles?: boolean;
 
-        /** Style for the prefix */
         prefixStyle?: StyleProp<TextStyle>;
-
-        /** Style for the prefix container */
         prefixContainerStyle?: StyleProp<ViewStyle>;
-
-        /** Style for the suffix */
         suffixStyle?: StyleProp<TextStyle>;
-
-        /** Style for the suffix container */
         suffixContainerStyle?: StyleProp<ViewStyle>;
-
-        /** Style for the loading spinner */
         loadingSpinnerStyle?: StyleProp<ViewStyle>;
-
-        /** Style for the icon container */
         iconContainerStyle?: StyleProp<ViewStyle>;
-
-        /** Style for the clear button */
         clearButtonStyle?: StyleProp<ViewStyle>;
-
-        /** The clear button icon size */
         clearButtonIconSize?: number;
-
-        /** The width of inner content */
         contentWidth?: number;
 
         /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
         type?: InputType;
 
-        /** The mask of the masked input */
         mask?: MaskedTextInputOwnProps['mask'];
-
-        /** Custom notations for the masked input */
         customNotations?: MaskedTextInputOwnProps['customNotations'];
 
         /** A set of permitted characters for the input */
@@ -222,7 +181,6 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
         rightHandSideComponent?: React.ReactNode;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<BaseTextInputRef>;
 
         /** When the `disableKeyboard` prop is passed with the value `true`, we need to pass the `navigation` prop from `useNavigation` to ensure that the `disableKeyboard` functionality works correctly when the application is in the background */

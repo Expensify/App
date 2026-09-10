@@ -1,5 +1,4 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -202,6 +201,10 @@ function TransactionGroupListItemImpl({
             paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItem ? styles.tableBottomRadius : {}),
         },
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
@@ -517,7 +520,7 @@ function TransactionGroupListItemImpl({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
@@ -534,11 +537,7 @@ function TransactionGroupListItemImpl({
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [
-                              isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
-                          ],
+                        : [isFirstItem && styles.tableTopRadius, isLastItem && styles.tableBottomRadius, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected)],
                 ]}
             >
                 {({hovered}) => (

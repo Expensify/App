@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -38,7 +38,6 @@ import React, {useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
-    /** All the data of the action */
     action: ReportAction;
 
     /** Extra styles to pass to View wrapper */
