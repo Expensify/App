@@ -14,7 +14,7 @@ import {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    getAdvancedFiltersToReset,
+    doesQueryMatchDefaultFilterKeysAndType,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -29,9 +29,13 @@ import {
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
+    buildQueryStringWithResetFilters,
+    getQueryHashWithoutFilters,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getValidLastQuery,
+    hasFiltersChangedFromDefault,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -2059,6 +2063,192 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('buildQueryStringWithResetFilters', () => {
+        function parse(query: string) {
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            return queryJSON;
+        }
+
+        const currentQuery = parse('type:expense category:travel merchant:Amazon group-currency:USD sortBy:merchant sortOrder:asc groupBy:from columns:merchant,category coffee');
+
+        it('restores the filter chips of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+
+            expect(resetQuery).toContain('status:approved');
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('clears every filter chip when there is no default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, undefined);
+
+            expect(resetQuery).not.toContain('category:travel');
+            expect(resetQuery).not.toContain('merchant:Amazon');
+        });
+
+        it('keeps the keyword, sorting, grouping, and columns, which are not filters', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense status:approved'));
+            expect(resetQuery).toContain('sortBy:merchant');
+            expect(resetQuery).toContain('sortOrder:asc');
+            expect(resetQuery).toContain('groupBy:from');
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('columns:merchant,category');
+            expect(resetQuery).toContain('coffee');
+        });
+
+        it('keeps the keyword and the group currency of the current query over the ones of the default query', () => {
+            const resetQuery = buildQueryStringWithResetFilters(currentQuery, parse('type:expense group-currency:EUR tea'));
+
+            expect(resetQuery).toContain('groupCurrency:USD');
+            expect(resetQuery).toContain('coffee');
+            expect(resetQuery).not.toContain('groupCurrency:EUR');
+            expect(resetQuery).not.toContain('tea');
+        });
+    });
+
+    describe('getQueryHashWithoutFilters', () => {
+        const noExcludedFilters = new Set<SearchFilterKey>();
+        const excludedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+        it('returns the same hash for identical queries', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('ignores excluded keyword filters when computing the hash', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withKeyword, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutKeyword, excludedFilters));
+        });
+
+        it('ignores excluded group-currency filters when computing the hash', () => {
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withGroupCurrency, excludedFilters)).toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, excludedFilters));
+        });
+
+        it('takes filters that are not excluded into account', () => {
+            const withoutKeyword = buildSearchQueryJSON('type:expense category:travel');
+            const withKeyword = buildSearchQueryJSON('type:expense category:travel hello world');
+
+            if (!withoutKeyword || !withKeyword) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withKeyword, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(withoutKeyword, noExcludedFilters));
+        });
+
+        it('only ignores the filters that are excluded', () => {
+            const onlyKeywordExcluded = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            const withoutGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category hello');
+            const withGroupCurrency = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+
+            if (!withoutGroupCurrency || !withGroupCurrency) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(withGroupCurrency, onlyKeywordExcluded)).not.toEqual(getQueryHashWithoutFilters(withoutGroupCurrency, onlyKeywordExcluded));
+        });
+
+        it('is independent of the order in which filters appear', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:Amazon category:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('is independent of the order of values within a filter', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel,food');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food,travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('returns different hashes for queries with different filter values', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense category:food');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+
+        it('returns different hashes for queries with different filter keys', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense category:travel');
+            const queryJSONb = buildSearchQueryJSON('type:expense merchant:travel');
+
+            if (!queryJSONa || !queryJSONb) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(getQueryHashWithoutFilters(queryJSONa, noExcludedFilters)).not.toEqual(getQueryHashWithoutFilters(queryJSONb, noExcludedFilters));
+        });
+    });
+
+    describe('hasFiltersChangedFromDefault', () => {
+        it('returns false when the current query only differs by filters that are kept when resetting', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category category:travel group-currency:USD hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the current query has a different filter value', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:food');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the current query has an extra filter', () => {
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel merchant:Amazon');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+    });
+
     describe('limit filter parsing', () => {
         it('parses limit value as a number', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:25');
@@ -3684,76 +3874,6 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('getAdvancedFiltersToReset', () => {
-        it('should return an empty object when input is empty', () => {
-            const result = getAdvancedFiltersToReset({});
-            expect(result).toEqual({});
-        });
-
-        it('should reset type to EXPENSE when it has a non-EXPENSE value', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            });
-        });
-
-        it('should not include type in reset when it is already EXPENSE', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.type).toBeUndefined();
-        });
-
-        it('should reset other filter keys to undefined', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                merchant: 'Marriott',
-                currency: ['USD', 'EUR'],
-                dateAfter: '2024-01-01',
-                keyword: 'hotel',
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result).toEqual({
-                merchant: undefined,
-                currency: undefined,
-                dateAfter: undefined,
-                keyword: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset if type is expense', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                merchant: undefined,
-            });
-        });
-
-        it('should exclude columns from being reset', () => {
-            const form: Partial<SearchAdvancedFiltersForm> = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                columns: [CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.DATE, CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE.MERCHANT],
-                merchant: 'test',
-            };
-            const result = getAdvancedFiltersToReset(form);
-            expect(result.columns).toBeUndefined();
-            expect(result).toEqual({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                merchant: undefined,
-                columns: undefined,
-            });
-        });
-    });
-
     describe('isNegated', () => {
         it('returns true for negated filter keys (ending with the NOT modifier)', () => {
             expect(isFilterNegated(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${CONST.SEARCH.NOT_MODIFIER}`)).toBe(true);
@@ -4123,6 +4243,84 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('getValidLastQuery', () => {
+        const defaultSearchQuery = 'type:expense status:all';
+
+        it('returns the default query when the last query is undefined', () => {
+            expect(getValidLastQuery(undefined, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query is an empty string', () => {
+            expect(getValidLastQuery('', defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query cannot be parsed', () => {
+            expect(getValidLastQuery('type:', defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the last query when it contains all default filter keys and matches the type', () => {
+            const lastQuery = 'type:expense status:all merchant:Amazon';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(lastQuery);
+        });
+
+        it('returns the last query when it is identical to the default query', () => {
+            expect(getValidLastQuery(defaultSearchQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query is missing a default filter key', () => {
+            const lastQuery = 'type:expense';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        it('returns the default query when the last query type differs from the default type', () => {
+            const lastQuery = 'type:invoice status:all';
+            expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+    });
+
+    describe('doesQueryMatchDefaultFilterKeysAndType', () => {
+        const defaultQueryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+
+        it('returns true when the query has all default filter keys and the same type', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon category:travel');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the query is identical to the default query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when the query is missing a default filter key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query type differs from the default type', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice status:all merchant:Amazon');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when the default query has no extra filter keys to satisfy', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all merchant:Amazon');
+            const bareDefaultQueryJSON = buildSearchQueryJSON('type:expense');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, bareDefaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when both query and default query are undefined', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, undefined)).toBe(true);
+        });
+
+        it('returns true when the query is undefined since there is nothing to compare', () => {
+            expect(doesQueryMatchDefaultFilterKeysAndType(undefined, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the default query is undefined since there are no default filter keys to enforce', () => {
+            const queryJSON = buildSearchQueryJSON('type:invoice');
+            expect(doesQueryMatchDefaultFilterKeysAndType(queryJSON, undefined)).toBe(true);
         });
     });
 

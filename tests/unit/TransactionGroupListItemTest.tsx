@@ -41,6 +41,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
+    getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
+    isTodoSearch: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 

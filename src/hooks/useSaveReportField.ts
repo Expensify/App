@@ -27,6 +27,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     return (reportField: PolicyReportField, value: string) => {
         if (!report) {
@@ -45,7 +46,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
 
         const fieldKey = getReportFieldKey(reportField.fieldID);
         const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy);
+        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules);
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
 
         updateReportField({
@@ -60,6 +61,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
             recentlyUsedReportFields,
             shouldFixViolations: hasOtherViolations,
             isTrackIntentUser,
+            rules,
         });
     };
 }

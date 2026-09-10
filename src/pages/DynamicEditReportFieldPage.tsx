@@ -69,7 +69,8 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     }
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
