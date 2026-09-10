@@ -204,7 +204,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
 
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
@@ -300,7 +300,7 @@ type SpendRuleListItemType = ListItem & {
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
 type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
