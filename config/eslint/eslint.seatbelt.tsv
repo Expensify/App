@@ -308,7 +308,6 @@
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemWide.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/WithdrawalIDListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchPageHeader/SearchFilterBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchRouter/buildSubstitutionsMap.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/getAutocompleteSelectionSubstitutionKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/getQueryWithSubstitutions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
