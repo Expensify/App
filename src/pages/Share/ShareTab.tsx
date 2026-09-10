@@ -1,4 +1,4 @@
-import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
@@ -57,8 +57,6 @@ function ShareTab() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const cardList = useCardList();
-    const workspaceCardList = useWorkspaceCardList();
     const personalDetails = usePersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -95,8 +93,6 @@ function ShareTab() {
               policyCollection: allPolicies,
               personalDetails,
               sortedActions,
-              cardList,
-              workspaceCardList,
               conciergeReportID,
               isTrackIntentUser,
               translate,
