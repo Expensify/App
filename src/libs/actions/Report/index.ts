@@ -244,7 +244,6 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
-    ReportLoadingState,
     ReportUserIsTyping,
     SidePanelContext,
     Transaction,
@@ -376,6 +375,14 @@ type OpenReportActionParams = {
     hasCompletedGuidedSetupFlow?: boolean;
 
     hasReportActions: boolean | undefined;
+
+    /**
+     * Whether this report's actions have already been loaded at least once this session, read from the RAM-only
+     * report loading state. Only the report screen knows this and only it needs to pass it: a falsy value means
+     * a page refresh / cold start, which is when a manual unread marker is cleared. Callers that open a report
+     * for any other reason omit it, and the marker is left alone.
+     */
+    hasOnceLoadedReportActions?: boolean;
 
     /** Whether opening the report should update its read state. Set to false when fetching report data without the user actually viewing the conversation */
     shouldMarkAsRead?: boolean;
@@ -539,19 +546,6 @@ function flagReportNavigatedAway(reportID: string | undefined) {
     }
     reportsNavigatedAwayFrom.add(reportID);
 }
-
-// RAM-only per-report loading state. `hasOnceLoadedReportActions` is false until the first successful
-// openReport of the session and resets only on a genuine reload (page refresh / cold start), so it's the
-// signal for "has this report already been loaded this session" — used by openReport below to also clear the
-// manual unread marker on a page refresh, on top of the navigate-away-and-back case above.
-// We use connectWithoutView because this is only read inside the `openReport` action, never during render.
-let allReportLoadingStates: OnyxCollection<ReportLoadingState>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-    callback: (value) => {
-        allReportLoadingStates = value;
-    },
-});
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
@@ -1703,6 +1697,9 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
+        // Defaults to true so that only the report screen, which actually passes this, can clear a manual unread
+        // marker. Every other caller opens a report for an unrelated reason and must leave the marker untouched.
+        hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
         conciergeChat,
     } = params;
@@ -1721,11 +1718,12 @@ function openReport(params: OpenReportActionParams) {
     // (the set is RAM-only). We consume it here to clear a manual unread marker on that return trip.
     const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
     reportsNavigatedAwayFrom.delete(reportID);
-    // Whether this is the first load of the report this session. `hasOnceLoadedReportActions` is RAM-only, so a
-    // page refresh / cold start resets it to falsy — that's how we detect a refresh here. A manual unread marker
-    // can only be non-null on a first load if it was persisted from before the refresh, so clearing it here
-    // clears the marker on a page refresh while leaving genuine first opens (marker already null) untouched.
-    const isFirstLoadAfterRefresh = !allReportLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`]?.hasOnceLoadedReportActions;
+    // Whether this is the first load of the report this session. The report screen passes its RAM-only
+    // `hasOnceLoadedReportActions`, so a page refresh / cold start resets it to falsy — that's how we detect a
+    // refresh here. A manual unread marker can only be non-null on a first load if it was persisted from before
+    // the refresh, so clearing it here clears the marker on a page refresh while leaving genuine first opens
+    // (marker already null) untouched.
+    const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
     // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report

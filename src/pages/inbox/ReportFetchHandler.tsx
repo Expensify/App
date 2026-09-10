@@ -218,6 +218,10 @@ function ReportFetchHandler() {
             participants: dmParticipants,
             betas,
             hasReportActions,
+            // openReport clears a manual unread marker when this is falsy, which is how a page refresh / cold
+            // start is detected. This screen is the only place that opens the report the user is looking at, so
+            // it is the only caller that passes it.
+            hasOnceLoadedReportActions: reportLoadingState.hasOnceLoadedReportActions,
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,

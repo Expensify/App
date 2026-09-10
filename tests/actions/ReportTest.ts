@@ -5258,6 +5258,75 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport with hasOnceLoadedReportActions', () => {
+        /** Puts a manual unread mark on the report, the way markCommentAsUnread does, so we can watch openReport clear it. */
+        async function givenAManualUnreadMark(reportID: string) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
+            await waitForBatchedUpdates();
+        }
+
+        async function getManualUnreadMark(reportID: string) {
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            return report?.manuallyMarkedUnreadReportActionID;
+        }
+
+        it('should clear the manual unread mark when false, because a falsy value means a page refresh / cold start', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkRefresh';
+            await givenAManualUnreadMark(REPORT_ID);
+
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
+        });
+
+        it('should keep the manual unread mark when true, so the marker survives the repeated openReport calls of a single visit', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkSameVisit';
+            await givenAManualUnreadMark(REPORT_ID);
+
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: true,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+
+        it('should keep the manual unread mark when omitted, so callers other than the report screen never clear it', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkOtherCaller';
+            await givenAManualUnreadMark(REPORT_ID);
+
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+    });
+
     describe('openReport with participants', () => {
         it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
