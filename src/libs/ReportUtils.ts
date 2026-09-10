@@ -9996,8 +9996,8 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
-    // Allow both open and processing reports to show RBR for field violations (expense reports only)
-    if (isGroupPolicyReport && !isOpenOrProcessingReport(report)) {
+    // Only open and processing reports show RBR for field violations; a settled report never shows one
+    if (!isOpenOrProcessingReport(report)) {
         return false;
     }
 
