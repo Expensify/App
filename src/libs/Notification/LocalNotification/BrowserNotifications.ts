@@ -17,7 +17,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -143,7 +143,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false, derivedReportName: string | undefined) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined, usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
