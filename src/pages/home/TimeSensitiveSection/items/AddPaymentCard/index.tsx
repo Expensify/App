@@ -17,7 +17,6 @@ function AddPaymentCard() {
         <BaseWidgetItem
             icon={icons.CreditCard}
             title={translate('homePage.timeSensitiveSection.addPaymentCard.title')}
-            subtitle={translate('homePage.timeSensitiveSection.addPaymentCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addPaymentCard.cta')}
             onCtaPress={navigateToSubscriptionPayment}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}

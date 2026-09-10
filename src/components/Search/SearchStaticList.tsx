@@ -203,13 +203,13 @@ function SearchStaticList({
             >
                 <View
                     style={[
-                        styles.mh5,
+                        styles.mh3,
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},
                         isFirstItem && styles.tableTopRadius,
                         isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                        !isLastItem && styles.borderBottom,
+                        !isLastItem && styles.borderBottomHairline,
                     ]}
                 >
                     <View style={[styles.p4, styles.flexColumn, styles.alignItemsStretch]}>

@@ -8,6 +8,7 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
@@ -40,6 +41,7 @@ const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authT
 
 function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
@@ -54,7 +56,15 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                    styles.ml5,
+                    styles.mr3,
+                    styles.headerBarHeight,
+                    shouldUseNarrowLayout && styles.headerBarHeightNarrow,
+                ]}
                 dataSet={{dragArea: true}}
                 onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >

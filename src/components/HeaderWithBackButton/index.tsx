@@ -16,6 +16,7 @@ import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -97,6 +98,7 @@ function HeaderWithBackButton({
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -199,6 +201,7 @@ function HeaderWithBackButton({
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
+                shouldUseNarrowLayout && styles.headerBarHeightNarrow,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,

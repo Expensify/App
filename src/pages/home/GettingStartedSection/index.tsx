@@ -65,7 +65,7 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
+            <View style={shouldUseNarrowLayout ? [styles.ph6, styles.pb6] : [styles.ph8, styles.pb8]}>
                 <PressableWithoutFeedback
                     onPress={openAdminsRoom}
                     accessibilityLabel={footerHelpText}

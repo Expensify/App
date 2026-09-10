@@ -123,9 +123,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.mh5,
+                shouldUseNarrowTableLayout ? styles.mh3 : styles.mh5,
                 styles.highlightBG,
-                styles.borderBottom,
+                shouldUseNarrowTableLayout ? styles.borderBottomHairline : styles.borderBottom,
                 styles.tableTopRadius,
                 shouldUseNarrowLayout && !isSelectionCheckboxVisible ? styles.ph4 : styles.ph3,
                 // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid

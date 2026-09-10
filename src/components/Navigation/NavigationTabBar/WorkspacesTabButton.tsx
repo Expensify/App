@@ -62,7 +62,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}
             wrapperStyle={styles.flex1}
-            style={styles.navigationTabBarItem}
+            style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.WORKSPACES && styles.navigationTabBarItemSelected]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
         >
             <TabBarItem
@@ -71,6 +71,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
                 isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
                 statusIndicatorColor={workspacesStatusIndicatorColor}
                 numberOfLines={1}
+                shouldShowLabel={false}
             />
         </PressableWithFeedback>
     );

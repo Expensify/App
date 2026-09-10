@@ -49,7 +49,7 @@ function useSearchTableItemHighlight({shouldHighlight = false, isSelected = fals
                     vertical: variables.tableRowPaddingVertical,
                 }),
         ],
-        pressableWrapperStyle: [styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]],
+        pressableWrapperStyle: [isLargeScreenWidth ? styles.mh5 : styles.mh3, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]],
     };
 }
 

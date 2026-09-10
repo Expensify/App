@@ -24,9 +24,6 @@ type BaseWidgetItemProps = {
     /** Primary title text */
     title: string;
 
-    /** Secondary subtitle text */
-    subtitle?: string;
-
     /** Text for the CTA button */
     ctaText: string;
 
@@ -36,7 +33,7 @@ type BaseWidgetItemProps = {
     buttonVariant?: ButtonVariant;
 };
 
-function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, title, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -49,7 +46,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph6 : styles.ph8, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={icon}
@@ -59,7 +56,6 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
                         />
                     </View>
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
-                        {!!subtitle && <Text style={styles.widgetItemSubtitle}>{subtitle}</Text>}
                         <Text style={styles.widgetItemTitle}>{title}</Text>
                     </View>
                     <Button

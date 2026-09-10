@@ -25,6 +25,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
+import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
@@ -192,9 +193,10 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     const visibleForYouRows = hideForYou ? [] : forYouRows;
 
-    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty.
+    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty, and only on wide
+    // layout — on narrow the card keeps just the Concierge prompt instead.
     const showSkeleton = isInitialLoad && !hideForYou;
-    const showEmptyState = !isInitialLoad && !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
+    const showEmptyState = !isInitialLoad && !hideForYou && !shouldUseNarrowLayout && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
     const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && visibleForYouRows.length === 0 && !showSkeleton && !showEmptyState;
 
     const getForYouFallback = () => {
@@ -209,6 +211,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     return (
         <WidgetContainer
+            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
             containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
             titleContent={
                 <ConciergePromptBox

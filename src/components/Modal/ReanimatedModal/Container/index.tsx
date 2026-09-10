@@ -60,7 +60,7 @@ function Container({
                 onSwipeComplete={onSwipeComplete}
             >
                 <Animated.View
-                    style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
+                    style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED_INSET && styles.flex1]}
                     entering={Entering}
                     exiting={Exiting}
                 >

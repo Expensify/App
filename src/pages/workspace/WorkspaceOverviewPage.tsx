@@ -432,7 +432,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     onPress={handleInvitePress}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
                 >
                     <Button.Icon src={expensifyIcons.UserPlus} />
                     <Button.Text>{translate('common.invite')}</Button.Text>
@@ -515,9 +515,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         }}
                         source={policy?.avatarURL ?? ''}
                         avatar={workspaceAvatar}
-                        avatarStyle={styles.alignSelfStart}
+                        avatarStyle={shouldUseNarrowLayout ? styles.alignSelfCenter : styles.alignSelfStart}
                         enablePreview
-                        style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
+                        style={[
+                            (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
+                            shouldUseNarrowLayout ? styles.alignItemsCenter : styles.alignItemsStart,
+                            styles.sectionMenuItemTopDescription,
+                        ]}
                         editIconStyle={styles.smallEditIconWorkspace}
                         isUsingDefaultAvatar={!policy?.avatarURL}
                         onImageSelected={(file) => {

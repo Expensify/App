@@ -141,13 +141,13 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    styles.mh3,
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
+                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected, true),
                 ]}
             >
                 {() => (

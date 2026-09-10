@@ -1,3 +1,4 @@
+import Clouds from '@assets/images/clouds.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -438,6 +439,7 @@ const Illustrations = {
     Broom,
     Chair,
     CheckboxText,
+    Clouds,
     ConciergeBot,
     CowboyHat,
     F1Flags,

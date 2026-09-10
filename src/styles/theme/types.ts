@@ -59,6 +59,12 @@ type ThemeColors = {
     overlay: Color;
     inverse: Color;
     shadow: Color;
+    shadowTop: Color;
+    floatingTabBarBG: Color;
+    floatingTabBarBGWeb: Color;
+    floatingTabBarBorder: Color;
+    floatingTabBarSelectedBG: Color;
+    floatingTabBarSelectedBGWeb: Color;
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;

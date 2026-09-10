@@ -48,9 +48,15 @@ const darkTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productDark400,
+    overlay: colors.productDark300,
     inverse: colors.productDark900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
+    shadowTop: '0px 6px 16px -2px rgba(2,18,4,0.16)',
+    floatingTabBarBG: 'rgba(6,27,9,0.65)',
+    floatingTabBarBGWeb: 'rgba(25,25,25,0.72)',
+    floatingTabBarBorder: colors.productDark400,
+    floatingTabBarSelectedBG: 'rgba(26,61,50,0.50)',
+    floatingTabBarSelectedBGWeb: colors.productDark400,
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
     messageHighlightBG: colors.messageHighlightDark,

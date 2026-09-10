@@ -30,7 +30,12 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // The floating mobile tab bar sizes itself, so nothing else follows these.
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    floatingTabBarBottomInset: 8,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderHeightNarrow: getValueUsingPixelRatio(64, 89),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -47,7 +52,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,
@@ -112,14 +117,25 @@ export default {
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
     receiptPreviewWidth: 380,
-    widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
+    rhpFloatingCardMargin: 12,
+    // Border radius and inset margin for the fully-rounded, inset bottom-docked modal (create expense menu experiment).
+    bottomDockedInsetBorderRadius: 24,
+    bottomDockedInsetMargin: 8,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // Right (detail) pane width of the wide/super-wide expense views. Decoupled from rhpWidth so the expense
+    // report view's right pane can differ from the standalone skinny RHP.
+    wideRHPRightPaneWidth: 460,
+    // RHP scrim opacity. Scoped to the RHP overlay so other modal backdrops keep the default overlayOpacity.
+    rhpOverlayOpacity: 0.5,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -243,7 +259,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    // Distance from the top of the screen to the centered search router popover on wide layout.
+    searchRouterPopoverTopOffset: 40,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
@@ -357,8 +376,10 @@ export default {
     cardScarfOverlayWidth: 264,
     cardScarfOverlayHeight: 172,
     cardScarfOverlayZIndex: 2,
-    cardIconWidth: 40,
-    cardIconHeight: 26,
+    // The card illustration renders at 80% of its 40x26 bounding box, centered inside it.
+    cardIconWidth: 32,
+    cardIconHeight: 21,
+    bankIconContainerSize: 40,
     cardIconSmallWidth: 28,
     cardIconSmallHeight: 18,
     cardBorderRadius: 4,
@@ -411,11 +432,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -118,
-    minimalTopBarWithFiltersOffset: -162,
+    minimalTopBarOffset: -120,
+    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 118,
-    searchListContentWithFiltersMarginTop: 162,
+    searchListContentMarginTop: 120,
+    searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
 
     searchAutocompleteInputSkeletonHeight: 8,

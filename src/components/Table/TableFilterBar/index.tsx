@@ -78,7 +78,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
     }
 
     return (
-        <View style={[styles.w100, styles.gap3, styles.pb3, styles.ph5]}>
+        <View style={[styles.w100, styles.gap3, styles.pb3, shouldUseNarrowTableLayout ? styles.ph3 : styles.ph5]}>
             <View style={[styles.flexRow, styles.gap3, styles.justifyContentBetween, shouldUseNarrowTableLayout && styles.alignItemsCenter]}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.gap2, styles.alignItemsCenter]}>
                     <TableSearchBar label={label} />

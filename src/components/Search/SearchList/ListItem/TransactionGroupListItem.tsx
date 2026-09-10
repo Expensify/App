@@ -533,12 +533,12 @@ function TransactionGroupListItemImpl({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    isLargeScreenWidth ? styles.mh5 : styles.mh3,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [isFirstItem && styles.tableTopRadius, isLastItem && styles.tableBottomRadius, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected)],
+                        : [isFirstItem && styles.tableTopRadius, isLastItem && styles.tableBottomRadius, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected, true)],
                 ]}
             >
                 {({hovered}) => (

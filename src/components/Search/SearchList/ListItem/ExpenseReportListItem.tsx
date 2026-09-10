@@ -492,13 +492,13 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                isLargeScreenWidth ? styles.mh5 : styles.mh3,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.tableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected, true),
             ]}
             shouldShowRightCaret={false}
             isDisabled={isPendingDelete}

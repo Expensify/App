@@ -144,7 +144,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
                 key={`company-card-${connection.feedKey}`}
                 card={card}
                 policyID={connection.policyID}
-                policyName={connection.policyName}
             />,
         );
     }
@@ -167,7 +166,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             <UnlockBankAccount
                 key={lockedBankAccount.key}
                 bankAccountID={lockedBankAccount.bankAccountID}
-                policyName={lockedBankAccount.policyName}
             />,
         );
     }
@@ -178,7 +176,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
                 key={`policy-connection-${connection.policyID}-${connection.connectionName}`}
                 connectionName={connection.connectionName}
                 policyID={connection.policyID}
-                policyName={connection.policyName}
                 integrationName={connection.integrationName}
             />,
         );
@@ -206,7 +203,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
                 key={`signer-${item.policyID}-${item.bankAccountID}`}
                 policyID={item.policyID}
                 bankAccountID={item.bankAccountID}
-                bankAccountLastFour={item.bankAccountLastFour}
             />,
         );
     }

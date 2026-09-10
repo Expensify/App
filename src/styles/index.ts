@@ -185,7 +185,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -726,10 +726,46 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
-            backgroundColor: theme.appBG,
+            height: variables.floatingTabBarHeight,
+            // Transparent so the blur layer rendered inside the bar is what tints it.
+            backgroundColor: theme.transparent,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // Inset the row so the active tab's pill keeps a margin inside the bar's rounded edge.
+            padding: 4,
+            borderWidth: 0.5,
+            borderColor: theme.floatingTabBarBorder,
+            // Clips each item's hover and press background to the pill's rounded ends.
+            overflow: 'hidden',
+        },
+
+        // Fills the pill behind the tabs. The tint sits on top of the blur, so it reads as frosted glass.
+        // On web the tint and blur are authored here, because expo-blur's web build overrides any
+        // backgroundColor passed to it with one derived from its own tint and intensity.
+        navigationTabBarBlur: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            ...(Platform.OS === 'web'
+                ? {
+                      backgroundColor: theme.floatingTabBarBGWeb,
+                      backdropFilter: 'saturate(180%) blur(8px)',
+                  }
+                : {backgroundColor: theme.floatingTabBarBG}),
+        },
+
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset exceeds
+        // half its blur, keeping the shadow clear of the bar's bottom edge and out of the iOS safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: Platform.OS === 'web' ? theme.floatingTabBarSelectedBGWeb : theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         navigationTabBarItem: {
@@ -1280,6 +1316,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
+        },
+
+        // Search router popover: keep the base shadow, then layer wider/lighter brand-tinted shadows behind it so the
+        // popover reads as clearly separated from the background.
+        searchRouterPopoverShadow: {
+            boxShadow: `${theme.shadow}, 0px 0px 1px 0px rgba(2,18,4,0.072), 0px 8px 16px 4px rgba(2,18,4,0.036), 0px 18px 40px 8px rgba(2,18,4,0.027)`,
         },
 
         /**
@@ -2762,13 +2804,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -2858,6 +2900,17 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
+        borderBottomHairline: {
+            borderBottomWidth: 0.5,
+            borderColor: theme.border,
+        },
+
+        borderTopHairline: {
+            borderTopWidth: 0.5,
+            borderColor: theme.border,
+        },
+
         borderBottomHovered: {
             borderBottomWidth: 1,
             borderColor: theme.buttonHoveredBG,
@@ -2910,6 +2963,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarHeightNarrow: {
+            height: variables.contentHeaderHeightNarrow,
         },
 
         imageViewContainer: {
@@ -3169,8 +3226,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3190,7 +3245,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...textVariants.textStrong,
         },
 
         borderedContentCard: {
@@ -3999,6 +4054,26 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
         },
 
+        // Floating RHP experiment (wide layout / web+desktop only): inset the panel from the screen edges
+        // and round all corners so it reads as a floating card over the blurred scrim.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+        },
+
+        // Invisible frame docked 12px from the right edge, sized to the widest RHP card (the animated width is applied
+        // separately). It has no border/shadow/background, so the RHP cards inside draw the visible modals; the area to
+        // the left of the frame stays free for the primary dismiss overlay behind it (click-outside to close).
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
         bottomDockedModalDismissButton: {
             position: 'absolute',
             top: 0,
@@ -4143,7 +4218,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4153,7 +4228,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4194,9 +4269,9 @@ const staticStyles = (theme: ThemeColors) =>
             // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
             // vertical footprint to the title line-height so every card header keeps the same height. The matching
             // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
+            marginTop: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginBottom: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
+            marginRight: (variables.fontSizeNormalHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4249,13 +4324,6 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5029,11 +5097,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         bankIconContainer: {
-            height: variables.cardIconWidth,
-            width: variables.cardIconWidth,
+            height: variables.bankIconContainerSize,
+            width: variables.bankIconContainerSize,
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         staticHeaderImage: {
@@ -5487,7 +5557,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
+        // 44 matches the h11 height the search input above every other table uses on mobile.
+        searchPageInputNarrowTouchableWrapper: {height: 44},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
@@ -6344,11 +6415,37 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedWideRHPWidth,
         },
 
+        // Wide expense opened on top of a super-wide report: anchored to the report's right edge (the frame's right edge)
+        // over the report, which stays in the background, with rounded corners, a border, and a shadow.
+        wideRHPCenteredCardInterpolatorStyles: {
+            position: 'absolute',
+            top: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            right: 0,
+            height: 'auto',
+            width: animatedWideRHPWidth,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+            overflow: 'hidden',
+        },
+
+        // Skinny RHP stacked above a wide/super-wide RHP (e.g. editing a field from an expense in a report). Anchored to
+        // the report/expense right edge (the frame's right edge), inset on top/bottom, rounded, bordered, and shadowed —
+        // with the dark scrim behind it dimming the report/expense below.
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
-            height: '100%',
+            top: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
             right: 0,
-            width: variables.sideBarWidth,
+            height: 'auto',
+            width: variables.rhpWidth,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+            overflow: 'hidden',
         },
 
         flexibleHeight: {
@@ -6682,12 +6779,21 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
+        // The super-wide expense report is its own bordered modal anchored to the frame's right edge (12px from the
+        // viewport edge), inset on top/bottom, rounded, and shadowed. The dark scrim behind it shows to its left.
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
                 position: 'absolute',
-                height: '100%',
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
                 right: 0,
+                height: 'auto',
                 width,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderWidth: 1,
+                borderColor: theme.border,
+                boxShadow: theme.shadow,
+                overflow: 'hidden',
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
@@ -6741,7 +6847,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6782,7 +6888,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: positionRightValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, variables.rhpOverlayOpacity],
                     extrapolate: 'clamp',
                 }),
             }) satisfies ViewStyle,
@@ -7253,9 +7359,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
 
@@ -7263,9 +7367,9 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginBottom: 12,
+                marginHorizontal: shouldUseNarrowLayout ? 24 : 32,
+                marginTop: shouldUseNarrowLayout ? 24 : 32,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7301,12 +7405,20 @@ const plainStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
-        },
+        } satisfies ViewStyle,
+
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexGrow: 1,
+                paddingTop: 4,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
+                paddingBottom: 20,
+            }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',

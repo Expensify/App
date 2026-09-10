@@ -12,8 +12,6 @@ import SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
-import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
 import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
@@ -38,6 +36,7 @@ type WorkspaceListLayoutProps = {
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const navigationOptions = [
         {
@@ -67,11 +66,12 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, shouldUseNarrowLayout ? styles.pr3 : styles.pr5, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}
+                contentContainerStyles={shouldUseNarrowLayout ? styles.ph3 : undefined}
             />
             {shouldShowHeaderButton && headerButton}
         </View>
@@ -110,7 +110,6 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
             shouldEnablePickerAvoiding={false}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContentStyle={styles.overflowVisible}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>

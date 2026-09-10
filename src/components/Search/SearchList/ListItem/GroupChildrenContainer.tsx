@@ -1,5 +1,6 @@
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,6 +36,7 @@ function GroupChildrenContainer({
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
@@ -58,7 +60,7 @@ function GroupChildrenContainer({
     return (
         <Animated.View
             style={[
-                styles.mh5,
+                isLargeScreenWidth ? styles.mh5 : styles.mh3,
                 {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
                 animatedHighlightStyle,
                 isLastItem && [styles.tableBottomRadius, styles.overflowHidden],

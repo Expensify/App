@@ -1,6 +1,4 @@
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -56,7 +54,6 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
                     bottomContentStyle={styles.overflowVisible}
                 >
                     <TopBar
@@ -65,7 +62,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={styles.homePageContentContainer(shouldUseNarrowLayout)}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

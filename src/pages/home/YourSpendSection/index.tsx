@@ -42,7 +42,7 @@ function YourSpendSection() {
         return null;
     }
 
-    const wrapperStyle = [styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8];
+    const wrapperStyle = [styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph6 : styles.ph8];
     const visibleSummaryRowsCount = (isApprovalRowVisible ? 1 : 0) + (isPaymentRowVisible ? 1 : 0);
     const cardLimit = Math.max(0, CONST.HOME.SECTION_VISIBLE_LIMIT - visibleSummaryRowsCount);
     const hiddenCount = Math.max(0, cardRows.length - cardLimit);
