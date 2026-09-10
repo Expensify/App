@@ -79,6 +79,7 @@ import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentBookmark from '@assets/images/document-bookmark.svg';
+import DocumentCheck from '@assets/images/document-check.svg';
 import DocumentMagicWand from '@assets/images/document-magic-wand.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
@@ -134,6 +135,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
@@ -591,10 +593,12 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    DocumentCheck,
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    CampfireSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
