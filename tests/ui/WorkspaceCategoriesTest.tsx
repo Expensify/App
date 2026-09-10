@@ -355,7 +355,7 @@ describe('WorkspaceCategories', () => {
 
         expect(navigate.mock.calls.at(0)?.at(0)).toBe(categoryRoute);
 
-        // The category page is an RHP, so it covers the list without unmounting it and makes its own route the active one.
+        // A sibling stack screen stands in for the RHP category page that covers the list in the app, with the active route pointed at that page.
         getActiveRoute.mockReturnValue(categoryRoute);
         act(() => navigationRef.navigate(SCREENS.WORKSPACE.TAGS, {policyID: policy.id}));
         await waitForBatchedUpdatesWithAct();

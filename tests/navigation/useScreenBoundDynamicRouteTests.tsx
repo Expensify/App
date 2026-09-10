@@ -5,6 +5,7 @@ import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
+import appNavigationRef from '@libs/Navigation/navigationRef';
 
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -162,13 +163,40 @@ describe('useScreenBoundDynamicRoute', () => {
         expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
     });
 
-    it('keeps the matched path when focus reports the screen as its dynamic suffix alone', () => {
-        // Focus on a screen pushed into the RHP runs mid-transition, where getActiveRoute drops the path it sits under.
-        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`);
+    it('falls back to the screen route when the active route is the bare root', () => {
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/');
 
         const {result} = renderHook(() => useScreenBoundDynamicRoute(), {wrapper: FocusedScreenWithPathWrapper});
 
         expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
+    });
+
+    it('latches the active route once the root state carries the screen', () => {
+        // Until the container carries a newly mounted navigator, getActiveRoute renders its screen as the suffix alone.
+        const getActiveRoute = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`);
+        jest.spyOn(appNavigationRef, 'isReady').mockReturnValue(true);
+        const withoutScreen = {key: 'root', index: 0, routeNames: ['Other'], routes: [{key: 'Other-1', name: 'Other'}], type: 'stack', stale: false} as const;
+        const getRootState = jest.spyOn(appNavigationRef, 'getRootState').mockReturnValue(withoutScreen);
+        let onState: (() => void) | undefined;
+        jest.spyOn(appNavigationRef, 'addListener').mockImplementation((_event, callback) => {
+            onState = callback as () => void;
+            return () => {};
+        });
+
+        const {result} = renderHook(() => useScreenBoundDynamicRoute(), {wrapper: FocusedScreenWithPathWrapper});
+
+        expect(result.current(CARD_DETAILS)).toBe(`${REPORT_PATH}/${CARD_DETAILS}`);
+
+        const screenKey = navigationRef.getRootState().routes.at(0)?.key ?? '';
+        const settledPath = ROUTES.REPORT_WITH_ID.getRoute('5678');
+        getRootState.mockReturnValue({
+            ...withoutScreen,
+            routes: [{key: 'Other-1', name: 'Other', state: {key: 'nested', index: 0, routeNames: ['Bound'], routes: [{key: screenKey, name: 'Bound'}], type: 'stack', stale: false}}],
+        });
+        getActiveRoute.mockReturnValue(settledPath);
+        act(() => onState?.());
+
+        expect(result.current(CARD_DETAILS)).toBe(`${settledPath}/${CARD_DETAILS}`);
     });
 
     it('falls back to the screen route when the screen mounts without ever being focused', () => {
