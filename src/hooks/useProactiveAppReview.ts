@@ -26,7 +26,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cool-down gate.
     const [timeAtMount] = useState(Date.now);
 
-    let shouldShowModal = false;
+    let shouldShowModal = true;
     if (shouldSuppressPromotionalUI) {
         // Supportal agents and copilots should not leave reviews on behalf of another account.
         shouldShowModal = false;
