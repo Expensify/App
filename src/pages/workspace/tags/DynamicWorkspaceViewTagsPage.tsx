@@ -34,6 +34,7 @@ import {
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
+import appendParentTagsFilter from '@libs/Navigation/helpers/dynamicRoutesUtils/appendParentTagsFilter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -138,12 +139,8 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
             }
 
             const parentTagsFilter = tag?.rules?.parentTagsFilter ?? tag?.parentTagsFilter;
-            const tagSettingsSuffix = parentTagsFilter
-                ? `${DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
-                : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name);
-            const settingsTagSettingsSuffix = parentTagsFilter
-                ? `${DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
-                : DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name);
+            const tagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
+            const settingsTagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
 
             Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsTagSettingsSuffix) : createDynamicRoute(tagSettingsSuffix));
         },

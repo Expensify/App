@@ -21,6 +21,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import appendParentTagsFilter from '@libs/Navigation/helpers/dynamicRoutesUtils/appendParentTagsFilter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -117,24 +118,21 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     };
 
     const navigateToEditGlCode = () => {
-        const parentTagsFilterSuffix = parentTagsFilter ? `?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}` : '';
+        const workspaceGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path, parentTagsFilter);
+        const settingsGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName), parentTagsFilter);
+        const settingsGlCodeRouteForCurrentTag = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name), parentTagsFilter);
+
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    isQuickSettingsFlow
-                        ? createDynamicRoute(`${DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName)}${parentTagsFilterSuffix}`)
-                        : createDynamicRoute(`${DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path}${parentTagsFilterSuffix}`),
+                    isQuickSettingsFlow ? createDynamicRoute(settingsGlCodeRoute) : createDynamicRoute(workspaceGlCodeRoute),
                 ),
             );
             return;
         }
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(`${DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name)}${parentTagsFilterSuffix}`)
-                : createDynamicRoute(`${DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path}${parentTagsFilterSuffix}`),
-        );
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsGlCodeRouteForCurrentTag) : createDynamicRoute(workspaceGlCodeRoute));
     };
 
     const navigateToEditTagApprover = () => {
