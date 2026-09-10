@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -6,6 +6,7 @@ import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
 
 import type * as UserActionsReport from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -67,6 +68,26 @@ describe('ReportFetchHandler', () => {
 
         // Then fetching is deferred because the server cannot resolve the optimistic report ID
         expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('expires a stale isPendingCreation flag when the focused screen never receives a report row', async () => {
+        // Given a restored route that still carries isPendingCreation but has no submit writing the report
+        mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
+        jest.useFakeTimers();
+
+        // When the focused screen waits without a report row
+        renderHandler();
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.STALE_PENDING_CREATION_ROUTE_TIMEOUT - 1);
+        });
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        // Then the flag is cleared once the grace period elapses, so fetching and the not-found guard can resolve the screen
+        act(() => {
+            jest.advanceTimersByTime(1);
+        });
+        expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
+        jest.useRealTimers();
     });
 
     it('calls openReport again once the pre-mounted report exists locally and isPendingCreation clears', async () => {

@@ -18,6 +18,7 @@ const MODAL_NAVIGATORS_SET = new Set<string>([
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
     NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
 ]);
+const PRE_MOUNT_BUFFER_HOSTS_SET = new Set<string>([NAVIGATORS.RIGHT_MODAL_NAVIGATOR, NAVIGATORS.SHARE_MODAL_NAVIGATOR]);
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(Object.values(SCREENS.ONBOARDING));
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
@@ -47,6 +48,11 @@ function isFullScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
 }
 
+/** Root modal navigators a fullscreen destination can be pre-inserted under. Insert and teardown must agree on this set. */
+function isPreMountBufferHostName(screen: string | undefined) {
+    return checkIfScreenHasMatchingNameToSetValues(screen, PRE_MOUNT_BUFFER_HOSTS_SET);
+}
+
 function isModalNavigatorName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues(screen, MODAL_NAVIGATORS_SET);
 }
@@ -59,4 +65,4 @@ function isWorkspaceNavigatorRouteName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<WorkspaceNavigatorRouteName>(screen, WORKSPACES_TAB_SET);
 }
 
-export {isFullScreenName, isModalNavigatorName, isOnboardingFlowName, isSidebarScreenName, isSplitNavigatorName, isWorkspaceNavigatorRouteName};
+export {isFullScreenName, isModalNavigatorName, isOnboardingFlowName, isPreMountBufferHostName, isSidebarScreenName, isSplitNavigatorName, isWorkspaceNavigatorRouteName};
