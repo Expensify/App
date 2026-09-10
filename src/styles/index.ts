@@ -2912,6 +2912,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
         },
 
+        headerBarMobileHeight: {
+            height: variables.contentHeaderMobileHeight,
+        },
+
         imageViewContainer: {
             width: '100%',
             height: '100%',
