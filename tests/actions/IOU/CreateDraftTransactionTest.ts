@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import '@libs/actions/IOU/MoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -175,7 +176,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -231,7 +232,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -282,7 +283,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -322,7 +323,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -371,7 +372,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -413,7 +414,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -450,7 +451,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -470,6 +471,8 @@ describe('actions/IOU', () => {
             const POLICY_ID = 'policy-with-access';
             // A unix timestamp well in the past, so the owner's billing grace period has already elapsed.
             const EXPIRED_GRACE_PERIOD_END = 1600000000;
+            // The workspace as the callers' policy selectors hand it to the billing gate: only the fields the gate reads.
+            const ACCESSIBLE_POLICY: BillingRestrictionPolicy = {id: POLICY_ID, ownerAccountID: RORY_ACCOUNT_ID};
 
             async function setUpSelfDMTrackedExpense() {
                 const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
@@ -545,7 +548,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: '',
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 1,
-                    firstPolicyID: POLICY_ID,
+                    firstPolicy: ACCESSIBLE_POLICY,
                 });
                 await waitForBatchedUpdates();
 
@@ -583,7 +586,6 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: '',
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 1,
-                    firstPolicyID: POLICY_ID,
                     firstPolicy: restrictedPolicy,
                 });
                 await waitForBatchedUpdates();
@@ -614,15 +616,13 @@ describe('actions/IOU', () => {
                     userBillingGracePeriodEnds: undefined,
                     ownerBillingGracePeriodEnd: EXPIRED_GRACE_PERIOD_END,
                     amountOwed: 1000,
-                    isRestrictedToPreferredPolicy: true,
-                    preferredPolicyID: POLICY_ID,
-                    preferredPolicy: restrictedPolicy,
+                    restrictedPreferredPolicy: restrictedPolicy,
                     transaction: trackedExpense,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     currentUserEmail: RORY_EMAIL,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 1,
-                    firstPolicyID: POLICY_ID,
+                    firstPolicy: restrictedPolicy,
                 });
                 await waitForBatchedUpdates();
 
@@ -654,7 +654,7 @@ describe('actions/IOU', () => {
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -685,7 +685,7 @@ describe('actions/IOU', () => {
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -714,7 +714,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: '',
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 2,
-                    firstPolicyID: POLICY_ID,
+                    firstPolicy: ACCESSIBLE_POLICY,
                 });
                 await waitForBatchedUpdates();
 

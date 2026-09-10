@@ -19,6 +19,7 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -346,34 +347,37 @@ type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
     filteredPoliciesCount: number;
 
-    /** ID of the first policy that should be shown to the user */
-    firstPolicyID: string | undefined;
-
-    /** The first policy itself, so callers can gate on it without re-reading a separately-timed policy cache */
-    firstPolicy: OnyxEntry<Policy>;
+    /**
+     * The first policy that should be shown to the user, so callers can gate on it without re-reading a
+     * separately-timed policy cache. Projected to only the fields the billing gate needs, so this output stays
+     * fixed-size (see `policyMapper` above) and no `employeeList`/`customUnits` is deep-compared on a POLICY write.
+     */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
 
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual
 const createFilteredPoliciesInfoSelector =
     (email: string | undefined) =>
     (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
         let filteredPoliciesCount = 0;
-        let firstPolicyID: string | undefined;
-        let firstPolicy: OnyxEntry<Policy>;
+        let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
             if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
-                firstPolicyID = policy.id;
-                firstPolicy = policy;
+                firstPolicy = {id: policy.id, ownerAccountID: policy.ownerAccountID};
             }
             filteredPoliciesCount++;
             if (filteredPoliciesCount > 1) {
                 break;
             }
         }
-        return {filteredPoliciesCount, firstPolicyID, firstPolicy};
+        return {filteredPoliciesCount, firstPolicy};
     };
+
+/** The preferred workspace, projected to only what the billing gate reads, for the same reason as `firstPolicy` above. */
+const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -513,6 +517,7 @@ export {
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
     createFilteredPoliciesInfoSelector,
+    billingRestrictionPolicySelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,

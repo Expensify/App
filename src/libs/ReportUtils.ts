@@ -243,6 +243,7 @@ import {
 // eslint-disable-next-line import/no-cycle
 import {deprecatedGetReportName, getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportName} from './ReportNameUtils';
 import {getAllPersonalDetailLogins} from './ShortMentionLogins';
+import type {BillingRestrictionPolicy} from './SubscriptionUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {isTaskCompleted} from './TaskUtils';
 import {
@@ -3249,7 +3250,7 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  * file's independently-timed `allPolicies` cache, which can lag a caller's own snapshot and let the gate fail open.
  */
 function navigateToRestrictedActionIfNeeded(
-    policy: OnyxEntry<Policy>,
+    policy: OnyxEntry<BillingRestrictionPolicy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
@@ -12205,10 +12206,15 @@ type CreateDraftTransactionParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    isRestrictedToPreferredPolicy?: boolean;
-    preferredPolicyID?: string;
-    /** The preferred workspace itself, so the billing gate reads the caller's snapshot rather than this file's `allPolicies` cache. */
-    preferredPolicy?: OnyxEntry<Policy>;
+    /**
+     * The preferred workspace, set only when the user is restricted to submitting there. One non-nullable value
+     * instead of an `isRestrictedToPreferredPolicy`/`preferredPolicyID`/`preferredPolicy` trio: the fast path it
+     * unlocks skips the participant picker, which is where the billing restriction is otherwise enforced, so
+     * "submit straight to the preferred workspace" and "here is the policy to gate on" have to be the same fact.
+     * As three parallel optionals a caller could supply the flag and the ID but not the policy — the flag and the
+     * ID come from the security group, the policy from Onyx — and silently disable the gate.
+     */
+    restrictedPreferredPolicy?: BillingRestrictionPolicy;
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -12222,9 +12228,12 @@ type CreateDraftTransactionParams = {
     /** Localized default name for a workspace created on the fly (e.g. "Submit to my employer" with no existing workspace). */
     defaultWorkspaceName?: string;
     filteredPoliciesCount: number;
-    firstPolicyID: string | undefined;
-    /** The workspace `firstPolicyID` refers to, from the same caller snapshot that produced the count above. */
-    firstPolicy?: OnyxEntry<Policy>;
+    /**
+     * The single accessible workspace, from the same caller snapshot that produced the count above. This is the only
+     * handle on that workspace — there is deliberately no parallel `firstPolicyID`, so "I have a workspace to submit
+     * to" and "I have the policy to gate on" are the same fact and cannot come apart.
+     */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -12238,9 +12247,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     userBillingGracePeriodEnds,
     amountOwed,
     ownerBillingGracePeriodEnd,
-    isRestrictedToPreferredPolicy = false,
-    preferredPolicyID,
-    preferredPolicy,
+    restrictedPreferredPolicy,
     transaction,
     currentUserAccountID,
     currentUserEmail,
@@ -12248,7 +12255,6 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     submitDestination = CONST.IOU.SUBMIT_DESTINATION.FRIEND,
     defaultWorkspaceName = '',
     filteredPoliciesCount,
-    firstPolicyID,
     firstPolicy,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
@@ -12338,14 +12344,14 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             return;
         }
 
-        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID)?.reportID;
+        const policyExpenseReportID = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicy?.id)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
                 reportID: policyExpenseReportID,
-                policyID: firstPolicyID,
+                policyID: firstPolicy?.id,
                 searchText: activePolicy?.name,
             },
         ]);
@@ -12371,7 +12377,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     // "Submit to my employer" routes the expense into a workspace the user can submit to, based on how many they belong to.
     // Per issue #92704 the count spans every paid workspace the user is a member of (Collect/Control/Submit), so we reuse the
-    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicyID) that also backs the workspaces-only picker.
+    // shared shouldShowPolicy-based count (filteredPoliciesCount/firstPolicy) that also backs the workspaces-only picker.
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {
@@ -12395,13 +12401,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
 
         // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
-        if (filteredPoliciesCount === 1 && firstPolicyID) {
+        if (filteredPoliciesCount === 1 && firstPolicy) {
             // The destination picker we skip here is where the billing restriction is normally enforced, so gate it here too.
             if (navigateToRestrictedActionIfNeeded(firstPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 return;
             }
 
-            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicyID);
+            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, firstPolicy.id);
             if (policyExpenseReport) {
                 // The draft inherits the source expense's unreported ID from the self DM. The picker we skip here is what
                 // normally rebinds it to the destination chat, so without this the confirmation page still reads the draft
@@ -12433,13 +12439,13 @@ function createDraftTransactionAndNavigateToParticipantSelector({
 
     if (actionName === CONST.IOU.ACTION.SUBMIT || filteredPoliciesCount > 0) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
-        if (isRestrictedToPreferredPolicy && preferredPolicyID) {
+        if (restrictedPreferredPolicy) {
             // This branch skips the participant picker as well, so it needs the same billing-restriction gate.
-            if (navigateToRestrictedActionIfNeeded(preferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+            if (navigateToRestrictedActionIfNeeded(restrictedPreferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 return;
             }
 
-            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, preferredPolicyID);
+            const policyExpenseReport = getPolicyExpenseChat(deprecatedCurrentUserAccountID, restrictedPreferredPolicy.id);
 
             if (policyExpenseReport) {
                 // Same picker-skip as the single-workspace branch above, so the draft needs the same rebinding.
