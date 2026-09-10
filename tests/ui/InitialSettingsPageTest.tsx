@@ -232,6 +232,7 @@ describe('InitialSettingsPage - agent account', () => {
                 'Profile',
                 'Wallet',
                 'Expense rules',
+                'Agents',
                 'Preferences',
                 'Copilot',
                 'Security',
