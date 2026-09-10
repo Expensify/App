@@ -123,43 +123,37 @@ PORT_PLAN = {
 KNOWN_NOT_IMPLEMENTED_LOW_VALUE = set()
 
 
-OXLINT_RENAMES = {
-    'no-object-constructor': 'no-new-object',
-    'no-new-native-nonconstructor': 'no-new-symbol',
-}
-ESLINT_RENAMES = {es: ox for ox, es in OXLINT_RENAMES.items()}
+# The tables live in the .mjs because the oxlint adapter and the hosted jsPlugin need them at lint
+# time, in runtimes that cannot read Python. A drifted copy silently mis-keys the seatbelt baseline.
+RULE_NAMES_MODULE = os.path.join(ROOT, 'config', 'oxlint', 'ruleNames.mjs')
+
+_shared_rule_names = None
 
 
-HOSTED_RULE_ORIGIN = {
-    'jsx-no-bind': 'react',
-    'function-component-definition': 'react',
-    'jsx-no-constructed-context-values': 'react',
-    'exhaustive-deps': 'react-hooks',
-    'prefer-default-export': 'import',
-    'order': 'import',
-    'no-types': 'jsdoc',
-    'naming-convention': '@typescript-eslint',
-    'no-import-module-exports': 'import',
-    'no-relative-packages': 'import',
-    'no-useless-path-segments': 'import',
-    'default-props-match-prop-types': 'react',
-    'forbid-foreign-prop-types': 'react',
-    'forbid-prop-types': 'react',
-    'jsx-uses-react': 'react',
-    'jsx-uses-vars': 'react',
-    'no-access-state-in-setstate': 'react',
-    'no-arrow-function-lifecycle': 'react',
-    'no-deprecated': 'react',
-    'no-invalid-html-attribute': 'react',
-    'no-typos': 'react',
-    'no-unused-class-component-methods': 'react',
-    'no-unused-prop-types': 'react',
-    'no-unused-state': 'react',
-    'prefer-exact-props': 'react',
-    'prefer-stateless-function': 'react',
-    'sort-comp': 'react',
-    'static-property-placement': 'react',
-}
+def shared_rule_names():
+    """{'hostedRuleOrigin': {...}, 'oxlintRuleRenames': {...}} from config/oxlint/ruleNames.mjs."""
+    global _shared_rule_names
+    if _shared_rule_names is not None:
+        return _shared_rule_names
+    script = (
+        'const m = await import(process.argv[1]);'
+        'console.log(JSON.stringify({hostedRuleOrigin: m.HOSTED_RULE_ORIGIN, oxlintRuleRenames: m.OXLINT_RULE_RENAMES}));'
+    )
+    out = subprocess.run(['node', '--input-type=module', '-e', script, '--', RULE_NAMES_MODULE], capture_output=True, text=True, cwd=ROOT)
+    if out.returncode != 0:
+        raise RuntimeError(f'could not read {RULE_NAMES_MODULE}:\n{out.stderr.strip()}')
+    _shared_rule_names = json.loads(out.stdout.strip().splitlines()[-1])
+    return _shared_rule_names
+
+
+def oxlint_renames():
+    """Oxlint rule name -> ESLint rule name, for the handful oxlint renamed."""
+    return shared_rule_names()['oxlintRuleRenames']
+
+
+def hosted_rule_origin():
+    """Bare rule name in the `hosted` jsPlugin -> the ESLint plugin it came from."""
+    return shared_rule_names()['hostedRuleOrigin']
 
 
 def norm_ox(code):
@@ -169,13 +163,13 @@ def norm_ox(code):
         return code
     plugin, rule = m.groups()
     if plugin in ('eslint', 'core'):
-        return OXLINT_RENAMES.get(rule, rule)
+        return oxlint_renames().get(rule, rule)
     if plugin == 'typescript':
         return f'@typescript-eslint/{rule}'
     if plugin == 'rc' or (plugin == 'react' and rule in ('exhaustive-deps', 'rules-of-hooks')):
         return f'react-hooks/{rule}'
     if plugin == 'hosted':
-        return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
+        return f'{hosted_rule_origin()[rule]}/{rule}'
     if plugin == 'jsx_a11y':
         return f'jsx-a11y/{rule}'
     return f'{plugin}/{rule}'
@@ -200,10 +194,10 @@ def norm_ox_config(rule_id):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('hosted/'):
         rule = rule_id.split('/', 1)[1]
-        return f'{HOSTED_RULE_ORIGIN[rule]}/{rule}'
+        return f'{hosted_rule_origin()[rule]}/{rule}'
     if rule_id in ('react/exhaustive-deps', 'react/rules-of-hooks'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
-    return OXLINT_RENAMES.get(rule_id, rule_id)
+    return oxlint_renames().get(rule_id, rule_id)
 
 
 def is_on(value):
@@ -309,7 +303,7 @@ def oxlint_catalogue():
     names = json.load(open(schema_path))['definitions']['DummyRuleMap']['properties']
     catalogue = set()
     for name in names:
-        catalogue.add(OXLINT_RENAMES.get(name, name))
+        catalogue.add(oxlint_renames().get(name, name))
         if name.startswith('typescript/'):
             catalogue.add('@typescript-eslint/' + name.split('/', 1)[1])
         elif name.startswith('react/') and name.split('/', 1)[1] in ('exhaustive-deps', 'rules-of-hooks'):

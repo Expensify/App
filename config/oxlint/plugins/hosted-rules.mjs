@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
 import {withEslintDirectiveIds, withEslintDirectiveIdsFor} from '../eslintDirectives.mjs';
 import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
+import {hostedRuleNames} from '../ruleNames.mjs';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -68,27 +69,11 @@ function hostRules(rules, eslintPrefix, names) {
     return withEslintDirectiveIdsFor(Object.fromEntries(names.map((name) => [name, rules[name]])), (name) => `${eslintPrefix}/${name}`);
 }
 
-const IMPORT_PATHS = ['no-import-module-exports', 'no-relative-packages', 'no-useless-path-segments'];
+const SEPARATELY_GATED = new Set(['jsx-no-constructed-context-values', 'exhaustive-deps']);
 
-const REACT_LEGACY = [
-    'default-props-match-prop-types',
-    'forbid-foreign-prop-types',
-    'forbid-prop-types',
-    'jsx-uses-react',
-    'jsx-uses-vars',
-    'no-access-state-in-setstate',
-    'no-arrow-function-lifecycle',
-    'no-deprecated',
-    'no-invalid-html-attribute',
-    'no-typos',
-    'no-unused-class-component-methods',
-    'no-unused-prop-types',
-    'no-unused-state',
-    'prefer-exact-props',
-    'prefer-stateless-function',
-    'sort-comp',
-    'static-property-placement',
-];
+function plainlyHosted(eslintPrefix) {
+    return hostedRuleNames(eslintPrefix).filter((name) => !SEPARATELY_GATED.has(name));
+}
 
 const plugin = {
     meta: {
@@ -96,10 +81,10 @@ const plugin = {
         version: '0.0.1',
     },
     rules: {
-        ...hostRules(react, 'react', ['jsx-no-bind', 'function-component-definition', ...REACT_LEGACY]),
-        ...hostRules(importPlugin, 'import', ['prefer-default-export', 'order', ...IMPORT_PATHS]),
-        ...hostRules(jsdoc, 'jsdoc', ['no-types']),
-        ...hostRules({'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention'])}, '@typescript-eslint', ['naming-convention']),
+        ...hostRules(react, 'react', plainlyHosted('react')),
+        ...hostRules(importPlugin, 'import', plainlyHosted('import')),
+        ...hostRules(jsdoc, 'jsdoc', plainlyHosted('jsdoc')),
+        ...hostRules({'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention'])}, '@typescript-eslint', plainlyHosted('@typescript-eslint')),
         'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIds(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
         'exhaustive-deps': withMessageGating(withEslintDirectiveIds(reactHooks['exhaustive-deps'], 'react-hooks/exhaustive-deps'), EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
     },
