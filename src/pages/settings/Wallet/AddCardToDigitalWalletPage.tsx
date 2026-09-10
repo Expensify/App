@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {approveDigitalWalletCardAddition, clearCardListErrors} from '@libs/actions/Card';
+import {approveDigitalWalletCardAddition, clearCardListErrors, getExpensifyCardPendingWalletApproval} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getWalletProviderNameKey, isCardPendingDigitalWalletApproval} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
@@ -53,6 +53,7 @@ function AddCardToDigitalWalletPage({
     const primaryLogin = usePrimaryContactMethod();
 
     const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => cardList?.[cardID]});
+    const [isCheckingPendingApproval] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL);
     const currentCardID = card?.cardID;
     const latestError = getLatestErrorMessageField(card);
 
@@ -80,6 +81,13 @@ function AddCardToDigitalWalletPage({
     })();
 
     useEffect(() => {
+        if (isCheckingPendingApproval !== undefined) {
+            return;
+        }
+        getExpensifyCardPendingWalletApproval();
+    }, [isCheckingPendingApproval]);
+
+    useEffect(() => {
         if (!currentCardID) {
             return;
         }
@@ -87,7 +95,9 @@ function AddCardToDigitalWalletPage({
         return () => clearCardListErrors(currentCardID);
     }, [currentCardID]);
 
-    if (!card && isLoadingOnyxValue(cardMetadata)) {
+    const isWaitingForPendingApproval = isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
+
+    if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 

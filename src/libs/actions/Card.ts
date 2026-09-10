@@ -1552,9 +1552,19 @@ function issueExpensifyCard(
     );
 }
 
-/** Asks if any Expensify Card has a wallet addition waiting to be confirmed. */
+/**
+ * Asks if any Expensify Card has a wallet addition waiting to be confirmed.
+ */
 function getExpensifyCardPendingWalletApproval() {
-    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null);
+    const setIsChecking = (value: boolean): Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
+            value,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null, {optimisticData: setIsChecking(true), finallyData: setIsChecking(false)});
 }
 
 function openCardDetailsPage(cardID: number) {
