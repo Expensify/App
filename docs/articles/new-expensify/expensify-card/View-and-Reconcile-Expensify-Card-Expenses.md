@@ -1,7 +1,7 @@
 ---
 title: View and Reconcile Expensify Card Expenses
 description: Learn how to view, verify, and export Expensify Card expenses by matching settlement withdrawals to grouped transactions in Expensify.
-keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Workspace Admin]
+keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Workspace Admin, Reconciliation - All Expenses, reconciliation export template]
 internalScope: Audience is Workspace Admins reconciling Expensify Card activity. Covers the withdrawal-based reconciliation workflow under Reconciliation > Expensify Card. Does not cover company card statement matching, reimbursement reconciliation, or manual export-based reconciliation.
 ---
 
@@ -49,7 +49,10 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 1. From the Expensify Card reconciliation view, select the expenses you want to export using the checkboxes.
 2. Click the **Selected** button that appears above the results.
-3. Choose an export template to download the results as a CSV file.
+3. Select **Export**.
+4. Choose an export template to download the results as a CSV file.
+
+Workspace admins and Card admins of a workspace with the Expensify Card enabled also see the **Reconciliation - All Expenses** template in this menu. It returns one row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status.
 
 ---
 
