@@ -2551,6 +2551,7 @@ describe('actions/Policy', () => {
         it('should update GL code for a dependent tag stored under a unique record key', async () => {
             const fakePolicy = createRandomPolicy(0);
             const tagListName = 'Project';
+            const engineeringRoadshowKey = 'Roadshow-1';
             const fakePolicyTags: PolicyTagLists = {
                 [tagListName]: {
                     name: tagListName,
@@ -2558,17 +2559,16 @@ describe('actions/Policy', () => {
                     required: false,
                     tags: {
                         Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'Roadshow-1': {
-                            name: 'Roadshow',
-                            enabled: true,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'GL Code': '1111',
-                            rules: {parentTagsFilter: '^Engineering$'},
-                        },
                     },
                 },
             };
+            const engineeringRoadshowTag = {
+                name: 'Roadshow',
+                enabled: true,
+                rules: {parentTagsFilter: '^Engineering$'},
+            };
+            engineeringRoadshowTag['GL Code'] = '1111';
+            fakePolicyTags[tagListName].tags[engineeringRoadshowKey] = engineeringRoadshowTag;
             const newGLCode = 'NEW_GL_CODE_789';
 
             mockFetch.pause();
