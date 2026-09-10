@@ -1,5 +1,4 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -105,21 +104,18 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             ))}
             {isVendorFeatureAvailable && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.pendingFields)}>
-                    <MenuItemField
-                        name={translate('workspace.accounting.defaultVendor')}
+                    <MenuItemWithTopDescription
+                        title={nonReimbursableCreditCardDefaultVendorObject?.name}
+                        description={translate('workspace.accounting.defaultVendor')}
+                        // Only the card/debit-card path auto-creates a fallback vendor when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below.
+                        helperText={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject, fallbackVendorName)}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                        value={nonReimbursableCreditCardDefaultVendorObject?.name}
-                    >
-                        {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields) && (
-                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                        )}
-                    </MenuItemField>
-                    {/* Only the card/debit-card path auto-creates a fallback vendor when nothing auto-matches, so the two-state helper copy is scoped to this branch and deliberately not rendered on the Vendor Bill row below. */}
-                    <FormHelpMessage
-                        isError={false}
-                        shouldShowRedDotIndicator={false}
-                        message={translate('workspace.accounting.defaultVendorHelperText', !!nonReimbursableCreditCardDefaultVendorObject, fallbackVendorName)}
-                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR], qboConfig?.errorFields)
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
+                        shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
             )}
