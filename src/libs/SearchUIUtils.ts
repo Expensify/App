@@ -7006,6 +7006,70 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
     return minWidth;
 }
 
+type GroupColumnWidthFlags = {
+    isAmountColumnWide: boolean;
+    isTaxAmountColumnWide: boolean;
+    shouldShowYear: boolean;
+    isActionColumnWide: boolean;
+};
+
+/**
+ * Whether any transaction in a group needs the wide variant of the amount, tax, date, or action column.
+ *
+ * A group's sticky column sub-header and its transaction rows compute these from the same transactions but in two
+ * separate components. Sharing this function is what keeps them from silently drifting apart, the way GroupHeader's
+ * `getColumnsToShow` call once did by missing a `fallbackPolicyID` the rows passed.
+ */
+function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): GroupColumnWidthFlags {
+    let isAmountColumnWide = false;
+    let isTaxAmountColumnWide = false;
+    let showYear = false;
+    let isActionColumnWide = false;
+    for (const transaction of transactions) {
+        if (transaction.isAmountColumnWide) {
+            isAmountColumnWide = true;
+        }
+        if (transaction.isTaxAmountColumnWide) {
+            isTaxAmountColumnWide = true;
+        }
+        if (transaction.shouldShowYear) {
+            showYear = true;
+        }
+        if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
+            isActionColumnWide = true;
+        }
+        if (isAmountColumnWide && isTaxAmountColumnWide && showYear && isActionColumnWide) {
+            break;
+        }
+    }
+    return {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: showYear, isActionColumnWide};
+}
+
+type GroupTableScrollLayout = {
+    dataColumns: SearchColumnType[];
+    minTableWidth: number;
+    shouldScrollHorizontally: boolean;
+};
+
+/**
+ * The scroll layout a group's table needs: its data columns (the group columns stripped out), its minimum width, and
+ * whether that makes it overflow the window.
+ *
+ * Shared by GroupHeader and TransactionGroupListExpanded for the same reason as `getGroupColumnWidthFlags`: they size
+ * what is meant to be the same scrollable table, so computing it in one place is what keeps them from disagreeing.
+ */
+function getGroupTableScrollLayout(
+    columns: SearchColumnType[],
+    type: SearchDataTypes,
+    isActionColumnWide: boolean,
+    windowWidth: number,
+    isLargeScreenWidth: boolean,
+): GroupTableScrollLayout {
+    const dataColumns = columns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX));
+    const minTableWidth = getTableMinWidth(dataColumns, type, isActionColumnWide);
+    return {dataColumns, minTableWidth, shouldScrollHorizontally: isLargeScreenWidth && minTableWidth > windowWidth};
+}
+
 /**
  * Determine policyID based on selected transactions:
  * - If all selected transactions belong to the same policy, use that policy
@@ -7258,6 +7322,8 @@ export {
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
     getTableMinWidth,
+    getGroupColumnWidthFlags,
+    getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
     filterValidHasValues,

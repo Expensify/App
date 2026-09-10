@@ -22,8 +22,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -150,35 +150,22 @@ function GroupHeader({
         });
     }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, policyForMovingExpensesID]);
 
-    const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
-        let amountWide = false;
-        let taxWide = false;
-        let showYear = false;
-        let actionWide = false;
-        for (const transaction of groupItem.transactions) {
-            if (transaction.isAmountColumnWide) {
-                amountWide = true;
-            }
-            if (transaction.isTaxAmountColumnWide) {
-                taxWide = true;
-            }
-            if (transaction.shouldShowYear) {
-                showYear = true;
-            }
-            if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
-                actionWide = true;
-            }
-            if (amountWide && taxWide && showYear && actionWide) {
-                break;
-            }
-        }
-        return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
-    }, [groupItem.transactions]);
+    const {
+        isAmountColumnWide: isSubHeaderAmountColumnWide,
+        isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
+        shouldShowYear: shouldSubHeaderShowYear,
+        isActionColumnWide: isSubHeaderActionColumnWide,
+    } = getGroupColumnWidthFlags(groupItem.transactions);
 
-    // Mirrors how the group's rows size their own scroller, so the two stay the same width and the columns line up.
-    const subHeaderDataColumns = useMemo(() => subHeaderColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)), [subHeaderColumns]);
-    const subHeaderMinTableWidth = getTableMinWidth(subHeaderDataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isSubHeaderActionColumnWide);
-    const shouldSubHeaderScrollHorizontally = isLargeScreenWidth && subHeaderMinTableWidth > windowWidth;
+    // Shared with TransactionGroupListExpanded, the rows this header labels, so the two cannot disagree about the
+    // table's width the way GroupHeader's own getColumnsToShow call once silently did.
+    const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
+        subHeaderColumns,
+        CONST.SEARCH.DATA_TYPES.EXPENSE,
+        isSubHeaderActionColumnWide,
+        windowWidth,
+        isLargeScreenWidth,
+    );
 
     // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
     const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
