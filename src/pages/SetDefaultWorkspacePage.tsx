@@ -86,7 +86,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         showButton: true,
         text: translate('common.save'),
         onConfirm: () => selectPolicy(draftPolicyID),
-        // selectPolicy also advances the flow, so re-confirming the already-active workspace is a real action rather than a no-op.
         isDisabled: !draftPolicyID,
     };
 
