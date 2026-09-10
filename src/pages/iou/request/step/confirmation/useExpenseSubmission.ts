@@ -63,6 +63,7 @@ import {
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
+import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
@@ -253,6 +254,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const activePolicy = useActivePolicy();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -601,6 +603,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isTrackIntentUser,
                 delegateAccountID,
                 formatPhoneNumber,
+                rules,
             });
             existingIOUReport = iouReport;
             if (!iouReport) {
@@ -634,6 +637,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
               },
               existingIOUReport: undefined,
               betas,
+              rules,
               currentUserAccountIDParam: currentUserPersonalDetails.accountID,
           })
         : undefined;
@@ -755,8 +759,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 formatPhoneNumber,
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
             const targetReportID = backToReport ?? activeReportID;
+            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
+            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
             if (result) {
                 cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: shouldHandleNavigation});
@@ -767,7 +774,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: shouldHandleNavigation && targetReportID === chatReportID,
+                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
                     shouldNavigate: shouldHandleNavigation,
                     isLookingAroundUser,
                     isSelfDMDestination,
@@ -893,6 +900,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 reportActionsList: policyExpenseChatReportActions,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
+                rules,
             });
         }
         performPostBatchCleanup({
@@ -982,6 +990,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             delegateAccountID,
             formatPhoneNumber,
             participantsPolicyTags,
+            rules,
         });
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -1114,6 +1123,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
+                    rules,
                 });
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
@@ -1162,6 +1172,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
+                    rules,
                 });
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
