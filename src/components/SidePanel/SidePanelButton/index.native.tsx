@@ -7,6 +7,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -21,10 +22,11 @@ import type SidePanelButtonProps from './types';
 
 function SidePanelButton({style}: SidePanelButtonProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldHideHelpButton} = useSidePanelState();
     const {accountID: currentUserAccountID = CONST.DEFAULT_NUMBER_ID} = useCurrentUserPersonalDetails();
-    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -43,9 +45,8 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                 onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas)}
             >
                 <Icon
-                    src={ConciergeAvatar}
-                    width={28}
-                    height={28}
+                    src={Concierge}
+                    fill={theme.icon}
                 />
             </PressableWithoutFeedback>
         </Tooltip>
