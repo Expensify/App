@@ -46,6 +46,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
+    getViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({

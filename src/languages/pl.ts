@@ -9502,7 +9502,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
-            has: {submittedViolation: 'Zgłoszone naruszenie'},
+            has: {submittedViolation: 'Zgłoszone naruszenie', approvedViolation: 'Zatwierdzone naruszenie'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Wyślij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
