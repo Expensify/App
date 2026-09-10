@@ -5503,6 +5503,39 @@ describe('actions/Report', () => {
             expect(sidePanel?.open).toBe(true);
         });
 
+        it('closes a side panel saved open on this device when creating a group chat completes invite onboarding', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
+            const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-side-panel-2'};
+            await waitForBatchedUpdates();
+
+            Report.navigateToAndCreateGroupChat({
+                participantsPersonalDetails: {[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}},
+                reportName: '',
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: 'group-side-panel-1',
+                introSelected: TEST_INTRO_SELECTED,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: false,
+                conciergeChat,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(false);
+            expect(sidePanel?.openNarrowScreen).toBe(false);
+            expect(sidePanel?.forceConcierge).toBe(false);
+            const onboardingAfter = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboardingAfter?.hasCompletedGuidedSetupFlow).toBe(true);
+        });
+
         it('should handle openReport with TEST_INTRO_SELECTED', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
 
