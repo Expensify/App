@@ -39,7 +39,10 @@ function InsightsPage({route}: InsightsPageProps) {
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
             testID="InsightsPage"
         >
-            <TopBar breadcrumbLabel={translate('common.insights')} />
+            <TopBar
+                breadcrumbLabel={translate('common.insights')}
+                shouldDisplayHelpButton
+            />
             <ScrollView addBottomSafeAreaPadding />
         </ScreenWrapper>
     );
