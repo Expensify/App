@@ -198,6 +198,8 @@ function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRate
         return governmentRateAmount;
     }
 
+    // If a rate is expressed in cents / km, converting to cents / mi means multiplying by a factor that cancels the kilometers:
+    // cents / km * km / mi = cents / mi. Do the opposite for a rate expressed in cents / mi.
     const convertedAmount =
         snapshotUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
             ? governmentRateAmount * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
