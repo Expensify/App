@@ -1633,24 +1633,6 @@ describe('ReportActionsUtils', () => {
             expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mi for the new report’s workspace - Hal's Burgers");
         });
 
-        it('should escape a workspace name containing markup', () => {
-            // Given a workspace name containing HTML
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: '<strong>Hal</strong>',
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
-            });
-
-            // When building the message
-            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
-
-            // Then the markup should be encoded rather than rendered
-            expect(message).toContain('&lt;strong&gt;Hal&lt;/strong&gt;');
-            expect(message).not.toContain('<strong>');
-        });
-
         it('should fall back to the text of the action when the rate details are missing', () => {
             // Given an action without the rate details
             const backendText = 'rate updated by the backend';

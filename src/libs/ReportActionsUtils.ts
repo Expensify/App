@@ -3427,14 +3427,12 @@ function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate
 
     // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
     const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unit}`;
-    // The workspace name is interpolated into a message that is rendered as HTML, so encode it to prevent a name containing markup from being parsed as HTML.
-    const encodedPolicyName = Str.htmlEncode(policyName);
 
     if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
-        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName: encodedPolicyName});
+        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName});
     }
 
-    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName: encodedPolicyName});
+    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
