@@ -67,16 +67,6 @@ type SearchColumnContent = {
 /** Width a `UserInfoCell` spends before any text: the avatar plus its trailing padding. */
 const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
-/** Width the status badge spends around its label: `condensedBadge`'s horizontal padding plus `defaultBadge`'s border. */
-const STATUS_BADGE_CHROME_WIDTH = variables.statusBadgeChromeWidth;
-
-/**
- * Width an editable cell spends around its value: `editableCell`'s padding plus the border it reserves for its focus
- * ring. It applies whether or not the value can actually be edited, and the cell hides its overflow, so a column
- * measured without it clips its own content.
- */
-const EDITABLE_CELL_CHROME_WIDTH = variables.editableCellChromeWidth;
-
 /** The columns whose cells render inside an `EditableCell`, and so spend width on its padding and border. */
 const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -173,39 +163,22 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
 };
 
 /**
- * Width the edit button covers at the trailing edge of an editable cell: the button itself plus the inset it sits at.
- *
- * The button is absolutely positioned, so it takes no width of its own and a column is never sized for it. It is drawn
- * over whatever is underneath it instead, which only matters where the value reaches that far.
- */
-const EDITABLE_CELL_EDIT_BUTTON_WIDTH = variables.editableCellEditButtonWidth;
-
-/**
- * How short a value has to be before the edit button is worth reserving room for.
- *
- * A value with room to spare is left-aligned well clear of the button, so reserving for it would widen every editable
- * column to guard against an overlap that cannot happen. It is only a value that runs the width of its own cell that
- * ends up underneath the button, and that is what this catches.
- */
-const NARROW_EDITABLE_CONTENT_WIDTH = variables.narrowEditableContentWidth;
-
-/**
  * Width to add so a short value in an editable cell isn't covered by the edit button when the row is hovered.
  *
  * Applies to the measured value rather than to the column: a column is only ever this narrow when it has settled at
  * exactly what its content needs, since anything wider already clears the button on its own.
  */
 function getSearchColumnEditButtonReserve(column: SearchColumnType, contentTextWidth: number): number {
-    if (!EDITABLE_SEARCH_COLUMNS.has(column) || contentTextWidth >= NARROW_EDITABLE_CONTENT_WIDTH) {
+    if (!EDITABLE_SEARCH_COLUMNS.has(column) || contentTextWidth >= variables.narrowEditableContentWidth) {
         return 0;
     }
 
-    return EDITABLE_CELL_EDIT_BUTTON_WIDTH;
+    return variables.editableCellEditButtonWidth;
 }
 
 /** Width a column needs on top of its text, for the non-text content its cell renders. */
 function getSearchColumnExtraWidth(column: SearchColumnType): number {
-    const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? EDITABLE_CELL_CHROME_WIDTH : 0;
+    const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? variables.editableCellChromeWidth : 0;
 
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -214,7 +187,7 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
         case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             return editableCellWidth + USER_INFO_CELL_AVATAR_WIDTH;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
-            return editableCellWidth + STATUS_BADGE_CHROME_WIDTH;
+            return editableCellWidth + variables.statusBadgeChromeWidth;
         default:
             return editableCellWidth;
     }
