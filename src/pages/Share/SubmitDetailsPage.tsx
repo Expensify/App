@@ -85,7 +85,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -231,6 +231,7 @@ function SubmitDetailsPage({
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  convertToDisplayString,
               });
     });
 
@@ -297,6 +298,7 @@ function SubmitDetailsPage({
         iouType,
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
+        isOptimisticNewChatDestination: false,
         isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
     });
@@ -669,6 +671,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
+                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
+                        onOpenParticipantPicker={() => {}}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}

@@ -216,6 +216,7 @@ function SearchEditMultiplePage() {
             updateMultipleMoneyRequests({
                 transactionIDs: selectedTransactionIDs,
                 changes,
+                bulkEditTagChanges: draftTransaction.bulkEditTagChanges,
                 policy,
                 reports: mergedReports,
                 transactions: mergedTransactions,
