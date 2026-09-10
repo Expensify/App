@@ -70,6 +70,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViolationsSnapshot} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -149,6 +150,8 @@ import {
     isReportActionVisible,
     isResolvedActionableWhisper,
     isAddExpenseOnSubmittedAction,
+    isApprovedAction,
+    isForwardedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
@@ -446,6 +449,13 @@ const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
     [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
 };
 
+type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
+
+const taskStatusActionMapping: Record<string, TaskStatusPredicate> = {
+    [CONST.SEARCH.STATUS.TASK.OUTSTANDING]: (taskReport) => taskReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && taskReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.TASK.COMPLETED]: (taskReport) => taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+};
+
 const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
     CONST.SEARCH.TABLE_COLUMNS.TYPE,
@@ -457,6 +467,10 @@ const nonSortableColumns = new Set<SearchColumnType>([
 
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
     return typeof status === 'string' && status in expenseStatusActionMapping;
+}
+
+function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
+    return typeof status === 'string' && status in taskStatusActionMapping;
 }
 
 // Statuses a freshly created expense can never be in. The tracked optimistic item is kept visible
@@ -2215,6 +2229,32 @@ function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, repo
 }
 
 /**
+ * Whether a task still belongs under the active `status:` filter, judged against the live report rather than the
+ * search snapshot. Completing or reopening a task does not patch the snapshot, so without this a completed task
+ * lingers under `status:outstanding` (and vice versa) until the next server fetch. Mirrors `isEligibleForStatus`.
+ */
+function isEligibleForTaskStatus(currentQueryJSON: SearchQueryJSON | undefined, report: OnyxEntry<OnyxTypes.Report> | SearchTask) {
+    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    if (!status.value) {
+        return true;
+    }
+
+    if (status.isNegated) {
+        return Object.keys(taskStatusActionMapping).some((taskStatus) => {
+            const isExcluded = status.value?.includes(taskStatus);
+            return !isExcluded && taskStatusActionMapping[taskStatus](report);
+        });
+    }
+
+    // A status we don't model (e.g. a hand-typed `status:all`) must not silently empty the list, so leave the row visible.
+    if (!status.value.every(isValidTaskStatus)) {
+        return true;
+    }
+
+    return status.value.some((taskStatus) => taskStatusActionMapping[taskStatus](report));
+}
+
+/**
  * Whether the tracked optimistic (just-created) expense may be kept visible under the active status
  * filter. A newly created expense can plausibly belong to "all", "unreported", "draft" or
  * "outstanding", but never to a terminal status (deleted/approved/paid/done), so it must not be
@@ -2781,8 +2821,10 @@ function getTaskSections(
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    queryJSON?: SearchQueryJSON,
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
+    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const tasks = Object.keys(data)
         .filter(isReportEntry)
         // Ensure that the reports that were passed are tasks, and not some other
@@ -2813,6 +2855,10 @@ function getTaskSections(
                 formattedCreatedBy,
                 keyForList: taskItem.reportID,
                 shouldShowYear: shouldShowYearCreated,
+                // The snapshot is not patched when a task is completed or reopened, so prefer the live report's status.
+                // Otherwise the row keeps rendering the Complete button instead of the Completed badge until a refetch.
+                statusNum: report.statusNum ?? taskItem.statusNum,
+                stateNum: report.stateNum ?? taskItem.stateNum,
             };
 
             if (parentReport && personalDetails) {
@@ -2847,7 +2893,10 @@ function getTaskSections(
             }
 
             return result;
-        });
+        })
+        // Drop tasks whose live status no longer matches the active `status:` filter — the snapshot still lists a
+        // just-completed task under `status:outstanding` because `completeTask` never writes to it.
+        .filter((task) => isEligibleForTaskStatus(currentQueryJSON, task));
     return [tasks, tasks.length];
 }
 
@@ -4050,7 +4099,7 @@ function getSections({
         return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue), false];
+        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -5358,6 +5407,7 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
                 {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
                 {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+                {text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
@@ -5378,11 +5428,64 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
 }
 
 /**
- * Returns a parameter-free display label for a submitted violation name.
+ * Returns a parameter-free display label for a violation name.
  * Falls back to the raw identifier when no short-name translation exists.
  */
-function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
     return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
+
+function collectViolationNamesForTransaction(violationNames: Set<string>, violations: ViolationsSnapshot['transactions'] | undefined, transactionID: string) {
+    const transactionViolations = violations?.[transactionID];
+    if (!transactionViolations?.length) {
+        return;
+    }
+
+    for (const violation of transactionViolations) {
+        if (violation.name) {
+            violationNames.add(violation.name);
+        }
+    }
+}
+
+function formatTransactionViolationNames(violationNames: Set<string>, translate?: LocalizedTranslate): string | undefined {
+    if (violationNames.size === 0) {
+        return undefined;
+    }
+
+    // Match ViolationMessages / submitter surfaces: only one of these receipt rules can apply.
+    if (violationNames.has(CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)) {
+        violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    }
+
+    const names = Array.from(violationNames);
+    if (!translate) {
+        return names.join(', ');
+    }
+
+    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
+}
+
+function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
+    for (const action of reportActions) {
+        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
+        // so its violations live on their own add-expense-on-submitted action instead.
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
+            continue;
+        }
+
+        collectViolationNamesForTransaction(violationNames, getOriginalMessage(action)?.violations?.transactions, transactionID);
+    }
+}
+
+function collectApprovedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
+    for (const action of reportActions) {
+        if (!isApprovedAction(action) && !isForwardedAction(action)) {
+            continue;
+        }
+
+        collectViolationNamesForTransaction(violationNames, getOriginalMessage(action)?.violations?.transactions, transactionID);
+    }
 }
 
 /**
@@ -5400,41 +5503,59 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
     }
 
     const violationNames = new Set<string>();
-    for (const action of reportActions) {
-        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
-        // so its violations live on their own add-expense-on-submitted action instead.
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
-            continue;
-        }
+    collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    return formatTransactionViolationNames(violationNames, translate);
+}
 
-        const originalMessage = getOriginalMessage(action);
-        const transactionViolations = originalMessage?.violations?.transactions?.[transactionID];
-        if (!transactionViolations?.length) {
-            continue;
-        }
-
-        for (const violation of transactionViolations) {
-            if (violation.name) {
-                violationNames.add(violation.name);
-            }
-        }
-    }
-
-    if (violationNames.size === 0) {
+/**
+ * Collects a transaction's approved violations from its report's approved and forwarded actions.
+ * A report can be approved or forwarded more than once, so this aggregates across every matching action,
+ * dedupes by violation name, and returns a comma-separated display string.
+ * When `translate` is provided, violation identifiers are converted to localized short labels.
+ *
+ * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
+ * so both are never shown together for a single expense.
+ */
+function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
+    if (!reportActions?.length || !transactionID) {
         return undefined;
     }
 
-    // Match ViolationMessages / submitter surfaces: only one of these receipt rules can apply.
-    if (violationNames.has(CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)) {
-        violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    const violationNames = new Set<string>();
+    collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    return formatTransactionViolationNames(violationNames, translate);
+}
+
+/**
+ * Returns the violations to show for a transaction based on the current `has` filter.
+ * Submitted and approved snapshots are collected independently, then merged in a Set so
+ * a search that includes both filters does not list the same violation twice.
+ */
+function getViolationsForTransaction(
+    reportActions: OnyxTypes.ReportAction[] | undefined,
+    transactionID: string | undefined,
+    has: HasFilterValues | undefined,
+    translate?: LocalizedTranslate,
+): string | undefined {
+    if (!reportActions?.length || !transactionID) {
+        return undefined;
     }
 
-    const names = Array.from(violationNames);
-    if (!translate) {
-        return names.join(', ');
+    const shouldIncludeSubmittedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+    const shouldIncludeApprovedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+    if (!shouldIncludeSubmittedViolations && !shouldIncludeApprovedViolations) {
+        return undefined;
     }
 
-    return names.map((name) => getSubmittedViolationDisplayName(name, translate)).join(', ');
+    const violationNames = new Set<string>();
+    if (shouldIncludeSubmittedViolations) {
+        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    if (shouldIncludeApprovedViolations) {
+        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+
+    return formatTransactionViolationNames(violationNames, translate);
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -6818,7 +6939,7 @@ function getColumnsToShow({
 
         if (!isExpenseReportView && !Array.isArray(data)) {
             const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
-            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID)) {
+            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID) || getApprovedViolationsForTransaction(reportActions, transaction.transactionID)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
             }
         }
@@ -7353,6 +7474,8 @@ export {
     insertColumnBeforeTotalAmount,
     getHasOptions,
     getSubmittedViolationsForTransaction,
+    getApprovedViolationsForTransaction,
+    getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,

@@ -44,6 +44,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
+    getViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({

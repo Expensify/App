@@ -843,7 +843,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	17
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	15
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -901,6 +901,7 @@
 "../../src/pages/EnablePayments/shared/IdologyQuestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/home/ForYouSection/ConciergePromptBox.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -933,7 +934,6 @@
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
-"../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/SearchActionHeader.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
@@ -950,7 +950,6 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/DynamicSplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2

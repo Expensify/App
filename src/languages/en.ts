@@ -9703,6 +9703,7 @@ const translations = {
             is: 'Is',
             has: {
                 submittedViolation: 'Submitted violation',
+                approvedViolation: 'Approved violation',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',

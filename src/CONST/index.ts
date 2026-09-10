@@ -1082,7 +1082,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        CUSTOM_AGENT: 'customAgent',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -2232,6 +2231,7 @@ const CONST = {
     },
     TIMING: {
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
+        STALE_PENDING_CREATION_ROUTE_TIMEOUT: 15000,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
@@ -7186,6 +7186,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             SUBMITTED_VIOLATION: 'submitted-violation',
+            APPROVED_VIOLATION: 'approved-violation',
         },
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
