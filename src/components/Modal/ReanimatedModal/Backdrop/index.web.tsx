@@ -50,18 +50,17 @@ function Backdrop({
 
     if (!customBackdrop) {
         return (
-            // Keep the interactive wrapper full-screen so Safari does not size the overlay from its narrower reported window dimensions.
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
-                style={[styles.fullScreen, styles.userSelectNone, styles.cursorAuto]}
+                style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {isBackdropVisible && (
                     <Animated.View
-                        style={[styles.flex1, backdropStyle, style]}
+                        style={[styles.modalBackdrop, backdropStyle, style]}
                         entering={Entering}
                         exiting={Exiting}
                     />
@@ -72,13 +71,13 @@ function Backdrop({
     return (
         isBackdropVisible && (
             <View
-                style={[styles.fullScreen, styles.userSelectNone]}
+                style={[styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <Animated.View
                     entering={Entering}
                     exiting={Exiting}
-                    style={[styles.flex1, backdropStyle, style]}
+                    style={[styles.modalBackdrop, backdropStyle, style]}
                 >
                     {!!customBackdrop && customBackdrop}
                 </Animated.View>

@@ -116,7 +116,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
                                 // Brief delay to ensure the incognito WebView has fully cleared cookies
                                 // before mounting the main WebView. No deterministic completion signal is
                                 // available from the incognito session teardown.
-                                cookieTimerRef.current = setTimeout(() => setCookiesCleared(true), CONST.MERGE_HR.COOKIE_CLEAR_DELAY_MS);
+                                cookieTimerRef.current = setTimeout(() => setCookiesCleared(true), CONST.MERGE.COOKIE_CLEAR_DELAY_MS);
                             }}
                             style={styles.opacity0}
                         />

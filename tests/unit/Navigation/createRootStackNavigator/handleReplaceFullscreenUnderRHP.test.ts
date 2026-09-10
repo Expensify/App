@@ -14,6 +14,8 @@ import SCREENS from '@src/SCREENS';
 
 import type {CommonActions, NavigationState, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 
+import {StackRouter} from '@react-navigation/native';
+
 import createMock from '../../../utils/createMock';
 
 // Stub the linking parser so the test does not depend on the production linking config.
@@ -94,21 +96,29 @@ function makeRHPRoute(): TestRoute {
  * Pass `undefined` for workspaceNavNestedRoutes to model a WORKSPACE_NAVIGATOR that was never
  * mounted (no nested state) — e.g. a workspace created from Inbox.
  */
-function makeExistingState(workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined, workspaceNavIndex = 0): StackNavigationState<ParamListBase> {
+function makeExistingState(
+    workspaceNavNestedRoutes: PartialState<NavigationState>['routes'] | undefined,
+    workspaceNavIndex = 0,
+    tabParams?: Record<string, unknown>,
+): StackNavigationState<ParamListBase> {
     const workspaceNavRoute = {
         key: 'workspace-nav-key',
         name: NAVIGATORS.WORKSPACE_NAVIGATOR,
         ...(workspaceNavNestedRoutes ? {state: {index: workspaceNavIndex, routes: workspaceNavNestedRoutes}} : {}),
     };
-    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
+    const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, tabParams, {index: 0, routes: [workspaceNavRoute]}, 'tab-nav-key');
     return makeStackState([tabNavRoute, makeRHPRoute()]);
 }
 
-function makeAction(): ReplaceFullscreenUnderRHPActionType {
+function makeAction(shouldInsertPreMountBuffer?: boolean): ReplaceFullscreenUnderRHPActionType {
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW')},
+        payload: {route: ROUTES.WORKSPACE_INITIAL.getRoute('NEW'), shouldInsertPreMountBuffer},
     };
+}
+
+function getBufferRoute(result: StackNavigationState<ParamListBase> | null) {
+    return result?.routes.find((r) => r.name === SCREENS.PRE_MOUNT_BUFFER);
 }
 
 function makeReportsParsedState(reportID: string): PartialState<NavigationState> {
@@ -137,10 +147,10 @@ function makeReportsAction(reportID: string): ReplaceFullscreenUnderRHPActionTyp
     };
 }
 
-function makeRemoveAction(): RemoveFullscreenUnderRHPActionType {
+function makeRemoveAction(expectedRouteName: string = NAVIGATORS.TAB_NAVIGATOR): RemoveFullscreenUnderRHPActionType {
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
-        payload: {expectedRouteName: NAVIGATORS.TAB_NAVIGATOR},
+        payload: {expectedRouteName},
     };
 }
 
@@ -178,8 +188,28 @@ function getWorkspaceNavInnerRoutes(result: StackNavigationState<ParamListBase> 
         listKey: list?.key,
         listParams: list?.params,
         navigatorKey: workspaceNav?.key,
+        splitParams: workspaceNavState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)?.params,
+        tabParams: tabRoute?.params,
     };
 }
+
+const staleDistanceRatesDeepLinkParams = {
+    screen: NAVIGATORS.WORKSPACE_NAVIGATOR,
+    params: {
+        screen: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+        params: {
+            screen: SCREENS.WORKSPACE.DISTANCE_RATES,
+            params: {policyID: 'OLD'},
+        },
+    },
+};
+
+const staleLongFormDeepLinkParams = {
+    state: {
+        index: 0,
+        routes: [{name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+    },
+};
 
 beforeEach(() => {
     clearPreInsertedOriginalTabRoute();
@@ -378,6 +408,50 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         expect(listKey).toBeUndefined();
     });
 
+    it('removes stale distance-settings deep-link hints when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('removes a stale long-form deep-link hint when revealing a newly created workspace', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const existing = makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleLongFormDeepLinkParams);
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(result);
+        expect(splitParams).toEqual({policyID: 'NEW'});
+        expect(tabParams).toBeUndefined();
+    });
+
+    it('does not replay stale distance-settings hints across repeated workspace creation', () => {
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const firstResult = handleReplaceFullscreenUnderRHP(
+            makeExistingState([makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'OLD'})], 1, staleDistanceRatesDeepLinkParams),
+            makeAction(),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+        expect(getWorkspaceNavInnerRoutes(firstResult).tabParams).toBeUndefined();
+
+        const stateBeforeSecondCreate = makeExistingState(
+            [makeRoute(SCREENS.WORKSPACES_LIST), makeRoute(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {policyID: 'NEW'})],
+            1,
+            staleDistanceRatesDeepLinkParams,
+        );
+        mockStubbedParsedState = makeParsedState([{name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, params: {policyID: 'SECOND'}}]);
+
+        const secondResult = handleReplaceFullscreenUnderRHP(stateBeforeSecondCreate, makeAction(), CONFIG_OPTIONS, stackRouter);
+
+        const {splitParams, tabParams} = getWorkspaceNavInnerRoutes(secondResult);
+        expect(splitParams).toEqual({policyID: 'SECOND'});
+        expect(tabParams).toBeUndefined();
+    });
+
     it('preserves the existing WORKSPACES_LIST params (e.g. backTo) on the freshly seeded sidebar', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
         const existing = makeExistingState(
@@ -408,5 +482,87 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
         const result = handleReplaceFullscreenUnderRHP(tabOnly, makeAction(), CONFIG_OPTIONS, stackRouter);
 
         expect(result).toBeNull();
+    });
+});
+
+describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — shouldInsertPreMountBuffer', () => {
+    it('inserts the buffer route directly under the RHP on the tab-switch path when shouldInsertPreMountBuffer is true', () => {
+        // Given a tab-switch pre-insert that needs protection from native RHP dismissal
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        // When the root state handler replaces the fullscreen destination
+        const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
+
+        // Then the buffer sits next to the RHP so it intercepts an interrupted transition
+        expect(getBufferRoute(result)?.key).toBe(`pre-mount-buffer-${makeRHPRoute().key}`);
+        expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('does not insert a buffer route on the tab-switch path when shouldInsertPreMountBuffer is false/undefined', () => {
+        // Given a tab-switch pre-insert that does not need swipe-dismiss protection
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        // When the root state handler replaces the fullscreen destination
+        const result = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(false), CONFIG_OPTIONS, stackRouter);
+
+        // Then no buffer is added because the caller opted out of recovery routing
+        expect(getBufferRoute(result)).toBeUndefined();
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('inserts the buffer route directly under the RHP on the push path when shouldInsertPreMountBuffer is true', () => {
+        // Given a pushed fullscreen destination that needs protection from RHP dismissal
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
+        ]);
+
+        // When the root state handler inserts the pushed destination
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(true), configOptions, realStackRouter);
+
+        // Then the buffer is adjacent to the RHP so recovery can remove the speculative push
+        expect(getBufferRoute(result)?.key).toBe('pre-mount-buffer-rhp-key');
+        expect(result?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('does not insert a buffer route on the push path when shouldInsertPreMountBuffer is false/undefined', () => {
+        // Given a pushed fullscreen destination without swipe-dismiss buffering enabled
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'rhp-key'),
+        ]);
+
+        // When the root state handler inserts the pushed destination
+        const result = handleReplaceFullscreenUnderRHP(existing, makeAction(false), configOptions, realStackRouter);
+
+        // Then the route stack stays buffer-free because recovery was not requested
+        expect(getBufferRoute(result)).toBeUndefined();
+        expect(result?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('cancel (tab restore) drops any buffer route left between the restored tab and the RHP', () => {
+        // Given a tab-switch buffer route that's still around at cancel time (normally stripped earlier;
+        // this is a defensive check in case that ever stops happening)
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const insertResult = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
+        expect(getBufferRoute(insertResult)).not.toBeUndefined();
+        if (!insertResult) {
+            throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
+        }
+
+        // When the root handler restores the original tab after cancellation
+        const removeResult = handleRemoveFullscreenUnderRHP(insertResult, makeRemoveAction(NAVIGATORS.WORKSPACE_NAVIGATOR), CONFIG_OPTIONS, stackRouter);
+
+        // Then the leftover buffer is discarded so it cannot surface after the RHP closes
+        expect(getBufferRoute(removeResult)).toBeUndefined();
+        expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 });

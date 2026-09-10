@@ -53,25 +53,21 @@ import {View} from 'react-native';
 import type DisplayNamesProps from './DisplayNames/types';
 import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
+import ReportAvatar from './Avatar/connected/ReportAvatar';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
-
-    /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
 
-    /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
 
     /** Whether the avatar is pressable to open the actor details */
@@ -92,13 +88,8 @@ type AvatarWithDisplayNameProps = {
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
 
-    /** The style of the custom display name text */
     customDisplayNameStyle?: TextStyle;
-
-    /** The style of the parent navigation subtitle text */
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
-
-    /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -296,7 +287,7 @@ function AvatarWithDisplayName({
     );
 
     const multipleAvatars = (
-        <ReportActionAvatars
+        <ReportAvatar
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
             subscriptAvatarBorderColor={avatarBorderColor}
             size={size}

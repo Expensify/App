@@ -48,7 +48,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Callback method fired when the modal is shown */
         onModalShow?: () => void;
 
-        /** Style of modal to display */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
@@ -63,7 +62,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Whether the modal should go under the system navigation bar */
         navigationBarTranslucent?: boolean;
 
-        /** Whether the modal should avoid the keyboard */
         avoidKeyboard?: boolean;
 
         /** Modal container styles  */
@@ -75,7 +73,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
-        /** Unique id for the modal */
         modalId?: number;
 
         /**
@@ -93,10 +90,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 
-        /** In which direction modal will swipe */
         swipeDirection?: SwipeDirection;
-
-        /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
@@ -120,9 +114,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
         ref?: ForwardedRef<View>;
 
         /**

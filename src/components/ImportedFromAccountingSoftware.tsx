@@ -27,10 +27,7 @@ type ImportedFromAccountingSoftwareProps = {
     /** The policy ID to link to */
     policyID: string;
 
-    /** The name of the current connection */
     currentConnectionName: string;
-
-    /** The connected integration */
     connectedIntegration: ConnectionName | undefined;
 
     /** The translated text for the "imported from" message */
@@ -59,6 +56,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
     ]);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons, policy);
@@ -83,7 +81,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                             src={icon}
                             height={variables.iconSizeMedium}
                             width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_SMALL, ''), styles.appBG]}
+                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_SMALL, CONST.AVATAR_SHAPE.CIRCLE), styles.appBG]}
                         />
                     ) : undefined
                 }

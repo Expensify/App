@@ -1,4 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -10,6 +11,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -43,10 +45,9 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}
-                description={translate('workspace.accounting.exportAs')}
-                interactive={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}`)}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
@@ -60,6 +61,12 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                     brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }
