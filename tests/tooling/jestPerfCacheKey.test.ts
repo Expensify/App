@@ -48,7 +48,7 @@ const allCacheSteps = [...cacheSteps(readWorkflow(PERF_WORKFLOW)), ...cacheSteps
 
 describe('Jest perf transform cache', () => {
     it('keys every .jest-cache step identically', () => {
-        // Both measure jobs restore, the seed job looks up and saves.
+        // Both measure jobs restore, and so does the seed job, which also saves.
         expect(allCacheSteps).toHaveLength(4);
         const keys = new Set(allCacheSteps.map((step) => String(step.with?.key)));
         expect([...keys]).toHaveLength(1);
