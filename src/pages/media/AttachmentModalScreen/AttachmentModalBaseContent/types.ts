@@ -40,7 +40,6 @@ type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
-    /** The id of the attachment. */
     attachmentID?: string;
 
     /** Fallback source (URL, SVG function) for the image shown. */
@@ -67,16 +66,12 @@ type AttachmentModalBaseContentProps = {
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
 
-    /** The ID of the current report */
     reportID?: string;
-
-    /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
 
-    /** The data is loading or not */
     isLoading?: boolean;
 
     /** Denotes whether it is a workspace avatar or not */
@@ -85,34 +80,18 @@ type AttachmentModalBaseContentProps = {
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
 
-    /** Whether to display not found page */
     shouldShowNotFoundPage?: boolean;
-
-    /** Whether to show an attachment carousel */
     shouldShowCarousel?: boolean;
-
-    /** Whether to show download button */
     shouldShowDownloadButton?: boolean;
-
-    /** Whether to show rotate button */
     shouldShowRotateButton?: boolean;
-
-    /** Callback triggered when the rotate button is pressed */
     onRotateButtonPress?: () => void;
 
     /** Whether we should show a loading indicator replacing the rotate button */
     isRotating?: boolean;
 
-    /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
-
-    /** Whether to display help button */
     shouldDisplayHelpButton?: boolean;
-
-    /** Whether to minimize menu button */
     shouldMinimizeMenuButton?: boolean;
-
-    /** The link of the attachment */
     attachmentLink?: string;
 
     /** Ref to the submit button */
@@ -136,7 +115,6 @@ type AttachmentModalBaseContentProps = {
     /** Set when `onConfirm` navigates off the current screen, so the modal sequences its close with that transition instead of flashing the screen underneath. */
     confirmLeavesScreen?: boolean;
 
-    /** Callback triggered when the modal is closed */
     onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
