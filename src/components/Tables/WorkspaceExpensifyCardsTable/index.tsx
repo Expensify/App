@@ -31,7 +31,6 @@ import {View} from 'react-native';
 
 import WorkspaceExpensifyCardsTableRow from './WorkspaceExpensifyCardsTableRow';
 
-/** Width the member cell's avatar and the space after it take before the name and subtitle start. */
 const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 type WorkspaceExpensifyCardTableColumnKey = 'name' | 'type' | 'limitType' | 'lastFour' | 'status' | 'exportAccount' | 'limit' | 'remainingLimit' | 'actions';
@@ -120,8 +119,7 @@ export default function WorkspaceExpensifyCardsTable({
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
             dynamicSizing: {
-                // The cell stacks the cardholder's name above the card's own title, so whichever renders wider decides
-                // the column's width.
+                // Whichever of the cardholder's name or the card's title renders wider decides the column's width.
                 getContentToMeasure: (item) => [
                     {text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: item.cardholder, translate, formatPhoneNumber}), fontSize: fontScale.text},
                     {text: item.name, fontSize: fontScale.label},
@@ -137,7 +135,6 @@ export default function WorkspaceExpensifyCardsTable({
                 getContentToMeasure: (item) => [
                     {text: item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical'), fontSize: fontScale.text},
                 ],
-                // Type is one of exactly two known labels, so the column always shows them in full.
                 shouldFitContent: true,
             },
         },
@@ -147,7 +144,6 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate(getTranslationKeyForLimitType(item.limitType)), fontSize: fontScale.text}],
-                // A limit type is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
             },
         },
@@ -157,7 +153,6 @@ export default function WorkspaceExpensifyCardsTable({
             sortable: true,
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: item.lastFourPAN, fontSize: fontScale.text}],
-                // The last 4 digits are always exactly 4 characters, so the column always shows them in full.
                 shouldFitContent: true,
             },
         },
@@ -170,7 +165,6 @@ export default function WorkspaceExpensifyCardsTable({
                     const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
                     return statusTranslationKey ? [{text: translate(statusTranslationKey), fontSize: fontScale.text}] : [];
                 },
-                // A status is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
             },
         },
@@ -195,7 +189,6 @@ export default function WorkspaceExpensifyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: convertToShortDisplayString(item.limit, item.currency), fontSize: fontScale.text}],
-                // A truncated currency amount is misleading, so this column always shows it in full.
                 shouldFitContent: true,
             },
         },

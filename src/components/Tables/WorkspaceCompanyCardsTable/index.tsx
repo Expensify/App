@@ -48,7 +48,6 @@ import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
 
-/** Width the member cell's avatar and the space after it take before the name and subtitle start. */
 const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
 
 type WorkspaceCompanyCardsTableHandle = {
@@ -192,12 +191,10 @@ function WorkspaceCompanyCardsTable({
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    // Whether any row currently renders the Assign button, so the actions column's dynamic sizing below can decide
-    // how much room to reserve for it: once a table's cards are all assigned, every row shows only the arrow.
+    // Drives the actions column's dynamic sizing below: once every card is assigned, no row shows the Assign button.
     const canAnyCardBeAssigned = canWriteCompanyCards && !isAssigningCardDisabled && (companyCardEntries ?? []).some((entry) => !entry.isAssigned);
 
-    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same
-    // rules as that section rather than introducing a second set of them.
+    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same rules.
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
     const cardExportSettings = getPolicyCardExportSettings(connectedIntegration, policyID, translate, policy);
@@ -209,8 +206,7 @@ function WorkspaceCompanyCardsTable({
             label: translate('common.member'),
             sortable: true,
             dynamicSizing: {
-                // Mirrors the row's own title/subtitle: the cardholder's name (or the unassigned label) stacked above
-                // their login, so whichever renders wider decides the column's width.
+                // Whichever of the cardholder's name (or the unassigned label) or their login renders wider decides the column's width.
                 getContentToMeasure: (item) => [
                     {
                         text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
@@ -226,7 +222,6 @@ function WorkspaceCompanyCardsTable({
             label: translate('workspace.companyCards.card'),
             sortable: true,
             dynamicSizing: {
-                // Masked card numbers all render at the same length, so this column always fits them in full.
                 getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
                 shouldFitContent: true,
             },
@@ -259,16 +254,11 @@ function WorkspaceCompanyCardsTable({
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
             dynamicSizing: {
-                // A fixed width here would reserve the Assign button's space on every row, including the (usually
-                // more common) already-assigned rows that render only the arrow. Measuring instead means the column
-                // only claims that space when some row in the table can actually show the button.
+                // A fixed width here would reserve the Assign button's space even on rows that only render the arrow.
                 getContentToMeasure: (item) =>
                     canAnyCardBeAssigned && !item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : [],
-                // The Assign button and the arrow are a known, bounded pair of contents, so this column always shows
-                // them in full rather than truncating.
                 shouldFitContent: true,
-                // The button's own padding and its gap from the arrow only apply when some row can show it; otherwise
-                // the column only ever needs to fit the arrow itself.
+                // Only add the button's padding and gap when some row can actually show it.
                 extraWidth: canAnyCardBeAssigned ? styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight : variables.iconSizeNormal,
             },
         },
