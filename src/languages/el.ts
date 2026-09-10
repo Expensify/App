@@ -2277,6 +2277,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Εμφανιζόμενο όνομα',
         isShownOnProfile: 'Το εμφανιζόμενο όνομά σας εμφανίζεται στο προφίλ σας.',
+        isShownOnMemberProfile: 'Το εμφανιζόμενο όνομα θα εμφανίζεται στο προφίλ του μέλους.',
     },
     timezonePage: {
         timezone: 'Ζώνη ώρας',
@@ -9456,6 +9457,8 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ενημέρωσε το εμφανιζόμενο όνομά σας σε ${newName} (προηγουμένως «${oldName}»). <a href="${editProfileURL}">Επεξεργαστείτε το στο προφίλ σας</a>`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',

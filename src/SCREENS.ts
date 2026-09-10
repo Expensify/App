@@ -1058,6 +1058,7 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
+    DYNAMIC_PROFILE_DISPLAY_NAME: 'Dynamic_Profile_Display_Name',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
