@@ -895,9 +895,14 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
         if (!login || deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
             return;
         }
-        // Rebuilt like a cold start restore of this path, and the navigator only ever produced valid routes.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
+        try {
+            // Rebuilt like a cold start restore of this path.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
+        } catch (error) {
+            // A path saved by an older build may no longer exist, and the sign-in already landed on Home.
+            Log.warn('Unable to return to the last visited path after SAML sign in', {error});
+        }
     });
 }
 
