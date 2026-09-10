@@ -4,8 +4,6 @@ import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils'
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useMemo} from 'react';
-
 import useDefaultFundID from './useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from './useExpensifyCardFeedsForFeedSelector';
 import useOnyx from './useOnyx';
@@ -25,34 +23,30 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
 
-    const candidates = useMemo(
-        () =>
-            allFeeds.filter((entry) => {
-                if (entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return false;
-                }
+    const candidates = allFeeds.filter((entry) => {
+        if (entry.settings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return false;
+        }
 
-                if (entry.fundID === workspaceAccountID) {
-                    return true;
-                }
+        if (entry.fundID === workspaceAccountID) {
+            return true;
+        }
 
-                // Only a domain feed can be claimed from here. A feed backed by another workspace's account is that
-                // workspace's to reconcile, however this policy relates to it.
-                if (!getDomainByFundID(domains, entry.fundID)) {
-                    return false;
-                }
+        // Only a domain feed can be claimed from here. A feed backed by another workspace's account is that
+        // workspace's to reconcile, however this policy relates to it.
+        if (!getDomainByFundID(domains, entry.fundID)) {
+            return false;
+        }
 
-                const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
-                if (preferredPolicyID) {
-                    return !!policyID && preferredPolicyID.toUpperCase() === policyID.toUpperCase();
-                }
+        const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
+        if (preferredPolicyID) {
+            return !!policyID && preferredPolicyID.toUpperCase() === policyID.toUpperCase();
+        }
 
-                // An unclaimed domain feed is only offered once this workspace is linked to it. Without a link there is
-                // no relationship to reconcile, so claiming it here would come out of nowhere.
-                return !!policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
-            }),
-        [allFeeds, domains, policyID, workspaceAccountID],
-    );
+        // An unclaimed domain feed is only offered once this workspace is linked to it. Without a link there is
+        // no relationship to reconcile, so claiming it here would come out of nowhere.
+        return !!policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
+    });
 
     // Resolve the default from the candidates only. useDefaultFundID prioritises the last-selected-feed NVP, which the
     // Expensify Card pages set and which can name a feed this page rejects, so returning it unchecked would let the

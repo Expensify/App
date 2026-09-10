@@ -54,8 +54,10 @@ type ReconciliationAccountSettingsLayoutProps = {
 type DynamicReconciliationProps = {
     policyID: string;
 
-    // Only the Travel Billing feed reads this: its reconciliation settings always live on the workspace account, while an Expensify Card feed's live on whichever account owns
-    // the feed and are keyed off the resolved fund instead.
+    /**
+     * Only the Travel Billing feed reads this: its reconciliation settings always live on the workspace account, while an Expensify Card feed's live on whichever account owns
+     * the feed and are keyed off the resolved fund instead.
+     */
     // eslint-disable-next-line react/no-unused-prop-types
     workspaceAccountID: number;
     domainName: string;

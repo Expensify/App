@@ -57,7 +57,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     // Continuous Reconciliation is configured per card feed, and this workspace can sit on more than one: its own
     // workspace-provisioned feed plus any domain feed it is linked to that no other workspace has claimed. The
-    // candidates are the feeds the admin may configure from here; the selected one comes from the route, defaulting to
+    // candidates are the feeds the admin may configure from here. The selected one comes from the route, defaulting to
     // the feed useDefaultFundID resolves.
     const {candidates, fundID: effectiveDomainID} = useReconciliationFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${effectiveDomainID}`);
