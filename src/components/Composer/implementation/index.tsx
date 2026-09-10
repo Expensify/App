@@ -54,7 +54,6 @@ function Composer({
     onContentSizeChange,
     shouldContainScroll = true,
     isGroupPolicyReport = false,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     ref,
     ...props
 }: ComposerProps) {
@@ -280,7 +279,7 @@ function Composer({
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();
-    useHtmlPaste(textInputRef, handlePaste, isActive, CONST.MAX_COMMENT_LENGTH + 1, preferredSkinTone, true);
+    useHtmlPaste(textInputRef, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);

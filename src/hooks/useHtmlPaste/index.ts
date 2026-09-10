@@ -1,10 +1,10 @@
-import {containsOnlyEmojis, convertEmojiShortcodesToUnicode} from '@libs/EmojiUtils';
+import {emojiNameTable} from '@assets/emojis';
+
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCallback, useEffect, useRef} from 'react';
 
@@ -44,80 +44,7 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
-const getTextAfterNode = (node: Node, root: Node): string => {
-    let currentNode: Node | null = node;
-
-    while (currentNode && currentNode !== root) {
-        const nextNode: ChildNode | null = currentNode.nextSibling;
-        if (nextNode) {
-            if (nextNode instanceof HTMLBRElement) {
-                return '\n';
-            }
-
-            const nextText = nextNode.textContent ?? '';
-            if (nextText) {
-                return nextText;
-            }
-
-            currentNode = nextNode;
-            continue;
-        }
-
-        currentNode = currentNode.parentNode;
-    }
-
-    return '';
-};
-
-const getTextAfterSelection = (target: unknown): string => {
-    if (!(target instanceof HTMLElement)) {
-        return '';
-    }
-
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return target.value.slice(target.selectionEnd ?? target.value.length);
-    }
-
-    if (!target.hasAttribute('contenteditable')) {
-        return '';
-    }
-
-    const selection = window.getSelection();
-    if (!selection?.rangeCount) {
-        return '';
-    }
-
-    const selectedRange = selection.getRangeAt(0);
-    if (!target.contains(selectedRange.endContainer)) {
-        return '';
-    }
-
-    const {endContainer, endOffset} = selectedRange;
-    if (endContainer instanceof Text) {
-        const textInEndNode = endContainer.data.slice(endOffset);
-        if (textInEndNode) {
-            return textInEndNode;
-        }
-
-        return getTextAfterNode(endContainer, target);
-    }
-
-    const nodeAfterSelection = endContainer.childNodes.item(endOffset);
-    if (!nodeAfterSelection) {
-        return getTextAfterNode(endContainer, target);
-    }
-
-    if (nodeAfterSelection instanceof HTMLBRElement) {
-        return '\n';
-    }
-
-    const textAfterSelection = nodeAfterSelection.textContent;
-    if (textAfterSelection) {
-        return textAfterSelection;
-    }
-
-    return getTextAfterNode(nodeAfterSelection, target);
-};
+const convertEmojiImageShortcodesToUnicode = (text: string): string => text.replaceAll(CONST.REGEX.EMOJI_NAME, (shortcode) => emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode);
 
 const getEmojiFromImageAlt = (alt: string): string => {
     // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
@@ -140,14 +67,10 @@ const getEmojiFromImageAlt = (alt: string): string => {
 const isEmojiImage = (image: HTMLImageElement): boolean => {
     const dataset = image.dataset;
 
-    return (
-        dataset.stringifyEmoji !== undefined || // For Slack
-        dataset.emoji !== undefined || // For gmail
-        dataset.stringifyType === 'emoji'
-    );
+    return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
 };
 
-const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE): string => {
+const getEmojiReplacementText = (image: HTMLImageElement): string => {
     const shouldReadEmojiFromAlt = isEmojiImage(image) || image.src.startsWith('blob:');
 
     if (shouldReadEmojiFromAlt) {
@@ -160,7 +83,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: Ony
 
     if (isEmojiImage(image)) {
         // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
-        const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt, preferredSkinTone, {shouldAddSeparators: false});
+        const emojiFromShortcode = convertEmojiImageShortcodesToUnicode(image.alt);
         if (emojiFromShortcode !== image.alt) {
             return emojiFromShortcode;
         }
@@ -171,14 +94,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, preferredSkinTone: Ony
     return '';
 };
 
-const useHtmlPaste: UseHtmlPaste = (
-    textInputRef,
-    preHtmlPasteCallback,
-    isActive = false,
-    maxLength = CONST.MAX_COMMENT_LENGTH + 1,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    shouldConvertPlainTextEmojiShortcodes = false,
-) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -258,16 +174,9 @@ const useHtmlPaste: UseHtmlPaste = (
                 return;
             }
 
-            if (!shouldConvertPlainTextEmojiShortcodes) {
-                paste(clipboardText);
-                return;
-            }
-
-            // Composer plain-text paste has no image metadata, so convert shortcodes before inserting.
-            const textAfterSelection = getTextAfterSelection(textInputRef.current);
-            paste(convertEmojiShortcodesToUnicode(clipboardText, preferredSkinTone, {textAfterPaste: textAfterSelection}));
+            paste(clipboardText);
         },
-        [paste, preferredSkinTone, shouldConvertPlainTextEmojiShortcodes, textInputRef],
+        [paste],
     );
 
     const handlePaste = useCallback(
@@ -300,7 +209,7 @@ const useHtmlPaste: UseHtmlPaste = (
 
                 // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
                 for (const image of embeddedImages) {
-                    const emojiText = getEmojiReplacementText(image, preferredSkinTone);
+                    const emojiText = getEmojiReplacementText(image);
 
                     if (!emojiText) {
                         continue;
@@ -321,7 +230,7 @@ const useHtmlPaste: UseHtmlPaste = (
             handlePastePlainText(event);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback, preferredSkinTone],
+        [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
     const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
