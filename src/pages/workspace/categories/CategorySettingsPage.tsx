@@ -20,18 +20,18 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {formatDefaultTaxRateText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -125,27 +125,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         navigation.setParams({categoryName: policyCategory?.name});
     }, [categoryName, navigation, policyCategory?.name, isFocused]);
 
-    const approverText = useMemo(() => {
-        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
-        const approver = getPersonalDetailByEmail(categoryApprover);
-        return formatPhoneNumber(approver?.displayName ?? categoryApprover);
-    }, [categoryName, policy?.rules?.approvalRules, formatPhoneNumber]);
-
-    const defaultTaxRateText = useMemo(() => {
-        const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
-
-        if (!taxID) {
-            return '';
-        }
-
-        const taxRate = policy?.taxRates?.taxes[taxID];
-
-        if (!taxRate) {
-            return '';
-        }
-
-        return formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
-    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
+    const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
+    const approverText = usePersonalDetailByLogin(categoryApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? categoryApprover));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
