@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Rules from '@libs/actions/Policy/Rules';
+import * as API from '@libs/API';
 
 import ImportedMerchantRulesPage, {
     buildImportedCategoryLookup,
@@ -430,6 +431,66 @@ describe('ImportedMerchantRulesPage', () => {
 
             expect(result.invalidVendorNames.size).toBe(0);
             expect(Object.keys(result.rules)).toHaveLength(0);
+        });
+
+        it('parses Reimbursable/Billable cells into booleans, accepting the yes/no synonyms', () => {
+            const mappedColumns = [CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS, CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE, CONST.CSV_IMPORT_COLUMNS.BILLABLE];
+            const columns: Record<number, string> = {};
+            for (const [index, columnName] of mappedColumns.entries()) {
+                columns[index] = columnName;
+            }
+            const spreadsheet: ImportedSpreadsheet = {
+                data: [
+                    ['Merchant is', 'Starbucks'],
+                    ['Reimbursable', 'yes'],
+                    ['Billable', 'no'],
+                ],
+                columns,
+                containsHeader: true,
+                isImportingMultiLevelTags: false,
+                isImportingIndependentMultiLevelTags: false,
+                isGLAdjacent: false,
+            };
+
+            const result = parseSpreadsheetRules(spreadsheet, true, buildRulesEnabledControlPolicy(), undefined, true);
+
+            expect(Object.values(result.rules).at(0)).toMatchObject({reimbursable: true, billable: false});
+        });
+    });
+
+    describe('importMerchantRulesSpreadsheet', () => {
+        const RULES = {ruleKey: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'}};
+
+        beforeEach(() => {
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('reports skipped vendors with vendor wording by default', async () => {
+            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 2, false);
+
+            expect(importFinalModal).toMatchObject({
+                secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
+                secondaryPendingMessageKeyParams: {count: 2},
+            });
+        });
+
+        it('reports skipped vendors with supplier wording on Xero', async () => {
+            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 1, true);
+
+            expect(importFinalModal).toMatchObject({
+                secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedSuppliers',
+                secondaryPendingMessageKeyParams: {count: 1},
+            });
+        });
+
+        it('omits the secondary message when no vendor was skipped', async () => {
+            const importFinalModal = await Rules.importMerchantRulesSpreadsheet('policyID', RULES, 0, 0, false);
+
+            expect(importFinalModal).not.toHaveProperty('secondaryPendingMessageKey');
         });
     });
 
