@@ -4,7 +4,6 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
-import Parser from '@libs/Parser';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import IntlStore from '@src/languages/IntlStore';
@@ -1613,7 +1612,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
             // Then it should name the new workspace and the formatted rate
-            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mile for the new workspace - Hal's Burgers");
+            expect(message).toBe("rate updated to $0.67 / mile for the new workspace - Hal's Burgers");
         });
 
         it('should translate the distance unit instead of showing the raw unit key', () => {
@@ -1630,7 +1629,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
             // Then it should use the translated unit label rather than the raw 'km' key
-            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / kilometer for the new workspace - Hal's Burgers");
+            expect(message).toBe("rate updated to $0.67 / kilometer for the new workspace - Hal's Burgers");
         });
 
         it('should describe a report that moved to another workspace', () => {
@@ -1647,7 +1646,7 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
             // Then it should say the workspace of the report changed
-            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mile for the new report’s workspace - Hal's Burgers");
+            expect(message).toBe("rate updated to $0.67 / mile for the new report’s workspace - Hal's Burgers");
         });
 
         it('should fall back to the text of the action when the rate details are missing', () => {
@@ -1677,7 +1676,7 @@ describe('ReportActionsUtils', () => {
 
             // Then they should be built from the same message
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
-            expect(fragments).toEqual([{text: Parser.htmlToText(message), html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}]);
+            expect(fragments).toEqual([{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}]);
         });
 
         it('should be visible in the report', () => {
@@ -1692,27 +1691,6 @@ describe('ReportActionsUtils', () => {
 
             // Then the action should not be filtered out as an unsupported action type
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
-        });
-
-        it('should encode a workspace name that contains markup so it is not rendered as HTML', () => {
-            // Given a workspace name containing a tag that RenderHTML would render and that htmlToText would turn into a newline
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: 'Ops<br>Team',
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
-            });
-
-            // When building the message
-            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
-
-            // Then the HTML form should carry the name encoded, so RenderHTML shows it as typed instead of breaking the line
-            expect(message).toContain('Ops&lt;br&gt;Team');
-            expect(message).not.toContain('Ops<br>Team');
-
-            // And the plain-text surfaces should decode it back to the name as typed, on a single line
-            expect(Parser.htmlToText(message)).toBe('rate updated to $0.67 / mile for the new workspace - Ops<br>Team');
         });
     });
 

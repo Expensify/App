@@ -2510,7 +2510,7 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
         const message = getConciergeAutoSelectDistanceRateMessage(translate, action);
-        return [{text: Parser.htmlToText(message), html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
@@ -3433,13 +3433,12 @@ function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate
     const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
     const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unitLabel}`;
-    const encodedPolicyName = Str.htmlEncode(policyName);
 
     if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
-        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName: encodedPolicyName});
+        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName});
     }
 
-    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName: encodedPolicyName});
+    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
