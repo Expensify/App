@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed, isDirectFeed} from '@libs/CardUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -73,6 +73,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
     const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
+    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('common.genericErrorMessage')}</rbr>`;
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -143,7 +144,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     />
                     <View style={[styles.offlineFeedbackText, styles.pr5, styles.flexRow, styles.w100]}>
                         <RenderHTML
-                            html={translate('workspace.companyCards.brokenConnectionError')}
+                            html={brokenConnectionMessage}
                             onLinkPress={openBankConnection}
                         />
                     </View>
