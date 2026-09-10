@@ -1417,6 +1417,9 @@ type FinancialForceConnectionData = {
 
     /** PSA: assignments synced for mapping (Release 2) */
     assignments?: FinancialForceSyncedEntity[];
+
+    /** FFA General Ledger expense accounts, offered as the account to book absorbed currency conversion costs to */
+    expenseAccounts?: FinancialForceSyncedEntity[];
 };
 
 /** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
@@ -1513,6 +1516,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** FFA Accounting Company ID */
         company?: string;
+
+        /** FFA General Ledger Account the currency conversion costs the company absorbs are booked to */
+        fxExpenseAccount?: string;
 
         /** Certinia import / coding settings */
         coding: FinancialForceCodingConfig;
