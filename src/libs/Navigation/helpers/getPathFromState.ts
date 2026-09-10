@@ -168,8 +168,6 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     // Mirror the root-base join in `createDynamicRoute.ts` so a `/` base yields `/suffix`, never `//suffix`.
     const combinedPath = basePathWithoutQuery === '/' ? `/${suffixPath}` : `${basePathWithoutQuery}/${suffixPath}`;
 
-    // Safety net for this hand-built branch: one leading slash, no internal `//`, so `pushState` can't throw
-    // (#97470). React Navigation's own `getPathFromState` already normalizes, so the standard branch is fine.
     const normalizedPath = collapseRepeatedSlashes(`/${combinedPath}`);
     if (normalizedPath !== combinedPath) {
         // Log `screenName` only - the path can carry sensitive query params that shouldn't be shared.
