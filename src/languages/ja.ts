@@ -6953,9 +6953,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return '複式記帳';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'キャンプファイヤー';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7231,7 +7231,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期する',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
-            campfire: 'キャンプファイヤー',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',

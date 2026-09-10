@@ -7036,9 +7036,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'InserimentoDoppio';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Falò';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7314,7 +7314,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlements: 'Sincronizza i regolamenti di fatturazione viaggio consolidata',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
-            campfire: 'Falò',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',

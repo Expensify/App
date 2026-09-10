@@ -7071,9 +7071,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Doppelte Buchung';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Lagerfeuer';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7349,7 +7349,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
-            campfire: 'Lagerfeuer',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',

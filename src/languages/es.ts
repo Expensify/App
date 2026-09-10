@@ -6888,9 +6888,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Asiento doble';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Fuego de campamento';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7167,7 +7167,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
-            campfire: 'Fuego de campamento',
+            campfire: 'Campfire',
         },
         card: {
             issueCard: 'Emitir tarjeta',

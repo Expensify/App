@@ -7023,9 +7023,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'LançamentoDuplo';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Fogueira';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7301,7 +7301,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de Faturamento de Viagens Consolidado',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
-            campfire: 'Fogueira',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',

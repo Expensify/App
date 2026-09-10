@@ -7045,9 +7045,9 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                     case CONST.POLICY.CONNECTIONS.NAME.RILLET:
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
-                        return 'Podwójny zapis';
+                        return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Ognisko';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7322,7 +7322,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
-            campfire: 'Ognisko',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',

@@ -7210,7 +7210,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Φωτιά κατασκήνωσης';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7487,7 +7487,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             defaultVendorSelectHeader: `Επιλέξτε έναν προεπιλεγμένο προμηθευτή για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
-            campfire: 'Φωτιά κατασκήνωσης',
+            campfire: 'Campfire',
         },
         hr: {
             title: 'HR',

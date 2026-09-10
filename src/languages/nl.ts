@@ -7021,7 +7021,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
-                        return 'Kampvuur';
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7297,7 +7297,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
-            campfire: 'Kampvuur',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
