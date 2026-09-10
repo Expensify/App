@@ -4,7 +4,6 @@ type TrackConciergeResponseParams = {
     questionReportActionID: string;
     responseReportActionID: string;
     responseReportID?: string;
-    shouldShowPending?: boolean;
 };
 
 type TrackConciergeResponse = (parameters: TrackConciergeResponseParams) => void;

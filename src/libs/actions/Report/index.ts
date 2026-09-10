@@ -1052,8 +1052,6 @@ function addActions({
             questionReportActionID: resolvedReportActionID,
             responseReportActionID: parameters.optimisticConciergeReportActionID,
             responseReportID: conciergeThreadReportID,
-            // Admin rooms also contain human conversations. Wait for a matched stream before drawing attention.
-            shouldShowPending: !isAdminRoom(reportForAction),
         });
     }
 

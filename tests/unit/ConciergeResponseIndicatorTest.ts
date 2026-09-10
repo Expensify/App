@@ -1,11 +1,8 @@
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
-import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import type EventType from '@libs/Pusher/EventType';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import updateUnread, {setPageTitle} from '@libs/UnreadIndicatorUpdater/updateUnread';
-import Visibility from '@libs/Visibility';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -21,18 +18,6 @@ jest.mock('@libs/UnreadIndicatorUpdater/updateUnread', () =>
     jest.requireActual<{default: typeof updateUnread; setPageTitle: typeof setPageTitle}>('../../src/libs/UnreadIndicatorUpdater/updateUnread/index.ts'),
 );
 jest.mock('@libs/Log', () => ({__esModule: true, default: {hmmm: jest.fn()}}));
-jest.mock('@libs/Navigation/Navigation', () => ({
-    __esModule: true,
-    default: {getTopmostReportId: jest.fn()},
-}));
-jest.mock('@libs/Navigation/navigationRef', () => ({
-    __esModule: true,
-    default: {isReady: jest.fn(() => true), addListener: jest.fn()},
-}));
-jest.mock('@libs/Visibility', () => ({
-    __esModule: true,
-    default: {isVisible: jest.fn(() => false), hasFocus: jest.fn(() => false), onVisibilityChange: jest.fn()},
-}));
 jest.mock('@libs/Pusher', () => ({
     __esModule: true,
     default: {
@@ -48,6 +33,10 @@ const responseID = '200';
 const reportID = '300';
 const threadID = '400';
 const accountID = 10;
+const beforeResponse = '2026-09-08 11:00:00.000';
+const responseCreated = '2026-09-08 12:00:00.000';
+const partialReadTime = '2026-09-08 12:00:01.000';
+const finalReadTime = '2026-09-08 12:01:00.000';
 
 function favicon() {
     return document.getElementById('favicon')?.getAttribute('href');
@@ -61,7 +50,8 @@ function emit(overrides: Partial<ConciergeDraftEvent> = {}, batch = false) {
         sequence: 1,
         status: 'started',
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-        created: '2026-09-08 12:00:00.000',
+        created: responseCreated,
+        bodyMarkdown: 'An answer',
         ...overrides,
     };
     const eventType = batch ? 'conciergeDraftEvents' : `conciergeDraft${event.status[0].toUpperCase()}${event.status.slice(1)}`;
@@ -71,24 +61,35 @@ function emit(overrides: Partial<ConciergeDraftEvent> = {}, batch = false) {
     }
 }
 
-function start(overrides: Partial<Parameters<typeof trackConciergeResponse>[0]> = {}) {
+async function start(overrides: Partial<Parameters<typeof trackConciergeResponse>[0]> = {}) {
     trackConciergeResponse({accountID, reportID, questionReportActionID: questionID, responseReportActionID: responseID, ...overrides});
+    await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+    });
 }
 
 async function saveQuestion(extra = {}) {
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[questionID]: {reportActionID: questionID, pendingAction: null, ...extra}});
+    await new Promise<void>((resolve) => {
+        setImmediate(resolve);
+    });
 }
 
-async function saveResponse(id = reportID) {
+async function saveResponse(id = reportID, actionID = responseID, created = responseCreated) {
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`, {
-        [responseID]: {reportActionID: responseID, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, pendingAction: null},
+        [actionID]: {reportActionID: actionID, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, pendingAction: null, created},
     });
+}
+
+async function markRead(lastReadTime = finalReadTime, id = reportID) {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id, lastReadTime});
 }
 
 describe('Concierge response favicon', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.SESSION, {accountID});
+        await markRead(beforeResponse);
         await waitForBatchedUpdates();
         listeners.clear();
         jest.useFakeTimers();
@@ -96,16 +97,10 @@ describe('Concierge response favicon', () => {
             const key = `${channel}:${event}`;
             const callbacks = listeners.get(key) ?? new Set<DraftListener>();
             listeners.set(key, callbacks);
-            // Pusher wraps callbacks independently, even when two requests share a handler.
             const listener: DraftListener = (data) => callback?.(data);
             callbacks.add(listener);
             return Object.assign(Promise.resolve(), {unsubscribe: () => callbacks.delete(listener)});
         });
-        jest.mocked(Visibility.isVisible).mockReturnValue(false);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(false);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        jest.mocked(navigationRef.isReady).mockReturnValue(true);
-        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(reportID);
         document.head.innerHTML = '<link id="favicon" rel="icon">';
         setPageTitle('Inbox');
         updateUnread(0);
@@ -118,107 +113,211 @@ describe('Concierge response favicon', () => {
         jest.restoreAllMocks();
     });
 
-    it('preserves unread counts and keeps Concierge priority through title updates and back navigation', () => {
+    it('preserves ordinary unread counts while thinking, and Concierge priority while streaming', async () => {
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        await start();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
         updateUnread(2);
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
-        start();
+        emit({bodyMarkdown: ''});
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+        emit({status: 'updated', sequence: 2});
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
         setPageTitle('Settings');
         window.dispatchEvent(new PopStateEvent('popstate'));
         expect(document.title).toContain('(2) Settings');
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({status: 'failed'});
+        emit({status: 'failed', sequence: 3});
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
     });
 
-    it('retains a background completion until the user returns, even on a different page', () => {
-        start();
+    it('retains a completed unread response when focus returns to another page or its report', async () => {
+        updateUnread(1, [reportID]);
+        await start();
         emit({}, true);
-        emit({status: 'completed', sequence: 2}, true);
+        emit({status: 'completed', sequence: 2, bodyMarkdown: undefined}, true);
         jest.advanceTimersByTime(300000);
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        jest.mocked(Visibility.isVisible).mockReturnValue(true);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(true);
-        jest.mocked(Navigation.getTopmostReportId).mockReturnValue('settings');
         window.dispatchEvent(new Event('focus'));
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        document.dispatchEvent(new Event('visibilitychange'));
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await saveResponse();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+    });
 
-        // A reply that finishes while its report is visible needs no later acknowledgement.
-        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(reportID);
-        start();
-        emit({status: 'completed'});
+    it('does not rewrite the browser title for unchanged streaming attention', async () => {
+        await start();
+        emit();
+        const titleSetter = jest.spyOn(document, 'title', 'set');
+        emit({status: 'updated', sequence: 2, bodyMarkdown: 'More of the answer'});
+        expect(titleSetter).not.toHaveBeenCalled();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+    });
+
+    it('clears a completed reply through synced read state without a navigation event', async () => {
+        await start();
+        emit();
+        emit({status: 'completed', sequence: 2});
+        updateUnread(2, [reportID, 'other-report']);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+        updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
-    it('shares report listeners and keeps them until the last unfinished request completes', () => {
+    it.each(['completion first', 'final action first'])('uses an existing read immediately after streaming ends with %s', async (order) => {
+        await start();
+        emit();
+        await markRead(partialReadTime);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        emit({status: 'updated', sequence: 2, bodyMarkdown: 'An answer with more content'});
+        if (order === 'completion first') {
+            emit({status: 'completed', sequence: 3});
+        } else {
+            await saveResponse();
+        }
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        if (order === 'completion first') {
+            await saveResponse();
+        } else {
+            emit({status: 'completed', sequence: 3});
+        }
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+    });
+
+    it('does not revive a read durable response through delayed drafts or marking it unread again', async () => {
+        await start();
+        await markRead(responseCreated);
+        await saveResponse();
+        emit();
+        emit({status: 'completed', sequence: 2});
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        await markRead(beforeResponse);
+        updateUnread(1, [reportID]);
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+    });
+
+    it('only shows completed Concierge attention for reports eligible for the ordinary unread icon', async () => {
+        await start();
+        await saveResponse();
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        updateUnread(1, ['unrelated-report']);
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+        updateUnread(2, ['unrelated-report', reportID]);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        // Muting or hiding the report removes it from the existing unread report list.
+        updateUnread(1, ['unrelated-report']);
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('clears completed attention when the normal unread update arrives before the read subscription', async () => {
+        await start();
+        await saveResponse();
+        updateUnread(1, [reportID]);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        await markRead();
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+    });
+
+    it('shares report listeners until the last response is read', async () => {
+        updateUnread(1, [reportID]);
         const connect = jest.spyOn(Onyx, 'connectWithoutView');
         const disconnect = jest.spyOn(Onyx, 'disconnect');
-        start();
-        start({responseReportActionID: '201', questionReportActionID: '101'});
-        expect(connect).toHaveBeenCalledTimes(1);
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
-
-        emit({status: 'completed'});
-        expect(disconnect).not.toHaveBeenCalled();
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
-
-        // Returning acknowledges only the completed reply, leaving the other request active.
-        jest.mocked(Visibility.isVisible).mockReturnValue(true);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(true);
-        window.dispatchEvent(new Event('focus'));
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        expect(disconnect).not.toHaveBeenCalled();
-        jest.mocked(Visibility.isVisible).mockReturnValue(false);
-        jest.mocked(Visibility.hasFocus).mockReturnValue(false);
-
-        emit({reportActionID: '201', status: 'completed'});
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-
-        // A new question can subscribe again while earlier replies still await acknowledgement.
-        start({responseReportActionID: '202', questionReportActionID: '102'});
+        await start();
+        await start({responseReportActionID: '201', questionReportActionID: '101'});
         expect(connect).toHaveBeenCalledTimes(2);
-        emit({reportActionID: '202', status: 'failed'});
-        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
+        emit({status: 'completed'});
+        emit({reportActionID: '201', status: 'completed', created: finalReadTime});
+        await markRead(partialReadTime);
+        expect(disconnect).not.toHaveBeenCalled();
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        updateUnread(0);
+        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('clears two completed replies with the same timestamp when both become read', async () => {
+        updateUnread(1, [reportID]);
+        await start();
+        await start({responseReportActionID: '201', questionReportActionID: '101'});
+        await saveResponse();
+        await saveResponse(reportID, '201');
+        await markRead(responseCreated);
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
     });
 
     it('keeps a shared report subscribed when one send fails', async () => {
         const disconnect = jest.spyOn(Onyx, 'disconnect');
-        start();
-        start({responseReportActionID: '201', questionReportActionID: '101'});
+        await start();
+        await start({responseReportActionID: '201', questionReportActionID: '101'});
+        emit({reportActionID: '201'});
         await saveQuestion({errors: {error: 'Unable to send'}});
         expect(disconnect).not.toHaveBeenCalled();
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({reportActionID: '201', status: 'failed'});
-        expect(disconnect).toHaveBeenCalledTimes(1);
+        emit({reportActionID: '201', status: 'failed', sequence: 2});
+        expect(disconnect).toHaveBeenCalledTimes(2);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('follows the actual reply thread and ignores reads of the question report', async () => {
+        updateUnread(1, [threadID]);
+        await start();
+        await markRead(beforeResponse, threadID);
+        await saveQuestion({childReportID: threadID});
+        emit({reportID: threadID});
+        await saveResponse(threadID);
+        await markRead();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead(finalReadTime, threadID);
+        updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
     it("uses the latest shared actions to find a new request's reply thread", async () => {
+        updateUnread(1, [threadID]);
         const connect = jest.spyOn(Onyx, 'connectWithoutView');
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
-        start();
+        await start();
         const secondQuestionID = '101';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
             [secondQuestionID]: {reportActionID: secondQuestionID, pendingAction: null, childReportID: threadID},
         });
-        start({responseReportActionID: '201', questionReportActionID: '101'});
-        expect(connect).toHaveBeenCalledTimes(2);
+        await start({responseReportActionID: '201', questionReportActionID: '101'});
+        expect(connect).toHaveBeenCalledTimes(4);
         emit({reportID: threadID, reportActionID: '201', status: 'completed'});
-        expect(disconnect).toHaveBeenCalledTimes(1);
         emit({status: 'failed'});
-        expect(disconnect).toHaveBeenCalledTimes(2);
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead(finalReadTime, threadID);
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
     });
 
-    it('shows shared-room attention only for a matching Concierge stream', () => {
+    it('allows a DM fallback even when the server assigned a response thread', async () => {
+        await start({responseReportID: threadID});
+        await saveQuestion({childReportID: threadID});
         emit();
+        await saveResponse();
+        await markRead();
+        updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        start({shouldShowPending: false});
+    });
+
+    it('ignores unrelated actors, unsolicited responses, stale events, and old terminal sessions', async () => {
+        emit();
+        await start();
         emit({actorAccountID: 999});
         emit({reportActionID: 'other'});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
@@ -230,37 +329,66 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
-    it('ends the provisional indicator for a non-streamed response, but accepts late draft events', async () => {
-        start();
+    it('shows an unread requested durable reply even when no draft events were received', async () => {
+        updateUnread(1, [reportID]);
+        await start();
         await saveQuestion();
         await saveResponse();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        emit({status: 'completed', bodyMarkdown: undefined});
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        emit({status: 'completed'});
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
     });
 
-    it('recovers a missing completion from the durable reply after streaming has started', async () => {
-        const disconnect = jest.spyOn(Onyx, 'disconnect');
-        start();
-        emit();
-        await saveResponse();
-        expect(disconnect).toHaveBeenCalledTimes(1);
-        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+    it('expires stalled responses after a send succeeds, but retains queued offline sends without attention', async () => {
+        await start();
         jest.advanceTimersByTime(300000);
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-    });
-
-    it('expires stalled responses after the send succeeds, but retains queued offline sends', async () => {
-        start();
-        jest.advanceTimersByTime(300000);
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 1)).toBe(true);
         await saveQuestion();
         jest.advanceTimersByTime(120000);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+        emit();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('does not expire an unread completion when the saved question arrives later', async () => {
+        updateUnread(1, [reportID]);
+        await start();
+        emit({status: 'completed', bodyMarkdown: undefined});
+        await saveQuestion();
+        jest.advanceTimersByTime(300000);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('retains a saved unread reply even when its question update was missed', async () => {
+        updateUnread(1, [reportID]);
+        await start();
+        await saveResponse();
+        jest.advanceTimersByTime(300000);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
+    });
+
+    it('cleans up stalled streaming requests', async () => {
+        await start();
+        emit();
+        jest.advanceTimersByTime(120000);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect([...listeners.values()].every((callbacks) => callbacks.size === 0)).toBe(true);
     });
 
     it('clears subscriptions and attention when the account changes', async () => {
-        start();
+        await start();
+        emit({status: 'completed'});
         await Onyx.set(ONYXKEYS.SESSION, {accountID: 20});
         await waitForBatchedUpdates();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);

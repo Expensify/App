@@ -9,7 +9,9 @@ import Onyx from 'react-native-onyx';
 import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
-let hasConciergeAttention = false;
+let unreadReportIDs = new Set<string>();
+let hasStreamingConciergeResponse = false;
+let completedConciergeReportIDs: string[] = [];
 let currentPageTitle = '';
 let shouldShowBranchNameInTitle = false;
 
@@ -32,6 +34,10 @@ function setPageTitle(title: string) {
     updateDocumentTitle();
 }
 
+function shouldShowConciergeFavicon() {
+    return hasStreamingConciergeResponse || completedConciergeReportIDs.some((reportID) => unreadReportIDs.has(reportID));
+}
+
 /**
  * Synchronous on purpose. Deferring (setTimeout/queueMicrotask) loses a race with React Navigation's
  * createMemoryHistory popstate handler, which captures and re-asserts document.title — re-applying
@@ -52,27 +58,31 @@ function updateDocumentTitle() {
     const favicon = document.getElementById('favicon');
     if (favicon instanceof HTMLLinkElement) {
         const defaultIcon = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
-        favicon.href = hasConciergeAttention ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
+        // Completed replies follow the same report eligibility and read state as the ordinary icon.
+        favicon.href = shouldShowConciergeFavicon() ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
     }
 }
 
 /**
  * Set the page title on web
  */
-const updateUnread: UpdateUnread = (totalCount) => {
+const updateUnread: UpdateUnread = (totalCount, reportIDs = []) => {
     unreadTotalCount = totalCount;
+    unreadReportIDs = new Set(reportIDs);
     updateDocumentTitle();
 };
 
 window.addEventListener('popstate', () => {
-    updateUnread(unreadTotalCount);
+    updateDocumentTitle();
 });
 
-function setConciergeAttention(hasAttention: boolean) {
-    if (hasConciergeAttention === hasAttention) {
+function setConciergeAttention(isStreaming: boolean, completedReportIDs: string[]) {
+    const hadAttention = shouldShowConciergeFavicon();
+    hasStreamingConciergeResponse = isStreaming;
+    completedConciergeReportIDs = completedReportIDs;
+    if (hadAttention === shouldShowConciergeFavicon()) {
         return;
     }
-    hasConciergeAttention = hasAttention;
     updateDocumentTitle();
 }
 

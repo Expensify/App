@@ -1,11 +1,8 @@
-/** Tracks requested Concierge replies and updates the browser favicon until they are acknowledged. */
+/** Tracks requested Concierge replies and updates the browser favicon until they are read. */
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {setConciergeAttention} from '@libs/UnreadIndicatorUpdater/updateUnread';
-import Visibility from '@libs/Visibility';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -25,8 +22,7 @@ type ConciergeResponseRequest = {
     streamSessionID?: string;
     sequence: number;
     status: 'pending' | 'streaming' | 'ready';
-    hasFinalResponse: boolean;
-    shouldShowPending: boolean;
+    responseCreated?: string;
     isQuestionPending: boolean;
     subscribedReportIDs: Set<string>;
     timer?: ReturnType<typeof setTimeout>;
@@ -35,6 +31,7 @@ type ConciergeResponseRequest = {
 type ReportSubscription = {
     responseReportActionIDs: Set<string>;
     actions: OnyxEntry<ReportActions>;
+    lastReadTime?: string;
     cleanups: Array<() => void>;
 };
 
@@ -48,10 +45,14 @@ const requests = new Map<string, ConciergeResponseRequest>();
 const RESPONSE_TIMEOUT_MS = 120000;
 
 function updateIndicator() {
-    setConciergeAttention([...requests.values()].some((request) => request.status !== 'pending' || (request.shouldShowPending && !request.hasFinalResponse)));
+    const activeRequests = [...requests.values()];
+    setConciergeAttention(
+        activeRequests.some((request) => request.status === 'streaming'),
+        activeRequests.filter((request) => request.status === 'ready').map((request) => request.responseReportID),
+    );
 }
 
-/** Release a report's listeners once no unfinished requests need them. */
+/** Release a report's listeners once no requested replies need them. */
 function releaseReportSubscriptions(responseReportActionID: string, request: ConciergeResponseRequest) {
     for (const reportID of request.subscribedReportIDs) {
         const subscription = reportSubscriptions.get(reportID);
@@ -83,7 +84,7 @@ function removeRequest(responseReportActionID: string) {
 
 function armTimeout(responseReportActionID: string) {
     const request = requests.get(responseReportActionID);
-    if (!request) {
+    if (!request || request.status === 'ready') {
         return;
     }
     clearTimeout(request.timer);
@@ -98,8 +99,17 @@ function armTimeout(responseReportActionID: string) {
     }, RESPONSE_TIMEOUT_MS);
 }
 
-function isViewingResponse(reportID: string) {
-    return Visibility.isVisible() && Visibility.hasFocus() && navigationRef.isReady() && Navigation.getTopmostReportId() === reportID;
+/** Use the same read timestamp as ordinary report actions, including reads before completion. */
+function reconcileReadState(responseReportActionID: string) {
+    const request = requests.get(responseReportActionID);
+    if (!request || request.status !== 'ready') {
+        return;
+    }
+    const lastReadTime = reportSubscriptions.get(request.responseReportID)?.lastReadTime;
+    if (!lastReadTime || !request.responseCreated || lastReadTime < request.responseCreated) {
+        return;
+    }
+    removeRequest(responseReportActionID);
 }
 
 function completeRequest(responseReportActionID: string) {
@@ -109,11 +119,7 @@ function completeRequest(responseReportActionID: string) {
     }
     request.status = 'ready';
     clearTimeout(request.timer);
-    releaseReportSubscriptions(responseReportActionID, request);
-    if (isViewingResponse(request.responseReportID)) {
-        removeRequest(responseReportActionID);
-        return;
-    }
+    reconcileReadState(responseReportActionID);
     updateIndicator();
 }
 
@@ -133,6 +139,8 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
     request.streamSessionID = event.streamSessionID;
     request.sequence = event.sequence;
     request.responseReportID = event.reportID;
+    request.responseCreated ??= event.created;
+    request.isQuestionPending = false;
     if (event.status === 'failed' || event.status === 'cleared') {
         removeRequest(event.reportActionID);
         return;
@@ -141,38 +149,15 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
         completeRequest(event.reportActionID);
         return;
     }
-    request.isQuestionPending = false;
+    // A draft with no response content is still thinking, not a visible answer.
+    if (!event.bodyMarkdown && !event.finalRenderedHTML) {
+        armTimeout(event.reportActionID);
+        return;
+    }
     request.status = 'streaming';
     armTimeout(event.reportActionID);
-    // The final Onyx action may beat the completion event (or recover a missed completion).
-    if (request.hasFinalResponse) {
-        completeRequest(event.reportActionID);
-        return;
-    }
     updateIndicator();
 }
-
-function acknowledgeReadyResponses() {
-    if (!Visibility.isVisible() || !Visibility.hasFocus()) {
-        return;
-    }
-    for (const [id, request] of requests) {
-        if (request.status !== 'ready') {
-            continue;
-        }
-        removeRequest(id);
-    }
-}
-
-Visibility.onVisibilityChange(acknowledgeReadyResponses);
-window.addEventListener('focus', acknowledgeReadyResponses);
-navigationRef.addListener('state', () => {
-    for (const [id, request] of requests) {
-        if (request.status === 'ready' && isViewingResponse(request.responseReportID)) {
-            removeRequest(id);
-        }
-    }
-});
 
 // This imperative tracker owns browser subscriptions outside React. Session changes must release
 // those subscriptions so a previous account's request cannot change the next account's favicon.
@@ -191,7 +176,7 @@ Onyx.connectWithoutView({
 /** Reconcile the requested reply with durable actions, including failed sends and server-selected threads. */
 function handleReportActions(responseReportActionID: string, reportID: string, actions: OnyxEntry<ReportActions>) {
     const request = requests.get(responseReportActionID);
-    if (!request || request.status === 'ready') {
+    if (!request) {
         return;
     }
     const question = actions?.[request.questionReportActionID];
@@ -213,22 +198,17 @@ function handleReportActions(responseReportActionID: string, reportID: string, a
     if (response?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE || response.pendingAction) {
         return;
     }
-    request.hasFinalResponse = true;
+    request.isQuestionPending = false;
     request.responseReportID = reportID;
-    if (request.status === 'streaming') {
-        completeRequest(responseReportActionID);
-        return;
-    }
-
-    // An ordinary non-streamed reply ends the optimistic favicon, but retain
-    // correlation until timeout in case its draft events arrive after Onyx.
-    updateIndicator();
+    request.responseCreated = response.created;
+    // A durable requested answer also covers non-streamed replies and completely missed drafts.
+    completeRequest(responseReportActionID);
 }
 
-/** Share report listeners across unfinished requests independently of the mounted report screen. */
+/** Share report listeners across requested replies independently of the mounted report screen. */
 function subscribeToReport(responseReportActionID: string, reportID: string) {
     const request = requests.get(responseReportActionID);
-    if (!request || request.status === 'ready' || request.subscribedReportIDs.has(reportID)) {
+    if (!request || request.subscribedReportIDs.has(reportID)) {
         return;
     }
     request.subscribedReportIDs.add(reportID);
@@ -265,6 +245,23 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
         reportSubscription.cleanups.push(() => subscription.unsubscribe());
     }
 
+    // This tracker runs outside React. Observe durable read updates from side panels,
+    // manual mark-as-read actions, and other sessions independently of navigation.
+    const reportConnection = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        callback: (report) => {
+            reportSubscription.lastReadTime = report?.lastReadTime ?? '';
+            for (const id of reportSubscription.responseReportActionIDs) {
+                reconcileReadState(id);
+            }
+        },
+    });
+    if (reportSubscriptions.get(reportID) !== reportSubscription) {
+        Onyx.disconnect(reportConnection);
+        return;
+    }
+    reportSubscription.cleanups.push(() => Onyx.disconnect(reportConnection));
+
     // Watch only the question/response reports while a request is tracked. This non-render
     // subscription detects failed sends and reconciles durable replies after missed events.
     const connection = Onyx.connectWithoutView({
@@ -285,7 +282,7 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
 }
 
 /** Track the reserved reply ID for a question sent from this browser session. */
-function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID, responseReportID = reportID, shouldShowPending = true}: TrackConciergeResponseParams) {
+function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID, responseReportID = reportID}: TrackConciergeResponseParams) {
     if (requests.has(responseReportActionID)) {
         return;
     }
@@ -295,8 +292,6 @@ function trackConciergeResponse({accountID, reportID, questionReportActionID, re
         responseReportID,
         sequence: 0,
         status: 'pending',
-        hasFinalResponse: false,
-        shouldShowPending,
         isQuestionPending: true,
         subscribedReportIDs: new Set(),
     };
