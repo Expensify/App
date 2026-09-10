@@ -111,8 +111,6 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
             title: translate('workspace.qbo.accounts.credit_card'),
-            shouldShowRightIcon: false,
-            interactive: false,
         },
     ];
 

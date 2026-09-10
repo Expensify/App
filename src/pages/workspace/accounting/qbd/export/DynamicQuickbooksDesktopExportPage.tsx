@@ -118,8 +118,6 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.qbd.exportExpensifyCard'),
             title: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
-            shouldShowRightIcon: false,
-            interactive: false,
         },
     ];
 

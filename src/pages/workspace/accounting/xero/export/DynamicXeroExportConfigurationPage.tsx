@@ -68,7 +68,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
-            interactive: false,
             shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
@@ -87,7 +86,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
-            interactive: false,
             shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
@@ -105,7 +103,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
             shouldShowRightIcon: false,
-            interactive: false,
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
@@ -152,7 +149,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                     <MenuItemField
                         name={menuItem.description}
                         value={menuItem.title}
-                        onPress={menuItem?.interactive === false ? undefined : menuItem?.onPress}
+                        onPress={menuItem?.onPress}
                     >
                         {areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     </MenuItemField>
