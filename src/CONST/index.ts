@@ -6867,6 +6867,9 @@ const CONST = {
     /** How many report fields are shown side by side in the report view on a wide layout */
     REPORT_FIELDS_PER_ROW: 3,
 
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 

@@ -137,6 +137,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST && !isReadOnly) {
         const enabledOptions = reportField.values.filter((_option: string, index: number) => !reportField.disabledOptions.at(index));
 
+        // A short list is quicker to scan than to search, so the search input is dropped and its height is not reserved.
+        const shouldShowSearchInput = enabledOptions.length >= CONST.REPORT_FIELD_LIST_SEARCH_THRESHOLD;
+
         // FilterPopupButton calls this as a plain function during its own render, so it must not use hooks — everything
         // it needs is read from this component's scope.
         const renderOptionsPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay}) => (
@@ -148,7 +151,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     itemCount: enabledOptions.length,
                     windowHeight,
                     isInLandscapeMode,
-                    isSearchable: true,
+                    isSearchable: shouldShowSearchInput,
                     // Selecting an option submits straight away, so there is no apply button to leave room for.
                     hasButton: false,
                 })}
@@ -157,6 +160,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     fieldKey={fieldKey}
                     fieldValue={value}
                     fieldOptions={enabledOptions}
+                    shouldShowTextInput={shouldShowSearchInput}
+                    // The popover is small and opens right under the field, so a "Recent" section on top of the full
+                    // list is more noise than help.
+                    shouldShowRecentlyUsedOptions={false}
                     onSubmit={(form) => {
                         closeOverlay();
                         saveSelectedOption(form[fieldKey] ?? '');

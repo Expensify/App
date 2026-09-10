@@ -5,6 +5,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
@@ -25,13 +26,20 @@ type EditReportFieldDropdownPageProps = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: Record<string, string>) => void;
+
+    /** Whether the search input is shown. Callers with a short list hide it, since there is little to search through. */
+    shouldShowTextInput?: boolean;
+
+    /** Whether the "Recent" section is shown above the full option list */
+    shouldShowRecentlyUsedOptions?: boolean;
 };
 
-function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions, shouldShowTextInput = true, shouldShowRecentlyUsedOptions = true}: EditReportFieldDropdownPageProps) {
+    const styles = useThemeStyles();
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
-    const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
+    const recentlyUsedOptions = shouldShowRecentlyUsedOptions ? (recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? []) : [];
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
@@ -63,13 +71,15 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
         label: translate('common.search'),
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
+        // Nothing is rendered above the search input here, so it needs the top padding the surrounding page or popover doesn't provide.
+        style: {containerStyle: styles.pt3},
     };
 
     return (
         <SelectionListWithSections
             sections={sections ?? []}
             ListItem={SingleSelectListItem}
-            shouldShowTextInput
+            shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedItemKey={initialFieldValue}
