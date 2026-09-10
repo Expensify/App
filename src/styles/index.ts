@@ -4282,8 +4282,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
+            ...textVariants.textStrong,
         },
 
         emptyCardSectionTitle: {
@@ -7253,9 +7252,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
 
