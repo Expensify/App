@@ -9,6 +9,7 @@ import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -116,11 +117,15 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
         const statementExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
 
         // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
-        if (onStatementPicked && statementExtensions.includes(fileExtension.toLowerCase())) {
+        if (shouldAllowBankStatements && onStatementPicked && statementExtensions.includes(fileExtension.toLowerCase())) {
             setIsReadingFile(true);
-            onStatementPicked(file).finally(() => {
-                setIsReadingFile(false);
-            });
+            onStatementPicked(file)
+                .catch((error: Error) => {
+                    Log.warn('[ImportSpreadsheet] Failed to upload the statement', {message: String(error)});
+                })
+                .finally(() => {
+                    setIsReadingFile(false);
+                });
             return;
         }
 
@@ -279,9 +284,10 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             <DragAndDropConsumer
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];
-                                    if (file) {
-                                        readFile(file);
+                                    if (!file || isReadingFile) {
+                                        return;
                                     }
+                                    readFile(file);
                                 }}
                             >
                                 <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
