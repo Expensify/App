@@ -365,7 +365,7 @@ describe('TestToolMenu beta overrides', () => {
 
         // Then The modal is dismissed first, because it and the overrides page cannot both be open
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
     });
 
     it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
@@ -378,6 +378,6 @@ describe('TestToolMenu beta overrides', () => {
 
         // Then Nothing is dismissed, because there is no modal open in this context
         expect(mockDismissModal).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
     });
 });
