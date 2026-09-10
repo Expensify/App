@@ -15,6 +15,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
+import {hasAnyManuallyEnteredScanField, isPartiallyEnteredScanExpense} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
@@ -72,13 +73,17 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     // Opening the calendar blurs the input, so the open picker is this field's "the user is on it" signal rather
     // than focus, and it is what draws the focused border. The hint follows it so it can't sit next to an open
-    // calendar promising to fill in the date the user is picking. It stays tied to the empty value beyond that.
+    // calendar promising to fill in the date the user is picking. Entering any one of the three fields drops the hint
+    // from all of them, since that is the point where the expense stops being scanned.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen;
+    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && createdMissing ? translate('common.error.fieldRequired') : '';
+    // On a half-filled Scan the date is required even though it is never blank in the draft, so the all-or-nothing
+    // predicate stands in for `createdMissing` there.
+    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
+    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -140,6 +145,9 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // component whenever the clear button can appear, which it can't without a value to clear.
                     shouldHideClearButton={shouldShowEmptyDate}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                    // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
+                    // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
+                    shouldHideCalendarIcon={shouldShowAutomaticHint}
                     onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>

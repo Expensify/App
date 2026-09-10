@@ -16,7 +16,7 @@ import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} 
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {calculateTaxAmount, getTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -93,7 +93,7 @@ function AmountField({
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
     // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice);
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
 
     let amountFieldErrorText = '';
@@ -115,7 +115,12 @@ function AmountField({
     // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
     // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
     // the first keystroke. It would otherwise sit next to the caret promising to fill in what is being typed.
-    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !transactionSlice?.isAmountSet;
+    // Entering any one of the three fields drops the hint from all of them, since that is the point where the expense
+    // stops being scanned and the other two become the user's to fill in as well.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isAmountInputFocused && !hasAnyManuallyEnteredScanField(transactionSlice);
+    // The hint and the flip / currency buttons share the right-hand side of the input, so the field shows one or the
+    // other. The buttons come back as soon as the amount is the user's to enter.
+    const shouldShowAmountButtons = !shouldShowAutomaticHint;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
@@ -318,8 +323,8 @@ function AmountField({
                         errorText={amountFieldErrorText}
                         onInputChange={handleAmountChange}
                         allowNegativeInput={allowNegative}
-                        shouldShowFlipButton
-                        shouldShowCurrencyButton
+                        shouldShowFlipButton={shouldShowAmountButtons}
+                        shouldShowCurrencyButton={shouldShowAmountButtons}
                         shouldShowBigNumberPad={false}
                         onCurrencyButtonPress={showCurrencyPicker}
                         onFocus={() => {

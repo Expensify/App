@@ -347,6 +347,7 @@ function MoneyRequestConfirmationList({
         isEditingSplitBill,
         isPolicyExpenseChat,
         isScanRequest,
+        canEnterScanFieldsManually,
         shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,

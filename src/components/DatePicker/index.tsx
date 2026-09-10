@@ -50,6 +50,7 @@ function DatePicker({
     shouldDismissKeyboardBeforeShow = false,
     rightHandSideComponent,
     onPickerVisibilityChange,
+    shouldHideCalendarIcon = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -232,7 +233,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}

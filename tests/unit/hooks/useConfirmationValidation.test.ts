@@ -930,8 +930,22 @@ describe('useConfirmationValidation', () => {
             ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
             ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}],
             ['date', {isCreatedSet: true, created: '2025-01-15'}, {}],
-        ])('leaves the other fields optional once the %s is entered, since a blank field is still scanned', (_field, transactionOverrides, overrides) => {
+        ])('requires the other two once the %s is entered, since the three are all-or-nothing', (_field, transactionOverrides, overrides) => {
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it.each([
+            ['merchant', {isAmountSet: true, amount: 1000, isCreatedSet: true, created: '2025-01-15'}, {iouAmount: 1000}],
+            ['amount', {isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+            ['date', {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks'}, {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+        ])('still blocks confirmation while only the %s is left blank', (_field, transactionOverrides, overrides) => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('passes again once the user clears the fields back to an untouched scan', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: false, isMerchantSet: false, isCreatedSet: false})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });
 
@@ -960,6 +974,7 @@ describe('useConfirmationValidation', () => {
         });
 
         it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {
+            // Those surfaces never showed the three fields, so a flag set elsewhere must not hold them to the rule.
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: true, amount: 1000}, {canEnterScanFieldsManually: false, iouAmount: 1000})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });

@@ -39,6 +39,7 @@ const baseParams: Params = {
     isEditingSplitBill: false,
     isPolicyExpenseChat: false,
     isScanRequest: false,
+    canEnterScanFieldsManually: false,
     shouldShowMerchant: true,
     hasSmartScanFailed: false,
     didConfirmSplit: false,

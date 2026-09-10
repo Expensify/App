@@ -103,6 +103,7 @@ import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -156,6 +157,9 @@ type GetTrackExpenseInformationTransactionParams = {
     created: string;
     merchant: string;
     receipt: OnyxEntry<Receipt>;
+
+    /** Overrides the state carried on `receipt`, see `TrackExpenseTransactionParams.receiptState`. */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
     taxCode?: string;
@@ -900,6 +904,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         distance,
         merchant,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode,
@@ -1121,6 +1126,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             created,
             merchant,
             receipt,
+            receiptState,
             category,
             tag,
             taxCode,
@@ -2606,6 +2612,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             created,
             merchant,
             receipt: trackedReceipt,
+            receiptState: trackedReceiptState,
             category,
             tag,
             taxCode,

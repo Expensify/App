@@ -16,6 +16,7 @@ import {
     getTaxAmount,
     hasTaxRateWithMatchingValue,
     isMerchantMissing,
+    isPartiallyEnteredScanExpense,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
@@ -197,7 +198,13 @@ function useConfirmationValidation({
         }
         // `isConfirmationAmountMissing` only applies to manually entered amounts. Per diem, distance and time set the
         // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
-        if (isConfirmationAmountMissing(transaction)) {
+        if (isConfirmationAmountMissing(transaction, canEnterScanFieldsManually)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        // The amount / merchant / date the Scan confirmation reveals are all-or-nothing. Leaving all three blank hands
+        // the expense to SmartScan and filling all three in submits it as a manual expense, but a half-filled set is
+        // neither, so it is blocked here and each blank field raises the same error inline.
+        if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
@@ -212,7 +219,7 @@ function useConfirmationValidation({
         }
         // The date is an inline, clearable required field for every type that shows it (manual, distance, time,
         // invoice, ...). Block confirmation when the user cleared it.
-        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly)) {
+        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';

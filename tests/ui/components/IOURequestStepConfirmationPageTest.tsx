@@ -493,7 +493,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(screen.getByLabelText(translateLocal('common.date'))).toHaveDisplayValue('');
         });
 
-        it('submits a partially filled scan, leaving the blank fields to SmartScan', async () => {
+        it('blocks a partially filled scan and flags the field that is still blank', async () => {
             await renderScanConfirmation();
 
             fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
@@ -503,12 +503,33 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
 
-            // The date was never picked, so it stays "Automatic" instead of blocking confirmation.
-            expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
-            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            // Entering two of the three turns this into a manual expense, so the untouched date is now required.
+            expect(screen.getByText(translateLocal('common.error.fieldRequired'))).toBeOnTheScreen();
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
         });
 
-        it('labels the amount, merchant and date fields "Automatic" until that field is entered', async () => {
+        it('stops requiring the blank fields once the half-filled ones are cleared back to an untouched scan', async () => {
+            await renderScanConfirmation();
+
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+            await waitForBatchedUpdatesWithAct();
+            // Both fields left blank are flagged, not just one.
+            expect(screen.getAllByText(translateLocal('common.error.fieldRequired'))).toHaveLength(2);
+
+            // Clearing the merchant hands all three fields back to SmartScan, so nothing is required any more and the
+            // error must not be left stranded on a field the user has no reason to fill in.
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), '');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+
+            fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+        });
+
+        it('drops the "Automatic" label from all three fields as soon as any one of them is entered', async () => {
             await renderScanConfirmation();
 
             // The category field carries the same label, so count the ones that leave rather than expecting none left.
@@ -518,13 +539,14 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
             await waitForBatchedUpdatesWithAct();
 
-            // Only the merchant's label goes: the amount and the date are still the ones SmartScan reads.
-            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 1);
+            // Entering one is the point where the expense stops being scanned, so none of the three is automatic now.
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 3);
 
-            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '12.34');
+            // Clearing it hands all three back to SmartScan, so the labels come back.
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), '');
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 2);
+            expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount);
         });
 
         it('drops the "Automatic" label while a field is focused, and brings it back if the field is left empty', async () => {
@@ -545,6 +567,32 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent(screen.getByLabelText(translateLocal('common.merchant')), 'focus');
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryAllByText(translateLocal('common.automatic'))).toHaveLength(automaticLabelCount - 1);
+        });
+
+        it('swaps the "Automatic" label for the currency button once the amount is the user\'s to enter', async () => {
+            await renderScanConfirmation();
+
+            const currencyButton = new RegExp(translateLocal('common.selectCurrency'));
+
+            // Blank and unfocused the amount belongs to SmartScan, so the row carries the label and none of the controls.
+            expect(screen.queryByLabelText(currencyButton)).not.toBeOnTheScreen();
+
+            fireEvent(screen.getByLabelText(translateLocal('iou.amount')), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(currencyButton)).toBeOnTheScreen();
+
+            // Blurring an amount the user never entered hands the field back, and the controls go with the label.
+            fireEvent(screen.getByLabelText(translateLocal('iou.amount')), 'blur');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(currencyButton)).not.toBeOnTheScreen();
+
+            // Entering another of the three fields also makes the amount the user's, so the controls stay put.
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(currencyButton)).toBeOnTheScreen();
         });
 
         it('hands a cleared date back to SmartScan instead of emptying it', async () => {

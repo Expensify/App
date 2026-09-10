@@ -8,8 +8,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
+import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -55,7 +57,9 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
     // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
     // the first keystroke. It would otherwise sit next to the caret promising to fill in what is being typed.
-    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !displayMerchantValue;
+    // Entering any one of the three fields drops the hint from all of them, since that is the point where the expense
+    // stops being scanned and the other two become the user's to fill in as well.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !hasAnyManuallyEnteredScanField(merchantState);
 
     // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
     // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.
@@ -83,8 +87,9 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         }
 
         // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
-        // merchant is the required value that is still missing.
-        if (formError === 'common.error.fieldRequired' && isMerchantRequired && !displayMerchantValue) {
+        // merchant is the required value that is still missing. On a half-filled Scan it is required even though the
+        // surface does not otherwise demand a merchant, because the three fields are all-or-nothing there.
+        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
             return translate('common.error.fieldRequired');
         }
 

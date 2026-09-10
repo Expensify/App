@@ -75,6 +75,13 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * user is on this field" rather than `onFocus`, and it is what drives the input's focused border.
          */
         onPickerVisibilityChange?: (isVisible: boolean) => void;
+
+        /**
+         * Hides the trailing calendar icon the empty input shows by default. Use it when the caller renders its own
+         * `rightHandSideComponent` in that space and the two would otherwise sit side by side.
+         * @default false
+         */
+        shouldHideCalendarIcon?: boolean;
     };
 
 type DatePickerProps = {

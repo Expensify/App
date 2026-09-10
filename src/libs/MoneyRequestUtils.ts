@@ -5,10 +5,12 @@ import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {ManuallyEnteredScanFields} from './TransactionUtils';
+
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported} from './TransactionUtils';
+import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
 import {getMerchantError} from './ValidationUtils';
 
 /**
@@ -248,11 +250,24 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
  * Whether the required amount is still missing on the money request confirmation surface.
  * `isAmountSet` is only ever set by the manual flow (scan, per diem, distance and time populate the amount
  * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
+ * A Scan the user started filling in counts too: its three revealed fields are all-or-nothing, so once any of them
+ * carries a value the blank ones are missing rather than SmartScan's to read.
  * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
  * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
  */
-function isConfirmationAmountMissing(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType' | 'isAmountSet'>>): boolean {
+function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+        return !transaction?.isAmountSet;
+    }
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
+}
+
+/**
+ * Whether the merchant is still missing on a Scan the user started filling in. Shares the all-or-nothing rule the
+ * amount and date use, so the three blank fields of a half-filled scan all raise the same inline error.
+ */
+function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
+    return isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually) && !transaction?.isMerchantSet;
 }
 
 /**
@@ -261,7 +276,10 @@ function isConfirmationAmountMissing(transaction: OnyxEntry<Pick<Transaction, 'i
  * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
  * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
  */
-function isConfirmationDateMissing(transaction: OnyxEntry<Transaction>, shouldShowDate: boolean, isReadOnly: boolean): boolean {
+function isConfirmationDateMissing(transaction: OnyxEntry<Transaction>, shouldShowDate: boolean, isReadOnly: boolean, canEnterScanFieldsManually = false): boolean {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+        return !transaction?.isCreatedSet;
+    }
     return shouldShowDate && !isReadOnly && isCreatedMissing(transaction);
 }
 
@@ -269,6 +287,7 @@ export {
     addLeadingZero,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
+    isConfirmationMerchantMissing,
     shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,
