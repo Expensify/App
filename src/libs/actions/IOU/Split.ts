@@ -31,6 +31,7 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -87,6 +88,7 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2354,6 +2356,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     };
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
+
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
+    }
 
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: false,
