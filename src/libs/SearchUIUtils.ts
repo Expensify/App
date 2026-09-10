@@ -6971,20 +6971,11 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-/** The gap the table renders between two adjacent columns, matching the row's `gap3` styling. */
-const SEARCH_TABLE_COLUMN_GAP = 12;
-
 /**
  * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
  * it out and it gets pushed past the edge instead of the table scrolling to reach it.
  */
 const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
-
-/** The margin and padding each row sits inside on both sides (`mh5` on its wrapper, `ph3` on the row). */
-const SEARCH_TABLE_ROW_CHROME_WIDTH = (20 + 12) * 2;
-
-/** Width of the checkbox leading each row. */
-const SEARCH_TABLE_ROW_CHECKBOX_WIDTH = 24;
 
 /**
  * Everything a row spends on something that is not a column: its margin and padding, the leading checkbox, the trailing
@@ -6995,7 +6986,7 @@ const SEARCH_TABLE_ROW_CHECKBOX_WIDTH = 24;
  * of width at the end of the row that no column ever fills.
  */
 function getSearchTableRowInsetWidth(columnCount: number): number {
-    return SEARCH_TABLE_ROW_CHECKBOX_WIDTH + (columnCount + 1) * SEARCH_TABLE_COLUMN_GAP + SEARCH_TABLE_ROW_ARROW_WIDTH + SEARCH_TABLE_ROW_CHROME_WIDTH;
+    return variables.searchTableRowCheckboxWidth + (columnCount + 1) * variables.searchTableColumnGap + SEARCH_TABLE_ROW_ARROW_WIDTH + variables.searchTableRowChromeWidth;
 }
 
 function getTableMinWidth(
@@ -7013,7 +7004,7 @@ function getTableMinWidth(
     // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
     // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
     // and scroll while it still has space.
-    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : SEARCH_TABLE_ROW_CHECKBOX_WIDTH;
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates

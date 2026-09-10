@@ -527,4 +527,13 @@ export default {
     permissionViewPaddingVertical: 108,
     permissionViewPaddingHorizontal: 61,
     permissionViewPaddingVerticalLandscape: 16,
+
+    // Search table row/column chrome, shared by the dynamic column sizing and the horizontal scroller
+    searchTableColumnGap: 12,
+    searchTableRowChromeWidth: (20 + 12) * 2,
+    searchTableRowCheckboxWidth: 24,
+    statusBadgeChromeWidth: 6 * 2 + 1 * 2,
+    editableCellChromeWidth: 4 * 2 + 1 * 2,
+    editableCellEditButtonWidth: 28 + 4,
+    narrowEditableContentWidth: 60,
 } as const;

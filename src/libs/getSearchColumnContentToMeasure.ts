@@ -68,14 +68,14 @@ type SearchColumnContent = {
 const USER_INFO_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 /** Width the status badge spends around its label: `condensedBadge`'s horizontal padding plus `defaultBadge`'s border. */
-const STATUS_BADGE_CHROME_WIDTH = 6 * 2 + 1 * 2;
+const STATUS_BADGE_CHROME_WIDTH = variables.statusBadgeChromeWidth;
 
 /**
  * Width an editable cell spends around its value: `editableCell`'s padding plus the border it reserves for its focus
  * ring. It applies whether or not the value can actually be edited, and the cell hides its overflow, so a column
  * measured without it clips its own content.
  */
-const EDITABLE_CELL_CHROME_WIDTH = 4 * 2 + 1 * 2;
+const EDITABLE_CELL_CHROME_WIDTH = variables.editableCellChromeWidth;
 
 /** The columns whose cells render inside an `EditableCell`, and so spend width on its padding and border. */
 const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
@@ -178,7 +178,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
  * The button is absolutely positioned, so it takes no width of its own and a column is never sized for it. It is drawn
  * over whatever is underneath it instead, which only matters where the value reaches that far.
  */
-const EDITABLE_CELL_EDIT_BUTTON_WIDTH = 28 + 4;
+const EDITABLE_CELL_EDIT_BUTTON_WIDTH = variables.editableCellEditButtonWidth;
 
 /**
  * How short a value has to be before the edit button is worth reserving room for.
@@ -187,7 +187,7 @@ const EDITABLE_CELL_EDIT_BUTTON_WIDTH = 28 + 4;
  * column to guard against an overlap that cannot happen. It is only a value that runs the width of its own cell that
  * ends up underneath the button, and that is what this catches.
  */
-const NARROW_EDITABLE_CONTENT_WIDTH = 60;
+const NARROW_EDITABLE_CONTENT_WIDTH = variables.narrowEditableContentWidth;
 
 /**
  * Width to add so a short value in an editable cell isn't covered by the edit button when the row is hovered.
