@@ -34,13 +34,8 @@ type DomainGroupRowData = TableData & {
 };
 
 type DomainGroupsTableRowProps = {
-    /** Data about the domain group */
     item: DomainGroupRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

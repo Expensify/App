@@ -24,7 +24,7 @@ import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type PromotedAction = {
     key: string;
@@ -53,10 +53,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
 };
 
 type PromotedActionsBarProps = {
-    /** The list of actions to show */
     promotedActions: PromotedAction[];
-
-    /** The style of the container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
