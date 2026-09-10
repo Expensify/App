@@ -115,15 +115,18 @@
     throws "Cannot read properties of null (reading 'rangeMin')", which patch
     002 turns into the "unable to display chart" fallback.
 
-    dispose() now defers the release by one microtask and only loses the
-    context when the canvas has left the document. React runs cleanup before
-    detaching the host node, so isConnected is false one microtask later only
-    for a real unmount, which keeps releasing the context deterministically
-    (browsers cap a page at ~16 live contexts). An Activity hide keeps the
-    element connected, so the context and the last presented frame survive
-    and the reveal builds its surface on the live context like the resize path
-    already does. The kept frame matters because ScreenActivityWrapper keeps
-    the hidden screen painted as a static backdrop (AlwaysPaintedView).
+    dispose() now only loses the context when the canvas has left the
+    document. In 2.4.18 it runs from a passive useEffect cleanup, which React
+    flushes after removing the host node, so isConnected is already false at
+    cleanup time on a real unmount, which keeps releasing the context
+    deterministically (browsers cap a page at ~16 live contexts). An Activity
+    hide keeps the element connected, so the context and the last presented
+    frame survive and the reveal builds its surface on the live context like
+    the resize path already does. The kept frame matters because
+    ScreenActivityWrapper keeps the hidden screen painted as a static backdrop
+    (AlwaysPaintedView). Upstream defers the same check by a microtask because
+    its dispose() runs from a layout effect cleanup, before the node is
+    detached; a passive caller needs no deferral.
 
     One case gets worse than before: a screen unmounted while hidden. Its
     cleanup already ran at hide time, when the canvas was still connected, so
@@ -134,6 +137,6 @@
     too. Upstream #4002 has the same gap.
     ```
 
-- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-09; the latest is 2.11.2). Its dispose() defers the loss the same way and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-09; the latest is 2.11.2). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
