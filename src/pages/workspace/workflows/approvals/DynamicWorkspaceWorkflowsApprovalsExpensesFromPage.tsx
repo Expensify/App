@@ -474,37 +474,35 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             return;
         }
 
-        // Snapshot the session before navigating. The deferred callback below runs after the screen transition,
-        // which runAfterPredictedTransition can stretch to ~2s, and this page's unmount cleanup has already
-        // discarded the draft by then. If the admin opens another workflow's "+N more" inside that window, a new
-        // draft is seeded and this save must leave it alone — but it still has to land, or the change the admin
-        // already confirmed is lost. So a superseded save writes the workflow and skips every APPROVAL_WORKFLOW
-        // write instead of being cancelled outright.
+        const originalMembers = approvalWorkflow.originalMembers ?? [];
+        // Queue the write before navigating. Deferring it past the transition — which runAfterPredictedTransition
+        // can stretch to ~2s — means a reload inside that window loses the in-memory callback, while the unmount
+        // cleanup below has already discarded the draft, so the change the admin confirmed is gone with nothing
+        // queued to recover it. Once queued the request is persisted and survives a reload. Passing
+        // shouldClearApprovalWorkflowDraft=false keeps the save off APPROVAL_WORKFLOW entirely, so it can't blank
+        // this page's list while it is still sliding away; the deferred teardown below owns that.
+        if (isMultipleApproversBetaEnabled) {
+            updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
+        } else {
+            updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, allMembers), [], policy, false);
+        }
+
+        // Only the draft teardown is deferred now. If the admin opens another workflow's "+N more" inside the
+        // transition window a new draft is seeded, and this teardown has to leave it alone.
         const sessionID = getApprovalWorkflowSessionID();
 
         Navigation.goBack(backPath, {compareParams: false});
 
-        const originalMembers = approvalWorkflow.originalMembers ?? [];
-        // Wait for the transition so the save doesn't blank this page's list while it is still sliding away.
         runAfterPredictedTransition(() => {
-            const isSupersededByNewerSession = getApprovalWorkflowSessionID() !== sessionID;
-
-            if (isMultipleApproversBetaEnabled) {
-                // The rules path never touches APPROVAL_WORKFLOW, so it is safe to run either way.
-                updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow: {...workflowToSave, members: originalMembers}, policy, rules: rulesCollection});
-            } else {
-                updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, allMembers), [], policy, !isSupersededByNewerSession);
-            }
-
-            if (isSupersededByNewerSession) {
+            if (getApprovalWorkflowSessionID() !== sessionID) {
                 return;
             }
 
-            // This session owns the draft: no edit page will consume it, and neither save path reliably clears
-            // it — updateApprovalWorkflowRules never does, and updateApprovalWorkflow only clears once it
-            // reaches its optimistic data, which it skips when the employee diff comes out empty. Tear the
-            // draft down here so isFastEdit can't outlive the save. Plain Onyx.set(key, null) on a key
-            // neither save path touches, so it is safe after either branch.
+            // This session owns the draft: no edit page will consume it, and neither save path clears it —
+            // updateApprovalWorkflowRules never does, and updateApprovalWorkflow is called above with its clear
+            // flag off so the write can land before the transition. Tear the draft down here so isFastEdit can't
+            // outlive the save. Plain Onyx.set(key, null) on a key neither save path touches, so it is safe
+            // after either branch.
             clearApprovalWorkflow();
         });
     }, [route.params.policyID, selectedMembers, isInitialCreationFlow, backPath, policy, approvalWorkflow, isMultipleApproversBetaEnabled, rulesCollection]);
@@ -549,7 +547,12 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     // when handing off to the invite-message page, which still needs the draft.
     useEffect(() => {
         return () => {
-            if (isHandingOffToInviteRef.current) {
+            // Only honor the hand-off while the invite-message page is actually the screen we are leaving for.
+            // The flag alone is a one-way latch: dismissing the whole RHP (close, Escape, backdrop, a
+            // dismissModal from anywhere) unmounts this page with the latch still set, so cleanup skipped both
+            // drafts and stranded isFastEdit plus the never-invited member in persisted Onyx. During a real
+            // hand-off the invite route is already active here, so the hand-off itself is unaffected.
+            if (isHandingOffToInviteRef.current && Navigation.getActiveRoute().includes(`/${DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path}`)) {
                 return;
             }
             clearInviteDraft(route.params.policyID);

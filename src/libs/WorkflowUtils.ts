@@ -378,7 +378,18 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
+    // A circular chain (A forwards to B, B forwards back to A) makes `calculateApprovers` push the repeat before it
+    // breaks, so the approvers array arrives here as [A, B, A]. Rebuilding every entry would let that trailing A
+    // overwrite the first one's `forwardsTo: B` with `''`, silently cutting the chain the caller never edited.
+    // Only the first occurrence of an email describes where it actually forwards, so later repeats are skipped.
+    const handledApproverEmails = new Set<string>();
+
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
+        if (handledApproverEmails.has(approver.email)) {
+            continue;
+        }
+        handledApproverEmails.add(approver.email);
+
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;

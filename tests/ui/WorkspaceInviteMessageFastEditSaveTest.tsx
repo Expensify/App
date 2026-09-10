@@ -334,4 +334,27 @@ describe('WorkspaceInviteMessageComponent — approval workflow fast edit', () =
         expect(draft?.members.map((member) => member.email)).toEqual([CAROL_EMAIL]);
         expect(draft?.isFastEdit).toBe(true);
     });
+
+    it('queues the save before navigating, so a reload during the pop cannot lose it', async () => {
+        await seedFastEditHandOff();
+
+        renderInviteMessagePage(FAST_EDIT_BACK_TO);
+        await waitForBatchedUpdatesWithAct();
+
+        // Never release the transition: the app was reloaded or closed during the pop, so the in-memory
+        // afterTransition callback is gone.
+        goBackMock.mockImplementation(() => {});
+
+        await pressInvite();
+
+        // The invite is already queued at this point, so the workflow write has to be queued too — otherwise the
+        // member is invited with no submitsTo, the exact silent no-op this save exists to prevent.
+        expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
+        expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+        expect(updateApprovalWorkflowMock.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(goBackMock.mock.invocationCallOrder.at(0) ?? 0);
+        const [savedWorkflow, , , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(savedWorkflow?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL, DANA_EMAIL]);
+        // The save must stay off APPROVAL_WORKFLOW so it can run before the transition without blanking the page.
+        expect(shouldClearApprovalWorkflowDraft).toBe(false);
+    });
 });

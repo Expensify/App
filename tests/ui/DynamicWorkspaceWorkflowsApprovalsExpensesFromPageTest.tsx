@@ -33,6 +33,9 @@ const BOB_EMAIL = 'bob@example.com';
 const BOB_ACCOUNT_ID = 2;
 const CAROL_EMAIL = 'carol@example.com';
 const CAROL_ACCOUNT_ID = 3;
+// Not in the workspace, so selecting them is what sends a fast edit through the invite detour.
+const DANA_EMAIL = 'dana@example.com';
+const DANA_ACCOUNT_ID = 4;
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -97,6 +100,8 @@ jest.mock('@libs/actions/Workflow', () => {
 const updateApprovalWorkflowMock = jest.mocked(updateApprovalWorkflow);
 const updateApprovalWorkflowRulesMock = jest.mocked(updateApprovalWorkflowRules);
 const goBackMock = jest.mocked(Navigation.goBack);
+const navigateMock = jest.mocked(Navigation.navigate);
+const getActiveRouteMock = jest.mocked(Navigation.getActiveRoute);
 
 function buildPolicy(): Policy {
     const employeeList: PolicyEmployeeList = {
@@ -123,6 +128,7 @@ function buildPolicy(): Policy {
 const CAROL_APPROVER: Approver = {email: CAROL_EMAIL, displayName: 'carol'};
 const BOB_MEMBER: Member = {email: BOB_EMAIL, displayName: 'bob'};
 const ALICE_MEMBER: Member = {email: ALICE_EMAIL, displayName: 'alice'};
+const DANA_MEMBER: Member = {email: DANA_EMAIL, displayName: 'dana'};
 
 const mockRoute = {
     key: 'test-route',
@@ -195,6 +201,8 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         updateApprovalWorkflowMock.mockClear();
         updateApprovalWorkflowRulesMock.mockClear();
         goBackMock.mockClear();
+        navigateMock.mockClear();
+        getActiveRouteMock.mockReturnValue('');
         mockPredictedTransition.shouldDefer = false;
         mockPredictedTransition.pendingCallbacks = [];
         await act(async () => {
@@ -206,6 +214,7 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
                 [ALICE_ACCOUNT_ID]: buildPersonalDetails(ALICE_EMAIL, ALICE_ACCOUNT_ID, 'alice'),
                 [BOB_ACCOUNT_ID]: buildPersonalDetails(BOB_EMAIL, BOB_ACCOUNT_ID, 'bob'),
                 [CAROL_ACCOUNT_ID]: buildPersonalDetails(CAROL_EMAIL, CAROL_ACCOUNT_ID, 'carol'),
+                [DANA_ACCOUNT_ID]: buildPersonalDetails(DANA_EMAIL, DANA_ACCOUNT_ID, 'dana'),
             } satisfies PersonalDetailsList);
             await Onyx.merge(ONYXKEYS.SESSION, {email: ALICE_EMAIL, accountID: ALICE_ACCOUNT_ID});
             await waitForBatchedUpdatesWithAct();
@@ -319,6 +328,59 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
     });
 
+    describe('when a fast edit detours through the invite flow', () => {
+        /**
+         * Seeds the state right before Save, with Dana staged for invite: she is in the draft's members and in the
+         * invite draft, but not in the workspace. Pressing Save takes the usersToInvite branch, which navigates to
+         * the invite-message page and latches the hand-off flag.
+         */
+        async function seedStagedNonMemberAndSave() {
+            await seedWorkflow({isFastEdit: true, members: [ALICE_MEMBER, DANA_MEMBER]});
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`, {[DANA_EMAIL]: DANA_ACCOUNT_ID});
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const rendered = renderExpensesFromPage();
+            await waitForBatchedUpdatesWithAct();
+            await pressSave();
+
+            // The hand-off, not a save: the invite page finishes this one.
+            expect(navigateMock).toHaveBeenCalledTimes(1);
+            expect(updateApprovalWorkflowMock).not.toHaveBeenCalled();
+            return rendered;
+        }
+
+        it('keeps both drafts for the invite page while the hand-off is genuinely in flight', async () => {
+            getActiveRouteMock.mockReturnValue(`workspaces/${POLICY_ID}/workflows/approvals/expenses-from/invite-message`);
+
+            const {unmount} = await seedStagedNonMemberAndSave();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+
+            // The invite page reads both, and it is the screen that will save the workflow.
+            const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(draft?.members.map((member) => member.email)).toEqual([ALICE_EMAIL, DANA_EMAIL]);
+            expect(draft?.isFastEdit).toBe(true);
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`)).resolves.toEqual({[DANA_EMAIL]: DANA_ACCOUNT_ID});
+        });
+
+        it('discards both drafts when the invite detour is dismissed instead of completed', async () => {
+            const {unmount} = await seedStagedNonMemberAndSave();
+
+            // Dismissing the whole RHP (close, Escape, backdrop, any dismissModal) unmounts this page with the
+            // hand-off flag still latched, and leaves no invite page behind to consume either draft.
+            getActiveRouteMock.mockReturnValue(`workspaces/${POLICY_ID}/workflows`);
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+
+            // Nothing was saved, so nothing may be left in persisted Onyx — least of all isFastEdit plus a
+            // never-invited member, which a later session would inherit.
+            await expect(getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW)).resolves.toBeUndefined();
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`)).resolves.toEqual({});
+        });
+    });
+
     it('keeps the draft when a non-fast-edit session unmounts, so the edit page can resume it', async () => {
         await seedWorkflowWithBobDeselected(false);
 
@@ -372,7 +434,7 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         expect(draft?.isFastEdit).toBe(true);
     });
 
-    it('navigates back before saving on a successful fast edit', async () => {
+    it('queues the save before navigating on a successful fast edit', async () => {
         await seedWorkflowWithBobDeselected(true);
 
         renderExpensesFromPage();
@@ -382,7 +444,30 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
 
         expect(goBackMock).toHaveBeenCalledTimes(1);
         expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
-        // The save is deferred until the transition finishes, so it must never precede the navigation.
-        expect(goBackMock.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(updateApprovalWorkflowMock.mock.invocationCallOrder.at(0) ?? 0);
+        // The write must be queued before the navigation, so it is already persisted in the request queue if the
+        // app reloads during the transition. Only the draft teardown waits for the transition.
+        expect(updateApprovalWorkflowMock.mock.invocationCallOrder.at(0) ?? 0).toBeLessThan(goBackMock.mock.invocationCallOrder.at(0) ?? 0);
+        // The save never touches APPROVAL_WORKFLOW, so it can't blank the list mid-transition.
+        const [, , , , shouldClearApprovalWorkflowDraft] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(shouldClearApprovalWorkflowDraft).toBe(false);
+    });
+
+    it('still saves a confirmed fast edit when the transition callback never runs', async () => {
+        await seedWorkflowWithBobDeselected(true);
+        // Hold everything that waits on the transition, and never flush it — the app was reloaded or closed
+        // during the ~2s window, so any in-memory callback is gone.
+        mockPredictedTransition.shouldDefer = true;
+
+        const {unmount} = renderExpensesFromPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await pressSave();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        // The save was queued up front, so the member the admin deselected is still removed.
+        expect(updateApprovalWorkflowMock).toHaveBeenCalledTimes(1);
+        const [, membersToRemove] = updateApprovalWorkflowMock.mock.calls.at(0) ?? [];
+        expect(membersToRemove?.map((member) => member.email)).toEqual([BOB_EMAIL]);
     });
 });

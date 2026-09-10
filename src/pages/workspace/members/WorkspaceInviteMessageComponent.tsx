@@ -39,7 +39,7 @@ import {
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
-import {getRemovedApprovalWorkflowMembers} from '@libs/WorkflowUtils';
+import {filterRulesForPolicy, getRemovedApprovalWorkflowMembers} from '@libs/WorkflowUtils';
 
 import variables from '@styles/variables';
 
@@ -51,10 +51,11 @@ import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
@@ -102,8 +103,12 @@ function WorkspaceInviteMessageComponent({
     // Only read when this page is finishing an approval-workflow fast edit, but useOnyx can't be conditional.
     // The draft carries `isFastEdit` and the removed-members baseline; the rules collection is what the
     // MULTIPLE_APPROVERS save path needs. See saveFastEditApprovalWorkflow below.
+    // Scope the rules to this policy the way the workflow pages do: this component also serves the generic member
+    // invite flow, and subscribing to the whole collection would rerender every one of those on any policy's rule
+    // change. updateApprovalWorkflowRules is given the same pre-filtered collection the edit page passes it.
+    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -214,34 +219,35 @@ function WorkspaceInviteMessageComponent({
 
         const workflowToSave = approvalWorkflow;
         const originalMembers = workflowToSave.originalMembers ?? [];
-        // The write is deferred past the pop transition, so a "+N more" opened in that window could seed a newer
-        // draft first. Snapshot the session and let a superseded save land without touching APPROVAL_WORKFLOW,
-        // exactly as the expenses-from page does.
+        // Queue the write before navigating. The invite itself is already queued by the time we get here, so a
+        // reload between the pop and a deferred callback would leave the member invited with no submitsTo — the
+        // exact silent no-op this save exists to prevent. Once queued, the request is persisted and survives a
+        // reload. Passing shouldClearApprovalWorkflowDraft=false keeps the save off APPROVAL_WORKFLOW entirely,
+        // so it can't blank this page's summary while it is still sliding away; the teardown below owns that.
+        if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            updateApprovalWorkflowRules({
+                approvalWorkflow: workflowToSave,
+                initialApprovalWorkflow: {...workflowToSave, members: originalMembers},
+                policy,
+                rules: rulesCollection,
+            });
+        } else {
+            updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, workflowToSave.members), [], policy, false);
+        }
+
+        // Only the draft teardown is deferred past the pop transition, so a "+N more" opened in that window could
+        // seed a newer draft first. Snapshot the session and leave a newer one alone.
         const sessionID = getApprovalWorkflowSessionID();
 
         Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
             afterTransition: () => {
-                const shouldClearDraft = getApprovalWorkflowSessionID() === sessionID;
-
-                if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-                    // The rules path never touches APPROVAL_WORKFLOW, so it is safe to run either way.
-                    updateApprovalWorkflowRules({
-                        approvalWorkflow: workflowToSave,
-                        initialApprovalWorkflow: {...workflowToSave, members: originalMembers},
-                        policy,
-                        rules: rulesCollection,
-                    });
-                } else {
-                    updateApprovalWorkflow(workflowToSave, getRemovedApprovalWorkflowMembers(originalMembers, workflowToSave.members), [], policy, shouldClearDraft);
-                }
-
-                if (!shouldClearDraft) {
+                if (getApprovalWorkflowSessionID() !== sessionID) {
                     return;
                 }
 
                 // This session owns the draft and no edit page will consume it, so tear it down here. Neither save
-                // path clears it reliably: the rules one never does, and updateApprovalWorkflow only clears once it
-                // reaches its optimistic data, which it skips when the employee diff comes out empty.
+                // path clears it: the rules one never does, and updateApprovalWorkflow is called above with its
+                // clear flag off so the write can land before the transition.
                 clearApprovalWorkflow();
             },
         });
