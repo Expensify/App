@@ -156,7 +156,7 @@ function prepareRejectMoneyRequestData({
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
-    if (!report || !transaction) {
+    if (!report || !transaction || transaction.reportID !== report.reportID) {
         return undefined;
     }
 
@@ -172,6 +172,13 @@ function prepareRejectMoneyRequestData({
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+
+    // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
+    const staleRejectErrorCleanup = {
+        errors: null,
+        errorFields: {reject: null},
+        rejectFailedFromReportID: null,
+    };
     const transactionCommentCleanup = (() => {
         if (!transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE]) {
             return undefined;
@@ -243,6 +250,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -274,6 +282,8 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
                 },
             });
 
@@ -297,6 +307,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -350,6 +361,8 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID,
+                        errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                        rejectFailedFromReportID: reportID,
                     },
                 },
             );
@@ -666,6 +679,7 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...staleRejectErrorCleanup,
                     ...(transactionCommentCleanup ?? {}),
                 },
             },
@@ -688,6 +702,7 @@ function prepareRejectMoneyRequestData({
             value: {
                 pendingAction: null,
                 errorFields: null,
+                rejectFailedFromReportID: null,
             },
         });
 
@@ -707,6 +722,8 @@ function prepareRejectMoneyRequestData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
+                errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                rejectFailedFromReportID: reportID,
             },
         });
     } else {
@@ -724,6 +741,7 @@ function prepareRejectMoneyRequestData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                ...staleRejectErrorCleanup,
                 ...(transactionCommentCleanup ?? {}),
             },
         });
@@ -741,14 +759,24 @@ function prepareRejectMoneyRequestData({
         });
 
         // Add failure data to revert report state
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: report?.stateNum,
-                statusNum: report?.statusNum,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: report?.stateNum,
+                    statusNum: report?.statusNum,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
+                },
+            },
+        );
 
         if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view
@@ -1203,5 +1231,15 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
+/**
+ * Dismiss the "this expense has already been moved" error by dropping the stale local copy of the expense.
+ *
+ * The reject failed because the server no longer has the expense on the report it was rejected from, so it should
+ * stop showing there.
+ */
+function dismissRejectExpenseError(transactionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+}
+
+export {dismissRejectExpenseError, dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
 export type {RejectMoneyRequestData};
