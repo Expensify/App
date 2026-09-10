@@ -122,12 +122,12 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
     if (!request || (event.actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE) !== CONST.ACCOUNT_ID.CONCIERGE) {
         return;
     }
-    // Ignore delayed events from a previous attempt and replayed batches. A terminal event
-    // may be the first event we receive after reconnecting, so don't require a start event.
-    if (request.streamSessionID && request.streamSessionID !== event.streamSessionID) {
+    // Allow replacement streams to start a new sequence, but ignore terminal events from old sessions.
+    // A terminal event may still be the first event we receive after reconnecting.
+    if (request.streamSessionID && request.streamSessionID !== event.streamSessionID && event.status !== 'started' && event.status !== 'updated') {
         return;
     }
-    if (event.sequence <= request.sequence || request.status === 'ready') {
+    if ((request.streamSessionID === event.streamSessionID && event.sequence <= request.sequence) || request.status === 'ready') {
         return;
     }
     request.streamSessionID = event.streamSessionID;
