@@ -3585,23 +3585,17 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('rules.codingRules', () => {
-            it('returns true when codingRules has entries', () => {
-                const policy = createMock<Policy>({
-                    rules: {
-                        codingRules: {
-                            rule1: {
-                                ruleID: 'rule1',
-                                filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                            },
-                        },
-                    },
-                });
-                expect(hasConfiguredRules(policy)).toBe(true);
+        describe('merchant rules', () => {
+            // Which rules count towards this is decided by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
+            const policy = createMock<Policy>({id: 'policy1', rules: {}});
+
+            it('returns true when the policy has a merchant rule', () => {
+                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
             });
 
-            it('returns false when codingRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {codingRules: {}}}))).toBe(false);
+            it('returns false when it has none', () => {
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
             });
         });
 
@@ -4666,39 +4660,37 @@ describe('PolicyUtils', () => {
     });
 
     describe('hasPolicyRulesError', () => {
+        // Whether a merchant rule failed is reduced by the caller's selector and covered in
+        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
+        const POLICY_ID = 'policy-with-rules';
+
         it('returns false for an undefined policy', () => {
             expect(hasPolicyRulesError(undefined)).toBe(false);
         });
 
-        it('returns false when no coding or agent rules exist', () => {
-            const policy: Policy = {...createRandomPolicy(0), rules: {}};
+        it('returns false when no merchant or agent rules exist', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
             expect(hasPolicyRulesError(policy)).toBe(false);
         });
 
-        it('returns false when rules exist but none have errors', () => {
+        it('returns false when agent rules exist but none have errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}}},
-                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}},
-                },
+                id: POLICY_ID,
+                rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
             };
             expect(hasPolicyRulesError(policy)).toBe(false);
         });
 
-        it('returns true when a coding rule has errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                rules: {
-                    codingRules: {rule1: {ruleID: 'rule1', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, errors: {123: 'boom'}}},
-                },
-            };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+        it('returns true when a merchant rule has errors', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+            expect(hasPolicyRulesError(policy, true)).toBe(true);
         });
 
         it('returns true when an agent rule has errors', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
+                id: POLICY_ID,
                 rules: {
                     agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },

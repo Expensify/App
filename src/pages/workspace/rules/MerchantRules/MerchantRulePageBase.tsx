@@ -24,12 +24,13 @@ import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deletePolicyCategoryTax, movePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
-import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
+import {deleteMerchantRule, setMerchantRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -51,7 +52,6 @@ import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
-import type {CodingRule} from '@src/types/onyx/Policy';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -178,8 +178,9 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     // the workspace has no accounting connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Get the existing rule from the policy (for edit mode)
-    const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    // Get the existing rule from the rules collection (for edit mode)
+    const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
     const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
 
     // Initialize the form with existing rule data (for edit mode)
@@ -194,27 +195,15 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             return;
         }
 
-        if (!isEditing || !existingRule) {
-            return;
+        if (isEditing) {
+            // An undefined result means the rule uses parts of the format this form can't show. Saving it back would
+            // drop them, so the editor stays empty and the rules list keeps such rules read-only.
+            const formValues = getMerchantRuleFormValues(existingRule);
+            if (!formValues) {
+                return;
+            }
+            setDraftMerchantRule(formValues);
         }
-
-        // Convert the operator to matchType for the form
-        // 'eq' = exact match, 'contains' = contains match
-        const matchType = existingRule.filters?.operator;
-        // Convert HTML comment back to markdown for editing
-        const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
-        setDraftMerchantRule({
-            merchantToMatch: existingRule.filters?.right,
-            matchType,
-            merchant: existingRule.merchant,
-            category: existingRule.category,
-            tag: existingRule.tag,
-            tax: existingRule.tax?.field_id_TAX?.externalID,
-            vendorID: existingRule.vendorID,
-            comment: commentMarkdown,
-            reimbursable: existingRule.reimbursable,
-            billable: existingRule.billable,
-        });
     }, [isEditing, existingRule, isEditingCategoryTaxRule, editCategoryTaxRuleFor, existingCategoryTaxID]);
 
     // Clear the form on unmount
@@ -317,29 +306,27 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
      * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
      * When editing, we exclude the current rule from the comparison.
      */
-    const checkForDuplicateRule = (codingRules: Record<string, CodingRule> | undefined, merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
-        if (!codingRules || !merchantToMatch) {
+    const checkForDuplicateRule = (merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
+        if (!merchantToMatch) {
             return false;
         }
 
         const normalizedMerchant = merchantToMatch.toLowerCase();
         const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-        const defaultMatchType = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
-        return Object.entries(codingRules).some(([existingRuleID, rule]) => {
+        return getPolicyExpenseDefaultRules(rules, policyID).some(({ruleID: existingRuleID, rule}) => {
             // Skip the rule being edited
             if (isEditing && existingRuleID === ruleID) {
                 return false;
             }
 
-            if (!rule?.filters?.right) {
+            // A rule this form can't represent can't be a duplicate of what this form is about to save.
+            const existingFormValues = getMerchantRuleFormValues(rule);
+            if (!existingFormValues) {
                 return false;
             }
 
-            const existingMerchant = rule.filters.right.toLowerCase();
-            const existingMatchType = rule.filters.operator ?? defaultMatchType;
-
-            if (existingMerchant !== normalizedMerchant || existingMatchType !== currentMatchType) {
+            if (existingFormValues.merchantToMatch.toLowerCase() !== normalizedMerchant || existingFormValues.matchType !== currentMatchType) {
                 return false;
             }
 
@@ -392,7 +379,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             return;
         }
 
-        setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
+        setMerchantRule(policyID, form, policy, ruleID, existingRule, shouldUpdateMatchingTransactions);
         if (!isEditing && isRulesRevampEnabled) {
             goBackToExpenseDefaults();
         } else {
@@ -420,7 +407,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         }
 
         // Check for duplicate rules
-        const hasDuplicate = checkForDuplicateRule(policy?.rules?.codingRules, form.merchantToMatch, form.matchType);
+        const hasDuplicate = checkForDuplicateRule(form.merchantToMatch, form.matchType);
         if (hasDuplicate) {
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
@@ -447,7 +434,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         if (editCategoryTaxRuleFor) {
             deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
         } else if (ruleID) {
-            deletePolicyCodingRule(policy, ruleID);
+            deleteMerchantRule(policy.id, ruleID, existingRule);
         }
         return true;
     };
@@ -586,6 +573,12 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     };
 
     if (ruleID && !existingRule && !isClosing) {
+        return <NotFoundPage />;
+    }
+
+    // The rules collection is shared across workspaces and rule kinds, so a stale link can resolve a ruleID that
+    // this editor must not write to. Saving would replace it with a merchant rule and drop whatever it holds.
+    if (ruleID && !!existingRule && !isClosing && !canEditMerchantRule(existingRule, policyID)) {
         return <NotFoundPage />;
     }
 

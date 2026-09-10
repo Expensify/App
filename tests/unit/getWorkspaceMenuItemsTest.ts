@@ -265,30 +265,34 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('shows an error indicator when rules have errors', () => {
-        const policy = createMock<Policy>({
-            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
-            areRulesEnabled: true,
-            rules: {
-                codingRules: {
-                    rule: {
-                        ruleID: 'rule',
-                        filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
-                        errors: {error: 'Whoops'},
-                    },
-                },
-            },
-        });
+    it('shows an error indicator when a merchant rule failed to save', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
 
         const items = getWorkspaceMenuItems({
             policy,
             policyID: policy.id,
             currentUserLogin,
             icons,
+            hasMerchantRuleErrors: true,
             convertToDisplayString: () => '',
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows no error indicator when no merchant rule failed', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            hasMerchantRuleErrors: false,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBeUndefined();
     });
 
     it('shows an information indicator when Merge HR setup is incomplete', () => {

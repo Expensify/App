@@ -297,11 +297,10 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Check if the policy has any errors within the rules.
  */
-function hasPolicyRulesError(policy: OnyxEntry<Policy>): boolean {
-    const codingRules = Object.values(policy?.rules?.codingRules ?? {});
+function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors = false): boolean {
     const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
-    return codingRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0) || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
+    return hasMerchantRuleErrors || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
 }
 
 /**
@@ -1182,26 +1181,26 @@ function isMaxExpenseAmountSet(value: number | undefined): value is number {
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, hasExpenseDefaultRules = false): boolean {
     if (!policy) {
         return false;
+    }
+
+    if (hasExpenseDefaultRules) {
+        return true;
     }
 
     if (!!policy.customRules && policy.customRules.trim().length > 0) {
         return true;
     }
 
-    const {rules} = policy;
-    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+    const {rules: policyRules} = policy;
+    if (!!policyRules?.approvalRules && policyRules.approvalRules.length > 0) {
         return true;
     }
-    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+    if (!!policyRules?.expenseRules && policyRules.expenseRules.length > 0) {
         return true;
     }
-    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
-        return true;
-    }
-
     if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
         return true;
     }

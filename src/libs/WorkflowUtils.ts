@@ -7,20 +7,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {
-    ApprovalWorkflowAction,
-    ApprovalWorkflowActions,
-    ApprovalWorkflowFilter,
-    ApprovalWorkflowFilterComparison,
-    ApprovalWorkflowRule,
-    ApprovalWorkflowTriggers,
-} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilter, RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -745,23 +739,19 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
 
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
-function buildComparison(
-    left: ApprovalWorkflowFilterComparison['left'],
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
-    right: ApprovalWorkflowFilterComparison['right'],
-): ApprovalWorkflowFilterComparison {
+function buildComparison(left: RuleFilterComparison['left'], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: RuleFilterComparison['right']): RuleFilterComparison {
     return {operator, left, right};
 }
 
-function buildAnd(left: ApprovalWorkflowFilter['left'], right: ApprovalWorkflowFilter['right']): ApprovalWorkflowFilter {
+function buildAnd(left: RuleFilter['left'], right: RuleFilter['right']): RuleFilter {
     return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right};
 }
 
-function buildSubmitterFilter(memberEmails: string[]): ApprovalWorkflowFilterComparison {
+function buildSubmitterFilter(memberEmails: string[]): RuleFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, [...memberEmails]);
 }
 
-function buildToComparison(email: string): ApprovalWorkflowFilterComparison {
+function buildToComparison(email: string): RuleFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
@@ -903,17 +893,17 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
  * Both look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a field
  * name, an `AND` points at another node.
  */
-function isComparisonLeaf(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): node is ApprovalWorkflowFilterComparison {
+function isComparisonLeaf(node: RuleFilterNode | undefined): node is RuleFilterComparison {
     return !!node && typeof node.left === 'string';
 }
 
 /** True when a comparison node targets the `from` field with an equality operator. */
-function isSubmitterFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): boolean {
+function isSubmitterFilter(node: RuleFilterNode): boolean {
     return isComparisonLeaf(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
 /** Return the first comparison leaf in the filter tree whose `left` field matches. */
-function getFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined, leftKey: string): ApprovalWorkflowFilterComparison | undefined {
+function getFilter(node: RuleFilterNode | undefined, leftKey: string): RuleFilterComparison | undefined {
     if (!node) {
         return undefined;
     }
@@ -924,10 +914,7 @@ function getFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparis
 }
 
 /** Rebuild a filter tree, replacing every comparison leaf with the result of `mapLeaf`. */
-function mapFilters(
-    node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison,
-    mapLeaf: (leaf: ApprovalWorkflowFilterComparison) => ApprovalWorkflowFilterComparison,
-): ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison {
+function mapFilters(node: RuleFilterNode, mapLeaf: (leaf: RuleFilterComparison) => RuleFilterComparison): RuleFilterNode {
     if (isComparisonLeaf(node)) {
         return mapLeaf(node);
     }
@@ -974,7 +961,7 @@ function sortObjectKeysDeep(value: unknown): unknown {
  * which is what we look for when deciding whether to merge two workflows into a shared rule.
  */
 function getRuleShape(rule: ApprovalWorkflowRule): string {
-    const stripFromValues = (node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison | undefined): unknown => {
+    const stripFromValues = (node: RuleFilterNode | undefined): unknown => {
         if (!node) {
             return node;
         }
@@ -1466,6 +1453,20 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
 }
 
 /**
+ * The `rules_` collection holds every kind of rule (approval workflows, expense defaults, ...), so anything
+ * reading it has to narrow to the kind it handles. An approval workflow rule is one that fires on a report event.
+ */
+function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
+    const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
+    const triggers = Object.values(rule.triggers ?? {});
+
+    // Every trigger has to be a report event, not just one of them. A rule that also fires on transaction
+    // creation is an expense default and is listed as one, so treating it as a workflow here would delete it
+    // along with the workflows when approvals are turned off.
+    return triggers.length > 0 && triggers.every((trigger) => approvalWorkflowTriggers.includes(trigger));
+}
+
+/**
  * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
  * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
  */
@@ -1473,7 +1474,7 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
     const result: Record<string, ApprovalWorkflowRule> = {};
 
     for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
-        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isApprovalWorkflowRule(rule)) {
             continue;
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
@@ -1735,6 +1736,7 @@ export {
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
+    isApprovalWorkflowRule,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,
@@ -1744,6 +1746,7 @@ export {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
+    toIndexMap,
     updateWorkflowDataOnApproverRemoval,
 };
 export type {ApprovalWorkflowRulesDiff};
