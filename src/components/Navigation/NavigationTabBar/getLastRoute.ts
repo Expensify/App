@@ -17,7 +17,7 @@ function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVI
                 return false;
             }
             const tabState = getTabState(route);
-            return tabState?.routes.find((tabRoute) => tabRoute.state && tabRoute.name === navigator);
+            return tabState?.routes?.find((tabRoute) => tabRoute.state && tabRoute.name === navigator);
         });
         if (!rootTabRoute) {
             rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
