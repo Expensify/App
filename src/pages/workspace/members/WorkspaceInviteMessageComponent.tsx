@@ -31,7 +31,6 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
-    hasDynamicExternalWorkflow,
     isControlPolicy,
     isSubmitPolicy,
     shouldHideDynamicExternalWorkflowPeople,
