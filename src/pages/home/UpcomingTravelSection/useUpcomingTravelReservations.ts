@@ -5,6 +5,9 @@ import {getReservationsFromTripReport} from '@libs/TripReservationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {accountIDSelector} from '@selectors/Session';
 import {useMemo} from 'react';
@@ -15,9 +18,13 @@ type UpcomingReservation = ReservationData & {
     reportID: string;
 };
 
+function tripDataSelector(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<Pick<ReportNameValuePairs, 'tripData'>> {
+    return Object.fromEntries(Object.entries(reportNameValuePairs ?? {}).map(([key, value]) => [key, {tripData: value?.tripData}]));
+}
+
 function useUpcomingTravelReservations(): UpcomingReservation[] {
     const tripRoomReports = useTripRoomReports();
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [tripDataByReportNameValuePairsKey] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: tripDataSelector});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     return useMemo(() => {
@@ -32,7 +39,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
             if (report.ownerAccountID !== accountID) {
                 continue;
             }
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+            const reportNameValuePairs = tripDataByReportNameValuePairsKey?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reservations = getReservationsFromTripReport(report, reportNameValuePairs);
             for (const resData of reservations) {
                 const startDate = new Date(resData.reservation.start.date);
@@ -46,7 +53,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         }
 
         return upcoming.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
-    }, [tripRoomReports, accountID, allReportNameValuePairs]);
+    }, [tripRoomReports, accountID, tripDataByReportNameValuePairsKey]);
 }
 
 export default useUpcomingTravelReservations;
