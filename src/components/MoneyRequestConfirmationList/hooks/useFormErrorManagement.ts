@@ -1,6 +1,7 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
+import {isConfirmationAmountMissing, isConfirmationDateMissing} from '@libs/MoneyRequestUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
@@ -42,7 +43,6 @@ type UseFormErrorManagementParams = {
     /** Policy categories, used for category validation */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
@@ -72,11 +72,14 @@ type UseFormErrorManagementParams = {
     /** Whether splits are rendered read-only (suppresses some field errors) */
     shouldShowReadOnlySplits: boolean;
 
-    /** Whether the new manual expense flow is enabled (amount/date errors surface inline) */
-    isNewManualExpenseFlowEnabled: boolean;
-
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
+
+    /** Whether the date field is rendered (a hidden date can't be missing, so it never keeps the required error alive) */
+    shouldShowDate: boolean;
+
+    /** Whether the confirmation is read-only (a read-only date is populated server-side, so it can't be missing) */
+    isReadOnly: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -141,8 +144,9 @@ function useFormErrorManagement({
     routeError,
     isTypeSplit,
     shouldShowReadOnlySplits,
-    isNewManualExpenseFlowEnabled,
     isDistanceRequest,
+    shouldShowDate,
+    isReadOnly,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -209,6 +213,17 @@ function useFormErrorManagement({
         setFormError('');
     }, [isMerchantFieldValid, setFormError]);
 
+    // These reuse the very predicates `useConfirmationValidation` raises `common.error.fieldRequired` from, so the
+    // clear side can never drift from the validation side and strand a required error that can no longer be cleared (#96568).
+    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction);
+    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly);
+    useEffect(() => {
+        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing) {
+            return;
+        }
+        setFormError('');
+    }, [isAmountRequiredMissing, isDateRequiredMissing, setFormError]);
+
     useEffect(() => {
         const currentFormError = formErrorRef.current;
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -234,12 +249,27 @@ function useFormErrorManagement({
         }
     }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, setFormError]);
 
+    // The amount/date/merchant fields surface these required/invalid errors inline, so repeating them at the bottom of
+    // the form would show "This field is required" twice.
+    // `common.error.invalidAmount` is the one exception: it is only surfaced inline while the editable amount input is
+    // rendered. Distance requests disable that input, and the read-only menu row it falls back to doesn't show the error,
+    // so the distance-amount error stays in the footer. Otherwise an invalid distance expense would fail silently.
+    const isSuppressedInline = (error: TranslationPaths | ''): boolean =>
+        error === 'common.error.fieldRequired' || error === 'iou.error.invalidMerchant' || (!isDistanceRequest && error === 'common.error.invalidAmount');
+
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
             return routeError;
         }
+        // This runs ahead of the split branch below because splits render those same inline fields, so they duplicate the same way.
+        if (isSuppressedInline(formError)) {
+            return undefined;
+        }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
-            return debouncedFormError ? translate(debouncedFormError) : undefined;
+            // Splits render the debounced value, so the suppression has to be re-checked against it. `formError` clears
+            // the instant the user fixes the field while `debouncedFormError` lags by USE_DEBOUNCED_STATE_DELAY, and
+            // without this the suppressed error would pop into the footer for that window (#96565).
+            return debouncedFormError && !isSuppressedInline(debouncedFormError) ? translate(debouncedFormError) : undefined;
         }
         // Don't show error at the bottom of the form for missing attendees — the field surfaces it inline.
         if (formError === 'violations.missingAttendees') {
@@ -247,17 +277,6 @@ function useFormErrorManagement({
         }
         // The tax amount error is a parameterized message surfaced inline on the tax amount field, so skip it here.
         if (formError === 'iou.error.invalidTaxAmount') {
-            return undefined;
-        }
-        // In the new manual expense flow the amount/date/merchant fields surface these required/invalid errors inline, so
-        // don't repeat them at the bottom of the form (which would show "This field is required" twice).
-        if (isNewManualExpenseFlowEnabled && (formError === 'common.error.fieldRequired' || formError === 'iou.error.invalidMerchant')) {
-            return undefined;
-        }
-        // `common.error.invalidAmount` is only surfaced inline when the editable amount input is rendered. Distance requests
-        // disable that input (the amount falls back to a read-only menu row that doesn't show this error), so keep the
-        // distance-amount validation error in the footer — otherwise an invalid distance expense would fail silently.
-        if (isNewManualExpenseFlowEnabled && !isDistanceRequest && formError === 'common.error.invalidAmount') {
             return undefined;
         }
         return formError ? translate(formError) : undefined;

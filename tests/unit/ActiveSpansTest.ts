@@ -2,6 +2,11 @@ import {endSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
+jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    isBenchmarkSpanEnabled: () => false,
+}));
 jest.mock('@sentry/react-native', () => ({
     startInactiveSpan: () => ({
         setAttribute: jest.fn(),
@@ -32,7 +37,6 @@ describe('activeSpans', () => {
 
         expect(consoleDebugSpy).toHaveBeenLastCalledWith(expect.stringContaining('Ending span (750ms)'), expect.objectContaining({durationMs: 750, timestamp: 1_786_362_201_750}));
     });
-
     describe('getSpanByPrefix', () => {
         const prefix = CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY;
 
