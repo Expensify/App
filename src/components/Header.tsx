@@ -17,16 +17,12 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type HeaderProps = {
-    /** Title of the Header */
     title?: ReactNode;
-
-    /** Subtitle of the header */
     subtitle?: ReactNode;
 
     /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge?: boolean;
 
-    /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
     /** Additional header styles */

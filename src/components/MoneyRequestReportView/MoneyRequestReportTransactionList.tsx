@@ -188,7 +188,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */

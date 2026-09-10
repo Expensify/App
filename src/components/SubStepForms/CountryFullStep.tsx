@@ -35,19 +35,13 @@ import {View} from 'react-native';
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 type CountryFullStepProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** Array of step names */
     stepNames: readonly string[];
 
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** ID of current policy */
     policyID: string | undefined;
-
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 };
 
