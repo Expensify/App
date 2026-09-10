@@ -103,7 +103,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
             {isPersonalDetailsEmpty ? (
-                <AccountSwitcherSkeletonView avatarSize={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT} />
+                <AccountSwitcherSkeletonView
+                    avatarSize={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
+                    shouldStack={shouldUseNarrowLayout}
+                />
             ) : (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />

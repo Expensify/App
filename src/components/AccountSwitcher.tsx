@@ -260,8 +260,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
-    // On mobile the account header stacks vertically and centers, mirroring a user's Details view.
     const displayNameStyle = shouldUseNarrowLayout ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
+    const avatarSize = shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <>
@@ -280,7 +280,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }
                 >
                     <UserAvatar
-                        size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
+                        // The underlying Image is memoized on `source` alone, so a size-only change never reaches it. Remount just this avatar when the breakpoint changes.
+                        key={avatarSize}
+                        size={avatarSize}
                         accountID={currentUserPersonalDetails.accountID}
                         source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
