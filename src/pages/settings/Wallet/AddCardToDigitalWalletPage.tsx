@@ -129,6 +129,7 @@ function AddCardToDigitalWalletPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
                 testID={AddCardToDigitalWalletPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
                 <ConfirmationPage
@@ -149,6 +150,7 @@ function AddCardToDigitalWalletPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={AddCardToDigitalWalletPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
             <ScrollView
