@@ -1,7 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -90,12 +90,15 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
-                description={translate('workspace.accounting.exportAs')}
-                helperText={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`)}
-                shouldParseHelperText
-                shouldShowRightIcon={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
+            />
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`)}
+                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             {sections.map((section) => (
                 <OfflineWithFeedback
