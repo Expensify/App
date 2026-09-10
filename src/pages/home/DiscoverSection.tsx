@@ -91,7 +91,7 @@ function DiscoverSection() {
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
-                wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                wrapperStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
                 hasSubMenuItems
                 viewMode={CONST.OPTION_MODE.COMPACT}

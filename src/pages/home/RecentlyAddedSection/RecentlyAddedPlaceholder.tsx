@@ -118,7 +118,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
     return (
         <View
             testID="recentlyAddedSkeleton"
-            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+            style={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
         >
             {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the svg. */}
             <View

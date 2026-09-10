@@ -127,7 +127,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
                     />
                 </View>
             }
-            wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+            wrapperStyle={[styles.alignItemsCenter, styles.cardPaddingHorizontal(shouldUseNarrowLayout)]}
             hasSubMenuItems
             viewMode={CONST.OPTION_MODE.COMPACT}
             rightIconWrapperStyle={styles.pl2}

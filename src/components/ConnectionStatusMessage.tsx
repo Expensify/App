@@ -44,7 +44,7 @@ function ConnectionStatusMessage({
 
     let statusMessageRowPadding;
     if (shouldIncludeHorizontalPadding) {
-        statusMessageRowPadding = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;
+        statusMessageRowPadding = styles.cardPaddingHorizontal(shouldUseNarrowLayout);
     }
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';

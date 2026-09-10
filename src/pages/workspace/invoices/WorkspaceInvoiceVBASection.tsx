@@ -285,8 +285,8 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
-                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                style={[styles.mt5, styles.cardEdgeToEdge(shouldUseNarrowLayout)]}
+                listItemStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
         </Section>

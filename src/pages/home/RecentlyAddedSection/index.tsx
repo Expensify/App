@@ -137,7 +137,7 @@ function RecentlyAddedSection() {
                         onPress={() => openExpense(expense)}
                         shouldShowSeparator={index < transactions.length - 1}
                         shouldShowReceiptPreview={isFocused}
-                        rowStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        rowStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                     />
                 ))
             ) : (

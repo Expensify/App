@@ -134,8 +134,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     <PaymentMethodList
                         onPress={handleItemPress}
                         onAddBankAccountPress={handleAddBankAccountPress}
-                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        style={[styles.mt5, styles.cardEdgeToEdge(shouldUseNarrowLayout)]}
+                        listItemStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                         itemIconRight={icons.ArrowRight}
                         filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                         filterCurrency={policyCurrency}

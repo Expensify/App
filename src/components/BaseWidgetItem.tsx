@@ -49,7 +49,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, styles.cardPaddingHorizontal(shouldUseNarrowLayout), hovered && styles.hoveredComponentBG]}>
                     <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={icon}

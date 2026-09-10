@@ -703,8 +703,8 @@ function WalletPage() {
                                 onPress={onBankAccountRowPressed}
                                 onAddBankAccountPress={addBankAccountPressed}
                                 onThreeDotsMenuPress={paymentMethodPressed}
-                                style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                style={[styles.mt5, styles.cardEdgeToEdge(shouldUseNarrowLayout)]}
+                                listItemStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
                                 threeDotsMenuItems={threeDotMenuItems}
@@ -724,39 +724,39 @@ function WalletPage() {
                                     shouldShowAssignedCards
                                     onPress={assignedCardPressed}
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
-                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    style={[styles.mt5, styles.cardEdgeToEdge(shouldUseNarrowLayout)]}
+                                    listItemStyle={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                                     shouldShowConnectionStatus
                                 />
-                                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                                <View style={styles.cardEdgeToEdge(shouldUseNarrowLayout)}>
                                     <MenuItem
                                         onPress={onAddPersonalCardPress}
                                         title={translate('personalCard.addPersonalCard')}
                                         icon={icons.Plus}
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        wrapperStyle={[styles.paymentMethod, styles.cardPaddingHorizontal(shouldUseNarrowLayout)]}
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
                                     />
                                 </View>
                             </>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                            <View style={styles.cardEdgeToEdge(shouldUseNarrowLayout)}>
                                 <MenuItem
                                     title={translate('workspace.companyCards.importTransactions.importButton')}
                                     icon={icons.Table}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    wrapperStyle={[styles.paymentMethod, styles.cardPaddingHorizontal(shouldUseNarrowLayout)]}
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
                                 />
                             </View>
                             {!hasAssignedCard && (
-                                <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                <View style={styles.cardEdgeToEdge(shouldUseNarrowLayout)}>
                                     <MenuItem
                                         iconHeight={40}
                                         iconWidth={40}
                                         shouldShowRightIcon
                                         icon={illustrations.VerticalCreditCards}
                                         displayInDefaultIconColor
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        wrapperStyle={[styles.paymentMethod, styles.cardPaddingHorizontal(shouldUseNarrowLayout)]}
                                         title={translate('personalCard.lookingForCompanyCards')}
                                         description={translate('personalCard.lookingForCompanyCardsDescription')}
                                         titleStyle={styles.textStrong}
@@ -832,8 +832,8 @@ function WalletPage() {
                                                         shouldShowRightIcon
                                                         wrapperStyle={[
                                                             styles.transferBalance,
-                                                            shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                            shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
+                                                            styles.cardEdgeToEdge(shouldUseNarrowLayout),
+                                                            styles.cardPaddingHorizontal(shouldUseNarrowLayout),
                                                         ]}
                                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
                                                     />
@@ -883,11 +883,7 @@ function WalletPage() {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
                                                     }}
-                                                    wrapperStyle={[
-                                                        styles.transferBalance,
-                                                        shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                    ]}
+                                                    wrapperStyle={[styles.transferBalance, styles.cardEdgeToEdge(shouldUseNarrowLayout), styles.cardPaddingHorizontal(shouldUseNarrowLayout)]}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
                                                 />
                                             );

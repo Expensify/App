@@ -127,7 +127,7 @@ function WorkspaceReportFieldsPage({
                             isCentralPane
                             renderTitle={renderReportTitle}
                             renderSubtitle={renderReportSubtitle}
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            containerStyles={styles.cardPadding(shouldUseNarrowLayout)}
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}

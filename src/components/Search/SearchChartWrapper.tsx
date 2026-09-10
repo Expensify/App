@@ -19,7 +19,7 @@ function SearchChartWrapper({children, title, groupBy}: {children: React.ReactNo
     const titleIcon = icons[titleIconName];
 
     return (
-        <View style={[styles.chartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
+        <View style={[styles.chartContainer, styles.highlightBG, styles.cardPadding(shouldUseNarrowLayout)]}>
             <ChartHeader
                 title={title}
                 titleIcon={titleIcon}

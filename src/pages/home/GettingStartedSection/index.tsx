@@ -65,7 +65,7 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
+            <View style={[styles.cardPaddingHorizontal(shouldUseNarrowLayout), shouldUseNarrowLayout ? styles.pb5 : styles.pb8]}>
                 <PressableWithoutFeedback
                     onPress={openAdminsRoom}
                     accessibilityLabel={footerHelpText}

@@ -162,7 +162,7 @@ function WorkspaceFieldsSection({
         ({item}: ListRenderItemInfo<FieldListItem>) => (
             <OfflineWithFeedback pendingAction={item.pendingAction}>
                 <MenuItem
-                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                    style={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                     onPress={() => navigateToFieldSettings(item)}
                     description={item.text}
                     disabled={item.isDisabled}
@@ -173,7 +173,7 @@ function WorkspaceFieldsSection({
                 />
             </OfflineWithFeedback>
         ),
-        [canWrite, navigateToFieldSettings, shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong],
+        [canWrite, navigateToFieldSettings, shouldUseNarrowLayout, styles],
     );
 
     const headerText =
@@ -213,7 +213,7 @@ function WorkspaceFieldsSection({
     return (
         <Section
             isCentralPane
-            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+            containerStyles={styles.cardPadding(shouldUseNarrowLayout)}
         >
             <ToggleSettingOptionRow
                 pendingAction={pendingAction}
@@ -254,7 +254,7 @@ function WorkspaceFieldsSection({
                 subMenuItems={
                     isEnabled && (
                         <>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
+                            <View style={[styles.cardEdgeToEdge(shouldUseNarrowLayout), styles.mt6]}>
                                 {!isLoading && (
                                     <FlashList
                                         data={fields}

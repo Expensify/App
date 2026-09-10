@@ -110,7 +110,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                    <View style={[styles.mt4, styles.cardEdgeToEdge(shouldUseNarrowLayout)]}>
                         <MenuItemNavigation
                             title={translate('bankAccount.connectOnlineWithPlaid')}
                             icon={expensifyIcons.Bank}

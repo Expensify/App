@@ -88,7 +88,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
-                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                <View style={styles.cardEdgeToEdge(shouldUseNarrowLayout)}>
                     <MenuItemNavigation
                         icon={icons.ChatBubble}
                         title={translate('workspace.bankAccount.finishInChat')}

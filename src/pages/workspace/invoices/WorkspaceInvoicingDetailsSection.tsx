@@ -27,7 +27,7 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const horizontalPadding = useMemo(() => (shouldUseNarrowLayout ? styles.ph5 : styles.ph8), [shouldUseNarrowLayout, styles]);
+    const horizontalPadding = useMemo(() => styles.cardPaddingHorizontal(shouldUseNarrowLayout), [shouldUseNarrowLayout, styles]);
 
     return (
         <Section

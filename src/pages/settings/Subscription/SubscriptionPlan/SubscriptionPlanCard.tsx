@@ -115,12 +115,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             {!privateSubscription ? (
-                <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                <View style={[styles.cardPadding(shouldUseNarrowLayout), !shouldUseNarrowLayout && styles.pb6]}>
                     <ActivityIndicator />
                 </View>
             ) : (
                 <>
-                    <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                    <View style={[styles.cardPadding(shouldUseNarrowLayout), !shouldUseNarrowLayout && styles.pb6]}>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <Icon
                                 src={src}
@@ -154,7 +154,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                             subscriptionPlan={subscriptionPlan}
                             isFromComparisonModal={isFromComparisonModal}
                             isSelected={isSelected}
-                            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                            style={styles.cardPaddingHorizontal(shouldUseNarrowLayout)}
                             closeComparisonModal={closeComparisonModal}
                         />
                     </View>

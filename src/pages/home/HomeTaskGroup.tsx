@@ -49,7 +49,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
 
     return (
         <>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
+            <View style={[styles.cardPaddingHorizontal(shouldUseNarrowLayout), reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
                 <Text style={styles.textLabelSupporting}>{title}</Text>
             </View>
             {rows.length > 0 && (
