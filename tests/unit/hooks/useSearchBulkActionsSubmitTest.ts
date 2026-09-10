@@ -363,7 +363,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
             expect.objectContaining({
                 title: 'iou.error.reportsNotSubmittedTitle',
                 subtitle: 'iou.error.reportsNotSubmittedDescription',
-                prompt: 'Report A & travel',
+                prompt: `${CONST.DOT_SEPARATOR} Report A & travel`,
                 confirmText: 'common.buttonConfirm',
                 shouldShowCancelButton: false,
             }),
@@ -383,7 +383,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         });
         expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A & travel', 'Report B']);
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
     });
 
     it('lists every selected report, submits nothing and keeps the selection when all of them are blocked', async () => {
@@ -395,7 +395,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle'}));
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual(['Report A & travel', 'Report B']);
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
@@ -407,7 +407,7 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         await triggerBulkSubmit();
 
         expect(mockOpenSearchReportSubmitToPopover).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle', prompt: 'Report D'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle', prompt: `${CONST.DOT_SEPARATOR} Report D`}));
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
     });
 
