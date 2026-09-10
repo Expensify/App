@@ -44,6 +44,11 @@ const LIST_CONTENT_SIZE = {
     height: 600,
 };
 const LIST_END_OFFSET = LIST_CONTENT_SIZE.height - LIST_SIZE.height;
+const PAGINATED_LIST_CONTENT_SIZE = {
+    ...LIST_CONTENT_SIZE,
+    height: LIST_CONTENT_SIZE.height * 2,
+};
+const PAGINATED_LIST_END_OFFSET = PAGINATED_LIST_CONTENT_SIZE.height - LIST_SIZE.height;
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
 const REPORT_ID = '1';
@@ -59,14 +64,14 @@ function getReportScreen(reportID = REPORT_ID) {
     return screen.getByTestId(`report-screen-${reportID}`);
 }
 
-function scrollToOffset(offset: number) {
+function scrollToOffset(offset: number, contentSize = LIST_CONTENT_SIZE) {
     const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
                 y: offset,
             },
-            contentSize: LIST_CONTENT_SIZE,
+            contentSize,
             layoutMeasurement: LIST_SIZE,
         },
     });
@@ -394,9 +399,9 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
 
         // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
-        scrollToOffset(0);
+        scrollToOffset(0, PAGINATED_LIST_CONTENT_SIZE);
         await waitForBatchedUpdatesWithAct();
-        scrollToOffset(LIST_END_OFFSET);
+        scrollToOffset(PAGINATED_LIST_END_OFFSET, PAGINATED_LIST_CONTENT_SIZE);
         await waitForBatchedUpdatesWithAct();
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
@@ -406,9 +411,9 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
-        scrollToOffset(0);
+        scrollToOffset(0, PAGINATED_LIST_CONTENT_SIZE);
         await waitForBatchedUpdatesWithAct();
-        scrollToOffset(LIST_END_OFFSET);
+        scrollToOffset(PAGINATED_LIST_END_OFFSET, PAGINATED_LIST_CONTENT_SIZE);
         await waitForBatchedUpdatesWithAct();
 
         // When there are no newer actions, we don't want to trigger GetNewerActions again.
