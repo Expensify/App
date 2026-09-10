@@ -7259,6 +7259,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
+              const policy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
               return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, policy, rules);
           })
         : selectedTransactionsKeys.every((id) => {
@@ -7273,6 +7274,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
+              const policy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, policy, rules);
           });
 }
