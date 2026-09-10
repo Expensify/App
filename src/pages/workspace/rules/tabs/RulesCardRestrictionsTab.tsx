@@ -109,7 +109,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         headerContentStyles: shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration,
         title: translate('workspace.rules.spendRules.cardRulesUpsell.title'),
         subtitle: translate('workspace.rules.spendRules.cardRulesUpsell.subtitle'),
-        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        subtitleStyles: [styles.textSupporting],
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {

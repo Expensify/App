@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -76,7 +77,6 @@ type SearchAutocompleteListProps = {
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
 
-    /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
@@ -91,7 +91,6 @@ type SearchAutocompleteListProps = {
 
     /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
     autocompleteSubstitutions?: SubstitutionMap;
-    /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 
@@ -148,7 +147,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     return (
         <BareUserListItem
             item={item}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
@@ -181,6 +179,7 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -204,6 +203,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -256,6 +256,7 @@ function SearchAutocompleteList({
         }
         return getSearchOptions({
             dateFnsLocale,
+            convertToDisplayString,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -279,6 +280,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
     }, [
         listOptions,
@@ -297,6 +299,8 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         dateFnsLocale,
+        convertToDisplayString,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -791,7 +795,9 @@ function SearchAutocompleteList({
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}

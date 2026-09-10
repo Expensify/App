@@ -1,12 +1,11 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import Navigation from '@libs/Navigation/Navigation';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isCommuterExclusionEnabled, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type Policy from '@src/types/onyx/Policy';
 import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
@@ -33,6 +32,9 @@ type UseBlockDistanceRequestParams = {
 
     /** Whether the current flow is for any distance request */
     isDistanceRequest?: boolean;
+
+    /** Whether an existing distance request is being edited */
+    isEditingExistingDistanceRequest?: boolean;
 };
 
 type PolicyRequiringMapOrGPS = {
@@ -70,7 +72,13 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
  * When a block occurs, it surfaces the relevant modal and returns true so callers
  * can early return.
  */
-function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false, isDistanceRequest = false}: UseBlockDistanceRequestParams) {
+function useBlockDistanceRequest({
+    policyID,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
+    isDistanceRequest = false,
+    isEditingExistingDistanceRequest = false,
+}: UseBlockDistanceRequestParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -80,7 +88,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
 
     const getBlockReason = useCallback(
         (policyIDToCheck: string | undefined): BlockDistanceRequestReason | undefined => {
-            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck]) {
+            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck] || isEditingExistingDistanceRequest) {
                 return;
             }
 
@@ -92,7 +100,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
                 return 'homeAddressRequired';
             }
         },
-        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, policiesRequiringMapOrGPS],
+        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isEditingExistingDistanceRequest, policiesRequiringMapOrGPS],
     );
 
     const showBlockModal = useCallback(
@@ -120,7 +128,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
                     if (modalAction !== ModalActions.CONFIRM) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+                    openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
                 });
                 return;
             }

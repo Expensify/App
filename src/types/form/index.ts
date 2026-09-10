@@ -132,3 +132,4 @@ export type {NewRulePromptForm} from './NewRulePromptForm';
 export type {EditAgentRuleForm} from './EditAgentRuleForm';
 export type {RilletCredentialsForm} from './RilletCredentialsForm';
 export type {DualEntryCredentialsForm} from './DualEntryCredentialsForm';
+export type {CampfireCredentialsForm} from './CampfireCredentialsForm';

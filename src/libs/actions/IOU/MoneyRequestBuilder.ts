@@ -199,6 +199,7 @@ type RequestMoneyInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type MoneyRequestInformationParams = {
@@ -236,6 +237,7 @@ type MoneyRequestInformationParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -292,6 +294,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     shouldSkipReportHighlightRail?: boolean;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -458,6 +461,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1160,7 +1164,9 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             hasViolations,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
+            rules,
         });
+        onyxData.optimisticData?.push(violationsOnyxData);
         onyxData.optimisticData?.push({
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1292,6 +1298,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1395,7 +1402,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense
         ? false
-        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action, !!moneyRequestReportID);
+        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
@@ -1423,6 +1430,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   reportTransactions,
                   betas,
                   getCurrencyDecimals,
+                  rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
@@ -1687,6 +1695,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        rules,
     });
 
     // STEP 5: Build Onyx Data
@@ -1697,6 +1706,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldGenerateTransactionThreadReport,
         isOneOnOneSplit: isSplitExpense,
         isReverseSplitOperation,
+        rules,
         policyParams: {
             policy,
             policyCategories,

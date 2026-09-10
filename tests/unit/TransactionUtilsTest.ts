@@ -20,6 +20,7 @@ import type {TransactionViolation} from '../../src/types/onyx/TransactionViolati
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -805,6 +806,58 @@ describe('TransactionUtils', () => {
             },
         );
 
+        it('does not apply a newly enabled commuter exclusion when a historical manual distance is changed', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeUndefined();
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeUndefined();
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+        });
+
         it('recalculates commuter exclusion data when an alternate route is selected', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
@@ -885,6 +938,116 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedAmount).toBe(17);
             expect(updatedTransaction.modifiedMerchant).toContain('17');
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 km route stored as a rounded mile quantity
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 6.21,
+                        routeDistanceMeters: 10000,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 3.21,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updateRate = (transactionToUpdate: Transaction, policy: Policy | undefined, policies?: OnyxCollection<Policy>) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: false,
+                    policy,
+                    policies,
+                    transactionChanges: {customUnitRateID: 'ID2'},
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+            // When the rate is changed
+            const updatedTransaction = updateRate(transaction, fakePolicy);
+
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(10);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(5.17);
+
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(155);
+            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ €0.30 / km');
+
+            const manuallyOverriddenTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, quantity: 8}},
+            };
+            const updatedManuallyOverriddenTransaction = updateRate(manuallyOverriddenTransaction, fakePolicy);
+
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
+            expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
+            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ €0.30 / km');
+
+            const transactionWithoutAppliedCommuterExclusion = {
+                ...transaction,
+                comment: {
+                    customUnit: {
+                        ...transaction.comment?.customUnit,
+                        commuterExclusion: undefined,
+                        reimbursableDistance: undefined,
+                        commuterExclusionMethod: undefined,
+                    },
+                },
+            };
+            expect(updateRate(transactionWithoutAppliedCommuterExclusion, fakePolicy).comment?.customUnit?.quantity).toBe(9.99);
+
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
+            expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
+            expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
+
+            const legacyTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, routeDistanceMeters: undefined, quantity: 10}},
+            };
+            expect(updateRate(legacyTransaction, fakePolicy).comment?.customUnit?.quantity).toBe(16.09);
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
@@ -1297,6 +1460,321 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('getDisplayTransactionWithoutInvalidCommuterExclusion', () => {
+        const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters);
+        const policyWithDistanceRate: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                distance: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'distance',
+                    rates: {
+                        rate1: {
+                            customUnitRateID: 'rate1',
+                            currency: CONST.CURRENCY.USD,
+                            rate: 76,
+                        },
+                    },
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            },
+        };
+
+        it('rebuilds full-route amount and merchant for personal distance expenses with commuter metadata', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                convertedAmount: 415,
+                currency: CONST.CURRENCY.EUR,
+                modifiedAmount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(displayTransaction).toBeDefined();
+            if (!displayTransaction) {
+                throw new Error('Expected a normalized display transaction');
+            }
+            expect(displayTransaction.amount).toBe(491);
+            expect(displayTransaction.convertedAmount).toBeUndefined();
+            expect(displayTransaction.modifiedAmount).toBeUndefined();
+            expect(displayTransaction.merchant).toContain('6.46 mi');
+            expect(displayTransaction.merchant).not.toContain('5.46 mi');
+            expect(displayTransaction.modifiedMerchant).toBeUndefined();
+            expect(displayTransaction.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('returns an ordinary transaction unchanged when no commuter exclusion is applied', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                amount: 415,
+                merchant: 'Lunch',
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('preserves a negative sign when rebuilding from the base amount', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: undefined,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(displayTransaction?.amount).toBe(-491);
+        });
+
+        it('returns the stored transaction when the full distance is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('returns the stored transaction when the distance rate ID is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('uses the mileage rate unit when the transaction distance unit is missing', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithDistanceRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(displayTransaction?.amount).toBe(491);
+            expect(displayTransaction?.merchant).toContain('6.46 mi');
+        });
+
+        it('returns the stored transaction when the distance unit cannot be resolved', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'missingRate',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('uses the transaction currency when the mileage rate has no currency', () => {
+            const policyWithoutRateCurrency: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                ...policyWithDistanceRate.customUnits?.distance?.rates?.rate1,
+                                customUnitRateID: 'rate1',
+                                currency: undefined,
+                            },
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                currency: CONST.CURRENCY.EUR,
+                merchant: '5.46 mi @ EUR0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithoutRateCurrency,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(displayTransaction?.currency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('keeps commuter-excluded values for policy expense chats', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -415,
+                modifiedAmount: -415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                modifiedMerchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: true,
+                    policy: policyWithDistanceRate,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+
+        it('falls back to stored values when the distance rate cannot be resolved', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                merchant: '5.46 mi @ $0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'missingRate',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            expect(
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy: policyWithDistanceRate,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                }),
+            ).toBe(transaction);
+        });
+    });
+
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
@@ -1335,6 +1813,14 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true for a 531 (temporary, retry later) broken connection violation', () => {
+            const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -2010,6 +2496,39 @@ describe('TransactionUtils', () => {
             };
 
             expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
+
+        describe('futureDate', () => {
+            // The violation is not cached by the backend, so it is re-evaluated here against the NOW +14 hours rule.
+            // The clock is pinned on each case, otherwise these pass or fail by time of day.
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            function shouldShowFutureDate(transaction?: Transaction) {
+                const iouReport: Report = {...createRandomReport(0, undefined), type: CONST.REPORT.TYPE.EXPENSE};
+                const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.ADMIN};
+
+                return TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.FUTURE_DATE, CURRENT_USER_EMAIL, CURRENT_USER_ID, true, transaction);
+            }
+
+            it('should show the violation when there is no transaction to re-evaluate it against', () => {
+                expect(shouldShowFutureDate(undefined)).toBe(true);
+            });
+
+            it('should show the violation when the date is still beyond the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+
+                expect(shouldShowFutureDate({...createRandomTransaction(0), created: '2026-08-30'})).toBe(true);
+            });
+
+            it('should hide a stale violation once the date is within the +14 hour window', () => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+
+                expect(shouldShowFutureDate({...createRandomTransaction(0), created: '2026-08-30'})).toBe(false);
+            });
         });
     });
 
@@ -4921,6 +5440,77 @@ describe('showHeldExpensesBlockModal', () => {
     });
 });
 
+describe('shouldSplitScanFailedTransactions', () => {
+    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
+    const scanFailedTransaction = generateTransaction({
+        amount: 0,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+    });
+    const scanFailedTransactionWithAmount = generateTransaction({
+        amount: -5000,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+    });
+    const validTransaction = generateTransaction({merchant: 'Valid merchant'});
+
+    it('returns true when a scan-failed expense can be moved out and another expense stays behind', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransaction], report)).toBe(true);
+    });
+
+    it('returns false when every expense in the report is scan-failed', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([scanFailedTransaction], report)).toBe(false);
+    });
+
+    it('returns false when the report has no scan-failed expense', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction], report)).toBe(false);
+    });
+
+    it('returns false for an empty report', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([], report)).toBe(false);
+    });
+
+    it('returns false when the scan-failed expense has an amount, because the backend leaves it in the report', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransactionWithAmount], report)).toBe(false);
+    });
+});
+
+describe('isScanFailedTransactionMovedOnPayment', () => {
+    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
+    const buildScanFailedTransaction = (values: Partial<Transaction>) =>
+        generateTransaction({
+            amount: 0,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            ...values,
+        });
+
+    it('returns true when both the merchant and the amount are unset', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({}), report)).toBe(true);
+    });
+
+    it('returns false when the expense has an amount', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({amount: -5000}), report)).toBe(false);
+    });
+
+    it('returns false when the expense has a modified amount', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedAmount: -5000}), report)).toBe(false);
+    });
+
+    it('returns false when the expense has a merchant', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedMerchant: 'Modified merchant'}), report)).toBe(false);
+    });
+
+    it('returns false when the scan did not fail', () => {
+        expect(
+            TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, source: 'receipt.jpg'}}), report),
+        ).toBe(false);
+    });
+});
+
 describe('getSelectedRouteDistance', () => {
     const routes: Routes = {
         route0: {distance: 1000, geometry: {type: 'LineString', coordinates: [[0, 0]]}},
@@ -5073,5 +5663,21 @@ describe('getDistanceInMeters', () => {
     it('falls back to route0 when the selected route is no longer available', () => {
         const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
+    });
+
+    it('falls back to routeDistanceMeters when the routes are gone and the quantity is not written yet', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 0, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(4680656);
+    });
+
+    it('prefers the quantity over routeDistanceMeters once the quantity is written', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).not.toBe(4680656);
     });
 });

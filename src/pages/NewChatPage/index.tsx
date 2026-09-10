@@ -1,8 +1,8 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListCheckbox from '@components/SelectionList/components/ListCheckbox';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
@@ -64,7 +64,6 @@ type NewChatPageRef = {
 };
 
 type NewChatPageProps = {
-    /** Reference to the outer element */
     ref?: Ref<NewChatPageRef>;
 };
 
@@ -322,7 +321,8 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
-                <ListCheckbox
+                <ListSelectionButton
+                    role={CONST.ROLE.CHECKBOX}
                     item={item}
                     onSelectRow={toggleOption}
                     disabled={!!item.isDisabled}
@@ -423,6 +423,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
