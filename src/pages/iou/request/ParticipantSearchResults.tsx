@@ -164,7 +164,7 @@ function ParticipantSearchResults({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -521,7 +521,7 @@ function ParticipantSearchResults({
     ) : null;
 
     const ClickableImportContactTextComponent =
-        !searchTerm.length && !isSearchingForReports ? (
+        !searchTerm.length && !isSearchingForUsers ? (
             <ImportContactButton
                 showImportContacts={contactState?.showImportUI ?? showImportContacts}
                 inputHelperText={translate('contact.importContactsTitle')}
@@ -582,7 +582,7 @@ function ParticipantSearchResults({
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             ref={selectionListRef}
             onEndReached={onListEndReached}
