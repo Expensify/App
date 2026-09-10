@@ -185,12 +185,6 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
-/**
- * Whether a government-managed rate still matches the government-published snapshot it was copied from.
- * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
- * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
- * A date omitted on both sides counts as a match; a date omitted on only one side does not.
- */
 function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRateID: string | undefined, currentUnit: Unit | undefined): number {
     if (!sourceRateID || !currentUnit) {
         return governmentRateAmount;
@@ -212,6 +206,12 @@ function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRate
     return Math.round(convertedAmount * 100) / 100;
 }
 
+/**
+ * Whether a government-managed rate still matches the government-published snapshot it was copied from.
+ * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
+ * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
+ * A date omitted on both sides counts as a match; a date omitted on only one side does not.
+ */
 function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     const governmentRate = rate.attributes?.governmentRate;
     // A snapshot without a rate amount (e.g. malformed data) can never be matched, otherwise `undefined === undefined` would
