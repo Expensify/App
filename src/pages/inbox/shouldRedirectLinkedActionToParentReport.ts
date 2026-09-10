@@ -31,6 +31,13 @@ function shouldRedirectLinkedActionToParentReport({report, parentReport, parentR
         return false;
     }
 
+    // isOneTransactionThread counts the parent's *cached* IOU actions, so a partially cached parent can still look
+    // one-transaction. transactionCount is server-provided, so trust it to veto: the redirect replaces the durable thread
+    // URL, and we shouldn't make that call when the parent is already known to hold more than one transaction.
+    if ((parentReport?.transactionCount ?? 1) > 1) {
+        return false;
+    }
+
     return isOneTransactionThread(report, parentReport, parentReportAction, isOffline);
 }
 

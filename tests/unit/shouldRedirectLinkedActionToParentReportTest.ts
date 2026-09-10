@@ -56,6 +56,21 @@ describe('shouldRedirectLinkedActionToParentReport', () => {
         expect(shouldRedirectLinkedActionToParentReport(baseParams)).toBe(false);
     });
 
+    it('does NOT redirect when the parent report is already known to hold more than one transaction', () => {
+        // transactionCount is server-provided, so it vetoes isOneTransactionThread, which can still report true from a
+        // partially cached parent action collection.
+        const multiTransactionParent = {...parentReport, transactionCount: 2} as Report;
+
+        expect(shouldRedirectLinkedActionToParentReport({...baseParams, parentReport: multiTransactionParent})).toBe(false);
+        expect(mockIsOneTransactionThread).not.toHaveBeenCalled();
+    });
+
+    it('redirects when the parent report reports a single transaction', () => {
+        const singleTransactionParent = {...parentReport, transactionCount: 1} as Report;
+
+        expect(shouldRedirectLinkedActionToParentReport({...baseParams, parentReport: singleTransactionParent})).toBe(true);
+    });
+
     it('does NOT redirect when the route has no linked action (a plain thread visit)', () => {
         expect(shouldRedirectLinkedActionToParentReport({...baseParams, reportActionIDFromRoute: undefined})).toBe(false);
         // Short-circuits before the more expensive one-transaction check.
