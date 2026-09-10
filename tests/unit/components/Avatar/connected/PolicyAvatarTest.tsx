@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 
@@ -89,6 +89,8 @@ describe('PolicyAvatar (connected)', () => {
     });
 
     afterEach(async () => {
+        // Unmount before clearing so the store updates from the clear don't reach a mounted component outside act().
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -102,6 +104,8 @@ describe('PolicyAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         render(<PolicyAvatar policyID={POLICY_ID} />);
+        // useOnyx delivers its initial value asynchronously, so flush it inside act() before asserting.
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
@@ -112,13 +116,14 @@ describe('PolicyAvatar (connected)', () => {
         });
     });
 
-    it('should seed the avatar from the fallback display name when the policy is not in Onyx', () => {
+    it('should seed the avatar from the fallback display name when the policy is not in Onyx', async () => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
             id: POLICY_ID,
@@ -140,6 +145,7 @@ describe('PolicyAvatar (connected)', () => {
                 backdropColor={BORDER_COLOR}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSubscriptAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedSingleAvatar')).not.toBeOnTheScreen();
@@ -158,6 +164,7 @@ describe('PolicyAvatar (connected)', () => {
                 accountID={ACCOUNT_WITHOUT_DETAILS_ID}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedSubscriptAvatar')).not.toBeOnTheScreen();
@@ -167,13 +174,14 @@ describe('PolicyAvatar (connected)', () => {
     it.each([
         ['the default size when none is passed', undefined, CONST.AVATAR_SIZE.DEFAULT],
         ['the passed size', CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL],
-    ])('should derive the container styles from %s', (_case, size, expectedSize) => {
+    ])('should derive the container styles from %s', async (_case, size, expectedSize) => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 size={size}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockGetContainerStyles).toHaveBeenCalledWith(expectedSize);
         expect(mockCapturedSingleAvatarProps.size).toBe(expectedSize);
@@ -184,13 +192,14 @@ describe('PolicyAvatar (connected)', () => {
         ['a style object', CUSTOM_CONTAINER_STYLE],
         // An empty array is a deliberate "no container styles" request, so it must win over the size-derived default
         ['an empty style array', EMPTY_CONTAINER_STYLE],
-    ])('should replace the derived container styles when containerStyle is %s', (_case, containerStyle) => {
+    ])('should replace the derived container styles when containerStyle is %s', async (_case, containerStyle) => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 containerStyle={containerStyle}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSingleAvatarProps.containerStyles).toBe(containerStyle);
         expect(mockGetContainerStyles).not.toHaveBeenCalled();
@@ -209,6 +218,7 @@ describe('PolicyAvatar (connected)', () => {
                 containerStyle={CUSTOM_CONTAINER_STYLE}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.containerStyle).toBeUndefined();
     });
