@@ -20,6 +20,8 @@ import type {PlatformStackNavigationOptions} from './NavigationOptions';
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
 
+type NavigationLayoutMode = 'narrow' | 'wide';
+
 // Common event map merged from both stack and native-stack navigations.
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
 
@@ -30,7 +32,11 @@ type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
 type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOptions;
 
 // Router options used in the PlatformStackNavigation
-type PlatformStackRouterOptions = StackRouterOptions & {parentRoute?: RouteProp<ParamListBase>};
+type PlatformStackRouterOptions = StackRouterOptions & {
+    parentRoute?: RouteProp<ParamListBase>;
+    layoutMode?: NavigationLayoutMode;
+    getShouldUseNarrowLayout?: () => boolean;
+};
 
 // Factory function type for creating a router specific to the PlatformStackNavigation
 type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = RouterFactory<
@@ -93,6 +99,7 @@ export {isRouteBasedScreenOptions};
 
 export type {
     PlatformStackNavigationState,
+    NavigationLayoutMode,
     PlatformStackNavigationEventMap,
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,

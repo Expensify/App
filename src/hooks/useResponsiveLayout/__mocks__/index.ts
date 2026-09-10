@@ -1,4 +1,6 @@
-export default function useResponsiveLayout() {
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+
+export default function useResponsiveLayout(): ResponsiveLayoutResult {
     return {
         shouldUseNarrowLayout: false,
         isSmallScreenWidth: false,
@@ -8,6 +10,8 @@ export default function useResponsiveLayout() {
         isMediumScreenWidth: false,
         onboardingIsMediumOrLargerScreenWidth: true,
         isLargeScreenWidth: true,
+        isExtraLargeScreenWidth: true,
         isSmallScreen: false,
+        isInLandscapeMode: false,
     };
 }

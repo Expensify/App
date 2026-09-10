@@ -2,6 +2,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
@@ -42,11 +43,12 @@ const TAB_SCREEN_OPTIONS_BASE = {
     lazy: true,
     animation: 'none' as const,
     freezeOnBlur: true,
-    tabBarPosition: 'bottom' as const,
 } as const;
 
 function TabNavigator() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const layoutMode = usePrototypeLayoutMode();
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const theme = useTheme();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
@@ -89,6 +91,7 @@ function TabNavigator() {
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
         sceneStyle: {flex: 1, backgroundColor: theme.appBG},
+        tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
     };
 
     return (

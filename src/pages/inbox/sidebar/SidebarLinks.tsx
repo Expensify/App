@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSidebarLoaded} from '@libs/actions/App';
+import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -43,7 +44,9 @@ type SidebarLinksProps = {
 function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback, isInLandscapeMode} = useResponsiveLayout();
+    const layoutMode = usePrototypeLayoutMode();
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 

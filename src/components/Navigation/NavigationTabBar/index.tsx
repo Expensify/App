@@ -9,11 +9,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NavigationLayoutMode} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -37,15 +39,20 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     shouldShowFloatingButtons?: boolean;
+
+    /** Temporary native navigation layout override used by the responsive layout prototype. */
+    layoutMode?: NavigationLayoutMode;
 };
 
-function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, layoutMode}: NavigationTabBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
+    const {paddingTop: safeAreaPaddingTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
 
     const StyleUtils = useStyleUtils();
 
@@ -76,7 +83,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 <Hoverable shouldUseNativeHoverEvents>
                     {(isSidebarHovered) => (
                         <View
-                            style={styles.leftNavigationTabBarContainer}
+                            style={[styles.leftNavigationTabBarContainer, styles.navigationTabBarSafeAreaInsets(safeAreaPaddingTop, safeAreaPaddingBottom)]}
                             testID="NavigationTabBar"
                         >
                             <View style={styles.flex1}>

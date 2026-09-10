@@ -1,4 +1,4 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -10,6 +10,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import useNavigationLayoutMode from '@libs/Navigation/PlatformStackNavigation/useNavigationLayoutMode';
 
 import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
@@ -17,6 +18,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {NativeStackView} from '@react-navigation/native-stack';
 import React from 'react';
+import {View} from 'react-native';
 
 import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
@@ -27,6 +29,7 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
+    supportsSplitLayout?: boolean;
     displayName: string;
 };
 
@@ -39,16 +42,20 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     sidebarScreen,
     defaultCentralScreen,
     parentRoute,
+    layoutMode,
+    persistentScreens,
     createRouter,
     getCustomState,
     defaultScreenOptions,
     ExtraContent,
     NavigationContentWrapper,
     Effects,
+    supportsSplitLayout,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, getShouldUseNarrowLayout} = useNavigationLayoutMode(layoutMode);
     const {
         navigation,
         state: originalState,
@@ -73,6 +80,8 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             sidebarScreen,
             defaultCentralScreen,
             parentRoute,
+            layoutMode,
+            getShouldUseNarrowLayout,
             screenLayout,
         },
         convertToNativeNavigationOptions,
@@ -84,6 +93,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         descriptors,
         displayName,
         parentRoute,
+        shouldUseNarrowLayout,
     };
 
     const state = getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState;
@@ -92,17 +102,47 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         state,
     };
 
-    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state);
+    const persistentScreensForCurrentLayout = !shouldUseNarrowLayout && supportsSplitLayout ? persistentScreens : undefined;
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreensForCurrentLayout);
+
+    const sidebarRoute = !shouldUseNarrowLayout && supportsSplitLayout ? state.routes.find((stateRoute) => stateRoute.name === sidebarScreen) : undefined;
+    const centralRoutes = sidebarRoute ? state.routes.filter((stateRoute) => stateRoute.key !== sidebarRoute.key) : [];
+    const shouldRenderSplitLayout = !!sidebarRoute && centralRoutes.length > 0;
+    const centralState = shouldRenderSplitLayout
+        ? {
+              ...state,
+              routeNames: state.routeNames.filter((routeName) => routeName !== sidebarScreen),
+              routes: centralRoutes,
+              index: centralRoutes.length - 1,
+              preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== sidebarScreen),
+          }
+        : state;
+    const sidebarDescriptor = sidebarRoute ? wrappedDescriptors[sidebarRoute.key] : undefined;
 
     const content = (
         <NavigationContent>
-            <NativeStackView
-                {...props}
-                state={state}
-                descriptors={wrappedDescriptors}
-                navigation={navigation}
-                describe={describe}
-            />
+            {shouldRenderSplitLayout ? (
+                <View style={[styles.flex1, styles.flexRow]}>
+                    <View style={styles.nativeSplitNavigatorSidebar}>{sidebarDescriptor?.render()}</View>
+                    <View style={styles.flex1}>
+                        <NativeStackView
+                            {...props}
+                            state={centralState}
+                            descriptors={wrappedDescriptors}
+                            navigation={navigation}
+                            describe={describe}
+                        />
+                    </View>
+                </View>
+            ) : (
+                <NativeStackView
+                    {...props}
+                    state={state}
+                    descriptors={wrappedDescriptors}
+                    navigation={navigation}
+                    describe={describe}
+                />
+            )}
             {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
         </NavigationContent>
     );
@@ -128,6 +168,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
+                supportsSplitLayout={options?.supportsSplitLayout}
                 displayName={displayName}
                 {...props}
             />

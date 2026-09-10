@@ -724,6 +724,11 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        nativeTabNavigatorBarContainer: {
+            width: variables.navigationTabBarSize,
+            overflow: 'visible',
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -6390,6 +6395,12 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.sideBarWidth,
         },
 
+        nativeSplitNavigatorSidebar: {
+            width: variables.sideBarWithLHBWidth,
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -6888,6 +6899,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+
+        navigationTabBarSafeAreaInsets: (paddingTop: number, paddingBottom: number) => ({paddingTop, paddingBottom}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 

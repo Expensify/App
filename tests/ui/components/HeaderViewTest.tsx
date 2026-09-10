@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
+import type {NavigationLayoutMode} from '@libs/Navigation/PlatformStackNavigation/types';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 
 import HeaderView from '@pages/inbox/HeaderView';
@@ -39,6 +40,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
+let mockLayoutMode: NavigationLayoutMode | undefined;
+jest.mock('@libs/Navigation/AppNavigator/usePrototypeLayoutMode', () => ({__esModule: true, default: () => mockLayoutMode}));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportType>('@userActions/Report'),
     joinRoom: jest.fn(),
@@ -53,6 +56,7 @@ describe('HeaderView', () => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: currentUserAccountID,
         });
+        mockLayoutMode = undefined;
     });
 
     afterEach(async () => {
@@ -231,6 +235,21 @@ describe('HeaderView', () => {
             </ComposeProviders>,
         );
     }
+
+    it('hides the back button in the isolated wide layout', async () => {
+        const report = createRegularChat(1, [currentUserAccountID, otherAccountID]);
+        mockLayoutMode = 'wide';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+
+        renderHeader(report.reportID);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('DisplayNames')).toBeOnTheScreen();
+            expect(screen.queryByLabelText('Back')).toBeNull();
+        });
+    });
 
     it('should display the localized category update message for a thread on a category update action', async () => {
         // Given an #admins room with a report action that made attendees required on a category

@@ -25,6 +25,8 @@ type AdaptStateIfNecessaryArgs = {
     options: SplitNavigatorRouterOptions;
 };
 
+const getShouldUseNarrowLayout = (options: SplitNavigatorRouterOptions) => options.getShouldUseNarrowLayout?.() ?? getIsNarrowLayout();
+
 /**
  * Adapts the navigation state of a SplitNavigator to ensure proper screen layout and navigation flow.
  * This function handles both narrow and wide layouts, ensuring that:
@@ -38,12 +40,13 @@ type AdaptStateIfNecessaryArgs = {
  * @param state - The current navigation state to adapt
  * @param options - Configuration options including sidebarScreen, defaultCentralScreen, and parentRoute
  */
-function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
+function adaptStateIfNecessary({state, options}: AdaptStateIfNecessaryArgs) {
+    const {sidebarScreen, defaultCentralScreen, parentRoute} = options;
     if (!navigationRef.isReady()) {
         Log.hmmm('[src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts] NavigationRef is not ready. Returning the original state without adaptation.');
     }
 
-    const isNarrowLayout = getIsNarrowLayout();
+    const isNarrowLayout = getShouldUseNarrowLayout(options);
     const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
 
@@ -115,8 +118,8 @@ function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.
 }
 
 // If only one central screen is displayed on a wide layout and GO_BACK action is performed, we need to pop the entire navigator
-function shouldPopEntireNavigator(state: StackState, action: CommonActions.Action | StackActionType) {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK && !getIsNarrowLayout() && state.routes.length === 2;
+function shouldPopEntireNavigator(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK && !getShouldUseNarrowLayout(options) && state.routes.length === 2;
 }
 
 function SplitRouter(options: SplitNavigatorRouterOptions) {
@@ -135,7 +138,7 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 return result ? getRehydratedState(result, configOptions) : result;
             }
             if (isPushingSidebarOnCentralPane(state, action, options)) {
-                if (getIsNarrowLayout()) {
+                if (getShouldUseNarrowLayout(options)) {
                     const newAction = StackActions.popToTop();
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
@@ -143,7 +146,7 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 return state;
             }
 
-            if (shouldPopEntireNavigator(state, action)) {
+            if (shouldPopEntireNavigator(state, action, options)) {
                 const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions) as StackNavigationState<ParamListBase>;
                 return stackRouter.getStateForAction(stateAfterPop, StackActions.pop(), configOptions);
             }

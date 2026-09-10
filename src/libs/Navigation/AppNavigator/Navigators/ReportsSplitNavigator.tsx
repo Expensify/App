@@ -3,6 +3,7 @@ import usePermissions from '@hooks/usePermissions';
 
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -31,7 +32,8 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  */
 function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const layoutMode = usePrototypeLayoutMode();
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(layoutMode);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
     const shouldClearInitialReportActionsDefer = !!route.params && 'shouldDeferInitialReportActions' in route.params && route.params.shouldDeferInitialReportActions === true;
@@ -83,6 +85,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
                 sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
+                layoutMode={layoutMode}
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen

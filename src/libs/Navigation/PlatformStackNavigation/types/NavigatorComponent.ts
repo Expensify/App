@@ -23,12 +23,11 @@ type CustomCodeProps<
     descriptors: PlatformNavigationBuilderDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
     parentRoute?: RouteProp<ParamListBase>;
+    shouldUseNarrowLayout: boolean;
 };
 
 // Props for getCustomState. shouldUseNarrowLayout is provided by PlatformNavigatorImpl so transforms stay pure (no hooks).
-type CustomStateHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList> & {
-    shouldUseNarrowLayout: boolean;
-};
+type CustomStateHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList>;
 
 // Plain function that transforms navigation state. Must not call React hooks.
 type GetCustomState<ParamList extends ParamListBase = ParamListBase> = (props: CustomStateHookProps<ParamList>) => PlatformStackNavigationState<ParamList> | undefined;
@@ -59,6 +58,7 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     Effects?: NavigatorEffects<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
+    supportsSplitLayout?: boolean;
 };
 
 export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};
