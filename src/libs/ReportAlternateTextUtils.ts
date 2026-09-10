@@ -1489,8 +1489,6 @@ function getReportAlternateText({
             alternateText = translate('iou.reopened');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             alternateText = getTravelUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
-            alternateText = Parser.htmlToText(getConciergeAutoSelectDistanceRateMessage(translate, lastAction));
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
