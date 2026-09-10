@@ -1,5 +1,5 @@
-import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,7 @@ function AddCardToDigitalWalletPage({
     },
 }: AddCardToDigitalWalletPageProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
@@ -95,7 +97,7 @@ function AddCardToDigitalWalletPage({
         return () => clearCardListErrors(currentCardID);
     }, [currentCardID]);
 
-    const isWaitingForPendingApproval = isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
+    const isWaitingForPendingApproval = !isOffline && isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
 
     if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
@@ -138,7 +140,7 @@ function AddCardToDigitalWalletPage({
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID={AddCardToDigitalWalletPage.displayName}
+                testID="AddCardToDigitalWalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
@@ -159,7 +161,7 @@ function AddCardToDigitalWalletPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={AddCardToDigitalWalletPage.displayName}
+            testID="AddCardToDigitalWalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
@@ -214,7 +216,5 @@ function AddCardToDigitalWalletPage({
         </ScreenWrapper>
     );
 }
-
-AddCardToDigitalWalletPage.displayName = 'AddCardToDigitalWalletPage';
 
 export default AddCardToDigitalWalletPage;
