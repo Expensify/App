@@ -1,10 +1,12 @@
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ImageManipulatorContext} from 'expo-image-manipulator';
 import type {Orientation} from 'react-native-vision-camera';
 
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
@@ -20,6 +22,14 @@ type ImageObject = {
     /** URL of the image */
     source: string;
 };
+
+type ImageManipulatorAPI = {
+    manipulate: (source: string) => ImageManipulatorContext;
+};
+
+function hasImageManipulatorAPI(value: unknown): value is ImageManipulatorAPI {
+    return value !== null && typeof value === 'object' && 'manipulate' in value && typeof value.manipulate === 'function';
+}
 
 function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioWidth: number, aspectRatioHeight: number, shouldAlignTop?: boolean) {
     const sourceAspectRatio = imageWidth / imageHeight;
@@ -65,7 +75,12 @@ function cropImageToAspectRatio(
                 imageHeight,
                 aspectRatioWidth: ratioWidth,
                 aspectRatioHeight: ratioHeight,
-            } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
+            } = getDeviceOrientationAwareImageSize({
+                imageSize,
+                orientation,
+                aspectRatioWidth,
+                aspectRatioHeight,
+            });
 
             if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
                 return image;
@@ -74,11 +89,19 @@ function cropImageToAspectRatio(
             const crop = calculateCropRect(imageWidth, imageHeight, ratioWidth, ratioHeight, shouldAlignTop);
             const croppedFilename = `receipt_cropped_${Date.now()}.jpeg`;
 
-            return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
+            return cropOrRotateImage(image.source, [{crop}], {
+                compress: 1,
+                name: croppedFilename,
+                type: IMAGE_TYPE,
+            }).then((croppedImage) => {
                 if (!croppedImage?.uri || !croppedImage?.name) {
                     return image;
                 }
-                return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
+                return {
+                    file: croppedImage,
+                    filename: croppedImage.name,
+                    source: croppedImage.uri,
+                };
             });
         })
         .catch(() => image);
@@ -91,13 +114,17 @@ const THUMBNAIL_MAX_WIDTH = 512;
  * 256px is sufficient for the confirmation screen preview and decodes ~4x faster than 512px.
  */
 function generateThumbnail(sourceUri: string, maxWidth = THUMBNAIL_MAX_WIDTH): Promise<string | undefined> {
+    if (!hasImageManipulatorAPI(ImageManipulator)) {
+        Log.warn('Failed to generate thumbnail: Image manipulator is unavailable');
+        return Promise.resolve(undefined);
+    }
     return ImageManipulator.manipulate(sourceUri)
         .resize({width: maxWidth})
         .renderAsync()
         .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
         .then((result) => result.uri)
-        .catch((error) => {
-            Log.warn(`Failed to generate thumbnail: ${error}`);
+        .catch((error: unknown) => {
+            Log.warn(`Failed to generate thumbnail: ${getErrorMessage(error)}`);
             return undefined;
         });
 }

@@ -30,6 +30,7 @@ import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'rea
 import {scheduleOnRN} from 'react-native-worklets';
 
 import type VideoPlayerProps from './types';
+import type {VideoViewRef} from './types';
 
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import {buildVideoSourceURL} from './utils';
@@ -37,6 +38,15 @@ import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
 type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
+
+// expo-video's web declaration intersects its public player interface with its private implementation class.
+function getVideoViewPlayerProps(player: VideoPlayer): Record<string, VideoPlayer> {
+    return {player};
+}
+
+function isVideoViewRef(value: unknown): value is VideoViewRef | null {
+    return value === null || (typeof value === 'object' && 'enterFullscreen' in value && 'nativeRef' in value);
+}
 
 function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {
@@ -99,10 +109,18 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     /* eslint-enable no-param-reassign */
 
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
-    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {
+        isPlaying: videoPlayerRef.current.playing,
+        oldIsPlaying: false,
+    } as PlayingChangeEventPayload);
 
-    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
+    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {
+        currentTime: 0,
+        bufferedPosition: 0,
+    } as TimeUpdateEventPayload);
+    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {
+        status: shouldUseSharedVideoElement ? playerStatus.current : 'loading',
+    } as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
         return status === 'loading';
@@ -143,7 +161,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         videoPlayerRef.current.replaceAsync('');
     }, [isLoading, isVideoOffline, isOffline]);
 
-    const videoViewRef = useRef<VideoView | null>(null);
+    const videoViewRef = useRef<VideoViewRef | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -502,7 +520,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         }
         if (currentVideoPlayerRef.current) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
-            videoViewRef.current = currentVideoViewRef.current;
+            if (isVideoViewRef(currentVideoViewRef.current)) {
+                videoViewRef.current = currentVideoViewRef.current;
+            }
         }
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             if (newParentRef.hasChildNodes()) {
@@ -545,7 +565,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
-        const videoElement = videoViewRef.current?.nativeRef?.current as HTMLVideoElement;
+        const videoElement = videoViewRef.current?.nativeRef?.current;
         if (!videoElement || hasError || !isSafari() || sharedElement) {
             return;
         }
@@ -613,7 +633,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                     >
                                         <VideoView
                                             fullscreenOptions={{enable: true}}
-                                            player={videoPlayerRef.current}
+                                            {...getVideoViewPlayerProps(videoPlayerRef.current)}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
                                             nativeControls={isFullScreen}
                                             playsInline

@@ -5,28 +5,16 @@ import clearOdometerDraftTransactionState, {hydrateOdometerDraftIntoTransaction}
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
 
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
-import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef, useState} from 'react';
 
-type BackupHandledArgs = {
-    shouldResetLocalState: boolean;
-};
+import type UseRestartOnOdometerImagesFailure from './types';
 
-const useRestartOnOdometerImagesFailure = (
-    transaction: OnyxEntry<Transaction>,
-    reportID: string,
-    iouType: IOUType,
-    backToReport: string | undefined,
-    onBackupHandled?: (args: BackupHandledArgs) => void,
-): {hasVerifiedBlobs: boolean} => {
+const useRestartOnOdometerImagesFailure: UseRestartOnOdometerImagesFailure = (transaction, reportID, iouType, backToReport, onBackupHandled) => {
     const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [odometerDraft, odometerDraftStatus] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const hasCheckedRef = useRef(false);

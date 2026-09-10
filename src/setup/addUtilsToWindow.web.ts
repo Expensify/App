@@ -23,13 +23,8 @@ export default function addUtilsToWindow() {
             return;
         }
 
-        window.Onyx = Onyx as typeof Onyx & {
-            get: (key: CollectionKeyBase) => Promise<unknown>;
-            log: (key: CollectionKeyBase) => void;
-        };
-
         // We intentionally do not offer an Onyx.get API because we believe it will lead to code patterns we don't want to use in this repo, but we can offer a workaround for the sake of debugging
-        window.Onyx.get = function (key: CollectionKeyBase) {
+        const get = (key: CollectionKeyBase) => {
             return new Promise((resolve) => {
                 // We have opted for `connectWithoutView` here as this is a debugging utility and does not relate to any view.
                 const connection = Onyx.connectWithoutView({
@@ -42,12 +37,14 @@ export default function addUtilsToWindow() {
             });
         };
 
-        window.Onyx.log = function (key: CollectionKeyBase) {
-            window.Onyx.get(key).then((value) => {
+        const log = (key: CollectionKeyBase) => {
+            get(key).then((value) => {
                 /* eslint-disable-next-line no-console */
                 console.log(value);
             });
         };
+
+        window.Onyx = Object.assign(Onyx, {get, log});
 
         window.setSupportToken = setSupportAuthToken;
 

@@ -9,9 +9,9 @@ type PopoverStateContextType = {
 };
 
 type PopoverActionsContextType = {
-    onOpen: () => void;
-    close: () => void;
-    setActivePopoverExtraAnchorRef: () => void;
+    onOpen: (popoverParams?: unknown) => void;
+    close: (anchorRef?: unknown) => void;
+    setActivePopoverExtraAnchorRef: (ref?: unknown) => void;
 };
 
 const defaultPopoverActionsContext: PopoverActionsContextType = {

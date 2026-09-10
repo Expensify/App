@@ -1,4 +1,5 @@
 import type {Component} from 'react';
+import type {NativeMethods} from 'react-native';
 import type {AnimatedRef} from 'react-native-reanimated';
 
 import {dispatchCommand} from 'react-native-reanimated';
@@ -11,7 +12,7 @@ const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'none';
  * Clears a text input on the UI thread using a custom clear command
  * that bypasses the event count check.
  */
-function forceClearInput(animatedInputRef: AnimatedRef<Component>) {
+function forceClearInput<TRef extends Component | NativeMethods>(animatedInputRef: AnimatedRef<TRef>) {
     'worklet';
 
     dispatchCommand(animatedInputRef, 'clear');

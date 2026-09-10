@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 
-type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
+import type Action from './types';
 
 /**
  * This hook was specifically written for native issue
@@ -19,4 +19,4 @@ export default function useSingleExecution() {
     return {isExecuting: false, singleExecution};
 }
 
-export type {Action};
+export type {default as Action} from './types';

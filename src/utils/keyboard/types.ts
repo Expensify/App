@@ -3,5 +3,8 @@ type DismissKeyboardOptions = {
     afterTransition?: () => void;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {DismissKeyboardOptions};
+type SimplifiedKeyboardEvent = {
+    height?: number;
+};
+
+export type {DismissKeyboardOptions, SimplifiedKeyboardEvent};

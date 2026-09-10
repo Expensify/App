@@ -1,5 +1,5 @@
 import useSingleExecution from '@hooks/useSingleExecution';
-import type {Action} from '@hooks/useSingleExecution';
+import type Action from '@hooks/useSingleExecution/types';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import React, {createContext, useContext} from 'react';

@@ -3,10 +3,8 @@ import CONST from '@src/CONST';
 import {useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
-type UseEmitComposerScrollEventsOptions = {
-    enabled?: boolean;
-    inverted: boolean | null | undefined;
-};
+import type UseEmitComposerScrollEvents from './types';
+import type {UseEmitComposerScrollEventsOptions} from './types';
 
 /**
  * This is used to trigger scroll behavior in the composer on web. On native, this is a no-op.
@@ -16,7 +14,7 @@ type UseEmitComposerScrollEventsOptions = {
  * @param inverted - Whether the list is inverted.
  * @returns A function that can be used to emit the scroll events.
  */
-function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOptions) {
+function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOptions): ReturnType<UseEmitComposerScrollEvents> {
     const {enabled = true, inverted} = options ?? {};
 
     const lastScrollEvent = useRef<number | null>(null);

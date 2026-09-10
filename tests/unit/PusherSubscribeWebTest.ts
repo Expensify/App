@@ -7,9 +7,9 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 
 // Jest resolves `@libs/Pusher` to `index.native.ts`, so point the module registry at the web file.
-// TypeScript resolves the same import to `index.ts`, so the import above already carries the right types.
+// TypeScript resolves the same import to `index.web.ts`, so the import above already carries the right types.
 jest.mock('@libs/Pusher', () => {
-    const webPusher: unknown = jest.requireActual('../../src/libs/Pusher/index.ts');
+    const webPusher: unknown = jest.requireActual('../../src/libs/Pusher/index.web.ts');
     return webPusher;
 });
 

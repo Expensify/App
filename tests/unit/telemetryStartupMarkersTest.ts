@@ -1,8 +1,7 @@
-import setupTelemetry from '@src/setup/telemetry/index.native';
+import setupTelemetry from '@src/setup/telemetry';
 
-// jest/setup.ts mocks '@src/setup/telemetry' globally; unmock (hoisted above imports) so we exercise the real native implementation.
+// jest/setup.ts mocks '@src/setup/telemetry' globally; unmock (hoisted above imports) so we exercise the implementation.
 jest.unmock('@src/setup/telemetry');
-jest.unmock('@src/setup/telemetry/index.native');
 
 const mockMarkers = jest.fn<Record<string, number> | undefined, []>(() => ({}));
 

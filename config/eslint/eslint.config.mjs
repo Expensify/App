@@ -280,9 +280,9 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                // The app project, not the root solution: the solution owns no files, so typed linting
-                // has nothing to resolve against there.
-                project: path.resolve(projectRoot, 'tsconfig.app.json'),
+                // The web app project, not the root solution: the solution owns no files, so typed linting
+                // has nothing to resolve against there. Native files override this below.
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
 
@@ -707,6 +707,12 @@ const config = defineConfig([
 
     {
         files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'modules/ExpensifyNitroUtils/tsconfig.json'),
+                projectService: false,
+            },
+        },
         rules: {
             '@typescript-eslint/consistent-type-definitions': 'off',
         },
@@ -718,6 +724,39 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.jest.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: [
+            'src/**/*.native.ts',
+            'src/**/*.native.tsx',
+            'src/**/*.ios.ts',
+            'src/**/*.ios.tsx',
+            'src/**/*.android.ts',
+            'src/**/*.android.tsx',
+            'src/types/native/**/*.d.ts',
+            'modules/background-task/src/**/*',
+            'modules/hybrid-app/src/**/*',
+        ],
+        // `tsconfig.app.native.json` excludes `__mocks__` (those belong to the Jest program), so mock
+        // files matching a platform suffix above must keep resolving through the Jest mapping instead.
+        ignores: ['src/**/__mocks__/**'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.native.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['types/env.d.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.app.web.json'),
                 projectService: false,
             },
         },
@@ -737,7 +776,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}'],
+        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}', 'knip.config.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.node.json'),

@@ -3,7 +3,7 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 
-type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
+import type Action from './types';
 
 /**
  * With any action passed in, it will only allow 1 such action to occur at a time.
@@ -28,7 +28,7 @@ export default function useSingleExecution() {
     );
 
     const singleExecution = useCallback(
-        <T extends unknown[]>(action: Action<T>) =>
+        <T extends unknown[]>(action?: Action<T>) =>
             (...params: T) => {
                 if (isExecutingRef.current) {
                     return;
@@ -38,7 +38,7 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const executionGeneration = executionGenerationRef.current;
-                const execution = action(...params);
+                const execution = action?.(...params);
                 // Re-enables the button once the predicted (or actual) transition triggered by this press
                 // ends - or immediately, if the press wasn't predicted to cause one.
                 transitionHandleRef.current = runAfterPredictedTransition(() => {
@@ -66,3 +66,5 @@ export default function useSingleExecution() {
 
     return {isExecuting, singleExecution};
 }
+
+export type {default as Action} from './types';

@@ -1,9 +1,11 @@
-const timers: NodeJS.Timeout[] = [];
+type TimerHandle = ReturnType<typeof setTimeout>;
+
+const timers: TimerHandle[] = [];
 
 /**
  * Register a timer so it can be cleaned up later.
  */
-function register(timerID: NodeJS.Timeout): NodeJS.Timeout {
+function register(timerID: TimerHandle): TimerHandle {
     timers.push(timerID);
     return timerID;
 }

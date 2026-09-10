@@ -4,7 +4,7 @@ declare namespace NodeJS {
         GITHUB_REPOSITORY_OWNER: string;
         GITHUB_REPOSITORY: string;
         GITHUB_TOKEN: string | undefined;
-        PORT: number | undefined;
+        PORT: string | undefined;
         WORKING_DIRECTORY: string | undefined;
         OPENAI_API_KEY: string | undefined;
         LANGUAGES_DIR: string | undefined;

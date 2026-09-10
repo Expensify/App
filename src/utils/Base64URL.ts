@@ -1,5 +1,3 @@
-import type {WithImplicitCoercion} from 'buffer';
-
 import {Buffer} from 'buffer';
 
 /**
@@ -14,8 +12,9 @@ const Base64URL = {
     /**
      * Converts a string into a URL-safe base64 representation.
      */
-    encode: (value: WithImplicitCoercion<string | ArrayLike<number>>): Base64URLString => {
-        return Buffer.from(value).toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+    encode: (value: string | ArrayLike<number>): Base64URLString => {
+        const encoded = typeof value === 'string' ? Buffer.from(value) : Buffer.from(Uint8Array.from(value));
+        return encoded.toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
     },
     /**
      * Decodes a URL-safe Base64 (Base64URL) string back to its original byte representation.

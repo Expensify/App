@@ -1,6 +1,7 @@
 import {Trigger as PopoverMenuTrigger} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
+import type {VideoViewRef} from '@components/VideoPlayer/types';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -12,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {VideoPlayer, VideoView} from 'expo-video';
+import type {VideoPlayer} from 'expo-video';
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -33,7 +34,11 @@ type VideoPlayerControlsProps = {
 
     url: string;
     videoPlayerRef: RefObject<VideoPlayer | null>;
-    videoViewRef: RefObject<VideoView | null>;
+
+    /** Ref for video view component. */
+    videoViewRef: RefObject<VideoViewRef | null>;
+
+    /** Is video playing. */
     isPlaying: boolean;
 
     /** Defines if component should have small icons and tighter spacing inline. */

@@ -9,6 +9,6 @@
     // `prompts` is deliberately not listed even though the Proposal Police action imports it: the Bun
     // program owns those files, and listing them in two referenced projects would give editors two
     // candidate owners for one file. The action's imports still pull them into this program.
-    "include": [".github/**/*", "web/proxy.ts", "config/**/*", "config/**/*.d.mts"],
+    "include": [".github/**/*", "web/proxy.ts", "config/**/*", "config/**/*.d.mts", "knip.config.ts"],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"]
 }

@@ -2,11 +2,14 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
+import type {RefObject, SetStateAction} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import type Webcam from 'react-webcam';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useReducer, useRef, useState} from 'react';
+
+import type {UseWebCamera, WebCameraPlatformTypes} from './useWebCamera.types';
 
 /**
  * Preload camera permission state at module load so first render can use a cached value.
@@ -44,12 +47,18 @@ function queryCameraPermission(): Promise<PermissionState> {
         .catch(() => 'denied' as const);
 }
 
-type UseWebCameraOptions = {
-    /** Additional cleanup to run on unmount */
-    onUnmount?: () => void;
+type WebCameraTypes = WebCameraPlatformTypes & {
+    cameraRef: RefObject<Webcam | null>;
+    viewfinderLayout: RefObject<LayoutRectangle | null>;
+    setCameraPermissionStateArgs: [state: SetStateAction<PermissionState | undefined>];
+    isFlashLightOn: boolean;
+    videoConstraints: MediaTrackConstraints | undefined;
+    setupCameraPermissionsAndCapabilitiesArgs: [stream: MediaStream];
 };
 
-function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
+type UseWebCameraWeb = UseWebCamera<WebCameraTypes>;
+
+function useWebCamera({onUnmount}: Parameters<UseWebCameraWeb>[0] = {}): ReturnType<UseWebCameraWeb> {
     const isTabActive = useIsFocused();
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>(() => cachedPermissionState ?? 'prompt');
     const [isFlashLightOn, toggleFlashlight] = useReducer((state: boolean) => !state, false);

@@ -2,11 +2,13 @@ import * as Browser from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import type Platform from './types';
+import type {GetPlatform} from './types';
 
-export default function getPlatform(shouldMobileWebBeDistinctFromWeb = false): Platform {
+const getPlatform: GetPlatform = (shouldMobileWebBeDistinctFromWeb = false) => {
     if (shouldMobileWebBeDistinctFromWeb && Browser.isMobile()) {
         return CONST.PLATFORM.MOBILE_WEB;
     }
     return CONST.PLATFORM.WEB;
-}
+};
+
+export default getPlatform;

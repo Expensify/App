@@ -156,7 +156,10 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     const fileName = fullFileName.trim();
     const splitFileName = fileName.split('.');
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
-    return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
+    return {
+        fileName: splitFileName.join('.'),
+        fileExtension: fileExtension ?? '',
+    };
 };
 
 /**
@@ -223,7 +226,12 @@ function appendTimeToFileName(fileName: string): string {
     const timeSuffix = `-${time}`;
 
     const lengthSafeFileNameWithoutExtension =
-        Platform.OS === 'android' ? truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength: timeSuffix.length}) : fileNameWithoutExtension;
+        Platform.OS === 'android'
+            ? truncateFileNameToSafeLengthOnAndroid({
+                  fileNameWithoutExtension,
+                  fileSuffixLength: timeSuffix.length,
+              })
+            : fileNameWithoutExtension;
 
     let newFileName = `${lengthSafeFileNameWithoutExtension}${timeSuffix}`;
 
@@ -274,7 +282,9 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
                     .then((blob) => {
                         // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
                         // In this case, let us fallback on fileType provided by the caller of this function.
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
+                        const file = new File([blob], cleanFileName(fileName), {
+                            type: blob.type || fileType,
+                        });
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend
@@ -326,7 +336,10 @@ function base64ToFile(base64: string, filename: string): File {
     const blob = new Blob([uint8Array], {type: mimeString});
 
     // Create a File instance from the Blob
-    const file = new File([blob], filename, {type: mimeString, lastModified: Date.now()});
+    const file = new File([blob], filename, {
+        type: mimeString,
+        lastModified: Date.now(),
+    });
 
     // Add a uri property to the File instance for accessing the blob as a URI
     file.uri = URL.createObjectURL(blob);
@@ -550,7 +563,10 @@ function getFileResolution(targetFile: FileObject | undefined): Promise<{width: 
 
     // If the file already has width and height, return them directly
     if ('width' in targetFile && 'height' in targetFile) {
-        return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
+        return Promise.resolve({
+            width: targetFile.width ?? 0,
+            height: targetFile.height ?? 0,
+        });
     }
 
     // Otherwise, attempt to get the image resolution
@@ -656,7 +672,7 @@ const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: 
     return calculateScaledDimensions(width, height);
 };
 
-const createFile = (file: File): FileObject => {
+const createFile = (file: File | FileObject): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
         return {
             uri: file.uri,
@@ -664,7 +680,10 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    if (!(file instanceof Blob)) {
+        return file;
+    }
+    return new File([file], file.name ?? '', {
         type: file.type,
         lastModified: file.lastModified,
     });
@@ -675,7 +694,15 @@ const resizeImageIfNeeded = (file: FileObject) => {
         return Promise.resolve(file);
     }
     return getImageDimensionsAfterResize(file)
-        .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
+        .then(({width, height}) =>
+            getImageManipulator({
+                fileUri: file.uri ?? '',
+                width,
+                height,
+                fileName: file.name ?? '',
+                type: file.type,
+            }),
+        )
         .then((result) => createFile(result));
 };
 
@@ -886,7 +913,12 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
                     }
 
                     const jpegFileName = fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg');
-                    const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
+                    const jpegFile = Object.assign(
+                        new File([convertedBlob], jpegFileName, {
+                            type: CONST.IMAGE_FILE_FORMAT.JPEG,
+                        }),
+                        {uri: URL.createObjectURL(convertedBlob)},
+                    );
                     resolve(jpegFile);
                 },
                 CONST.IMAGE_FILE_FORMAT.JPEG,
@@ -923,7 +955,9 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {
-            const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+            const updatedFile = new File([fileObject], cleanName, {
+                type: fileObject.type,
+            });
             const inputSource = URL.createObjectURL(updatedFile);
             updatedFile.uri = inputSource;
             return updatedFile;

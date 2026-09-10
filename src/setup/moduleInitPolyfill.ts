@@ -12,7 +12,7 @@
 
 // Cast global once to MetroRuntime (defined in src/types/global.d.ts) so all
 // subsequent accesses are fully typed — no `any` needed anywhere in this file.
-const runtime = global as unknown as MetroRuntime;
+const runtime = globalThis as unknown as MetroRuntime;
 
 runtime.__moduleInitTimes = {};
 runtime.__moduleNames = {};

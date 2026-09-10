@@ -14,7 +14,7 @@ import type {AppleError} from '@invertase/react-native-apple-authentication';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import React from 'react';
 
-import type {AppleSignInProps} from '.';
+import type AppleSignInProps from './types';
 
 /**
  * Apple Sign In method for iOS that returns identityToken.

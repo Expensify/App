@@ -38,7 +38,8 @@
     // Order matters for editors: a file that appears in more than one project (all of `src` is in
     // both the app and Jest programs) resolves to the first project here that lists it.
     "references": [
-        {"path": "./tsconfig.app.json"},
+        {"path": "./tsconfig.app.web.json"},
+        {"path": "./tsconfig.app.native.json"},
         {"path": "./tsconfig.jest.json"},
         {"path": "./tsconfig.bun.json"},
         {"path": "./tsconfig.node.json"},

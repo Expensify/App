@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/typescript/handlers/gestures/gestureStateManager.web.d.ts b/node_modules/react-native-gesture-handler/lib/typescript/handlers/gestures/gestureStateManager.web.d.ts
+index 82fe13b..e34c0bd 100644
+--- a/node_modules/react-native-gesture-handler/lib/typescript/handlers/gestures/gestureStateManager.web.d.ts
++++ b/node_modules/react-native-gesture-handler/lib/typescript/handlers/gestures/gestureStateManager.web.d.ts
+@@ -1,4 +1,11 @@
+-import { GestureStateManagerType } from './gestureStateManager';
++export interface GestureStateManagerType {
++    begin: () => void;
++    activate: () => void;
++    fail: () => void;
++    end: () => void;
++    /** @internal */
++    handlerTag: number;
++}
+ export declare const GestureStateManager: {
+     create(handlerTag: number): GestureStateManagerType;
+ };

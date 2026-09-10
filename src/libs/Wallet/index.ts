@@ -1,20 +1,16 @@
-import type {Card} from '@src/types/onyx';
+import type Wallet from './types';
 
-import type {TokenizationStatus} from '@expensify/react-native-wallet';
-
-function checkIfWalletIsAvailable(): Promise<boolean> {
+const checkIfWalletIsAvailable: Wallet['checkIfWalletIsAvailable'] = () => {
     return Promise.resolve(false);
-}
+};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function handleAddCardToWallet(_card: Card, _cardHolderName: string, _cardDescription: string, _onFinished?: () => void): Promise<TokenizationStatus> {
+const handleAddCardToWallet: Wallet['handleAddCardToWallet'] = () => {
     return Promise.reject(new Error('Add to wallet is not supported on this platform'));
-}
+};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isCardInWallet(_card: Card) {
+const isCardInWallet: Wallet['isCardInWallet'] = () => {
     // Return true for other platforms, so the AddToWalletButton is always hidden
     return Promise.resolve(true);
-}
+};
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};

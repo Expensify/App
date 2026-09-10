@@ -1,4 +1,4 @@
-import convertHeicImage from '@libs/fileDownload/heicConverter/index.native';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 
 const mockSaveAsync = jest.fn();
 const mockRenderAsync = jest.fn();

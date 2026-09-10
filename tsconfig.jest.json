@@ -1,9 +1,9 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
-    "extends": "./tsconfig.app.json",
+    "extends": "./tsconfig.app.web.json",
     "compilerOptions": {
         "tsBuildInfoFile": "./tsconfig.jest.ts7.tsbuildinfo"
     },
-    "include": ["src", "assets", "modules", "tests", "jest", "__mocks__"],
-    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling"]
+    "include": ["tests", "jest", "__mocks__", "src/**/__mocks__/**/*", "src/types/**/*.d.ts"],
+    "exclude": ["**/node_modules/*", "**/dist/*", "tests/tooling", "modules/ExpensifyNitroUtils/**"]
 }

@@ -2,7 +2,12 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "tsBuildInfoFile": "./tsconfig.ts7.tsbuildinfo",
-        "types": ["react-native", "react-native-web", "node"]
+        "types": ["react-native", "react-native-web", "node"],
+        // This CLI transitively imports app libs (Onyx actions, Pusher, etc.) that have separate
+        // web/native implementations. Without this, bare imports of those libs fail to resolve now
+        // that the web implementation lives in a `.web.ts(x)` file instead of a bare one.
+        "moduleSuffixes": [".web", ""]
     },
-    "include": ["src", "tests", "scripts", "../../src/types"]
+    "include": ["src", "tests", "scripts", "../../src/types/**/*.d.ts"],
+    "exclude": ["**/node_modules/*", "**/dist/*", "../../src/types/native/**"]
 }

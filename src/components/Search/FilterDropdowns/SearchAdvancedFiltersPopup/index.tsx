@@ -2,7 +2,6 @@ import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import type {SearchQueryJSON} from '@components/Search/types';
 
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,15 +17,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type SearchAdvancedFiltersPopupProps from './types';
+
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
 import DateFilterContentPopupWrapper from './DateFilterContentPopupWrapper';
 import ListFilterContentPopupWrapper from './ListFilterContentPopupWrapper';
 import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopupWrapper';
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
-
-type SearchAdvancedFiltersPopupProps = {
-    queryJSON: SearchQueryJSON;
-};
 
 function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();

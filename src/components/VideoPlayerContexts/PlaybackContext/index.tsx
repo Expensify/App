@@ -1,10 +1,12 @@
+import type {VideoViewRef} from '@components/VideoPlayer/types';
+
 import {isChatThread} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {VideoPlayer, VideoPlayerStatus} from 'expo-video';
 import type {View} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
@@ -89,7 +91,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const shareVideoPlayerElements: PlaybackActionsContextValues['shareVideoPlayerElements'] = useCallback(
         (
             videoPlayerRef: VideoPlayer | null,
-            videoViewRef: VideoView | null,
+            videoViewRef: VideoViewRef | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,

@@ -14,7 +14,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
+import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal/types';
 import type {RenderSuggestionMenuItemProps} from './types';
 
 type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
@@ -37,7 +37,7 @@ function BaseAutoCompleteSuggestionsImpl({
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
-    const scrollRef = useRef<FlatList<unknown>>(null);
+    const scrollRef = useRef(null);
     /**
      * Render a suggestion menu item component.
      */
@@ -94,7 +94,7 @@ function BaseAutoCompleteSuggestionsImpl({
         }
         // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
         try {
-            scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+            (scrollRef.current as {scrollToIndex?: (params: {index: number; animated?: boolean}) => void} | null)?.scrollToIndex?.({index: highlightedSuggestionIndex, animated: true});
         } catch (e) {}
     }, [highlightedSuggestionIndex]);
 
