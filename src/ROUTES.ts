@@ -93,6 +93,16 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  * Avoid for: regular navigation, single-entry workflows
  *
  */
+const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
+    SCREENS.REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.HOME,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.WALLET.ROOT,
+] as const;
+
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
@@ -172,6 +182,46 @@ const DYNAMIC_ROUTES = {
                 shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
             }),
         queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
+        path: 'enable-global-reimbursements/business/:bankAccountID/:subPage/:action?',
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+        getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
+        path: 'enable-global-reimbursements/agreements/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/agreements/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
+        path: 'enable-global-reimbursements/sign/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/sign/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
@@ -2323,16 +2373,27 @@ const ROUTES = {
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
-        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit') =>
-            `settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}` as const,
+        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/agreements',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements` as const,
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/sign',
-        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements/sign` as const,
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/sign`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
     },
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
@@ -4845,6 +4906,18 @@ const ROUTES = {
     POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-invoicing-payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-invoicing-payable-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_SETUP: {
+        route: 'workspaces/:policyID/accounting/campfire/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/setup` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/campfire/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
