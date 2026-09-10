@@ -6469,6 +6469,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
                 statementCloseDateTitle: 'Sluitingsdatum afschrift',
                 statementCloseDateDescription: 'Laat ons weten wanneer je creditcardafschrift wordt afgesloten, dan maken wij een bijpassend afschrift in Expensify aan.',
+                exportAccount: 'Account exporteren',
             },
             workflows: {
                 title: 'Workflows',

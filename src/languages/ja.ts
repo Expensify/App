@@ -6399,6 +6399,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 expensifyCardBannerLearnMoreButton: '詳細はこちら',
                 statementCloseDateTitle: '取引明細書の締め日',
                 statementCloseDateDescription: 'カード明細の締め日を教えていただければ、Expensify 内に対応する明細を作成します。',
+                exportAccount: 'アカウントを書き出す',
             },
             workflows: {
                 title: 'ワークフロー',

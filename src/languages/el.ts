@@ -6644,6 +6644,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 expensifyCardBannerLearnMoreButton: 'Μάθετε περισσότερα',
                 statementCloseDateTitle: 'Ημερομηνία λήξης κατάστασης λογαριασμού',
                 statementCloseDateDescription: 'Ενημερώστε μας πότε κλείνει το αντίγραφο κίνησης της κάρτας σας και θα δημιουργήσουμε ένα αντίστοιχο αντίγραφο κίνησης στο Expensify.',
+                exportAccount: 'Εξαγωγή λογαριασμού',
             },
             workflows: {
                 title: 'Ροές εργασιών',

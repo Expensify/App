@@ -6496,6 +6496,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 expensifyCardBannerLearnMoreButton: 'Dowiedz się więcej',
                 statementCloseDateTitle: 'Data zamknięcia zestawienia',
                 statementCloseDateDescription: 'Daj nam znać, kiedy kończy się okres rozliczeniowy Twojej karty, a utworzymy w Expensify pasujące zestawienie.',
+                exportAccount: 'Eksportuj konto',
             },
             workflows: {
                 title: 'Przepływy pracy',
