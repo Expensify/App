@@ -192,6 +192,7 @@ import {
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
+    getMessageOfOldDotReportAction,
     getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
@@ -1322,15 +1323,6 @@ function isReportTotalPending(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * Check if a report is a draft report
- */
-function isDraftReport(reportID: string | undefined): boolean {
-    const draftReport = deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
-
-    return !!draftReport;
-}
-
-/**
  * @private
  */
 function isSearchReportArray(object: Report[] | OnyxCollection<Report>): object is Report[] {
@@ -2025,9 +2017,11 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>, currentUserAccountID?
 }
 
 /**
- * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
+ * Returns true if negative amounts are supported: the report is an expense report, the policy is a group policy, the report is a self-DM,
+ * the iouType is create with no P2P recipient selected, or it is the first time creating a report (submit with no report, policy or P2P
+ * recipient). Split and invoice never support negative amounts.
  */
-function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[], isNewManualExpenseFlow = false) {
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[]) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
 
     const isUserInRecipients = participants?.some((participant) => !participant.isSender && !participant.isPolicyExpenseChat && participant.accountID);
@@ -2035,7 +2029,7 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 
     const isExpenseReportType = isExpenseReport(report);
     const isGroupPolicyType = isGroupPolicyPolicyUtils(policy);
-    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE && !(isNewManualExpenseFlow && isUserInRecipients);
+    const isCreatingNewIOU = iouType === CONST.IOU.TYPE.CREATE && !isUserInRecipients;
     const supportsNegativeAmounts = isExpenseReportType || isGroupPolicyType || isSelfDMReport || isCreatingNewIOU || isFirstTimeCreatingReport;
 
     const isExcludedType = iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.INVOICE;
@@ -4897,6 +4891,18 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
     return reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
 }
 
+function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportField: PolicyReportField): boolean {
+    return reportField.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !reportField.target);
+}
+
+/**
+ * Invoice receivers only get a reduced copy of the sender's policy, which does not include the invoice fields feature flag.
+ * Invoice field visibility therefore depends on fields attached to the report, while expense fields still depend on the workspace setting.
+ */
+function shouldDisplayReportFields(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return (isInvoiceReport(report) && policy?.areInvoiceFieldsEnabled !== false) || (isGroupPolicyExpenseReport(report, policy?.type) && !!policy?.areReportFieldsEnabled);
+}
+
 /**
  * Check if Report has any held expenses
  */
@@ -4928,9 +4934,6 @@ function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportA
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
-    if (isInvoiceReport(report)) {
-        return true;
-    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -5049,7 +5052,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     const mergedFieldIds = Array.from(new Set([...policyReportFields.map(({fieldID}) => fieldID), ...reportFields.map(({fieldID}) => fieldID)]));
 
     const fields = mergedFieldIds.map((id) => {
-        const field = report?.fieldList?.[getReportFieldKey(id)];
+        const field = report?.fieldList?.[getReportFieldKey(id)] ?? report?.fieldList?.[id];
         const policyReportField = policyReportFields.find(({fieldID}) => fieldID === id);
 
         if (field) {
@@ -6635,6 +6638,13 @@ function getParentNavigationSubtitle(
             return {reportName: reportOwnerDisplayName ?? ''};
         }
         return {};
+    }
+
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD) {
+        return {
+            reportName: getMessageOfOldDotReportAction(translate, parentReportAction, false),
+        };
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
@@ -9332,8 +9342,12 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[], cur
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function shouldPinAdminRoomByDefault(currentUserEmail?: string) {
-    return !isExpensifyTeam(currentUserEmail ?? deprecatedCurrentUserEmail);
+/**
+ * Returns true if the admin room should be pinned by default for the current user.
+ * Admin rooms are pinned by default for all users except for Expensify Team members and users who own a paid policy.
+ */
+function shouldPinAdminRoomByDefault(currentUserEmail?: string, hasOwnedPaidPolicy = false) {
+    return !isExpensifyTeam(currentUserEmail ?? deprecatedCurrentUserEmail) && !hasOwnedPaidPolicy;
 }
 
 function buildOptimisticWorkspaceChats(
@@ -9342,6 +9356,7 @@ function buildOptimisticWorkspaceChats(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
     expenseReportId?: string,
+    hasOwnedPaidPolicy?: boolean,
 ): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
@@ -9352,7 +9367,7 @@ function buildOptimisticWorkspaceChats(
             policyID,
             ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             oldPolicyName: policyName,
-            isPinned: shouldPinAdminRoomByDefault(),
+            isPinned: shouldPinAdminRoomByDefault(currentUserEmail, hasOwnedPaidPolicy),
             currentUserAccountID,
         }),
     };
@@ -9966,7 +9981,8 @@ function hasViolations(
 }
 
 function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
+    const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
+    if (!report || !policy?.fieldList || !areFieldsEnabledForReport) {
         return false;
     }
 
@@ -9988,7 +10004,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
     const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
 
     return Object.values(fieldsByName).some((field) => {
-        if (field.target !== report.type) {
+        if (!isReportFieldTargetMatchingReport(report, field)) {
             return false;
         }
         if (shouldHideSingleReportField(field)) {
@@ -13662,6 +13678,7 @@ function getChatListItemReportName(
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
     translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
 ): string {
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -13669,7 +13686,7 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -14192,19 +14209,59 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
     return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
 }
 
+function isReportNameValuePairField(value: unknown): value is PolicyReportField {
+    return typeof value === 'object' && value !== null && 'fieldID' in value && typeof value.fieldID === 'string' && 'name' in value && typeof value.name === 'string';
+}
+
+function getReportFieldFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, reportFieldIDOrKey: string): PolicyReportField | undefined {
+    for (const [key, value] of Object.entries(reportNameValuePairs ?? {})) {
+        if (key === reportFieldIDOrKey && isReportNameValuePairField(value)) {
+            return value;
+        }
+    }
+
+    return undefined;
+}
+
+function getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): PolicyReportField[] {
+    const fieldsByID = new Map<string, PolicyReportField>();
+
+    for (const value of Object.values(reportNameValuePairs ?? {})) {
+        if (!isReportNameValuePairField(value) || value.target !== CONST.REPORT_FIELD_TARGETS.INVOICE) {
+            continue;
+        }
+        fieldsByID.set(value.fieldID, value);
+    }
+
+    return [...fieldsByID.values()];
+}
+
 /**
  * Get both field values map and fields-by-name map in a single pass
  */
-function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
-    const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+function getReportFieldMaps(
+    report: OnyxEntry<Report>,
+    fieldList: Record<string, PolicyReportField>,
+    reportNameValuePairsParam?: OnyxEntry<ReportNameValuePairs>,
+): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
+    const reportNameValuePairs = reportNameValuePairsParam ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
+    const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
+    const fieldsMatchingReport = [...availableFields, ...invoiceReportFields].filter((field) => isReportFieldTargetMatchingReport(report, field));
+    const fields = [...new Map(fieldsMatchingReport.map((field) => [field.fieldID, field])).values()];
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
     for (const field of fields) {
         if (field.name) {
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const shouldReadReportNameValuePair = report?.type === CONST.REPORT.TYPE.INVOICE && field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            const reportNameValuePairField = shouldReadReportNameValuePair
+                ? (getReportFieldFromReportNameValuePairs(reportNameValuePairs, fieldKey) ?? getReportFieldFromReportNameValuePairs(reportNameValuePairs, field.fieldID))
+                : undefined;
             const key = field.name.toLowerCase();
-            fieldValues[key] = field.value ?? field.defaultValue ?? '';
-            fieldsByName[key] = field;
+            fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
+            fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;
         }
     }
 
@@ -14670,6 +14727,8 @@ export {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    isReportFieldTargetMatchingReport,
+    shouldDisplayReportFields,
     isReportManager,
     isReportOwner,
     isReportParticipant,
@@ -14718,7 +14777,6 @@ export {
     getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
-    isDraftReport,
     changeMoneyRequestHoldStatus,
     rejectMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,
@@ -14772,6 +14830,7 @@ export {
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getTitleFieldWithFallback,
+    getReportFieldFromReportNameValuePairs,
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
