@@ -20,7 +20,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
-function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void, isBypassingApprovers = false) {
+function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -72,7 +72,6 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
-            isBypassingApprovers,
         });
     };
 

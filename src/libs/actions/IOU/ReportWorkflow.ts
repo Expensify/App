@@ -119,7 +119,6 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    isBypassingApprovers?: boolean;
 };
 
 type SubmitReportFunctionParams = {
@@ -477,7 +476,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
-        isBypassingApprovers = false,
     } = params;
     if (!expenseReport) {
         return;
@@ -516,12 +514,10 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = isBypassingApprovers ? undefined : getNextApproverAccountID(expenseReport);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    // Bypassing approvers hands the report to the current user, so keeping the old managerID here would undo the take control that precedes this approval
-    const finalApproverAccountID = isBypassingApprovers ? currentUserAccountIDParam : expenseReport.managerID;
-    const managerID = !nextApproverAccountID ? finalApproverAccountID : nextApproverAccountID;
+    const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
 
     const optimisticNextStep = isDEWPolicy
         ? null
