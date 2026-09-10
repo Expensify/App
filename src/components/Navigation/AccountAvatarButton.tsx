@@ -54,7 +54,7 @@ function AccountAvatarButtonContent() {
     const isFocused = useIsFocused();
 
     const selectedTab = useRootNavigationState((rootState) => {
-        const tabState = getTabState(rootState?.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
+        const tabState = getTabState(rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
         const activeTabRouteName = tabState?.routes.at(tabState.index ?? 0)?.name;
         return ROUTE_TO_NAVIGATION_TAB[activeTabRouteName ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     });
