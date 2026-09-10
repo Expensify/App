@@ -28,7 +28,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';

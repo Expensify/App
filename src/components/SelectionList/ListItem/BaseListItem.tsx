@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -54,7 +53,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldShowRightCaret = false,
     accessible,
     accessibilityLabel,
-    accessibilityRole = getButtonRole(true),
+    accessibilityRole = CONST.ROLE.BUTTON,
     shouldUseOptionRole,
     isSelected,
     forwardedFSClass,

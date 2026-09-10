@@ -8099,6 +8099,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
                 categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
                 categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
+                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
+                addTaxRateFirstPrompt:
+                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
+                createRuleFromExpenseAction: 'Regel erstellen',
+                createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
