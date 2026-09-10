@@ -35,7 +35,7 @@ import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
-import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -850,7 +850,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isActionableJoinRequest(parentReportAction)) {
-        return getJoinRequestMessage(translate, reportPolicy, parentReportAction);
+        return getJoinRequestMessage(translate, reportPolicy?.name ?? '', parentReportAction, getPersonalDetailsByID(getOriginalMessage(parentReportAction)?.accountID, personalDetailsList));
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -975,6 +975,7 @@ function computeChatThreadReportName({
     isArchived,
     report,
     reports,
+    currentUserAccountID,
     currentUserLogin,
     transactions,
     parentReportAction,
@@ -987,6 +988,7 @@ function computeChatThreadReportName({
     isArchived: boolean;
     report: Report;
     reports: OnyxCollection<Report>;
+    currentUserAccountID: number | undefined;
     currentUserLogin: string;
     transactions: OnyxCollection<Transaction>;
     parentReportAction?: ReportAction;
@@ -1056,6 +1058,7 @@ function computeChatThreadReportName({
             movedToReport,
             policyTags,
             policy,
+            currentUserAccountID,
             currentUserLogin,
         });
         // Strip HTML tags for plain text display in report previews
@@ -1170,6 +1173,7 @@ function computeReportName({
         isArchived: privateIsArchivedValue,
         report,
         reports: reports ?? {},
+        currentUserAccountID,
         currentUserLogin: currentUserLogin ?? '',
         transactions,
         parentReportAction,

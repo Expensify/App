@@ -1107,6 +1107,52 @@ describe('Session', () => {
 
             await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBeUndefined();
         });
+
+        /**
+         * The server preference is lifted out of the payload by name, but every other NVP OldDot sends goes
+         * through the same loop, so what the loop does with each kind of value is worth pinning down.
+         */
+        describe('the values OldDot sends', () => {
+            const transitionWith = async (values: Record<string, unknown>) => {
+                await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+                await waitForBatchedUpdates();
+
+                const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+
+                const hybridAppSettings = {...buildHybridAppSettings(false), ...values} as Parameters<typeof SessionUtil.setupNewDotAfterTransitionFromOldDot>[0];
+                await SessionUtil.setupNewDotAfterTransitionFromOldDot(hybridAppSettings, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const updates = onyxUpdateSpy.mock.calls.at(0)?.at(0) ?? [];
+                onyxUpdateSpy.mockRestore();
+
+                return updates;
+            };
+
+            test('merges a real value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: {classicRedirect: {dismissed: false}}});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: {classicRedirect: {dismissed: false}}}]));
+            });
+
+            test('merges false rather than reading it as absent', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: false});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: false}]));
+            });
+
+            test('passes null through, so OldDot can clear a key', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: null});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: null}]));
+            });
+
+            test('skips undefined instead of writing a placeholder over the stored value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: undefined});
+
+                expect(updates.map((update) => update.key)).not.toContain(ONYXKEYS.NVP_TRY_NEW_DOT);
+            });
+        });
     });
     describe('isSupportAuthToken', () => {
         beforeEach(() => {

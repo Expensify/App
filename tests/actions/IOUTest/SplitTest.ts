@@ -2196,7 +2196,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -2207,6 +2207,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -2429,7 +2430,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Create workspace and expense
         const policyID = generatePolicyID();
         createWorkspace({
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -2440,6 +2441,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             conciergeChat: undefined,
         });
@@ -3711,7 +3713,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -3721,6 +3723,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currency: undefined,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             betas: [],
         });
@@ -4317,7 +4320,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -4328,6 +4331,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4500,7 +4504,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: RORY_EMAIL,
+            policyOwner: {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Rory's Workspace",
             policyID,
@@ -4511,6 +4515,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4687,7 +4692,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -4698,6 +4703,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -4883,7 +4889,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace for Hold Test",
             policyID,
@@ -4894,6 +4900,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
 
@@ -5161,7 +5168,7 @@ describe('updateSplitTransactions', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -5172,6 +5179,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5301,7 +5309,7 @@ describe('updateSplitTransactions', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -5312,6 +5320,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5443,7 +5452,7 @@ describe('updateSplitTransactions', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -5454,6 +5463,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5595,7 +5605,7 @@ describe('updateSplitTransactions', () => {
         const policyID = generatePolicyID();
         createWorkspace({
             conciergeChat: undefined,
-            policyOwnerEmail: CARLOS_EMAIL,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
             makeMeAdmin: true,
             policyName: "Carlos's Workspace",
             policyID,
@@ -5606,6 +5616,7 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             activePolicy: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -9800,6 +9811,28 @@ describe('createDistanceRequest', () => {
         });
 
         expect(result.chatReportID).toBe(optimisticChatReportID);
+    });
+
+    it('ignores optimisticChatReportID when the page-level report already matches the participant, so an existing chat is never rebuilt at a different id', async () => {
+        // Given an existing 1:1 chat between the payer and payee that the confirmation page passes down
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingChatReportID = rand64();
+        const existingChat: Report = {
+            reportID: existingChatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`, existingChat);
+
+        // When the distance request is submitted with an unrelated optimistic chat id supplied
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(existingChat, {amount: 1000}, recentWaypoints),
+            participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+            optimisticChatReportID: 'unused-optimistic-id',
+        });
+
+        // Then the existing chat is used and the optimistic id is ignored
+        expect(result.chatReportID).toBe(existingChatReportID);
     });
 
     it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {

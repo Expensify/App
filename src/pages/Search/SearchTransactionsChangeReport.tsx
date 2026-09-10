@@ -21,7 +21,12 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
+import {
+    isDistanceRequest as isDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
+    isUnreportedManagedCardTransaction,
+} from '@libs/TransactionUtils';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 
@@ -281,6 +286,7 @@ function SearchTransactionsChangeReport() {
             transactionIDs={selectedTransactionsKeys}
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}

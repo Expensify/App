@@ -44,7 +44,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -1319,6 +1319,18 @@ function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
+function setBetaOverride(beta: Beta, value: boolean) {
+    Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: value});
+}
+
+function clearBetaOverride(beta: Beta) {
+    Onyx.merge(ONYXKEYS.BETA_OVERRIDES, {[beta]: null});
+}
+
+function clearBetaOverrides() {
+    Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
+}
+
 function lockAccount(currentUserAccountID: number, accountID: number | undefined, domainAccountID: number | undefined, domainName: string | undefined) {
     let domainOptimisticData: DomainOnyxUpdate[] = [];
     let domainFailureData: DomainOnyxUpdate[] = [];
@@ -1949,6 +1961,9 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
+    setBetaOverride,
+    clearBetaOverride,
+    clearBetaOverrides,
     lockAccount,
     requestUnlockAccount,
     respondToProactiveAppReview,
