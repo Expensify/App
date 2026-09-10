@@ -117,6 +117,12 @@ type UseConfirmationValidationParams = {
     /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
     canEnterScanFieldsManually: boolean;
 
+    /**
+     * ID of a half-filled Scan among the transactions being confirmed, when there is one. Multi-scan confirms every
+     * receipt at once, so this can name a receipt other than the one being validated here.
+     */
+    halfFilledScanID?: string;
+
     /** Whether the confirmation fields are read-only (date is not inline-editable) */
     isReadOnly: boolean;
 
@@ -170,6 +176,7 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     canEnterScanFieldsManually,
+    halfFilledScanID,
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
@@ -205,6 +212,11 @@ function useConfirmationValidation({
         // the expense to SmartScan and filling all three in submits it as a manual expense, but a half-filled set is
         // neither, so it is blocked here and each blank field raises the same error inline.
         if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        // On a multi-scan the same rule has to hold for the receipts that are not on screen, since Create submits
+        // all of them at once. The caller brings the offending one into view so its blank fields raise this inline.
+        if (halfFilledScanID) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (

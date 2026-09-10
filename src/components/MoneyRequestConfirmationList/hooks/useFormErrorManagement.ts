@@ -57,6 +57,12 @@ type UseFormErrorManagementParams = {
     /** Whether the Scan confirmation lets the user fill in the amount / merchant / date themselves */
     canEnterScanFieldsManually: boolean;
 
+    /**
+     * ID of a half-filled Scan among the transactions being confirmed, when there is one. On a multi-scan it can name
+     * a receipt other than the one on screen, which is why the required error must not be cleared against this one.
+     */
+    halfFilledScanID?: string;
+
     /** Whether the merchant field should be visible in the UI */
     shouldShowMerchant: boolean;
 
@@ -142,6 +148,7 @@ function useFormErrorManagement({
     isPolicyExpenseChat,
     isScanRequest,
     canEnterScanFieldsManually,
+    halfFilledScanID,
     shouldShowMerchant,
     hasSmartScanFailed,
     didConfirmSplit,
@@ -223,11 +230,14 @@ function useFormErrorManagement({
     const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually);
     const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually);
     useEffect(() => {
-        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing) {
+        // `halfFilledScanID` keeps the error alive while any other receipt of a multi-scan is still half-filled. The
+        // predicates above only see the transaction on screen, so without it the error would clear the moment a
+        // complete receipt is displayed, including during the render it takes to switch to the incomplete one.
+        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing || !!halfFilledScanID) {
             return;
         }
         setFormError('');
-    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, setFormError]);
+    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, halfFilledScanID, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;

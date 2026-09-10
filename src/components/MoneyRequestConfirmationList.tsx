@@ -31,6 +31,7 @@ import {
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -135,6 +136,15 @@ type MoneyRequestConfirmationListProps = {
      */
     canEnterScanFieldsManually?: boolean;
 
+    /**
+     * ID of a transaction whose Scan fields are half-filled, when there is one. Multi-scan confirms every receipt at
+     * once, so this can be a receipt other than the one on screen, and confirmation is blocked until it is completed.
+     */
+    halfFilledScanID?: string;
+
+    /** Brings another of the confirmed transactions on screen, so its inline errors are the ones the user sees */
+    onSwitchToTransaction?: (transactionID: string) => void;
+
     /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -162,6 +172,12 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
+/**
+ * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
+ * only visible if those fields are on screen, so the confirmation has to reveal them when it does.
+ */
+const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -176,6 +192,8 @@ function MoneyRequestConfirmationList({
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
     canEnterScanFieldsManually = false,
+    halfFilledScanID,
+    onSwitchToTransaction,
     isEditingSplitBill,
     isReceiptEditable,
     selectedParticipants: selectedParticipantsProp,
@@ -348,6 +366,7 @@ function MoneyRequestConfirmationList({
         isPolicyExpenseChat,
         isScanRequest,
         canEnterScanFieldsManually,
+        halfFilledScanID,
         shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,
@@ -473,10 +492,21 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         canEnterScanFieldsManually,
+        halfFilledScanID,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
     });
+
+    // On a multi-scan the receipt that is half-filled may not be the one on screen, so bring it into view before its
+    // blank fields are asked to raise the error.
+    const validateAndRevealFields: typeof validate = (paymentType) => {
+        const result = validate(paymentType);
+        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && halfFilledScanID && halfFilledScanID !== transactionID) {
+            onSwitchToTransaction?.(halfFilledScanID);
+        }
+        return result;
+    };
 
     const confirm = buildConfirmAction({
         iouType,
@@ -485,7 +515,7 @@ function MoneyRequestConfirmationList({
         routeError,
         formError,
         isDelegateAccessRestricted,
-        validate,
+        validate: validateAndRevealFields,
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
@@ -497,6 +527,16 @@ function MoneyRequestConfirmationList({
         },
         onSendMoney,
     });
+
+    // The amount / merchant / date render these errors inline, and compact mode keeps those fields behind "Show more",
+    // so an outstanding one has to open the section or pressing Create looks like it did nothing. Opening it during
+    // render rather than from the press keeps it open when a multi-scan switches to the half-filled receipt, since
+    // that remounts and resets the flag. Writing the flag itself (rather than reading the error alongside it) keeps
+    // the section open once the user starts filling the fields in and the error clears, and keeps the receipt sizing,
+    // which reads the same flag, from disagreeing with what is on screen.
+    if (INLINE_FIELD_ERROR_KEYS.has(formError) && !showMoreFields) {
+        setShowMoreFields(true);
+    }
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
     const selectionListStyle = {

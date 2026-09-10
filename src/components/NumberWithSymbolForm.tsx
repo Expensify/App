@@ -508,6 +508,10 @@ function NumberWithSymbolForm({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onTrailingDropdownPress}
+                        // Keep the press from blurring the input. Callers that only reveal these buttons while the
+                        // field is focused would otherwise unmount this one before the press lands, leaving the
+                        // currency unreachable until an amount is typed.
+                        onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}

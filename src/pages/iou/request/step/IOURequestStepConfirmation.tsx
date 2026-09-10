@@ -72,6 +72,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
+    isPartiallyEnteredScanExpense,
     isScanRequest,
 } from '@libs/TransactionUtils';
 
@@ -285,6 +286,11 @@ function IOURequestStepConfirmationContent({
         iouType !== CONST.IOU.TYPE.SPLIT &&
         !transaction?.receipt?.isTestReceipt &&
         !transaction?.receipt?.isTestDriveReceipt;
+
+    // Multi-scan confirms every receipt at once, so a half-filled one has to block the whole confirmation even while
+    // the user is looking at a different receipt. The confirmation surface only ever validates the transaction it is
+    // showing, so the offending one is found here and handed to it.
+    const halfFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
@@ -1163,6 +1169,8 @@ function IOURequestStepConfirmationContent({
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
                                     canEnterScanFieldsManually={canEnterScanFieldsManually}
+                                    halfFilledScanID={halfFilledScanID}
+                                    onSwitchToTransaction={setCurrentTransactionID}
                                     action={action}
                                     isConfirmed={isConfirmed}
                                     isConfirming={isConfirming}
