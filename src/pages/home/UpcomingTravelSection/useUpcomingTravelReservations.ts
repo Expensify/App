@@ -9,7 +9,7 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {accountIDSelector} from '@selectors/Session';
+import {emailSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 
 import useTripRoomReports from './useTripRoomReports';
@@ -22,10 +22,18 @@ function tripDataSelector(reportNameValuePairs: OnyxCollection<ReportNameValuePa
     return Object.fromEntries(Object.entries(reportNameValuePairs ?? {}).map(([key, value]) => [key, {tripData: value?.tripData}]));
 }
 
+function isCurrentUserTraveler(reportNameValuePairs: Pick<ReportNameValuePairs, 'tripData'> | undefined, currentUserEmail: string | undefined): boolean {
+    if (!currentUserEmail) {
+        return false;
+    }
+
+    return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user.email === currentUserEmail)) ?? false;
+}
+
 function useUpcomingTravelReservations(): UpcomingReservation[] {
     const tripRoomReports = useTripRoomReports();
     const [tripDataByReportNameValuePairsKey] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: tripDataSelector});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     return useMemo(() => {
         const now = new Date();
@@ -35,11 +43,10 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         const upcoming: UpcomingReservation[] = [];
 
         for (const report of tripRoomReports) {
-            // Only include reservations where the current user is the traveler
-            if (report.ownerAccountID !== accountID) {
+            const reportNameValuePairs = tripDataByReportNameValuePairsKey?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+            if (!isCurrentUserTraveler(reportNameValuePairs, currentUserEmail)) {
                 continue;
             }
-            const reportNameValuePairs = tripDataByReportNameValuePairsKey?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reservations = getReservationsFromTripReport(report, reportNameValuePairs);
             for (const resData of reservations) {
                 const startDate = new Date(resData.reservation.start.date);
@@ -53,7 +60,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         }
 
         return upcoming.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
-    }, [tripRoomReports, accountID, tripDataByReportNameValuePairsKey]);
+    }, [tripRoomReports, currentUserEmail, tripDataByReportNameValuePairsKey]);
 }
 
 export default useUpcomingTravelReservations;

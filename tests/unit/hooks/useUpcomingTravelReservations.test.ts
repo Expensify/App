@@ -411,6 +411,8 @@ function makeRailPnr(pnrId: string, departISO: string, arriveISO: string): Pnr {
 }
 
 const TEST_ACCOUNT_ID = 12345;
+const TEST_USER_EMAIL = 'test@example.com';
+const OTHER_USER_EMAIL = 'other@example.com';
 
 function makeTripRoomReport(reportID: string, ownerAccountID: number = TEST_ACCOUNT_ID): Report {
     return {
@@ -423,11 +425,33 @@ function makeTripRoomReport(reportID: string, ownerAccountID: number = TEST_ACCO
     } as Report;
 }
 
-function makeTripRoomReportNameValuePairs(reportID: string, pnrs: Pnr[]): ReportNameValuePairs {
+function makeTraveler(email: string): PnrData['travelers'][number] {
+    return {
+        travelerPersonalInfo: {loyaltyInfos: []},
+        user: {email, addresses: [], identityDocs: [], paymentInfos: [], phoneNumbers: []},
+        userBusinessInfo: {phoneNumbers: [], designatedApproverInfos: [], designatedApproverUserIds: []},
+        userOrgId: {},
+        persona: '',
+        isActive: true,
+        tier: '',
+        adhocUserInfo: {},
+        externalId: '',
+    };
+}
+
+function makeTripRoomReportNameValuePairs(reportID: string, pnrs: Pnr[], travelerEmail = TEST_USER_EMAIL): ReportNameValuePairs {
     return {
         tripData: {
             tripID: `trip-${reportID}`,
-            payload: {pnrs},
+            payload: {
+                pnrs: pnrs.map((pnr) => ({
+                    ...pnr,
+                    data: {
+                        ...pnr.data,
+                        travelers: [makeTraveler(travelerEmail)],
+                    },
+                })),
+            },
         },
     };
 }
@@ -439,7 +463,7 @@ describe('useUpcomingTravelReservations', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: TEST_USER_EMAIL});
         await waitForBatchedUpdates();
     });
 
@@ -601,7 +625,7 @@ describe('useUpcomingTravelReservations', () => {
         const tripRoom = makeTripRoomReport('600', 99999);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}600`, tripRoom);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}600`, makeTripRoomReportNameValuePairs('600', [flight]));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}600`, makeTripRoomReportNameValuePairs('600', [flight], OTHER_USER_EMAIL));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useUpcomingTravelReservations());
@@ -621,7 +645,7 @@ describe('useUpcomingTravelReservations', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}700`, ownTripRoom);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}701`, otherTripRoom);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}700`, makeTripRoomReportNameValuePairs('700', [ownFlight]));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}701`, makeTripRoomReportNameValuePairs('701', [otherFlight]));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}701`, makeTripRoomReportNameValuePairs('701', [otherFlight], OTHER_USER_EMAIL));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useUpcomingTravelReservations());
@@ -633,7 +657,7 @@ describe('useUpcomingTravelReservations', () => {
         expect(result.current.at(0)?.reportID).toBe('700');
     });
 
-    it('should exclude trips with undefined ownerAccountID', async () => {
+    it('should exclude trips without the current user as a traveler', async () => {
         const flight = makeAirPnr('PNR_NO_OWNER', daysFromNow(2), daysFromNow(2, 15));
         const tripRoom = {
             reportID: '800',
@@ -644,7 +668,7 @@ describe('useUpcomingTravelReservations', () => {
         } as Report;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}800`, tripRoom);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}800`, {tripData: {tripID: 'trip-800', payload: {pnrs: [flight]}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}800`, makeTripRoomReportNameValuePairs('800', [flight], OTHER_USER_EMAIL));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useUpcomingTravelReservations());
@@ -666,9 +690,9 @@ describe('useUpcomingTravelReservations', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}900`, tripRoom1);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}901`, tripRoom2);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}902`, tripRoom3);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}900`, makeTripRoomReportNameValuePairs('900', [flight1]));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}901`, makeTripRoomReportNameValuePairs('901', [flight2]));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}902`, makeTripRoomReportNameValuePairs('902', [flight3]));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}900`, makeTripRoomReportNameValuePairs('900', [flight1], OTHER_USER_EMAIL));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}901`, makeTripRoomReportNameValuePairs('901', [flight2], OTHER_USER_EMAIL));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}902`, makeTripRoomReportNameValuePairs('902', [flight3], OTHER_USER_EMAIL));
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useUpcomingTravelReservations());
