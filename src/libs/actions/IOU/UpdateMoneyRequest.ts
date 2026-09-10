@@ -43,7 +43,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
-import {getMerchantRuleSuggestionRollback, trackMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
+import {getMerchantRuleSuggestionTrackingUpdate} from '@userActions/MerchantRuleSuggestion';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 
@@ -350,20 +350,25 @@ function updateMoneyRequestDate({
 }
 
 /**
- * Adds a tracked edit's rollback to the update carrying it, so a rejected edit takes its offer down with it. Must run
- * before the write, since the failure data is read when the request is queued.
+ * Adds a tracked edit to the update carrying it, so the offer to create a merchant rule only appears once the edit is
+ * confirmed. Sitting in `successData` rather than `optimisticData` means a rejected edit needs no rollback: it was
+ * never tracked, and an earlier edit's own tracking is left alone. Must run before the write, since success data is
+ * read when the request is queued.
  */
-function addMerchantRuleSuggestionRollback(
+function addMerchantRuleSuggestionTracking(
     onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
     transactionID: string | undefined,
     field: MerchantRuleSuggestionField,
+    reportID: string | undefined,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     editedTagLevels?: number[],
 ) {
-    const rollback = getMerchantRuleSuggestionRollback(transactionID, field, editedTagLevels);
-    if (!rollback) {
+    const update = getMerchantRuleSuggestionTrackingUpdate(transactionID, field, reportID, policy, policyCategories, editedTagLevels);
+    if (!update) {
         return;
     }
-    onyxData.failureData?.push(rollback);
+    onyxData.successData?.push(update);
 }
 
 /** Updates the billable field of an expense */
@@ -429,9 +434,8 @@ function updateMoneyRequestBillable({
         getCurrencyDecimals,
         getCurrencySymbol,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 function updateMoneyRequestReimbursable({
@@ -499,9 +503,8 @@ function updateMoneyRequestReimbursable({
         getCurrencyDecimals,
         getCurrencySymbol,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy, policyCategories);
 }
 
 /** Updates the merchant field of an expense */
@@ -930,9 +933,8 @@ function updateMoneyRequestTag({
     } else if (transaction) {
         editedTagLevels = getChangedTagLevels(getTag(transaction), tag);
     }
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, editedTagLevels);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories, editedTagLevels);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories, editedTagLevels);
 }
 
 /** Updates the created tax amount of an expense */
@@ -1064,9 +1066,8 @@ function updateMoneyRequestTaxRate({
         getCurrencySymbol,
     });
 
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -1307,9 +1308,8 @@ function updateMoneyRequestCategory({
         getCurrencyDecimals,
         getCurrencySymbol,
     });
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the description of an expense */
@@ -1396,9 +1396,8 @@ function updateMoneyRequestDescription({
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
-    addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION);
+    addMerchantRuleSuggestionTracking(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy, policyCategories);
 }
 
 /** Updates the distance rate of an expense */
