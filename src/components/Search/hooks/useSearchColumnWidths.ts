@@ -157,15 +157,19 @@ function useSearchColumnWidths({
     const constraints: DynamicColumnConstraints[] = [];
     const contentWidths: number[] = [];
 
-    for (const column of dynamicColumns) {
-        const measurer = createWidestTextMeasurer();
+    // A measurer per column, filled in one pass over the rows rather than one pass per column, so the row array is
+    // walked once however many columns the table shows.
+    const measurersByColumn = new Map(dynamicColumns.map((column) => [column, createWidestTextMeasurer()]));
 
-        for (const item of data) {
+    for (const item of data) {
+        for (const [column, measurer] of measurersByColumn) {
             for (const content of getSearchColumnContentToMeasure(column, item, translate, measurementContext)) {
                 measurer.add(content.text, content.font);
             }
         }
+    }
 
+    for (const [column, measurer] of measurersByColumn) {
         const widestContentWidth = measurer.getWidestWidth();
         const headerLabelWidth = measureHeaderLabelWidth(column, translate, variables.iconSizeExtraSmall + styles.gap1.gap);
 

@@ -34,6 +34,11 @@ type SearchColumnSizingState = {
     columnOptions: GetReportTableColumnStylesParams;
 };
 
+/**
+ * Defaults to sizing nothing, because the components that read this are shared well beyond the Search table: the same
+ * row and heading render in the Money Request report, the unreported expense list, and the duplicate and merge
+ * transaction pages, none of which mount the provider. Those keep the widths they are styled with.
+ */
 const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
 
 function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, children}: React.PropsWithChildren<SearchColumnSizingState>) {
