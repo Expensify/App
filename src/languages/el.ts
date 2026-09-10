@@ -4714,6 +4714,7 @@ ${amount} για ${merchant} - ${date}`,
             accounting: 'Λογιστική',
             hr: 'HR',
             recruiting: 'Προσλήψεις',
+            mcp: 'MCP',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -4856,6 +4857,25 @@ ${amount} για ${merchant} - ${date}`,
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
+        },
+        mcp: {
+            connectors: 'Συνδέσεις',
+            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            connect: 'Σύνδεση',
+            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
+            helpLink: 'Διαβάστε τον οδηγό μας.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'από την Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'από την Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'από την OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6679,6 +6699,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             connections: {
                 title: 'Λογιστική',
                 subtitle: 'Συγχρονίστε το λογιστικό σας σχέδιο και άλλα.',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
             },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',

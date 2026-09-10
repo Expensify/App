@@ -4606,6 +4606,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viagens',
             members: 'Membros',
             accounting: 'Contabilidade',
+            mcp: 'MCP',
             receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
@@ -4742,6 +4743,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
             description: 'Ótimas notícias 🎉. Entre em contato conosco se precisarem de ajuda com a configuração.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
+            connect: 'Conectar',
+            helpPrompt: 'Precisa de ajuda para conectar?',
+            helpLink: 'Leia nosso guia.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'da Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'da Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'da OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6508,6 +6528,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             connections: {
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e muito mais.',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
             },
             receiptPartners: {
                 title: 'Parceiros de recibos',
