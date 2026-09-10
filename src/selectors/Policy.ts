@@ -38,7 +38,8 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
-    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -405,6 +406,9 @@ const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>
 const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY));
 
+const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
@@ -412,6 +416,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -437,13 +442,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 

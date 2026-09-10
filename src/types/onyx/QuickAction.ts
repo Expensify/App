@@ -7,16 +7,12 @@ type QuickActionName = ValueOf<typeof CONST.QUICK_ACTIONS>;
 
 /** Model of user quick action */
 type QuickAction = {
-    /** The action to take */
     action?: QuickActionName;
-
-    /** ID of the report */
     chatReportID?: string;
 
     /** ID of the target account for task actions */
     targetAccountID?: number;
 
-    /** True if it is the first quick action we store for this user */
     isFirstQuickAction?: boolean;
 
     /** ID of the per diem policy for track per diem quick actions */
