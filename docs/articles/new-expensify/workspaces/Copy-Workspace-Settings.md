@@ -55,6 +55,10 @@ Yes. Any settings you select replace the corresponding settings in each destinat
 
 Copy settings applies settings to workspaces you already have. Duplicating a workspace creates a new, separate workspace using the settings of an existing one. To create a new workspace, [learn how to duplicate a workspace](/articles/new-expensify/workspaces/Duplicate-Workspace).
 
+## Does copying settings copy invoice fields?
+
+Yes. When you select **Invoices** on the **Select settings** page, your invoice fields are copied along with the rest of the invoice settings. The **Invoices** row shows how many invoice fields will be copied, for example `1 invoice fields`. [Learn how to add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+
 ## Why don't I see the Copy settings option?
 
 The Copy settings option is available only if you're a Workspace Admin on two or more Collect or Control workspaces. 

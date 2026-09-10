@@ -38,6 +38,10 @@ Once Report Fields are enabled, follow these steps to create a new field:
      - To create list options, click **List Values** > **Add Values**.
 5. After naming and choosing the field type, click **Save**.
 
+**Note:** Field names must be unique across the workspace, and report fields share the same set of names as invoice fields. If the name is already used by another report field or by an invoice field, Expensify shows **A report field with this name already exists** and doesn't save the field. The check ignores capitalization.
+
+Learn how to [add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+
 ---
 
 # Edit or Delete Report Fields
