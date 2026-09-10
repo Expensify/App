@@ -34,6 +34,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {reportActions} = useMoneyReportTransactionThread();
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -69,6 +70,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin,
+        rules,
         isOffline,
     });
 }
