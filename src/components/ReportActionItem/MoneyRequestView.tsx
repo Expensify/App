@@ -564,7 +564,17 @@ function MoneyRequestView({
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
-    const tripRoomReportID = parentReport?.parentReportID;
+    const transactionTripID = transaction?.comment?.tripID;
+    const [tripRoomReportID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string | undefined => {
+            if (!transactionTripID || !allReportNameValuePairs) {
+                return undefined;
+            }
+
+            const tripRoomReportNameValuePairsKey = Object.keys(allReportNameValuePairs).find((key) => allReportNameValuePairs[key]?.tripData?.tripID === transactionTripID);
+            return tripRoomReportNameValuePairsKey?.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+        },
+    });
     const [tripRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${tripRoomReportID}`);
     const [tripRoomReportNameValuePairs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReportID}`);
     const tripID = tripRoomReportNameValuePairs?.tripData?.tripID;
