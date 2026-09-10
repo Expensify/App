@@ -1,5 +1,5 @@
+import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
-import TableRowComponent from '@components/Table/TableRow';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useOnyx from '@hooks/useOnyx';
@@ -14,14 +14,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {View} from 'react-native';
 
-import type {UnreportedExpenseTableRowData} from './AddExistingExpense';
+import type {UnreportedExpenseTableRowData} from '.';
 
 type AddExistingExpenseTableRowProps = {
     item: UnreportedExpenseTableRowData;
     rowIndex: number;
+    shouldUseNarrowTableLayout: boolean;
 };
 
-function AddExistingExpenseTableRow({item, rowIndex}: AddExistingExpenseTableRowProps) {
+function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AddExistingExpenseTableRowProps) {
     const styles = useThemeStyles();
     // Table.Row re-reads the row by index off processedData internally to get its `selected` and `disabled` state,
     // since the `item` FlashList hands to renderItem is typed as the plain row data, not the table's selection wrapper.
@@ -38,13 +39,16 @@ function AddExistingExpenseTableRow({item, rowIndex}: AddExistingExpenseTableRow
     const accessibilityLabel = getMerchant(item) || getDescription(item);
 
     return (
-        <TableRowComponent
+        <Table.Row
             interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM}
             offlineWithFeedback={{pendingAction: item.pendingAction}}
+            // This list has no per-row navigation, so unlike other tables (where onPress opens details and the
+            // checkbox is the only way to select) the whole row is the selection target, matching the old
+            // SelectionList behavior this page replaced.
             onPress={() => {
                 if (item.isSelectionDisabled) {
                     return;
@@ -57,7 +61,7 @@ function AddExistingExpenseTableRow({item, rowIndex}: AddExistingExpenseTableRow
                     transactionItem={item}
                     report={transactionReport}
                     policy={transactionPolicy}
-                    shouldUseNarrowLayout
+                    shouldUseNarrowLayout={shouldUseNarrowTableLayout}
                     isSelected={isSelected}
                     shouldShowTooltip
                     dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -67,7 +71,7 @@ function AddExistingExpenseTableRow({item, rowIndex}: AddExistingExpenseTableRow
                     shouldShowCheckbox={false}
                 />
             </View>
-        </TableRowComponent>
+        </Table.Row>
     );
 }
 
