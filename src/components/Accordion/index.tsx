@@ -19,7 +19,6 @@ type AccordionProps = {
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
 
-    /** Was toggle triggered */
     isToggleTriggered: SharedValue<boolean>;
 };
 
