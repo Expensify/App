@@ -1,7 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -139,21 +137,15 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
                         key={row.description}
                         pendingAction={pendingAction}
                     >
-                        <MenuItemField
-                            name={row.description}
-                            value={row.title}
-                            onPress={row.interactive === false ? undefined : row.onPress}
-                        >
-                            {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
-                        </MenuItemField>
-                        {!!row.helperText && (
-                            <FormHelpMessage
-                                isError={false}
-                                shouldShowRedDotIndicator={false}
-                                message={row.helperText}
-                                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                            />
-                        )}
+                        <MenuItemWithTopDescription
+                            title={row.title}
+                            description={row.description}
+                            helperText={row.helperText}
+                            shouldShowRightIcon={row.interactive !== false}
+                            onPress={row.onPress}
+                            interactive={row.interactive}
+                            brickRoadIndicator={brickRoadIndicator}
+                        />
                     </OfflineWithFeedback>
                 );
             })}
