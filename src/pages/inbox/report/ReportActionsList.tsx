@@ -1,5 +1,6 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -65,7 +66,6 @@ import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -163,6 +163,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {
         report,
         hasOnceLoadedReportActions,
+        isInitialReportLoadPending,
         hasOlderActions,
         hasNewerActions,
         isLoadingOlderReportActions,
@@ -401,7 +402,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     });
 
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
-    const shouldShowInitialViewportSkeleton = !isOffline && (!hasOnceLoadedReportActions || loadedInitialViewportListID !== listID);
+    const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
 
     const handleListLoad = () => {
         onLoad();
@@ -574,7 +575,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
-        return <ReportActionsSkeletonView />;
+        return <ReportActionsSkeletonCover />;
     }
 
     return (
@@ -610,6 +611,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
                     recycleItems
+                    experimental_hideItemsUntilMeasured
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={loadNewerChatsAfterTransitions}
@@ -637,14 +639,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onLoad={handleListLoad}
                     onContentSizeChange={() => trackVerticalScrolling(undefined)}
                 />
-                {shouldShowInitialViewportSkeleton && (
-                    <View
-                        pointerEvents="none"
-                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.appBG, styles.overflowHidden, styles.zIndex10, styles.justifyContentEnd, styles.pb4]}
-                    >
-                        <ReportActionsSkeletonView />
-                    </View>
-                )}
+                {shouldShowInitialViewportSkeleton && <ReportActionsSkeletonCover shouldOverlay />}
             </ReportActionsListPaddingView>
         </>
     );

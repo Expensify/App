@@ -85,9 +85,9 @@ const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunc
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
-function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
+function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true, isLoadingInitialReportActions = false) {
     return selector === reportActionsListLoadingStateSelector
-        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false, isLoadingOlderReportActions: false, hasLoadingOlderReportActionsError: false}
+        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions, isLoadingOlderReportActions: false, hasLoadingOlderReportActionsError: false}
         : undefined;
 }
 
@@ -181,6 +181,8 @@ type MockLegendListProps = {
     alignItemsAtEnd?: boolean;
     data?: OnyxTypes.ReportAction[];
     drawDistance?: number;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    experimental_hideItemsUntilMeasured?: boolean;
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
     initialScrollAtEnd?: boolean;
@@ -231,6 +233,7 @@ const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
+let mockIsLoadingInitialReportActions = false;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -306,6 +309,7 @@ describe('ReportActionsList (body)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockHasOnceLoadedReportActions = true;
+        mockIsLoadingInitialReportActions = false;
         mockShouldCallLegendListOnLoad = true;
         mockUseIsReportLoadPending.mockReturnValue(false);
 
@@ -369,7 +373,7 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions), {status: 'loaded'}];
+                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, mockIsLoadingInitialReportActions), {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -450,6 +454,7 @@ describe('ReportActionsList (body)', () => {
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
         mockShouldCallLegendListOnLoad = false;
         const view = renderReportActionsList();
 
@@ -476,6 +481,47 @@ describe('ReportActionsList (body)', () => {
             getCapturedListProps()?.onLoad?.();
         });
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+    });
+
+    it('releases the initial viewport cover after a terminal OpenReport failure', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = false;
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => {
+            getCapturedListProps()?.onLoad?.();
+        });
+
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
+    it('keeps the initial viewport covered while OpenReport is queued despite stale stored loading state', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = false;
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        mockShouldCallLegendListOnLoad = false;
+        const view = renderReportActionsList();
+
+        act(() => {
+            getCapturedListProps()?.onLoad?.();
+        });
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        mockUseIsReportLoadPending.mockReturnValue(false);
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
     it('keeps the initial actions visible until the hydrated page is complete', async () => {
@@ -533,6 +579,7 @@ describe('ReportActionsList (body)', () => {
 
         expect(listProps?.drawDistance).toBe(1500);
         expect(listProps?.recycleItems).toBe(true);
+        expect(listProps?.experimental_hideItemsUntilMeasured).toBe(true);
     });
 
     it('groups comments by layout characteristics for measurement estimates', () => {
@@ -1101,7 +1148,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions, !hasOnceLoadedReportActions), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
