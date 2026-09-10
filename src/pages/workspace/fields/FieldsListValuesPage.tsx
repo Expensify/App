@@ -95,7 +95,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
     const listInputSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
