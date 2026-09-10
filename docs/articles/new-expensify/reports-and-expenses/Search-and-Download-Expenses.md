@@ -63,8 +63,8 @@ When you group expenses on the **Spend** page, you can export the grouped result
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend** > **Expenses**.
 2. Click **Display**, then select **Group by** and choose how to group your expenses (for example, **Category**, **Merchant**, **Tag**, or **Card**).
 3. Click **Apply**.
-4. Check the box next to the groups you want to export, or use the top checkbox to select all.
-5. Click the selection button at the top (for example, **1 selected**).
+4. Check the box next to the groups you want to export, or use the top checkbox to select all. If there is more than one page of results, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
+5. Click the selection button at the top (for example, **1 selected**, or **All matching items selected** if you chose **Select all**).
 6. Select **Current view**.
 
 In the exported file:
