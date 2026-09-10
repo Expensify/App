@@ -7,8 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
 import {emailSelector} from '@selectors/Session';
 import {useMemo} from 'react';
 
@@ -18,24 +16,20 @@ type UpcomingReservation = ReservationData & {
     reportID: string;
 };
 
-function tripDataSelector(reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<Pick<ReportNameValuePairs, 'tripData'>> {
-    return Object.fromEntries(Object.entries(reportNameValuePairs ?? {}).map(([key, value]) => [key, {tripData: value?.tripData}]));
-}
-
-function isCurrentUserTraveler(reportNameValuePairs: Pick<ReportNameValuePairs, 'tripData'> | undefined, currentUserEmail: string | undefined): boolean {
-    if (!currentUserEmail) {
-        return false;
-    }
-
+function isCurrentUserTraveler(reportNameValuePairs: Pick<ReportNameValuePairs, 'tripData'> | undefined, currentUserEmail: string): boolean {
     return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user.email === currentUserEmail)) ?? false;
 }
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
     const tripRoomReports = useTripRoomReports();
-    const [tripDataByReportNameValuePairsKey] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: tripDataSelector});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     return useMemo(() => {
+        if (!currentUserEmail) {
+            return [];
+        }
+
         const now = new Date();
         const windowEnd = new Date(now);
         windowEnd.setDate(windowEnd.getDate() + CONST.UPCOMING_TRAVEL_WINDOW_DAYS);
@@ -43,11 +37,11 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         const upcoming: UpcomingReservation[] = [];
 
         for (const report of tripRoomReports) {
-            const reportNameValuePairs = tripDataByReportNameValuePairsKey?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-            if (!isCurrentUserTraveler(reportNameValuePairs, currentUserEmail)) {
+            const tripReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+            if (!isCurrentUserTraveler(tripReportNameValuePairs, currentUserEmail)) {
                 continue;
             }
-            const reservations = getReservationsFromTripReport(report, reportNameValuePairs);
+            const reservations = getReservationsFromTripReport(report, tripReportNameValuePairs);
             for (const resData of reservations) {
                 const startDate = new Date(resData.reservation.start.date);
                 if (Number.isNaN(startDate.getTime())) {
@@ -60,7 +54,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         }
 
         return upcoming.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
-    }, [tripRoomReports, currentUserEmail, tripDataByReportNameValuePairsKey]);
+    }, [tripRoomReports, currentUserEmail, reportNameValuePairs]);
 }
 
 export default useUpcomingTravelReservations;
