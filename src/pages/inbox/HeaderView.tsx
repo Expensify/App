@@ -372,7 +372,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
                                     onPress={onNavigationMenuButtonClicked}
-                                    style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
+                                    style={[styles.LHNToggle, contentHeaderHeightStyle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}

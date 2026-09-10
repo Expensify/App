@@ -1,6 +1,7 @@
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
@@ -42,6 +43,7 @@ function BaseEducationalTooltip({
     const navigator = useContext(NavigationContext);
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
 
     const isResizing = useIsResizing();
 
@@ -73,7 +75,7 @@ function BaseEducationalTooltip({
             // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
             const right = left + elementWidth;
             // Calculate the available space at the top, considering the header height and offset
-            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+            const availableHeightForTop = top - (contentHeaderHeight - offset);
 
             // Calculate the total height available after accounting for the bottom tab and offset
             const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
@@ -89,7 +91,7 @@ function BaseEducationalTooltip({
                 showTooltip();
             }
         });
-    }, [insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
+    }, [contentHeaderHeight, insets.top, insets.bottom, insets.left, shouldShowTooltip, shouldSuppressTooltip]);
 
     useEffect(() => {
         if (!genericTooltipStateRef.current || !shouldRender) {
