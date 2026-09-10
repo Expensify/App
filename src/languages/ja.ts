@@ -7937,6 +7937,8 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
                 categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
                 categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
+                createRuleFromExpenseAction: 'ルールを作成',
+                createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
             },
             categoryRules: {
                 title: 'カテゴリルール',
