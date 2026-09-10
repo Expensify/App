@@ -174,6 +174,9 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         FORMULA_PART_TYPES: {REPORT: string};
     };
 
+    // debitedAmount and creditedAmount are deliberately absent: a field's value is computed once and frozen at
+    // approval, while those amounts only exist after the payment converts, so such a field could only ever be empty.
+    // They stay available to export templates, which evaluate on demand.
     // cspell:ignore oldid
     const supportedReportFields = new Set([
         'id',
@@ -187,8 +190,6 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         'enddate',
         'total',
         'reimbursable',
-        'debitedamount',
-        'creditedamount',
         'currency',
         'policyname',
         'workspacename',
