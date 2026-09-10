@@ -150,8 +150,6 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isInitialReportLoadPending,
         hasOlderActions,
         hasNewerActions,
-        isLoadingOlderReportActions,
-        hasLoadingOlderReportActionsError,
         oldestReportActionID: currentReportOldestActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,

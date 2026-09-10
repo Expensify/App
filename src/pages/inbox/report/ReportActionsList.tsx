@@ -166,8 +166,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isInitialReportLoadPending,
         hasOlderActions,
         hasNewerActions,
-        isLoadingOlderReportActions,
-        hasLoadingOlderReportActionsError,
         oldestReportActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
@@ -192,18 +190,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const didLayout = useRef(false);
     const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
-
-    useEffect(() => {
-        didLayout.current = false;
-        lastRequestedOldestActionIDRef.current = undefined;
-    }, [reportID]);
-
-    useEffect(() => {
-        if (isLoadingOlderReportActions && !hasLoadingOlderReportActionsError) {
-            return;
-        }
-        lastRequestedOldestActionIDRef.current = undefined;
-    }, [isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
@@ -639,7 +625,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onLoad={handleListLoad}
                     onContentSizeChange={() => trackVerticalScrolling(undefined)}
                 />
-                {shouldShowInitialViewportSkeleton && <ReportActionsSkeletonCover shouldOverlay />}
+                {shouldShowInitialViewportSkeleton && <ReportActionsSkeletonCover style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.zIndex10]} />}
             </ReportActionsListPaddingView>
         </>
     );
@@ -653,6 +639,7 @@ function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsLis
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
+                key={reportID}
                 reportID={reportID}
                 conciergeChat={conciergeChat}
                 onLayout={onLayout}

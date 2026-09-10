@@ -1,36 +1,32 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
 import ReportActionsSkeletonView from './ReportActionsSkeletonView';
 
 type ReportActionsSkeletonCoverProps = {
-    /** Whether the skeleton rows animate */
-    shouldAnimate?: boolean;
+    /** The skeleton content to place at the bottom of the report viewport */
+    children?: ReactNode;
 
-    /** Whether the cover should be positioned over already-mounted content */
-    shouldOverlay?: boolean;
+    /** Additional styles for the cover */
+    style?: StyleProp<ViewStyle>;
 };
 
 /** Fills the report-actions viewport with a consistently positioned loading skeleton. */
-function ReportActionsSkeletonCover({shouldAnimate = true, shouldOverlay = false}: ReportActionsSkeletonCoverProps) {
+function ReportActionsSkeletonCover({children, style}: ReportActionsSkeletonCoverProps) {
     const styles = useThemeStyles();
 
     return (
         <View
             pointerEvents="none"
             testID="ReportActionsSkeletonCover"
-            style={[
-                styles.flex1,
-                styles.appBG,
-                styles.overflowHidden,
-                styles.justifyContentEnd,
-                styles.pb4,
-                shouldOverlay && [styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.zIndex10],
-            ]}
+            style={[styles.flex1, styles.appBG, styles.overflowHidden, styles.justifyContentEnd, styles.pb4, style]}
         >
-            <ReportActionsSkeletonView shouldAnimate={shouldAnimate} />
+            {children ?? <ReportActionsSkeletonView />}
         </View>
     );
 }

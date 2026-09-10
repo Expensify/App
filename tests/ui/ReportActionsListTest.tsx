@@ -85,9 +85,9 @@ const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunc
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
-function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true, isLoadingInitialReportActions = false) {
+function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true, isLoadingInitialReportActions = false, isLoadingOlderReportActions = false) {
     return selector === reportActionsListLoadingStateSelector
-        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions, isLoadingOlderReportActions: false, hasLoadingOlderReportActionsError: false}
+        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError: false}
         : undefined;
 }
 
@@ -234,6 +234,7 @@ const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReport
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
 let mockIsLoadingInitialReportActions = false;
+let mockIsLoadingOlderReportActions = false;
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),
@@ -310,6 +311,7 @@ describe('ReportActionsList (body)', () => {
         jest.clearAllMocks();
         mockHasOnceLoadedReportActions = true;
         mockIsLoadingInitialReportActions = false;
+        mockIsLoadingOlderReportActions = false;
         mockShouldCallLegendListOnLoad = true;
         mockUseIsReportLoadPending.mockReturnValue(false);
 
@@ -373,7 +375,7 @@ describe('ReportActionsList (body)', () => {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportLoadingState')) {
-                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, mockIsLoadingInitialReportActions), {status: 'loaded'}];
+                return [getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, mockIsLoadingInitialReportActions, mockIsLoadingOlderReportActions), {status: 'loaded'}];
             }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
@@ -656,6 +658,26 @@ describe('ReportActionsList (body)', () => {
 
         act(() => {
             listProps?.onScroll?.(createScrollEvent(0));
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+
+        mockIsLoadingOlderReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+            />,
+        );
+        mockIsLoadingOlderReportActions = false;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+            />,
+        );
+
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
 

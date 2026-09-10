@@ -15,7 +15,11 @@ describe('ReportActionsSkeletonCover', () => {
     });
 
     it('fills, clips, and bottom-aligns the report-actions skeleton', () => {
-        render(<ReportActionsSkeletonCover shouldAnimate={false} />);
+        render(
+            <ReportActionsSkeletonCover>
+                <ReportActionsSkeletonView shouldAnimate={false} />
+            </ReportActionsSkeletonCover>,
+        );
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toHaveStyle({
             flex: 1,
@@ -26,8 +30,8 @@ describe('ReportActionsSkeletonCover', () => {
         expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: false}));
     });
 
-    it('fills the parent when covering already-mounted content', () => {
-        render(<ReportActionsSkeletonCover shouldOverlay />);
+    it('accepts additional presentation styles', () => {
+        render(<ReportActionsSkeletonCover style={{position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 10}} />);
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toHaveStyle({
             position: 'absolute',

@@ -4,6 +4,7 @@ import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -217,7 +218,11 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     }
 
     if (shouldShowEmptyActionsSkeleton) {
-        return <ReportActionsSkeletonCover shouldAnimate={false} />;
+        return (
+            <ReportActionsSkeletonCover>
+                <ReportActionsSkeletonView shouldAnimate={false} />
+            </ReportActionsSkeletonCover>
+        );
     }
 
     if (!report) {
