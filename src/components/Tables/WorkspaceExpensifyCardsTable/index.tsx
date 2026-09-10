@@ -16,7 +16,6 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -178,7 +177,6 @@ export default function WorkspaceExpensifyCardsTable({
                       sortable: true,
                       dynamicSizing: {
                           getContentToMeasure: (item: WorkspaceExpensifyCardTableRowData) => (item.exportAccountTitle ? [{text: item.exportAccountTitle, fontSize: fontScale.text}] : []),
-                          maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_EXPORT_ACCOUNT_COLUMN_WIDTH,
                       },
                   },
               ]

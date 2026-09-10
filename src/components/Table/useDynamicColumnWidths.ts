@@ -85,9 +85,16 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
         }
     }
 
+    // A column with no measured text and no extraWidth genuinely never shows anything, so it needs 0px. A column with
+    // extraWidth still has non-text content to fit (e.g. an icon with no accompanying text on some rows), so its width
+    // is not skipped just because no row's text happened to measure wider than the others.
+    if (widestContentWidth === 0 && !dynamicSizing.extraWidth) {
+        return 0;
+    }
+
     // Rounded up because the widths end up as whole px grid tracks. Rounding a fraction down would leave a column
     // narrower than the text it was sized to hold, and the browser would put an ellipsis on text that fits.
-    return widestContentWidth === 0 ? 0 : Math.ceil(widestContentWidth + (dynamicSizing.extraWidth ?? 0));
+    return Math.ceil(widestContentWidth + (dynamicSizing.extraWidth ?? 0));
 }
 
 /**
