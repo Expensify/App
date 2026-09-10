@@ -348,6 +348,9 @@ type FilteredPoliciesInfo = {
 
     /** ID of the first policy that should be shown to the user */
     firstPolicyID: string | undefined;
+
+    /** The first policy itself, so callers can gate on it without re-reading a separately-timed policy cache */
+    firstPolicy: OnyxEntry<Policy>;
 };
 
 const createFilteredPoliciesInfoSelector =
@@ -355,19 +358,21 @@ const createFilteredPoliciesInfoSelector =
     (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
         let filteredPoliciesCount = 0;
         let firstPolicyID: string | undefined;
+        let firstPolicy: OnyxEntry<Policy>;
         for (const policy of Object.values(policies ?? {})) {
             if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
                 firstPolicyID = policy.id;
+                firstPolicy = policy;
             }
             filteredPoliciesCount++;
             if (filteredPoliciesCount > 1) {
                 break;
             }
         }
-        return {filteredPoliciesCount, firstPolicyID};
+        return {filteredPoliciesCount, firstPolicyID, firstPolicy};
     };
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {

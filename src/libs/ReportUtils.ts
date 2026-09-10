@@ -3242,6 +3242,27 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
 }
 
 /**
+ * Sends the user to the restricted action screen when the workspace's required payment is overdue, so every billable
+ * entry point gates on the same check instead of repeating it. Returns whether it navigated, so the caller can bail out.
+ *
+ * Takes the resolved policy rather than an ID on purpose: callers pass the snapshot they already hold, instead of this
+ * file's independently-timed `allPolicies` cache, which can lag a caller's own snapshot and let the gate fail open.
+ */
+function navigateToRestrictedActionIfNeeded(
+    policy: OnyxEntry<Policy>,
+    ownerBillingGracePeriodEnd: OnyxEntry<number>,
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
+    amountOwed: OnyxEntry<number>,
+    currentUserAccountID: number,
+): boolean {
+    if (!policy || !shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        return false;
+    }
+    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+    return true;
+}
+
+/**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
  * @param policy - The policy of the IOU report
@@ -3298,9 +3319,8 @@ function getAddExpenseDropdownOptions({
                           if (
                               policy &&
                               policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                              shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                              navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
                           ) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                               return;
                           }
                           startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
@@ -3315,8 +3335,7 @@ function getAddExpenseDropdownOptions({
                           if (!iouReportID) {
                               return;
                           }
-                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                          if (navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                               return;
                           }
                           if (blockDistanceRequestIfNeeded?.()) {
@@ -3332,8 +3351,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                if (navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                     return;
                 }
                 openUnreportedExpense(iouReportID, unreportedExpenseBackToReport);
@@ -12189,6 +12207,8 @@ type CreateDraftTransactionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
+    /** The preferred workspace itself, so the billing gate reads the caller's snapshot rather than this file's `allPolicies` cache. */
+    preferredPolicy?: OnyxEntry<Policy>;
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -12203,6 +12223,8 @@ type CreateDraftTransactionParams = {
     defaultWorkspaceName?: string;
     filteredPoliciesCount: number;
     firstPolicyID: string | undefined;
+    /** The workspace `firstPolicyID` refers to, from the same caller snapshot that produced the count above. */
+    firstPolicy?: OnyxEntry<Policy>;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -12218,6 +12240,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     ownerBillingGracePeriodEnd,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
+    preferredPolicy,
     transaction,
     currentUserAccountID,
     currentUserEmail,
@@ -12226,6 +12249,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     defaultWorkspaceName = '',
     filteredPoliciesCount,
     firstPolicyID,
+    firstPolicy,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -12269,8 +12293,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     } as Transaction);
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+        if (navigateToRestrictedActionIfNeeded(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
             return;
         }
 
@@ -12374,9 +12397,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         // Exactly one accessible workspace: skip the destination picker and submit straight to that workspace.
         if (filteredPoliciesCount === 1 && firstPolicyID) {
             // The destination picker we skip here is where the billing restriction is normally enforced, so gate it here too.
-            const firstPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`];
-            if (firstPolicy && shouldRestrictUserBillableActions(firstPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(firstPolicyID));
+            if (navigateToRestrictedActionIfNeeded(firstPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 return;
             }
 
@@ -12414,9 +12435,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             // This branch skips the participant picker as well, so it needs the same billing-restriction gate.
-            const preferredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`];
-            if (preferredPolicy && shouldRestrictUserBillableActions(preferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(preferredPolicyID));
+            if (navigateToRestrictedActionIfNeeded(preferredPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 return;
             }
 

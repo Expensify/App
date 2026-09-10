@@ -492,7 +492,7 @@ describe('actions/IOU', () => {
                 return {selfDMReport, policyExpenseChat, trackedExpense};
             }
 
-            /** Stores a workspace the current user owns, which makes `shouldRestrictUserBillableActions` fire once an amount is owed past the grace period. */
+            /** Builds a workspace the current user owns, which makes `shouldRestrictUserBillableActions` fire once an amount is owed past the grace period. */
             async function setUpRestrictedPolicy() {
                 const policy: Policy = {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -502,6 +502,7 @@ describe('actions/IOU', () => {
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
                 await waitForBatchedUpdates();
+                return policy;
             }
 
             function getConfirmationRouteBackTo() {
@@ -562,7 +563,7 @@ describe('actions/IOU', () => {
             it('should show the restricted action screen when the only accessible workspace has an expired required payment', async () => {
                 // Given a tracked self DM expense and a single workspace the user owns that is past its billing grace period
                 const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
-                await setUpRestrictedPolicy();
+                const restrictedPolicy = await setUpRestrictedPolicy();
 
                 // When the expense is submitted to the employer, which would otherwise skip the destination picker
                 createDraftTransactionAndNavigateToParticipantSelector({
@@ -583,6 +584,7 @@ describe('actions/IOU', () => {
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 1,
                     firstPolicyID: POLICY_ID,
+                    firstPolicy: restrictedPolicy,
                 });
                 await waitForBatchedUpdates();
 
@@ -598,7 +600,7 @@ describe('actions/IOU', () => {
             it('should show the restricted action screen when the preferred workspace has an expired required payment', async () => {
                 // Given a tracked self DM expense and a preferred workspace the user owns that is past its billing grace period
                 const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
-                await setUpRestrictedPolicy();
+                const restrictedPolicy = await setUpRestrictedPolicy();
 
                 // When the expense is submitted, which would otherwise skip the participant picker for the preferred workspace
                 createDraftTransactionAndNavigateToParticipantSelector({
@@ -614,6 +616,7 @@ describe('actions/IOU', () => {
                     amountOwed: 1000,
                     isRestrictedToPreferredPolicy: true,
                     preferredPolicyID: POLICY_ID,
+                    preferredPolicy: restrictedPolicy,
                     transaction: trackedExpense,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     currentUserEmail: RORY_EMAIL,
