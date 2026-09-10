@@ -1,4 +1,4 @@
-import {getUprightRotation} from '@pages/iou/request/step/IOURequestStepScan/utils/rotateStillToUpright';
+import {getUprightRotation} from '@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright';
 
 describe('getUprightRotation', () => {
     it('only re-encodes a still whose metadata already describes it upright, because the decoder applied that rotation', () => {

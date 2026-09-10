@@ -6,6 +6,8 @@
  * as the upgrade: nothing here survives a relaunch, and a receipt with no entry is simply not changing.
  */
 
+import Log from '@libs/Log';
+
 type PendingUpgrade = {
     /** Resolves once the upgrade has finished, bailed or failed. */
     promise: Promise<void>;
@@ -66,7 +68,10 @@ function waitFor(durableName: string, capMs: number): Promise<void> {
     }
 
     return new Promise((settle) => {
-        const cap = setTimeout(settle, capMs);
+        const cap = setTimeout(() => {
+            Log.warn('[ReceiptUpgrades] gave up waiting for a receipt upgrade', {durableName, capMs});
+            settle();
+        }, capMs);
         upgrade.promise.then(() => {
             clearTimeout(cap);
             settle();

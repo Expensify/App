@@ -22,7 +22,7 @@ import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/componen
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
-import useStillPhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/useStillPhotoUpgrade';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
@@ -113,7 +113,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const {handleCameraInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
-    const {hasPendingStillCapture, captureStill, upgradeReceiptWithStill, discardPendingStill} = useStillPhotoUpgrade();
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
@@ -175,14 +175,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         // `takeSnapshot` saves a screen-sized screenshot of the preview, so on that path a full-resolution
         // `takePhoto` runs alongside it and replaces the receipt file once it lands. Nothing below awaits it.
-        const shouldUpgradeToStill = !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        const shouldUpgradeToPhoto = !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
 
         // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
         // reads the most recent video frame, which a photo capture can interrupt.
         const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
 
-        if (shouldUpgradeToStill) {
-            captureStill(camera.current);
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(camera.current);
         }
 
         receiptCapture
@@ -212,8 +212,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
                 onCapture(cameraFile, source);
 
-                if (shouldUpgradeToStill) {
-                    upgradeReceiptWithStill(durableName);
+                if (shouldUpgradeToPhoto) {
+                    upgradeReceiptWithPhoto(durableName);
                 }
             })
             .catch((error: string) => {
@@ -221,7 +221,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
-                discardPendingStill();
+                discardPendingPhoto();
             });
     };
 
@@ -265,7 +265,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             blinkStyle={blinkStyle}
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
-                            hasPendingStillCapture={hasPendingStillCapture}
+                            hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onInitialized={handleCameraInitialized}
                             canUseMultiScan={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}

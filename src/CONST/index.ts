@@ -2307,6 +2307,7 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_RECEIPT_PHOTO_UPGRADE: 'ManualReceiptPhotoUpgrade',
         SPAN_RECEIPT_PREPARE: 'ManualReceiptPrepare',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2416,12 +2417,20 @@ const CONST = {
         ATTRIBUTE_FLASH_USED: 'flash_used',
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
+        ATTRIBUTE_UPGRADE_OUTCOME: 'upgrade_outcome',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
         CAPTURE_METHOD: {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
+        },
+        /** How a receipt captured as a snapshot ended up, once the full-resolution photo had its chance. */
+        UPGRADE_OUTCOME: {
+            UPGRADED: 'upgraded',
+            NO_PHOTO: 'no_photo',
+            FAILED: 'failed',
+            ABANDONED: 'abandoned',
         },
         SPAN_PLATFORM: {
             NATIVE: 'native',

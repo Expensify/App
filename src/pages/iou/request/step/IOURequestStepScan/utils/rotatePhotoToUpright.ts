@@ -5,14 +5,14 @@ import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import ImageSize from 'react-native-image-size';
 
 /**
- * Turns a full-resolution camera still upright before it replaces a scanned receipt.
+ * Turns a full-resolution camera photo upright before it replaces a scanned receipt.
  */
 
-type StillSize = {
-    /** Pixel width of the still as it sits on disk */
+type PhotoSize = {
+    /** Pixel width of the photo as it sits on disk */
     width: number;
 
-    /** Pixel height of the still as it sits on disk */
+    /** Pixel height of the photo as it sits on disk */
     height: number;
 
     /** Clockwise degrees the file's metadata asks for, which only Android reports */
@@ -20,16 +20,16 @@ type StillSize = {
 };
 
 /**
- * Clockwise degrees to turn the still by, or `undefined` to keep the file as captured.
+ * Clockwise degrees to turn the photo by, or `undefined` to keep the file as captured.
  *
  * Measure the frame the way the image loader hands it over, since the loader applies the file's rotation
- * metadata while decoding. Verified on device: a 1920x1440 still whose metadata asks for 90 decodes as
+ * metadata while decoding. Verified on device: a 1920x1440 photo whose metadata asks for 90 decodes as
  * 1440x1920, so rotating it again put it back on its side.
  *
  * A returned `0` is not a no-op. Re-encoding bakes the rotation into the pixels and drops the tag, which
  * the confirmation preview and the receipt on the server both ignore.
  */
-function getUprightRotation({width, height, rotation = 0}: StillSize): number | undefined {
+function getUprightRotation({width, height, rotation = 0}: PhotoSize): number | undefined {
     const isSideways = rotation === 90 || rotation === 270;
     const decodedWidth = isSideways ? height : width;
     const decodedHeight = isSideways ? width : height;
@@ -47,12 +47,12 @@ function getUprightRotation({width, height, rotation = 0}: StillSize): number | 
 }
 
 /**
- * Bakes the rotation of a full-resolution camera still into its pixels. Rejects instead of falling back to
- * the still as captured, since a receipt lying on its side is worse than the snapshot the caller has.
+ * Bakes the rotation of a full-resolution camera photo into its pixels. Rejects instead of falling back to
+ * the photo as captured, since a receipt lying on its side is worse than the snapshot the caller has.
  *
- * @returns path of an upright temporary copy, or `undefined` when the still needs no turn
+ * @returns path of an upright temporary copy, or `undefined` when the photo needs no turn
  */
-function rotateStillToUpright(stillPath: string): Promise<string | undefined> {
+function rotatePhotoToUpright(stillPath: string): Promise<string | undefined> {
     const sourceUri = getPhotoSource(stillPath);
 
     return ImageSize.getSize(sourceUri).then((imageSize) => {
@@ -73,5 +73,5 @@ function rotateStillToUpright(stillPath: string): Promise<string | undefined> {
     });
 }
 
-export default rotateStillToUpright;
+export default rotatePhotoToUpright;
 export {getUprightRotation};

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useStillPhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/useStillPhotoUpgrade';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 
@@ -24,7 +24,7 @@ jest.mock('@libs/ReceiptStorage', () => ({
 
 const mockRotate = jest.fn<Promise<string | undefined>, [string]>();
 
-jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotateStillToUpright', () => ({
+jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright', () => ({
     __esModule: true,
     default: (path: string) => mockRotate(path),
 }));
@@ -32,11 +32,11 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotateStillToUpright
 jest.mock('react-native-fs', () => ({TemporaryDirectoryPath: '/tmp'}));
 
 const DURABLE_NAME = 'receipt_1234.jpg';
-const STILL_PATH = '/tmp/still.jpg';
+const PHOTO_PATH = '/tmp/still.jpg';
 const UPRIGHT_PATH = '/tmp/ImageManipulator/upright.jpg';
-const STILL_CAPTURE_TIMEOUT_MS = 3000;
+const PHOTO_CAPTURE_TIMEOUT_MS = 3000;
 
-function buildStill(path = STILL_PATH): PhotoFile {
+function buildPhoto(path = PHOTO_PATH): PhotoFile {
     return {path, width: 1920, height: 1440, isRawPhoto: false, orientation: 'portrait', isMirrored: false};
 }
 
@@ -55,7 +55,7 @@ function buildCamera() {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         camera: {takePhoto} as unknown as Camera,
         takePhoto,
-        landStill: async (photo = buildStill(), index = 0) => {
+        landPhoto: async (photo = buildPhoto(), index = 0) => {
             await act(async () => {
                 started.at(index)?.resolve(photo);
             });
@@ -68,7 +68,7 @@ function buildCamera() {
     };
 }
 
-describe('useStillPhotoUpgrade', () => {
+describe('usePhotoUpgrade', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.useFakeTimers();
@@ -82,94 +82,94 @@ describe('useStillPhotoUpgrade', () => {
     });
 
     it('holds the camera session open from the shutter until the still lands', async () => {
-        const {camera, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
-        expect(result.current.hasPendingStillCapture).toBe(false);
+        expect(result.current.hasPendingPhotoCapture).toBe(false);
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
-        expect(result.current.hasPendingStillCapture).toBe(true);
+        expect(result.current.hasPendingPhotoCapture).toBe(true);
 
-        await landStill();
-        expect(result.current.hasPendingStillCapture).toBe(false);
+        await landPhoto();
+        expect(result.current.hasPendingPhotoCapture).toBe(false);
     });
 
     it('swaps the upright still onto the receipt and cleans up the file it rotated from', async () => {
-        const {camera, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.upgradeReceiptWithStill(DURABLE_NAME);
+            result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
         });
-        await landStill();
+        await landPhoto();
 
-        expect(mockRotate).toHaveBeenCalledWith(STILL_PATH);
+        expect(mockRotate).toHaveBeenCalledWith(PHOTO_PATH);
         expect(mockReplace).toHaveBeenCalledWith(DURABLE_NAME, UPRIGHT_PATH);
-        expect(mockDiscard).toHaveBeenCalledWith(STILL_PATH);
+        expect(mockDiscard).toHaveBeenCalledWith(PHOTO_PATH);
         // The upload waits on this hold, so it has to be let go once the receipt is upgraded.
         expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
     });
 
     it('swaps the still as captured when it needs no rotation, leaving nothing to clean up', async () => {
         mockRotate.mockResolvedValue(undefined);
-        const {camera, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.upgradeReceiptWithStill(DURABLE_NAME);
+            result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
         });
-        await landStill();
+        await landPhoto();
 
-        expect(mockReplace).toHaveBeenCalledWith(DURABLE_NAME, STILL_PATH);
+        expect(mockReplace).toHaveBeenCalledWith(DURABLE_NAME, PHOTO_PATH);
         expect(mockDiscard).not.toHaveBeenCalled();
     });
 
     it('keeps the snapshot and releases the session when the still misses the deadline', async () => {
-        const {camera, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.upgradeReceiptWithStill(DURABLE_NAME);
+            result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
         });
 
         await act(async () => {
-            jest.advanceTimersByTime(STILL_CAPTURE_TIMEOUT_MS);
+            jest.advanceTimersByTime(PHOTO_CAPTURE_TIMEOUT_MS);
         });
 
-        expect(result.current.hasPendingStillCapture).toBe(false);
+        expect(result.current.hasPendingPhotoCapture).toBe(false);
         expect(mockReplace).not.toHaveBeenCalled();
         expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
 
         // A still that turns up after the deadline has no consumer, so it must not stay on disk.
-        await landStill();
-        expect(mockDiscard).toHaveBeenCalledWith(STILL_PATH);
+        await landPhoto();
+        expect(mockDiscard).toHaveBeenCalledWith(PHOTO_PATH);
         expect(mockReplace).not.toHaveBeenCalled();
     });
 
     it('keeps the snapshot when the capture itself fails', async () => {
         const {camera, failCapture} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.upgradeReceiptWithStill(DURABLE_NAME);
+            result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
         });
         await failCapture();
 
-        expect(result.current.hasPendingStillCapture).toBe(false);
+        expect(result.current.hasPendingPhotoCapture).toBe(false);
         expect(mockReplace).not.toHaveBeenCalled();
         expect(mockDiscard).not.toHaveBeenCalled();
         // A capture that failed must not leave the upload waiting on it.
@@ -177,42 +177,42 @@ describe('useStillPhotoUpgrade', () => {
     });
 
     it('deletes the still when the receipt it was meant for never arrived', async () => {
-        const {camera, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.discardPendingStill();
+            result.current.discardPendingPhoto();
         });
-        await landStill();
+        await landPhoto();
 
         expect(mockReplace).not.toHaveBeenCalled();
-        expect(mockDiscard).toHaveBeenCalledWith(STILL_PATH);
+        expect(mockDiscard).toHaveBeenCalledWith(PHOTO_PATH);
     });
 
     it('keeps the session open for a retake when the first still settles after it started', async () => {
-        const {camera, takePhoto, landStill} = buildCamera();
-        const {result} = renderHook(() => useStillPhotoUpgrade());
+        const {camera, takePhoto, landPhoto} = buildCamera();
+        const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         act(() => {
-            result.current.upgradeReceiptWithStill(DURABLE_NAME);
+            result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
         });
 
         // The user came back to the camera and shot again before the first still landed.
         act(() => {
-            result.current.captureStill(camera);
+            result.current.startPhotoCapture(camera);
         });
         expect(takePhoto).toHaveBeenCalledTimes(2);
 
-        await landStill(buildStill(), 0);
-        expect(result.current.hasPendingStillCapture).toBe(true);
+        await landPhoto(buildPhoto(), 0);
+        expect(result.current.hasPendingPhotoCapture).toBe(true);
 
-        await landStill(buildStill('/tmp/still2.jpg'), 1);
-        expect(result.current.hasPendingStillCapture).toBe(false);
+        await landPhoto(buildPhoto('/tmp/still2.jpg'), 1);
+        expect(result.current.hasPendingPhotoCapture).toBe(false);
     });
 });

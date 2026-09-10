@@ -42,10 +42,11 @@ type ScanEditReceiptProps = {
  * Simplest variant: no multi-scan, no participants, no confirmation page.
  */
 /**
- * How long this screen waits for the better photo before replacing the receipt with what it has. Short,
- * because someone is watching a loader while it runs.
+ * How long the request waits for the better photo before going out with what is on disk. It matches the
+ * window `ReceiptStorage.locate` gives every other flow, and costs nothing on screen because the page has
+ * already gone back by then.
  */
-const RECEIPT_UPGRADE_WAIT_MS = 1500;
+const RECEIPT_UPGRADE_WAIT_MS = 10000;
 
 function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
