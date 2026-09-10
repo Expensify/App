@@ -92,22 +92,17 @@ type MoneyRequestReportUnifiedListProps = {
     /** Ref to the underlying list, shared via the ActionList context. */
     listRef: FlatListRefType;
 
-    /** Accessibility label for the list. */
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
     onLayout: () => void;
 
-    /** Called on scroll. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    /** Called when the list content size changes. */
     onContentSizeChange: () => void;
-
-    /** Called when the set of viewable items changes. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
     /** Called when the end of the list is reached (older actions). */
@@ -116,7 +111,6 @@ type MoneyRequestReportUnifiedListProps = {
     /** Called when the start of the list is reached (newer actions). */
     onStartReached: () => void;
 
-    /** Style applied to the list's content container. */
     contentContainerStyle: StyleProp<ViewStyle>;
 
     /** Whether the app is offline. */

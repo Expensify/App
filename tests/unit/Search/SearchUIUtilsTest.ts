@@ -6131,16 +6131,31 @@ describe('SearchUIUtils', () => {
                 expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
-            it('should exclude transactions when queryJSON status is an invalid string', () => {
+            it('should include transactions when queryJSON status is an invalid string', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['not_a_valid_status'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
             });
 
-            it('should exclude transactions when queryJSON status array contains only invalid strings', () => {
+            it('should include transactions when queryJSON status array contains only invalid strings', () => {
                 const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['invalid1', 'invalid2'])});
-                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include transactions when queryJSON status is the backend-only all value', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should filter on the valid status when queryJSON status mixes a valid status with an invalid one', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [outstandingSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING])});
+                expect(outstandingSections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+
+                const [draftsSections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['all', CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(draftsSections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
             });
 
             it('should include transactions when queryJSON status is ALL', () => {
@@ -6512,6 +6527,12 @@ describe('SearchUIUtils', () => {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.PAID]),
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should include report when queryJSON status is the backend-only all value', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(['all'])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
             });
 
             it('should include report when negated status excludes a different status than the report state', () => {
@@ -10342,48 +10363,6 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.topSpenders).toBe(true);
         });
 
-        test('Should collect Top Spenders-eligible policy IDs and scope the suggested search query to them', () => {
-            const eligiblePolicyID = 'GROUP_POLICY_01';
-            const ineligiblePolicyID = 'PERSONAL_POLICY_02';
-
-            const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`policy_${eligiblePolicyID}`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    id: eligiblePolicyID,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
-                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
-                    },
-                },
-                // Personal (non-group) policy is not eligible for Top Spenders and must not be scoped in.
-                [`policy_${ineligiblePolicyID}`]: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL),
-                    id: ineligiblePolicyID,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        'employee1@policy.com': {submitsTo: '', forwardsTo: ''},
-                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
-                    },
-                },
-            };
-
-            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.visibility.topSpenders).toBe(true);
-            expect(response.topSpendersPolicyIDs).toEqual([eligiblePolicyID]);
-
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, response.topSpendersPolicyIDs);
-            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
-            expect(topSpendersQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${eligiblePolicyID}`);
-            expect(topSpendersQuery).not.toContain(ineligiblePolicyID);
-        });
-
-        test('Should not add a policyID filter to the Top Spenders query when there are no eligible workspaces', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined, []);
-            const topSpendersQuery = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS].searchQuery;
-            expect(topSpendersQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:`);
-        });
-
         test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
             const workflowApproverEmail = 'workflow-approver@policy.com';
             const policyKey = `policy_${policyID}`;
@@ -10609,7 +10588,7 @@ describe('SearchUIUtils', () => {
         const activeExpensifyCardFeedID = 'fund1_Expensify Card';
 
         const getCardAccrualsFeedValues = (activeCardFeedID?: string, defaultFeedID?: string): unknown[] => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, [], activeCardFeedID);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, defaultFeedID, undefined, activeCardFeedID);
             const cardAccruals = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
             const feedFilter = cardAccruals.searchQueryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED);
             return (feedFilter?.filters ?? []).map((f) => f.value).filter(Boolean);
@@ -10637,8 +10616,8 @@ describe('SearchUIUtils', () => {
             // real call sites differ in the `defaultFeedID` and `shouldShowExpensifyCard` args, so mirror that here to
             // prove Card accruals is driven purely by `activeExpensifyCardFeedID` and doesn't split on those inputs.
             const otherCompanyFeedID = 'fund2_oauth.chase.com';
-            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, [], activeExpensifyCardFeedID);
-            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, [], activeExpensifyCardFeedID);
+            const fromProvider = SearchUIUtils.getSuggestedSearches(adminAccountID, companyFeedID, undefined, activeExpensifyCardFeedID);
+            const fromMenu = SearchUIUtils.getSuggestedSearches(adminAccountID, otherCompanyFeedID, true, activeExpensifyCardFeedID);
             expect(fromMenu[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash).toBe(fromProvider[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].similarSearchHash);
         });
     });
@@ -12903,7 +12882,7 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -12960,6 +12939,17 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
             );
+        });
+
+        test('reads the snapshot recorded when an expense joined an already submitted report', () => {
+            const addExpenseAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.OVER_LIMIT}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], transactionIDForViolations, translateLocal)).toBe(translateLocal('violations.shortName.overLimit'));
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([addExpenseAction], otherTransactionID, translateLocal)).toBeUndefined();
         });
 
         test('aggregates across multiple submit actions and dedupes by name', () => {

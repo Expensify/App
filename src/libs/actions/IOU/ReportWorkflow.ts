@@ -283,7 +283,7 @@ function canIOUBePaid(
         !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
-        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
     );
 }
 
@@ -1787,7 +1787,6 @@ type AddReportApproverOptions = {
     /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether the report currently has violations. */
     hasViolations: boolean;
 
     /** Whether ASAP Submit beta behavior is enabled. */

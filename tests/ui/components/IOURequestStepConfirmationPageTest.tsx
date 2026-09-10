@@ -3,17 +3,27 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import * as ConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
+import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
+import * as ReportUtils from '@libs/ReportUtils';
 
 import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -27,7 +37,8 @@ import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
-import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
+import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -100,22 +111,39 @@ jest.mock('@components/ProductTrainingContext', () => ({
 // The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
 let mockSelectedParticipants: Participant[] = [];
 let mockSelectedPolicy: OnyxEntry<Policy>;
+type MockParticipantPickerProps = Pick<ParticipantPickerProps, 'onParticipantsAdded' | 'isVisible' | 'onClose' | 'onCloseForReferralNavigation'>;
 jest.mock('@components/ParticipantPicker', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Text, TouchableOpacity} = jest.requireActual<{
-        Text: React.ComponentType<{children?: React.ReactNode}>;
+        Text: React.ComponentType<{testID?: string; children?: React.ReactNode}>;
         TouchableOpacity: React.ComponentType<{testID: string; onPress: () => void; children?: React.ReactNode}>;
     }>('react-native');
     return {
         __esModule: true,
-        default: ({onParticipantsAdded}: {onParticipantsAdded: (participants: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void}) =>
+        // `MockParticipantPickerVisible` stands in for the docked overlay itself, so tests can assert whether the picker
+        // is showing. `MockParticipantPickerReferralBanner` stands in for the referral CTA inside it, and
+        // `MockParticipantPickerDismiss` for a real dismissal (the back button), which must not arm the reopen.
+        default: ({onParticipantsAdded, isVisible, onClose, onCloseForReferralNavigation}: MockParticipantPickerProps) =>
             ReactModule.createElement(
-                TouchableOpacity,
-                {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
-                ReactModule.createElement(Text, null, 'Select participant'),
+                ReactModule.Fragment,
+                null,
+                ReactModule.createElement(
+                    TouchableOpacity,
+                    {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
+                    ReactModule.createElement(Text, null, 'Select participant'),
+                ),
+                ReactModule.createElement(
+                    TouchableOpacity,
+                    {testID: 'MockParticipantPickerReferralBanner', onPress: () => onCloseForReferralNavigation?.()},
+                    ReactModule.createElement(Text, null, 'Referral banner'),
+                ),
+                ReactModule.createElement(TouchableOpacity, {testID: 'MockParticipantPickerDismiss', onPress: () => onClose?.()}, ReactModule.createElement(Text, null, 'Dismiss picker')),
+                isVisible ? ReactModule.createElement(Text, {testID: 'MockParticipantPickerVisible'}, 'Participant picker is open') : null,
             ),
     };
 });
+
+const {navigation: mockNavigation, emitScreenFocus, resetScreenFocusListeners} = createMockScreenNavigation();
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -193,6 +221,14 @@ const PARTICIPANT_ACCOUNT_ID = 2;
 const TRANSACTION_ID = '1';
 const POLICY_ID = 'test-policy-id';
 const POLICY_CHAT_REPORT_ID = '595';
+
+const mockSendMoneyElsewhere = jest.fn();
+jest.mock('@userActions/IOU/SendMoney', () => ({
+    sendMoneyElsewhere: (...args: unknown[]) => {
+        mockSendMoneyElsewhere(...args);
+    },
+    sendMoneyWithWallet: jest.fn(),
+}));
 
 // Helper to create a policy with tax and distance enabled
 function createPolicyWithTaxAndDistance(): Policy {
@@ -301,8 +337,12 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 };
 
 describe('IOURequestStepConfirmationPageTest', () => {
+    // Writes fired during render (e.g. UpdatePreferredLocale) must not hit the real network and leave retry backoff across tests
+    setupGlobalFetchMock();
+
     beforeEach(() => {
         jest.clearAllMocks();
+        resetScreenFocusListeners();
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
@@ -350,8 +390,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: routeReportID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
                     </CurrentUserPersonalDetailsProvider>
@@ -392,8 +431,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
                     </CurrentUserPersonalDetailsProvider>
@@ -441,8 +479,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         reportID: REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </LocaleContextProvider>
                     </CurrentUserPersonalDetailsProvider>
@@ -520,8 +557,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -579,8 +615,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -647,8 +682,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -687,8 +721,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -794,8 +827,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -897,8 +929,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -955,8 +986,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -990,6 +1020,166 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Covers all likely labels, e.g. "Create $10.00 expense" and "Create 3 expenses"
             return /^Create .*expense/i;
         }
+
+        it('uses the transaction optimistic report ID for a brand-new P2P pre-mount and pay destination', async () => {
+            // Given a brand-new P2P recipient with no existing chat, so the screen must reuse the
+            // transaction's optimistic report ID rather than one a builder would otherwise mint
+            const optimisticP2PReportID = 'optimistic-p2p-report-1';
+            const transactionID = 'tx-new-p2p';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation((params) => {
+                params.executeWrite({shouldHandleNavigation: false});
+            });
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the P2P destination
+                await waitForBatchedUpdatesWithAct();
+
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
+                // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
+                await waitFor(
+                    () =>
+                        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(
+                            ROUTES.REPORT_WITH_ID.getRoute(optimisticP2PReportID, undefined, undefined, undefined, undefined, true),
+                        ),
+                    {timeout: 2000},
+                );
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
+                // subscribed to the report that actually gets created
+                expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
+                expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('keeps the IOU report as pre-mount destination when the flow starts from it, instead of the participant chat', async () => {
+            // Given an existing 1:1 chat and an IOU report under it, and a flow started from that IOU report to add another expense
+            const chatReportID = 'p2p-chat-1';
+            const iouReportID = 'p2p-iou-report-1';
+            const transactionID = 'tx-from-iou-report';
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                        reportID: chatReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        participants: {[ACCOUNT_ID]: {}, [PARTICIPANT_ACCOUNT_ID]: {}},
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+                        reportID: iouReportID,
+                        chatReportID,
+                        type: CONST.REPORT.TYPE.IOU,
+                        ownerAccountID: ACCOUNT_ID,
+                        managerID: PARTICIPANT_ACCOUNT_ID,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: iouReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: iouReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the pre-mount destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
+                expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
 
         it('should not fallback to route report when transaction report differs and is not usable', async () => {
             const routeReportID = '100';
@@ -1044,8 +1234,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: routeReportID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1111,8 +1300,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: routeReportID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1140,7 +1328,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 harvesting: {enabled: false},
             };
 
-            const isReportOutstandingSpy = jest.spyOn(require('@libs/ReportUtils'), 'isReportOutstanding').mockReturnValue(true);
+            const canAddTransactionSpy = jest.spyOn(require('@libs/ReportUtils'), 'canAddTransaction').mockReturnValue(true);
 
             try {
                 await act(async () => {
@@ -1187,8 +1375,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                                 reportID: routeReportID,
                                             },
                                         }}
-                                        // @ts-expect-error we don't need navigation param here.
-                                        navigation={undefined}
+                                        navigation={mockNavigation}
                                     />
                                 </LocaleContextProvider>
                             </CurrentUserPersonalDetailsProvider>
@@ -1204,7 +1391,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
-                isReportOutstandingSpy.mockRestore();
+                canAddTransactionSpy.mockRestore();
             }
         });
     });
@@ -1247,8 +1434,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1319,8 +1505,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1405,8 +1590,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1462,8 +1646,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error we don't need navigation param here.
-                                    navigation={undefined}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1494,6 +1677,132 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
     });
 
+    describe('Referral banner inside the participant picker', () => {
+        beforeEach(async () => {
+            mockSelectedParticipants = [];
+            mockSelectedPolicy = undefined;
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        function confirmationScreen() {
+            return (
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'create',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: '',
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>
+            );
+        }
+
+        /** Renders the confirmation for a brand-new manual expense with no recipient yet, which auto-opens the picker. */
+        async function renderConfirmationWithOpenPicker() {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    isFromGlobalCreate: true,
+                    participants: [],
+                });
+            });
+
+            render(confirmationScreen());
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        /** Replays what returning from another RHP does to this screen. */
+        async function returnToScreen() {
+            act(() => emitScreenFocus());
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('reopens the picker when returning from the referral page, so back does not land on the expense form (#96562)', async () => {
+            // Given a new manual expense whose participant picker is open
+            await renderConfirmationWithOpenPicker();
+            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+
+            // When the referral banner navigates away, the picker closes so it doesn't cover the referral RHP
+            fireEvent.press(screen.getByTestId('MockParticipantPickerReferralBanner'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // Then pressing back on the referral page refocuses this screen and brings the picker back
+            await returnToScreen();
+            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+        });
+
+        it('leaves the picker closed on refocus when it was dismissed normally rather than by the referral banner', async () => {
+            // Given a new manual expense whose participant picker the user dismissed with the back button
+            await renderConfirmationWithOpenPicker();
+            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+
+            fireEvent.press(screen.getByTestId('MockParticipantPickerDismiss'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // When the screen regains focus after some unrelated navigation
+            await returnToScreen();
+
+            // Then the picker stays closed, since only the referral navigation arms the reopen
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+        });
+
+        it('leaves the picker closed on refocus once a recipient was picked', async () => {
+            // Given a new manual expense whose participant picker closed because the user picked a recipient
+            await renderConfirmationWithOpenPicker();
+            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+
+            mockSelectedParticipants = [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}];
+            fireEvent.press(screen.getByTestId('MockParticipantPicker'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // When the screen regains focus after some unrelated navigation
+            await returnToScreen();
+
+            // Then the picker stays closed rather than covering a form the user is already filling in
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+        });
+
+        it('does not reopen the picker on refocus when a recipient was resolved while the referral page was open', async () => {
+            // Given a new manual expense whose picker closed because the referral banner navigated away
+            await renderConfirmationWithOpenPicker();
+            fireEvent.press(screen.getByTestId('MockParticipantPickerReferralBanner'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+
+            // When the expense gains a recipient in the meantime (a deep link, or default participant resolution)
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            // Then coming back leaves the picker closed, because there is nothing left to pick
+            await returnToScreen();
+            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+        });
+    });
+
     describe('Participant switch field resets', () => {
         const SOURCE_POLICY_ID = 'sourcePolicy';
         const DESTINATION_POLICY_ID = 'destinationPolicy';
@@ -1520,7 +1829,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`, {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Destination policy'),
@@ -1578,8 +1886,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             reportID: SOURCE_CHAT_REPORT_ID,
                                         },
                                     }}
-                                    // @ts-expect-error only setParams is used by the participant selection handler.
-                                    navigation={{setParams: jest.fn()}}
+                                    navigation={mockNavigation}
                                 />
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
@@ -1697,9 +2004,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         beforeEach(async () => {
             mockSelectedParticipants = [];
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
-            });
         });
 
         /**
@@ -1728,8 +2032,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                             reportID: REPORT_ID,
                         },
                     }}
-                    // @ts-expect-error only setParams is used by the participant selection handler.
-                    navigation={{setParams: jest.fn()}}
+                    navigation={mockNavigation}
                     shouldHideHeader={isEmbedded}
                 />
             );

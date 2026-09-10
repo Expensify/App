@@ -4,15 +4,18 @@ import useActivePolicy from '@hooks/useActivePolicy';
 import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
+import {isQAServerActive} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,6 +42,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
 
 function initializePusher(
@@ -47,10 +51,20 @@ function initializePusher(
     getTopmostOneTransactionThreadReportID: () => string | undefined,
     getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined,
 ) {
+    // No fallback: CONFIG.PUSHER.APP_KEY defaults to the production key, so falling back would open a QA socket
+    // against production Pusher and every channel auth, signed with QA's secret, would be rejected quietly.
+    const appKey = isQAServerActive() ? CONFIG.PUSHER.QA_APP_KEY : CONFIG.PUSHER.APP_KEY;
+
+    // pusher-js rejects only a null/undefined key, so an empty one builds a socket that never connects while Pusher.init
+    // resolves solely from its 'connected' handler, leaving every subscribe() and the PUSHER_INIT span pending forever.
+    if (!appKey) {
+        Log.alert('[Pusher] Skipping init: no Pusher app key is configured for the active server');
+        return Promise.resolve();
+    }
+
     return Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
+        appKey,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
         User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', getTopmostOneTransactionThreadReportID, getReportAttributes);
     });
@@ -73,6 +87,7 @@ function AuthScreensInitHandler() {
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -82,6 +97,9 @@ function AuthScreensInitHandler() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
+    const policyOwnerLogin = ownerEmail ?? session?.email;
+    const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
+    const policyOwnerDisplayName = usePersonalDetailByLogin(policyOwnerLogin, displayNameSelector);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -189,18 +207,21 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(
+        App.setUpPoliciesAndNavigate({
             session,
             introSelected,
-            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             activePolicy,
-            guidedSetupAndTourStatus?.isSelfTourViewed,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             lastWorkspaceNumber,
             translate,
             conciergeChat,
-        );
+            policyOwnerAccountID,
+            policyOwnerDisplayName,
+        });
 
         Download.clearDownloads();
         clearStaleExportDownloads();
