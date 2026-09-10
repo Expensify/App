@@ -40,6 +40,7 @@ import {
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
+    didCurrentUserPlaceHoldOnReportExpense,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
@@ -335,6 +336,19 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
+
+    // An all-held report can't move to its next state, so it doesn't get an action badge. Keep it only for a report
+    // awaiting approval or payment where the current user placed a hold, since they can remove it. An open report stays
+    // excluded because only its owner can place a hold there, and that owner is the one who submits.
+    if (
+        hasOnlyHeldExpenses(reportTransactions) &&
+        (isOpenExpenseReportReportUtils(iouReport) ||
+            !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReport?.reportID), reportTransactions, currentUserAccountID))
+    ) {
+        return undefined;
+    }
+
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
@@ -359,7 +373,7 @@ function getBadgeFromIOUReport(
         iouReport,
         chatReport,
         policy,
-        getReportTransactions(iouReport?.reportID),
+        reportTransactions,
         // TODO: https://github.com/Expensify/App/issues/66512
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getAllTransactionViolations(),
@@ -429,12 +443,16 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
+        // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
+        // still needs action from the current user.
         const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (badge) {
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-                actionBadge = badge;
-            }
+        if (!badge) {
+            continue;
+        }
+
+        if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+            earliestAction = action;
+            actionBadge = badge;
         }
     }
 

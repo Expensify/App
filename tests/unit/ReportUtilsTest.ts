@@ -4165,6 +4165,129 @@ describe('ReportUtils', () => {
             });
         });
 
+        describe('when an older sibling expense report is all on hold', () => {
+            const chatReportID = '7300';
+            const heldExpenseReportID = '7301';
+            const approvableExpenseReportID = '7302';
+            const heldTransactionThreadReportID = '7303';
+            const otherUserAccountID = 99;
+
+            // Seeds a policy expense chat with two submitted child reports awaiting the current user's approval: an
+            // older one whose only expense the submitter put on hold, and a newer one that is still approvable.
+            const seedTwoChildExpenses = async () => {
+                const buildExpenseReport = (reportID: string): Report => ({
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID,
+                    chatReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    managerID: currentUserAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+
+                const policyExpenseChat = {
+                    ...createPolicyExpenseChat(7300, false),
+                    reportID: chatReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    hasOutstandingChildRequest: true,
+                    // The chat points at the held report, so the fallback path can't rescue the newer sibling either.
+                    iouReportID: heldExpenseReportID,
+                };
+
+                const buildReportPreview = (reportActionID: string, childReportID: string, created: string): ReportAction => ({
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created,
+                    actorAccountID: otherUserAccountID,
+                    childReportID,
+                    childManagerAccountID: currentUserAccountID,
+                    shouldShow: true,
+                    message: [{type: 'COMMENT', html: 'Expense report', text: 'Expense report'}],
+                    originalMessage: {linkedReportID: childReportID},
+                });
+
+                const heldTransaction = {
+                    ...createRandomTransaction(7301),
+                    transactionID: '7301',
+                    reportID: heldExpenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {hold: 'hold_7301'},
+                };
+
+                const buildApprovableTransaction = (transactionID: string) => ({
+                    ...createRandomTransaction(Number(transactionID)),
+                    transactionID,
+                    reportID: approvableExpenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {},
+                });
+
+                const heldMoneyRequestAction: ReportAction = {
+                    reportActionID: 'mr_7301',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                    childReportID: heldTransactionThreadReportID,
+                    originalMessage: {
+                        IOUTransactionID: '7301',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                };
+
+                const holdAction: ReportAction = {
+                    reportActionID: 'hold_7301',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                    id: '1',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${heldExpenseReportID}`, buildExpenseReport(heldExpenseReportID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvableExpenseReportID}`, buildExpenseReport(approvableExpenseReportID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7301`, heldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7302`, buildApprovableTransaction('7302'));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7304`, buildApprovableTransaction('7304'));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    // The held report was submitted first, so its preview is the oldest candidate.
+                    preview_7301: buildReportPreview('preview_7301', heldExpenseReportID, '2024-01-01 00:00:00.000'),
+                    preview_7302: buildReportPreview('preview_7302', approvableExpenseReportID, '2024-01-02 00:00:00.000'),
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldExpenseReportID}`, {mr_7301: heldMoneyRequestAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldTransactionThreadReportID}`, {hold_7301: holdAction});
+                await waitForBatchedUpdates();
+
+                return policyExpenseChat;
+            };
+
+            it('still requires attention because the newer sibling is approvable', async () => {
+                const policyExpenseChat = await seedTwoChildExpenses();
+
+                // The all-held report can't move to its next state, but it must not hide the sibling that can.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            });
+
+            it('surfaces the approvable sibling as the badge action instead of the all-held report', async () => {
+                const policyExpenseChat = await seedTwoChildExpenses();
+
+                const {reportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID) ?? {};
+
+                expect(reportAction?.childReportID).toBe(approvableExpenseReportID);
+                expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+            });
+        });
+
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
