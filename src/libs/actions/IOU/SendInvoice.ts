@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -721,16 +722,21 @@ function getSendInvoiceInformation({
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !getAllPersonalDetails()[receiverAccountID];
+    const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
     if (shouldCreateOptimisticPersonalDetails) {
-        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             displayName: formatPhoneNumber(receiverLogin),
-            login: receiverLogin,
+            login: addSMSDomainIfPhoneNumber(receiverLogin),
             isOptimisticPersonalDetail: true,
         };
 
         optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    } else {
+        receiver = {
+            ...receiver,
+            login: receiver.login ?? addSMSDomainIfPhoneNumber(receiverLogin),
+        };
     }
 
     // STEP 5: Build optimistic reportActions.
@@ -877,7 +883,7 @@ function sendInvoice({
         companyName,
         companyWebsite,
         description: parsedComment,
-        ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
+        ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: addSMSDomainIfPhoneNumber(receiver.login ?? '')}),
     };
 
     playSound(SOUNDS.DONE);
