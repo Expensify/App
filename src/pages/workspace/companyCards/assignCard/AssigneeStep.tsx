@@ -21,7 +21,8 @@ import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardN
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
