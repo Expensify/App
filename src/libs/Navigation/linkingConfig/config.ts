@@ -2280,6 +2280,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.INSIGHTS]: {
+                    path: ROUTES.INSIGHTS.route,
+                    exact: true,
+                },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
                     screens: {
                         [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
@@ -2350,6 +2354,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.PER_DIEM]: {
                                     path: ROUTES.WORKSPACE_PER_DIEM.route,
+                                },
+                                [SCREENS.WORKSPACE.MCP]: {
+                                    path: ROUTES.WORKSPACE_MCP.route,
                                 },
                                 [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
                                     path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,

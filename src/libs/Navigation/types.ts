@@ -3025,6 +3025,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MCP]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
@@ -3281,6 +3284,9 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+    [SCREENS.INSIGHTS]: {
+        dashboardID: string;
+    };
 };
 
 type SharedScreensParamList = {
@@ -3601,7 +3607,13 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type FullScreenName =
+    | SplitNavigatorName
+    | SearchFullscreenNavigatorName
+    | typeof NAVIGATORS.TAB_NAVIGATOR
+    | typeof SCREENS.HOME
+    | typeof SCREENS.INSIGHTS
+    | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;
 
