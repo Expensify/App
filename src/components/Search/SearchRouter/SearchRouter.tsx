@@ -24,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -96,6 +97,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
@@ -491,10 +493,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+    const popoverMaxHeight = Math.min(variables.searchRouterPopoverMaxHeight, windowHeight * variables.searchRouterPopoverMaxHeightRatio);
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && {maxHeight: variables.searchRouterPopoverMaxHeight}]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && {maxHeight: popoverMaxHeight}]}
             testID="SearchRouter"
             ref={ref}
         >
@@ -505,15 +508,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            {/*
-                Wide layout: the input keeps only its left margin so the search bar runs to the popover's right edge.
-                The results list below owns its own right gutter (`ph2` plus the space the scrollbar sits in), so the
-                gutter does not need to be re-added here.
-            */}
             <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.ml4]}>
                 <SearchInputSelectionWrapper
                     value={textInputValue}
-                    isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption?.();

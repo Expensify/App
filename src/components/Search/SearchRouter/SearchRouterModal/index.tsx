@@ -61,7 +61,6 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            // Wide layout: horizontally center the popover and offset it from the top of the screen.
             popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: 0, top: variables.searchRouterPopoverTopOffset}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
@@ -69,7 +68,6 @@ function SearchRouterModal() {
             onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
-            // Wide layout: layer a wider/lighter shadow behind the centered popover for extra separation from the background.
             innerContainerStyle={shouldUseNarrowLayout ? undefined : styles.searchRouterPopoverShadow}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
