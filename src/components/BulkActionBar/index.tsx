@@ -80,12 +80,10 @@ function BulkActionBarContent<TValueType>({
     const inlineOptions = hasMoreMenu ? options.slice(0, inlineActionCount) : options;
     const moreOptions = hasMoreMenu ? options.slice(inlineActionCount) : [];
 
-    // Esc dismisses the selection, as it does for this kind of bulk-select bar elsewhere, but only while nothing is
-    // open in front of the bar. A modal or popover dismisses itself on the key going back up, and shortcuts run on the
-    // way down, so a menu open over the bar cannot be given the keystroke first by ordering the handlers: Esc would
-    // clear the selection and take the bar away underneath the menu the viewer was backing out of.
+    // Esc clears the selection, but not while a popover or RHP is open over the bar: modals dismiss on keyup, shortcuts
+    // run on keydown, so ordering can't defer to them, and `isVisible` is what both set.
     const [modal] = useOnyx(ONYXKEYS.MODAL);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.willAlertModalBecomeVisible});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onClearSelection, {isActive: !modal?.isVisible});
 
     useEffect(() => {
         if (!moreAnchorRef.current || !isMoreMenuVisible) {
@@ -231,18 +229,20 @@ function BulkActionBar<TValueType>({
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
 
-    // The width the bar took at each layout it has been through, keyed by the buttons it was showing at the time. The
-    // bar is sized by its contents, so a given set of buttons always comes out the same width whatever the container is
-    // doing. Keeping them all means a layout the bar has already been through is recognized rather than measured again.
-    //
-    // The container's width is deliberately not part of the key: it changes on every frame of a resize, and a key that
-    // moved with it would throw the measurements away that often, which is what made the bar lay itself out at full
-    // width before shedding back down. The action labels are part of it because they decide how wide each button is,
-    // and the selection changes them as often as it changes the actions themselves.
+    // The width the bar took at each layout, keyed by what was actually on screen: the container's width is excluded
+    // (it moves every resize frame) and so are labels behind "More" (they don't affect this width, so keying on them
+    // left `onLayout` with nothing to fire and the bar stuck hidden).
     const [measuredWidths, setMeasuredWidths] = useState<Record<string, number>>({});
 
-    const actionSetKey = `${options.map((option) => option.text).join('|')}|${startingActionCount}`;
-    const getMeasurementKey = (actionCount: number) => `${actionSetKey}|${actionCount}`;
+    const getMeasurementKey = (actionCount: number) => {
+        const hasMoreMenuAtCount = options.length > actionCount;
+        const inlineLabels = options
+            .slice(0, actionCount)
+            .map((option) => option.text)
+            .join('|');
+        const standingText = hasMoreMenuAtCount ? '' : (menuHeaderText ?? '');
+        return `${inlineLabels}|${hasMoreMenuAtCount}|${noticeText ?? ''}|${standingText}`;
+    };
 
     // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
     const widthBudget = availableWidth === undefined ? undefined : availableWidth - CONST.BULK_ACTION_BAR.EDGE_MARGIN;
