@@ -8010,6 +8010,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
                 categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
                 categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
+                createRuleFromExpenseAction: 'Maak een regel',
+                createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',

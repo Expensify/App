@@ -126,6 +126,7 @@ function useAutocompleteSuggestions({
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -285,6 +286,7 @@ function useAutocompleteSuggestions({
                 excludeFromSuggestionsOnly: memberExclusions,
                 isTrackIntentUser,
                 translate,
+                rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -333,6 +335,7 @@ function useAutocompleteSuggestions({
                 conciergeReportID,
                 isTrackIntentUser,
                 translate,
+                rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

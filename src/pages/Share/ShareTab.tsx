@@ -54,6 +54,7 @@ function ShareTab() {
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -96,6 +97,7 @@ function ShareTab() {
               conciergeReportID,
               isTrackIntentUser,
               translate,
+              rules,
           }).options
         : defaultListOptions;
 

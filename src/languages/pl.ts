@@ -8035,6 +8035,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 turnOnTaxesFirstPrompt: 'Reguły kategorii ustawiają domyślną stawkę podatku. Włącz podatki w ustawieniach swojego workspace, aby z nich korzystać.',
                 categoryRulesApplyGoingForwardTitle: 'Reguły kategorii będą stosowane od teraz',
                 categoryRulesApplyGoingForwardPrompt: 'Domyślna stawka podatku będzie stosowana do nowych wydatków w tej kategorii. Istniejące wydatki nie zostaną zmienione.',
+                createRuleFromExpenseAction: 'Utwórz regułę',
+                createRuleFromExpensePrompt: 'aby zastosować zmiany do wszystkich wydatków spełniających twoje kryteria.',
             },
             categoryRules: {
                 title: 'Reguły kategorii',
