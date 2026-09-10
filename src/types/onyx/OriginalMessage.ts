@@ -7,7 +7,7 @@ import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, Unit} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -955,6 +955,24 @@ type OriginalMessageConciergeAutoMatchVendor = {
     reasoning?: string;
 };
 
+/** Model of `concierge auto select distance rate` report action — emitted when the distance rate of an expense is changed automatically because its workspace changed. */
+type OriginalMessageConciergeAutoSelectDistanceRate = {
+    /** The new rate, in the `CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET` scale (e.g. 67 renders as $0.67) */
+    rate?: number;
+
+    /** Currency of the new rate */
+    currency?: string;
+
+    /** Distance unit of the new rate */
+    unit?: Unit;
+
+    /** Name of the workspace the new rate belongs to */
+    policyName?: string;
+
+    /** Whether the workspace of the expense changed directly, or the report the expense belongs to was moved to another workspace */
+    changeType?: ValueOf<typeof CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE>;
+};
+
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PolicyRulesModifiedFields = {
     merchant?: string;
@@ -1609,6 +1627,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;

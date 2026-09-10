@@ -4,6 +4,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
+import Parser from '@libs/Parser';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import IntlStore from '@src/languages/IntlStore';
@@ -87,6 +88,8 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
+
+type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
 
 type LegacyReportActionFields = {
     message?: string;
@@ -1579,6 +1582,117 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+    });
+
+    describe('getConciergeAutoSelectDistanceRateMessage', () => {
+        function buildConciergeAutoSelectDistanceRateAction(
+            originalMessage: ConciergeAutoSelectDistanceRateAction['originalMessage'],
+            backendText = 'rate updated by the backend',
+        ): ConciergeAutoSelectDistanceRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                reportActionID: 'concierge-auto-select-distance-rate-1',
+                created: '2026-09-10 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: backendText, html: backendText}],
+                originalMessage,
+            };
+        }
+
+        it('should describe a direct workspace change', () => {
+            // Given an action whose workspace changed directly
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: "Hal's Burgers",
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should name the new workspace and the formatted rate
+            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mi for the new workspace - Hal's Burgers");
+        });
+
+        it('should describe a report that moved to another workspace', () => {
+            // Given an action triggered by the report moving to another workspace
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: "Hal's Burgers",
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED,
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should say the workspace of the report changed
+            expect(Parser.htmlToText(message)).toBe("rate updated to $0.67 / mi for the new report’s workspace - Hal's Burgers");
+        });
+
+        it('should escape a workspace name containing markup', () => {
+            // Given a workspace name containing HTML
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: '<strong>Hal</strong>',
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then the markup should be encoded rather than rendered
+            expect(message).toContain('&lt;strong&gt;Hal&lt;/strong&gt;');
+            expect(message).not.toContain('<strong>');
+        });
+
+        it('should fall back to the text of the action when the rate details are missing', () => {
+            // Given an action without the rate details
+            const backendText = 'rate updated by the backend';
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"}, backendText);
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should fall back to the text the backend provided
+            expect(message).toBe(backendText);
+        });
+
+        it('should be used for the message fragments of the action', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: "Hal's Burgers",
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then they should be built from the same message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+            expect(fragments).toEqual([{text: Parser.htmlToText(message), html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should be visible in the report', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({
+                rate: 67,
+                currency: 'USD',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                policyName: "Hal's Burgers",
+                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+            });
+
+            // Then the action should not be filtered out as an unsupported action type
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
     });
 

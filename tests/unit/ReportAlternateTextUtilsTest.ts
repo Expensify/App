@@ -1276,6 +1276,44 @@ describe('ReportAlternateTextUtils', () => {
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
+        it('CONCIERGE_AUTO_SELECT_DISTANCE_RATE action', async () => {
+            // Given a report whose last action is an automatic distance rate change
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                message: [{type: 'COMMENT', text: 'rate updated by the backend'}],
+                originalMessage: {
+                    rate: 67,
+                    currency: 'USD',
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    policyName: "Hal's Burgers",
+                    changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When getting the last message text of the report
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then it should be built from the translation rather than the text the backend provided
+            expect(lastMessage).toBe("rate updated to $0.67 / mi for the new workspace - Hal's Burgers");
+        });
         it('ADD_AGENT_RULE action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const action: ReportAction = {

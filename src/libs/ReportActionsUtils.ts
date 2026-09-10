@@ -2508,6 +2508,11 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        const message = getConciergeAutoSelectDistanceRateMessage(translate, action);
+        return [{text: Parser.htmlToText(message), html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
         const failedSubmitReason = getDynamicExternalWorkflowSubmitFailedActionMessage(translate, action);
         return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
@@ -3407,6 +3412,29 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     return getReportActionText(action);
+}
+
+/**
+ * Builds the Concierge system message explaining that the distance rate of an expense was updated automatically.
+ * It is the single source of the copy for every surface (the report, the LHN preview, copy to clipboard), so the message is localized everywhere.
+ */
+function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {rate, currency, unit, policyName, changeType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
+
+    if (!rate || !currency || !unit || !policyName) {
+        return getReportActionText(action);
+    }
+
+    // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
+    const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unit}`;
+    // The workspace name is interpolated into a message that is rendered as HTML, so encode it to prevent a name containing markup from being parsed as HTML.
+    const encodedPolicyName = Str.htmlEncode(policyName);
+
+    if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
+        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName: encodedPolicyName});
+    }
+
+    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName: encodedPolicyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -5030,6 +5058,7 @@ export {
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getDynamicExternalWorkflowRoutedMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
