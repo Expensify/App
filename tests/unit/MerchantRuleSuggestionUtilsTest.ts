@@ -65,7 +65,7 @@ describe('isMerchantRuleSuggestionLive', () => {
     });
 
     it('stays live after being seen, since seeing it is not taking it', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({wasSeen: true}))).toBe(true);
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({seenInReportID: '999'}))).toBe(true);
     });
 
     it('is not live once this expense is dismissed', () => {

@@ -33,10 +33,13 @@ type MerchantRuleSuggestion = {
     dismissedTransactionIDs?: string[];
 
     /**
-     * Whether the callout actually rendered. Set by the callout itself, since the report showing an expense is not
-     * always the one the edit was recorded against: a report holding a single expense shows the detail view too.
+     * The report the callout actually rendered in. Set by the callout itself, since the report showing an expense is
+     * not always the one the edit was recorded against: a report holding a single expense shows the detail view too.
+     *
+     * Held as a report ID rather than a flag because several report screens stay mounted at once, in a split pane or
+     * behind an RHP. Only the one that showed the offer should retire it on the way out.
      */
-    wasSeen?: boolean;
+    seenInReportID?: string;
 
     /** Whether the offer was seen and left. Unlike dismissing, editing the expense again offers afresh. */
     isRetired?: boolean;

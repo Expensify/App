@@ -1,4 +1,4 @@
-import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, isControlPolicy} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, PolicyCategories} from '@src/types/onyx';
@@ -24,11 +24,9 @@ function trackMerchantRuleSuggestion(
     editedTagLevels?: number[],
 ) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
-    // moment somebody turned Rules on.
-    //
-    // The Rules revamp beta is assumed on: it only narrows collect workspaces, it is being removed, and
-    // `useMerchantRuleSuggestion` checks it for real before rendering.
-    if (!transactionID || !reportID || !arePolicyRulesEnabled(policy, policyCategories, true)) {
+    // moment somebody turned Rules on. Control only, matching the rule page the callout leads to, so an edit on a
+    // Collect workspace does not pay for a write that could never be shown.
+    if (!transactionID || !reportID || !isControlPolicy(policy) || !arePolicyRulesEnabled(policy, policyCategories)) {
         return;
     }
 
@@ -40,7 +38,7 @@ function trackMerchantRuleSuggestion(
         editedFields: {[transactionID]: {[field]: true}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
-        wasSeen: null,
+        seenInReportID: null,
         isRetired: null,
     });
 }
@@ -71,9 +69,13 @@ function getMerchantRuleSuggestionRollback(
     };
 }
 
-/** Records that the callout rendered, which is what makes leaving the expense retire the offer. */
-function markMerchantRuleSuggestionSeen() {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {wasSeen: true});
+/**
+ * Records the report the callout rendered in, which is what makes leaving that report retire the offer.
+ *
+ * @param reportID - the report hosting the expense detail view the callout appeared on
+ */
+function markMerchantRuleSuggestionSeen(reportID: string) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {seenInReportID: reportID});
 }
 
 /**

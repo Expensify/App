@@ -97,17 +97,17 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         transform: [{translateY: translateY.get()}],
     }));
 
-    // Recorded so leaving the report can retire the offer. The report cannot work this out for itself, because the
+    // Recorded so leaving this report can retire the offer. The report cannot work this out for itself, because the
     // one showing an expense is not always the one the edit was recorded against.
     //
     // A full-size composer hides the callout, and composer size is remembered per report. Marking it seen there would
     // retire an offer the user never had a chance to read.
     useEffect(() => {
-        if (!isShowing || isComposerFullSize || suggestion?.wasSeen) {
+        if (!isShowing || !reportID || isComposerFullSize || suggestion?.seenInReportID === reportID) {
             return;
         }
-        markMerchantRuleSuggestionSeen();
-    }, [isShowing, isComposerFullSize, suggestion?.wasSeen]);
+        markMerchantRuleSuggestionSeen(reportID);
+    }, [isShowing, reportID, isComposerFullSize, suggestion?.seenInReportID]);
 
     if (!suggestion || !policyID) {
         return null;
