@@ -48,7 +48,7 @@ function isFullScreenName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues<FullScreenName>(screen, FULL_SCREENS_SET);
 }
 
-/** Root modal navigators a fullscreen destination can be pre-inserted under; insert and teardown must agree on this set. */
+/** Root modal navigators a fullscreen destination can be pre-inserted under. Insert and teardown must agree on this set. */
 function isPreMountBufferHostName(screen: string | undefined) {
     return checkIfScreenHasMatchingNameToSetValues(screen, PRE_MOUNT_BUFFER_HOSTS_SET);
 }
