@@ -618,4 +618,3 @@ function getCompanyCardDetailsBackPath(
 }
 
 export {getCardExportAccountTitle, getCompanyCardDetailsBackPath, getExportMenuItem, getPolicyCardExportSettings};
-export type {CardExportSettings};

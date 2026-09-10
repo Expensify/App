@@ -44,9 +44,15 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
 
-    function MockTable({children, columns, compareItems}: MockTableProps) {
+    // Kept outside MockTable, which the React Compiler treats as a component: capturing render props into a module
+    // variable is only for this test's assertions and would otherwise look like an impure component body.
+    function captureTableProps(columns: MockTableProps['columns'], compareItems: MockTableProps['compareItems']) {
         capturedColumns = columns;
         capturedCompareItems = compareItems;
+    }
+
+    function MockTable({children, columns, compareItems}: MockTableProps) {
+        captureTableProps(columns, compareItems);
         return <View testID="WorkspaceExpensifyCardsTable">{children}</View>;
     }
 
