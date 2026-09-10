@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -505,6 +505,65 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
         default:
             return 'workspace.card.issueNewCard.smartLimit';
     }
+}
+
+/**
+ * Switching from Monthly or Fixed to Smart, or from Smart or Fixed to Monthly, can start
+ * declining new spend when unapproved spend is already at the limit.
+ */
+const EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS: Array<[CardLimitType, CardLimitType]> = [
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+];
+
+/**
+ * Whether Fixed should be offered when editing an Expensify card's limit type.
+ * Hidden when a monthly or Smart card has already spent its full unapproved limit.
+ */
+function shouldShowExpensifyCardFixedLimitType(card?: Card): boolean {
+    if (!card?.totalSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return true;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType;
+    if (currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) {
+        return true;
+    }
+
+    return Math.abs(card.totalSpend) < card.nameValuePairs.unapprovedExpenseLimit;
+}
+
+/**
+ * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
+ */
+function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType): boolean {
+    if (!card?.unapprovedSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const unapprovedSpend = Math.abs(card.unapprovedSpend);
+    if (unapprovedSpend < card.nameValuePairs.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType;
+    return EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS.some(([fromLimitType, toLimitType]) => currentLimitType === fromLimitType && newLimitType === toLimitType);
+}
+
+/**
+ * Warning copy for a limit-type change that would start declining transactions.
+ * Monthly and Fixed warn about switching to Smart; every other current type warns about Monthly.
+ */
+function getExpensifyCardLimitTypeChangeWarningKey(
+    currentLimitType: CardLimitType | undefined,
+): 'workspace.expensifyCard.changeCardSmartLimitTypeWarning' | 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning' {
+    if (currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED) {
+        return 'workspace.expensifyCard.changeCardSmartLimitTypeWarning';
+    }
+
+    return 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 }
 
 /**
@@ -2238,6 +2297,9 @@ export {
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
+    shouldShowExpensifyCardFixedLimitType,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    getExpensifyCardLimitTypeChangeWarningKey,
     isExpensifyCard,
     isUkEuExpensifyCard,
     isOfflinePINMarket,

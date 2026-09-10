@@ -13,7 +13,7 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 
 import variables from '@styles/variables';
 
-import type {Card, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {Card, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
@@ -22,6 +22,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -48,14 +49,20 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     pendingAction?: OnyxCommon.PendingAction;
     /** Whether the card name can be edited inline from the table */
     canEditName?: boolean;
+    /** Whether the card limit type can be edited inline from the table */
+    canEditLimitType?: boolean;
     action: () => void;
     onRenameName?: (newName: string) => void;
+    onChangeLimitType?: (limitType: CardLimitType | undefined) => void;
     onClose: () => void;
 };
 
 type WorkspaceExpensifyCardsTableProps = {
     /** Policy ID */
     policyID: string;
+
+    /** Policy used to determine which limit types can be assigned from the inline editor */
+    policy: OnyxEntry<Policy>;
 
     /** Optional page-level content rendered above the card labels that scrolls with the rows */
     headerComponent?: ReactElement;
@@ -93,6 +100,7 @@ type WorkspaceExpensifyCardsTableProps = {
 
 export default function WorkspaceExpensifyCardsTable({
     policyID,
+    policy,
     headerComponent,
     cards,
     selectionEnabled,
@@ -229,6 +237,7 @@ export default function WorkspaceExpensifyCardsTable({
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            policy={policy}
         />
     );
 

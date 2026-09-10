@@ -1,16 +1,17 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
+import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
 import {getDistanceRateNameError, getDistanceRateValueError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
-import {updateExpensifyCardTitle} from '@userActions/Card';
+import {updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Card, Policy} from '@src/types/onyx';
+import type {CardLimitType} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
@@ -158,4 +159,48 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, renameDistanceRateInline, updateDistanceRateValueInline, updateMemberRoleInline};
+function isCardLimitType(limitType: string): limitType is CardLimitType {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
+ * Changes an Expensify card's limit type from an inline table edit. Delegates to the canonical
+ * limit type action, which owns the optimistic Onyx write, the API call, and failure rollback.
+ * Dates are left unchanged. Silently no-ops when the type is unchanged, unknown, or not valid
+ * for the card (matching the Spend inline-edit behavior).
+ */
+function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: string): void {
+    const currentLimitType = card.nameValuePairs?.limitType;
+    if (newLimitType === currentLimitType || !isCardLimitType(newLimitType)) {
+        return;
+    }
+
+    if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE && !card.nameValuePairs?.isVirtual) {
+        return;
+    }
+
+    if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && !shouldShowExpensifyCardFixedLimitType(card)) {
+        return;
+    }
+
+    updateExpensifyCardLimitType(workspaceAccountID, card.cardID, newLimitType, undefined, card.nameValuePairs);
+}
+
+export {
+    renameCategoryInline,
+    renameTagInline,
+    renameCompanyCardInline,
+    renameExpensifyCardInline,
+    renameDistanceRateInline,
+    updateDistanceRateValueInline,
+    updateMemberRoleInline,
+    updateExpensifyCardLimitTypeInline,
+};

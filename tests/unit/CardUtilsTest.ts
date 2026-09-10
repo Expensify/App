@@ -42,6 +42,7 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
+    getExpensifyCardLimitTypeChangeWarningKey,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
@@ -60,6 +61,8 @@ import {
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    shouldShowExpensifyCardFixedLimitType,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
     isCardFrozen,
@@ -2206,6 +2209,85 @@ describe('CardUtils', () => {
             });
 
             expect(getDefaultExpensifyCardLimitType(policy)).toBe(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+        });
+    });
+
+    describe('shouldShowExpensifyCardFixedLimitType', () => {
+        it('hides Fixed when a monthly card has already spent its full unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(false);
+        });
+
+        it('shows Fixed when spend is under the unapproved limit', () => {
+            const card = createMock<Card>({
+                totalSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+
+        it('shows Fixed when the current type is already Fixed', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+        });
+    });
+
+    describe('shouldConfirmExpensifyCardLimitTypeChange', () => {
+        const overLimitCard = createMock<Card>({
+            unapprovedSpend: -5000,
+            nameValuePairs: {
+                limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                unapprovedExpenseLimit: 4000,
+            },
+        });
+
+        it('confirms switching from Monthly to Smart when unapproved spend is over the limit', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(true);
+        });
+
+        it('does not confirm switching from Monthly to Fixed', () => {
+            expect(shouldConfirmExpensifyCardLimitTypeChange(overLimitCard, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe(false);
+        });
+
+        it('does not confirm when unapproved spend is under the limit', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -2000,
+                nameValuePairs: {
+                    limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+        });
+    });
+
+    describe('getExpensifyCardLimitTypeChangeWarningKey', () => {
+        it('warns about Smart Limit when the current type is Monthly or Fixed', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.changeCardSmartLimitTypeWarning');
+        });
+
+        it('warns about Monthly when the current type is Smart', () => {
+            expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.changeCardMonthlyLimitTypeWarning');
         });
     });
 
