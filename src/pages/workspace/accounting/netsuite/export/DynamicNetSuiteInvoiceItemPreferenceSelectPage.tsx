@@ -1,4 +1,6 @@
+import Button from '@components/ButtonComposed';
 import ConnectionLayout from '@components/ConnectionLayout';
+import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
@@ -73,16 +75,6 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
         }
     }, [currentPreference, config?.invoiceItemPreference, policyID, goBack]);
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: savePreference,
-            isDisabled: currentPreference === selectedValue,
-        }),
-        [savePreference, translate, currentPreference, selectedValue],
-    );
-
     // Rendered as the list footer so the invoice-item sub-menu sits directly under the options and the Save button stays pinned to the bottom of the screen.
     const invoiceItemFooterContent = useMemo(() => {
         if (config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT) {
@@ -147,15 +139,27 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                         setDraftPreference((selection as MenuListItem).value);
                     }}
                     ListItem={SingleSelectListItem}
-                    confirmButtonOptions={confirmButtonOptions}
                     listFooterContent={invoiceItemFooterContent}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
                     style={{containerStyle: [styles.pb0]}}
-                    addBottomSafeAreaPadding
                 />
             </OfflineWithFeedback>
+            {/* The Save button sits outside OfflineWithFeedback so its error row renders directly under the list rather than under the button. */}
+            <FixedFooter
+                style={styles.mtAuto}
+                addBottomSafeAreaPadding
+            >
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={savePreference}
+                    isDisabled={currentPreference === selectedValue}
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
+            </FixedFooter>
         </ConnectionLayout>
     );
 }
