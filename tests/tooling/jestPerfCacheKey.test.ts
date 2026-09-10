@@ -13,25 +13,24 @@ import fs from 'fs';
  * 2. No `restore-keys` anywhere: babel-jest does not hash plugin versions into an entry's name, so
  *    a prefix fallback could reuse output built by a different babel-plugin-react-compiler, and the
  *    perf workflow gates render counts at COUNT_DEVIATION: 0.
- * 3. A push-triggered workflow calls the seed. With no paths filter and no schedule, probing every
- *    push to main is both how the entry stays warm and how it recovers from an eviction.
+ * 3. The seed runs on every push to main, with no paths filter and no schedule - that probe is both
+ *    how the entry stays warm and how it recovers from an eviction.
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
 const SEED_WORKFLOW = '.github/workflows/seedJestPerfCache.yml';
-const SEED_CACHE_WORKFLOW = '.github/workflows/seedCache.yml';
 
 type Step = {uses?: string; with?: Record<string, unknown>};
-type Job = {uses?: string; steps?: Step[]};
+type Job = {steps?: Step[]};
 type Workflow = {
     on?: Record<string, {branches?: string[]} | null>;
     jobs: Record<string, Job>;
 };
 
 function readWorkflow(path: string): Workflow {
-    // Bun.YAML rather than js-yaml: this suite already runs under Bun, and js-yaml is only present
-    // as a hoisted transitive at v3 while the repo declares @types/js-yaml v4, so importing it here
-    // would rest on an undeclared package whose types do not match its runtime.
+    // Bun.YAML rather than js-yaml: js-yaml is only present as a hoisted transitive at v3 while the
+    // repo declares @types/js-yaml v4, so importing it would rest on an undeclared package whose
+    // types do not match its runtime.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Bun.YAML.parse returns unknown, and every field this test reads is optional, so a shape mismatch fails an assertion rather than throwing
     return Bun.YAML.parse(fs.readFileSync(path, 'utf8')) as Workflow;
 }
@@ -43,7 +42,6 @@ function cacheSteps(workflow: Workflow): Step[] {
 }
 
 const seedWorkflow = readWorkflow(SEED_WORKFLOW);
-const seedCacheWorkflow = readWorkflow(SEED_CACHE_WORKFLOW);
 const allCacheSteps = [...cacheSteps(readWorkflow(PERF_WORKFLOW)), ...cacheSteps(seedWorkflow)];
 
 describe('Jest perf transform cache', () => {
@@ -60,9 +58,7 @@ describe('Jest perf transform cache', () => {
         }
     });
 
-    it('is reachable from a push to main, so an evicted entry is rebuilt on the next merge', () => {
-        expect(seedWorkflow.on).toHaveProperty('workflow_call');
-        expect(seedCacheWorkflow.on?.push?.branches).toContain('main');
-        expect(Object.values(seedCacheWorkflow.jobs).map((job) => job.uses)).toContain(`./${SEED_WORKFLOW}`);
+    it('runs on every push to main, so an evicted entry is rebuilt on the next merge', () => {
+        expect(seedWorkflow.on?.push?.branches).toContain('main');
     });
 });
