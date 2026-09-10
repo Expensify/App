@@ -53,10 +53,11 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 const convertEmojiImageShortcodesToUnicode = (text: string): string => text.replaceAll(CONST.REGEX.EMOJI_NAME, (shortcode) => emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode);
 
 /**
- * Converts hexadecimal codepoints in image alt text to an emoji.
+ * Recovers an emoji from iOS Safari's pasted image alt text, which can contain a hexadecimal codepoint filename instead of the emoji.
+ * For example, `1f389@2x.png` is converted to `🎉` before the image is parsed as Markdown.
  *
- * @param alt Alt text to inspect.
- * @returns The decoded emoji when the alt text represents only an emoji; otherwise, an empty string.
+ * @param alt Image alt text to inspect.
+ * @returns The decoded emoji, or an empty string when the alt text does not represent an emoji.
  */
 const getEmojiFromImageAlt = (alt: string): string => {
     // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
