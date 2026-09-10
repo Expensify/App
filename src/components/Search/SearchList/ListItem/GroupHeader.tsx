@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
+import {getSearchGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -196,11 +197,12 @@ function GroupHeader({
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
+    const groupCount = getSearchGroupCount(groupItem);
+    const areAllLoadedChildrenPendingDelete = groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction));
+    // A `limit:` smaller than the group count only deletes the loaded rows, so the header must not look
+    // like the whole group is pending-delete. Expense-report rows have no count and still use this fallback.
+    const areLoadedChildrenTheWholeGroup = groupCount === undefined || groupItem.transactions.length >= groupCount;
+    const pendingAction = item.pendingAction ?? (areAllLoadedChildrenPendingDelete && areLoadedChildrenTheWholeGroup ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);

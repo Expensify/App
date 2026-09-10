@@ -5,6 +5,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
@@ -80,6 +81,7 @@ import {
     serializeQueryJSONForBackend,
 } from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
     getSearchColumnTranslationKey,
@@ -202,25 +204,99 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
 }
 
+/**
+ * The group rows a selection covers in full.
+ *
+ * A group is fully selected when the number of selected children matches the group's snapshot `count`, which is
+ * how many transactions the group actually has. Clicking the group checkbox is not enough on its own: a `limit:`
+ * smaller than that count leaves children unloaded, so delete cannot remove the whole group. Selecting every
+ * loaded child individually is enough when that loaded set is the whole group (`isEntireGroupSelected`). An empty
+ * group row is still selected under its own group key.
+ */
+function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
+    const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean}>();
+    const groupKeys = new Set<SearchGroupKey>();
+
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            groupKeys.add(key);
+            continue;
+        }
+        if (!transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
+            continue;
+        }
+        const current = selectedCountByGroupKey.get(transaction.groupKey) ?? {selectedCount: 0, isEntireGroupSelected: false};
+        current.selectedCount += 1;
+        current.isEntireGroupSelected = current.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
+        selectedCountByGroupKey.set(transaction.groupKey, current);
+    }
+
+    for (const [groupKey, {selectedCount, isEntireGroupSelected}] of selectedCountByGroupKey) {
+        const groupCount = getSearchGroupCountByKey(searchData, groupKey);
+        if (groupCount !== undefined) {
+            if (selectedCount === groupCount) {
+                groupKeys.add(groupKey);
+            }
+            continue;
+        }
+        if (isEntireGroupSelected) {
+            groupKeys.add(groupKey);
+        }
+    }
+
+    return [...groupKeys];
+}
+
+/**
+ * Maps each selected transaction to the group it belongs to when that group is fully covered by the
+ * selection. Each delete request only flags its own group, so a failed request cannot restore a
+ * different group's snapshot row.
+ */
+function getFullyDeletedGroupKeysByTransactionID(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): Record<string, SearchGroupKey> {
+    const fullyDeletedGroupKeys = new Set(getSelectedGroupKeys(selectedTransactions, searchData));
+    if (fullyDeletedGroupKeys.size === 0) {
+        return {};
+    }
+
+    const byTransactionID: Record<string, SearchGroupKey> = {};
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key) || !transaction.groupKey || !isGroupEntry(transaction.groupKey) || !fullyDeletedGroupKeys.has(transaction.groupKey)) {
+            continue;
+        }
+        byTransactionID[key] = transaction.groupKey;
+    }
+    return byTransactionID;
+}
+
+/**
+ * Groups the user selected through a group header, including when `limit:` left children unloaded.
+ * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
+ */
+function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
+    const groupKeys = new Set<SearchGroupKey>();
+
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (isGroupEntry(key)) {
+            groupKeys.add(key);
+            continue;
+        }
+        if (!transaction.isSelectedViaGroup || !transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
+            continue;
+        }
+        groupKeys.add(transaction.groupKey);
+    }
+
+    return [...groupKeys];
+}
+
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
         return queryJSON;
     }
 
-    const groupKeys = new Set<string>();
-    for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (!isGroupSelection(key, transaction)) {
-            continue;
-        }
-        if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-            groupKeys.add(key);
-        } else if (transaction.groupKey) {
-            groupKeys.add(transaction.groupKey);
-        }
-    }
-
-    if (groupKeys.size === 0) {
+    const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
+    if (groupKeys.length === 0) {
         return queryJSON;
     }
 
@@ -1271,11 +1347,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
             }
 
+            // A group row's snapshot entry outlives its child transactions, so the row would read as "not deleted"
+            // again between the children being cleared and the next Search response dropping the group. Only groups
+            // whose selected children cover the group's full count are flagged, so a `limit:` that left rows unloaded
+            // does not hide a group that still has expenses.
+            const fullyDeletedGroupKeys = queryJSON?.groupBy ? getFullyDeletedGroupKeysByTransactionID(selectedTransactions, searchResults?.data) : {};
+
             // Route individual transactions through the split-aware hook so that deleting a
             // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
             // bare deleteMoneyRequest.
             if (transactionIDsToDelete.length > 0) {
-                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash);
+                deleteTransactionsFromHook(transactionIDsToDelete, duplicateTransactions, duplicateTransactionViolations, hash, undefined, fullyDeletedGroupKeys);
             }
 
             // Whole-report deletions keep their existing path.
@@ -1304,6 +1386,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
+        queryJSON?.groupBy,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -2999,5 +3082,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

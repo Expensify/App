@@ -63,6 +63,7 @@ import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpandedGroupAfterPendingDelete';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
@@ -146,6 +147,18 @@ function TransactionGroupListItemImpl({
     });
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+
+    if (
+        shouldCollapseExpandedGroupAfterPendingDelete({
+            isExpanded,
+            groupPendingAction: item.pendingAction,
+            loadedChildrenCount: transactions.length,
+            remainingChildrenCount: transactionsWithoutPendingDelete.length,
+        })
+    ) {
+        setIsExpanded(false);
+        setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+    }
 
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
@@ -462,12 +475,6 @@ function TransactionGroupListItemImpl({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
-
     const snapshotData = transactionsSnapshot?.data;
     const groupViolations: Record<string, TransactionViolations | undefined> = {};
     if (snapshotData) {
@@ -513,7 +520,7 @@ function TransactionGroupListItemImpl({
     }
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}

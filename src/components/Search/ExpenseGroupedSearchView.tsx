@@ -1,10 +1,12 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -27,6 +29,7 @@ import SelectionTopBar from './primitives/SelectionTopBar';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
+import shouldCollapseExpandedGroupAfterPendingDelete from './SearchList/ListItem/shouldCollapseExpandedGroupAfterPendingDelete';
 import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupListItem';
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import SearchListViewLayout from './SearchListViewLayout';
@@ -36,8 +39,6 @@ type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtr
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
 const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-const isGroupRowExiting = (item: SearchListItem) => isRowDeleted(item) || (isTransactionGroupListItemType(item) && item.transactions.length > 0 && item.transactions.every(isRowDeleted));
 
 const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTransactions) => !!(key && selectedTransactions[key]?.isSelected);
 
@@ -94,7 +95,7 @@ function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Trans
  */
 function ExpenseGroupedSearchView({
     queryJSON,
-    data,
+    data: sourceData,
     columns,
     canSelectMultiple,
     isActionColumnWide,
@@ -116,6 +117,11 @@ function ExpenseGroupedSearchView({
 }: ExpenseGroupedSearchViewProps) {
     const {type, groupBy} = queryJSON;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
+
+    // Deleting every expense in a group flags the group's own snapshot entry, so drop the row from the list and let
+    // its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
+    const data = isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item));
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -134,10 +140,35 @@ function ExpenseGroupedSearchView({
             return next;
         });
 
+    if (expandedGroups.size > 0) {
+        const nextExpandedGroups = new Set(expandedGroups);
+        let didCollapseGroup = false;
+        for (const item of data) {
+            if (!isTransactionGroupListItemType(item) || !item.keyForList || !nextExpandedGroups.has(item.keyForList)) {
+                continue;
+            }
+            const remainingChildrenCount = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
+            if (
+                !shouldCollapseExpandedGroupAfterPendingDelete({
+                    isExpanded: true,
+                    groupPendingAction: item.pendingAction,
+                    loadedChildrenCount: item.transactions.length,
+                    remainingChildrenCount,
+                })
+            ) {
+                continue;
+            }
+            nextExpandedGroups.delete(item.keyForList);
+            didCollapseGroup = true;
+        }
+        if (didCollapseGroup) {
+            setExpandedGroups(nextExpandedGroups);
+        }
+    }
+
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const {
-        isOffline,
         isKeyboardShown,
         safeAreaPaddingBottomStyle,
         toggle,
@@ -270,7 +301,7 @@ function ExpenseGroupedSearchView({
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
                 hasItemsBeingRemoved={hasItemsBeingRemoved}
-                isRowExiting={isGroupRowExiting(item)}
+                isRowExiting={isRowDeleted(item)}
             >
                 <TransactionGroupListItem
                     showTooltip
