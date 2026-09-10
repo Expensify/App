@@ -35,6 +35,15 @@ describe('normalizePath', () => {
         expect(JSON.stringify(mockLogAlert.mock.calls)).not.toContain('secret');
     });
 
+    it('keeps a fragment intact, including a slash pair inside it', () => {
+        expect(normalizePath('//home#https://example.com')).toBe('/home#https://example.com');
+    });
+
+    it('does not alert for a fragment that contains a slash pair when the path is fine', () => {
+        expect(normalizePath('/home#https://example.com')).toBe('/home#https://example.com');
+        expect(mockLogAlert).not.toHaveBeenCalled();
+    });
+
     it('keeps the query intact, including a slash pair inside a param', () => {
         expect(normalizePath('//search?q=a&backTo=https://example.com')).toBe('/search?q=a&backTo=https://example.com');
     });
