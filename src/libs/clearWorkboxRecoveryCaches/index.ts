@@ -51,6 +51,8 @@ async function clearWorkboxRecoveryCaches(): Promise<void> {
         Log.warn('[SW] Failed to unregister service workers during app reset', {error});
     }
 
+    // console.debug renders at Chrome's Verbose level, which is hidden by default and would hide the numbers we are collecting.
+    // eslint-disable-next-line no-console
     console.log('[SW] clear timings', timings);
 }
 
