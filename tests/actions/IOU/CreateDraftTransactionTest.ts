@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import '@libs/actions/IOU/MoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -20,6 +21,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
+import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createPolicyExpenseChat, createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -174,7 +176,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -230,7 +232,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -281,7 +283,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -321,7 +323,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -370,7 +372,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -412,7 +414,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -449,7 +451,7 @@ describe('actions/IOU', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -467,6 +469,10 @@ describe('actions/IOU', () => {
 
         describe('submitting a tracked expense to an employer', () => {
             const POLICY_ID = 'policy-with-access';
+            // A unix timestamp well in the past, so the owner's billing grace period has already elapsed.
+            const EXPIRED_GRACE_PERIOD_END = 1600000000;
+            // The workspace as the callers' policy selectors hand it to the billing gate: only the fields the gate reads.
+            const ACCESSIBLE_POLICY: BillingRestrictionPolicy = {id: POLICY_ID, ownerAccountID: RORY_ACCOUNT_ID};
 
             async function setUpSelfDMTrackedExpense() {
                 const selfDMReport = createSelfDM(1, RORY_ACCOUNT_ID);
@@ -487,6 +493,19 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 return {selfDMReport, policyExpenseChat, trackedExpense};
+            }
+
+            /** Builds a workspace the current user owns, which makes `shouldRestrictUserBillableActions` fire once an amount is owed past the grace period. */
+            async function setUpRestrictedPolicy() {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    id: POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    owner: RORY_EMAIL,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await waitForBatchedUpdates();
+                return policy;
             }
 
             function getConfirmationRouteBackTo() {
@@ -529,7 +548,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: '',
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 1,
-                    firstPolicyID: POLICY_ID,
+                    firstPolicy: ACCESSIBLE_POLICY,
                 });
                 await waitForBatchedUpdates();
 
@@ -542,6 +561,74 @@ describe('actions/IOU', () => {
                 expect(Navigation.navigate).toHaveBeenCalledWith(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, policyExpenseChat.reportID),
                 );
+            });
+
+            it('should show the restricted action screen when the only accessible workspace has an expired required payment', async () => {
+                // Given a tracked self DM expense and a single workspace the user owns that is past its billing grace period
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                const restrictedPolicy = await setUpRestrictedPolicy();
+
+                // When the expense is submitted to the employer, which would otherwise skip the destination picker
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    ownerBillingGracePeriodEnd: EXPIRED_GRACE_PERIOD_END,
+                    amountOwed: 1000,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    filteredPoliciesCount: 1,
+                    firstPolicy: restrictedPolicy,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the user lands on the restricted action screen instead of the confirmation page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('confirmation'));
+
+                // And the draft is left unbound, so nothing can be submitted to the restricted workspace
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+            });
+
+            it('should show the restricted action screen when the preferred workspace has an expired required payment', async () => {
+                // Given a tracked self DM expense and a preferred workspace the user owns that is past its billing grace period
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                const restrictedPolicy = await setUpRestrictedPolicy();
+
+                // When the expense is submitted, which would otherwise skip the participant picker for the preferred workspace
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    ownerBillingGracePeriodEnd: EXPIRED_GRACE_PERIOD_END,
+                    amountOwed: 1000,
+                    restrictedPreferredPolicy: restrictedPolicy,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicy: restrictedPolicy,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the user lands on the restricted action screen instead of the confirmation page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('confirmation'));
             });
 
             it('should send the user back to the report they are viewing when a draft workspace is created', async () => {
@@ -567,7 +654,7 @@ describe('actions/IOU', () => {
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -598,7 +685,7 @@ describe('actions/IOU', () => {
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     defaultWorkspaceName: "Rory's Workspace",
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -627,7 +714,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: '',
                     submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
                     filteredPoliciesCount: 2,
-                    firstPolicyID: POLICY_ID,
+                    firstPolicy: ACCESSIBLE_POLICY,
                 });
                 await waitForBatchedUpdates();
 

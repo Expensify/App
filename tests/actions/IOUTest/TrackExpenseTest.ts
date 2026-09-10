@@ -404,7 +404,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1523,7 +1523,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 1,
-                firstPolicyID: policy.id,
+                firstPolicy: policy,
             });
             await waitForBatchedUpdates();
 
