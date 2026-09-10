@@ -84,9 +84,6 @@
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
 "../../src/components/AvatarWithImagePicker.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/BookTravelButton.tsx"	"no-restricted-imports"	1
-"../../src/components/Button/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/Button/validateSubmitShortcut/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ButtonComposed/Button.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ButtonWithDropdownMenu/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CategoryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Charts/BarChart/BarChartContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -418,6 +415,7 @@
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
 "../../src/hooks/useAccountIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useAdvancedSearchFilters.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/hooks/useAssignCard.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutocompleteSuggestions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAutoCreateTrackWorkspace.ts"	"no-restricted-imports"	1
@@ -455,6 +453,7 @@
 "../../src/hooks/useListKeyboardNav.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useMarkdownStyle.ts"	"rulesdir/no-raw-typography"	3
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
+"../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useOtherFeedsForFeedSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -559,11 +558,13 @@
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1
+"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitExpenseItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
+"../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
@@ -682,7 +683,6 @@
 "../../src/libs/DomUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/EmojiTrie.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/EmojiUtils.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Environment/betaChecker/index.android.ts"	"no-restricted-syntax"	1
 "../../src/libs/Environment/getEnvironment/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1207,7 +1207,6 @@
 "../../src/pages/workspace/accounting/xero/XeroTrackingCategoryConfigurationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1247,7 +1246,6 @@
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/travel/WorkspaceTravelBillingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/upgrade/UpgradeIntro.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	1
@@ -1257,7 +1255,6 @@
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceNewRoomPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1275,7 +1272,6 @@
 "../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/AddressSearch.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/stories/Button.stories.tsx"	"no-restricted-imports"	1
 "../../src/stories/ButtonWithDropdownMenu.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/DragAndDrop.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/EReceipt.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1370,7 +1366,6 @@
 "../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
-"../../tests/ui/components/Button.tsx"	"no-restricted-imports"	1
 "../../tests/ui/ComposerTest.tsx"	"rulesdir/no-raw-typography"	1
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
