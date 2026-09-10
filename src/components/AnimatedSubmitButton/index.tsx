@@ -31,13 +31,8 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
     /** Function to call when the button is pressed */
     onPress: () => void;
 
-    /** Whether the animation is running */
     isSubmittingAnimationRunning: boolean;
-
-    /** Function to call when the animation finishes */
     onAnimationFinish: () => void;
-
-    /** Whether the button should be disabled */
     isDisabled?: boolean;
 
     /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */

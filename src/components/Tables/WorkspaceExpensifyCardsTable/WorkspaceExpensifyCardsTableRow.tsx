@@ -33,13 +33,8 @@ import WorkspaceExpensifyCardLimitCell from './WorkspaceExpensifyCardLimitCell';
 import WorkspaceExpensifyCardLimitTypeCell from './WorkspaceExpensifyCardLimitTypeCell';
 
 type WorkspaceExpensifyCardsTableRowProps = {
-    /** Data about the Expensify card */
     item: WorkspaceExpensifyCardTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Policy used to determine which limit types can be assigned from the inline editor */
