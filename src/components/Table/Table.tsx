@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
@@ -531,11 +531,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 }}
             >
                 <View style={bottomSafeAreaPaddingStyle}>
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.CheckSquare}
                         title={translate('common.select')}
                         onPress={handleMobileSelectionPress}
-                        pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                     />
                 </View>
             </Modal>

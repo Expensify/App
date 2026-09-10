@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -51,15 +53,21 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 errors={item.errors}
                 onClose={item.onCloseError}
             >
-                <MenuItemWithTopDescription
-                    key={item.title}
-                    title={item.title}
-                    description={item.description}
-                    helperText={item.helperText}
-                    shouldShowRightIcon
+                <MenuItemField
+                    name={item.description ?? ''}
+                    value={item.title}
                     onPress={item?.onPress}
-                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                >
+                    {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
+                {!!item.helperText && (
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={item.helperText}
+                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                    />
+                )}
             </OfflineWithFeedback>
         );
     };

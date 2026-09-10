@@ -3,6 +3,8 @@ import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
@@ -245,12 +247,12 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
-                                <MenuItemWithTopDescription
-                                    description={translate('common.initialValue')}
-                                    title={translate('common.currentDate')}
-                                    rightLabel={translate('common.required')}
-                                    interactive={false}
-                                />
+                                <MenuItemField
+                                    name={translate('common.initialValue')}
+                                    value={translate('common.currentDate')}
+                                >
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemField>
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (
