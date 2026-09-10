@@ -168,9 +168,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // vendors right now), so it can't double as the visibility gate.
     //
     // Beta gating mirrors `hasVendorFeature`: QBO (R1) is GA, so a connected QBO workspace always
-    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2) and Xero (R3) haven't
-    // reached GA, so they only show the row while the beta is enabled.
-    const vendorMatchingConnection = getConnectedIntegration(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]);
+    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2), Xero (R3), and Rillet (R4)
+    // haven't reached GA, so they only show the row while the beta is enabled.
+    const vendorMatchingConnection = getConnectedIntegration(policy, [
+        CONST.POLICY.CONNECTIONS.NAME.QBO,
+        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        CONST.POLICY.CONNECTIONS.NAME.XERO,
+        CONST.POLICY.CONNECTIONS.NAME.RILLET,
+    ]);
     const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
