@@ -3,7 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSaveReportField from '@hooks/useSaveReportField';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -86,7 +86,8 @@ function ReportFieldView(
 }
 function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The report view is a RightModalNavigator screen shown as a wide RHP, where `useResponsiveLayout` reports a narrow layout at any pane width.
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const saveReportField = useSaveReportField(report, policy);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);

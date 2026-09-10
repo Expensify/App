@@ -23,12 +23,15 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 let mockShouldUseNarrowLayout = false;
 
-jest.mock('@hooks/useResponsiveLayout', () => ({
+jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
     default: () => ({
         shouldUseNarrowLayout: mockShouldUseNarrowLayout,
+        shouldUseNarrowLayoutIgnoringWideRHP: mockShouldUseNarrowLayout,
         isSmallScreenWidth: mockShouldUseNarrowLayout,
         isInNarrowPaneModal: false,
+        isWideRHPDisplayedOnWideLayout: !mockShouldUseNarrowLayout,
+        isSuperWideRHPDisplayedOnWideLayout: false,
     }),
 }));
 
