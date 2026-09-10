@@ -69,6 +69,7 @@ function useUnreadMarker({
     const reportLastReadTime = reportLastReadTimeValue ?? '';
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [initialIsReportUnread] = useState(isReportUnread);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -124,14 +125,14 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
-        isReportUnread,
+        isReportUnread: initialIsReportUnread,
         prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
-        isReportUnread && oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
+        initialIsReportUnread && oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
     if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
