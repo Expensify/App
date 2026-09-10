@@ -27,7 +27,6 @@ import isEmpty from 'lodash/isEmpty';
 
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
@@ -350,6 +349,5 @@ export {
     isSecondaryActionAPaymentOption,
     isSecondaryActionAWorkspacePolicyOption,
     getActivePaymentType,
-    getBankAccountLastFourDigits,
 };
 export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, SelectPaymentTypeParams, WorkspacePolicyPaymentOption};
