@@ -47,28 +47,29 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
         [nonReimbursableBillDefaultVendor, vendors],
     );
 
+    const isNonReimbursableBillDefaultVendorNone = !nonReimbursableBillDefaultVendor || nonReimbursableBillDefaultVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
     const clearOption: CardListItem = useMemo(
         () => ({
-            value: '',
+            value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             text: translate('common.none'),
-            keyForList: '',
-            isSelected: !nonReimbursableBillDefaultVendor,
+            keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+            isSelected: isNonReimbursableBillDefaultVendorNone,
         }),
-        [translate, nonReimbursableBillDefaultVendor],
+        [translate, isNonReimbursableBillDefaultVendorNone],
     );
     const shouldShowClearOption = !!nonReimbursableBillDefaultVendor || vendorOptions.length > 0;
     const data: CardListItem[] = useMemo(() => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions), [shouldShowClearOption, clearOption, vendorOptions]);
 
     const selectVendor = useCallback(
         (row: CardListItem) => {
-            const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (!row.value && !nonReimbursableBillDefaultVendor);
+            const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isNonReimbursableBillDefaultVendorNone);
             if (isAlreadySelected) {
                 return;
             }
             updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
             Navigation.goBack();
         },
-        [nonReimbursableBillDefaultVendor, policyID],
+        [nonReimbursableBillDefaultVendor, isNonReimbursableBillDefaultVendorNone, policyID],
     );
 
     const listEmptyContent = useMemo(
