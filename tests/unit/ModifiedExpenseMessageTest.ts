@@ -1004,6 +1004,7 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     movedFromReport,
+                    reportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -2525,7 +2526,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "Acme"');
                 });
@@ -2550,7 +2551,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
                 });
@@ -2574,7 +2575,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('removed the vendor (previously "Acme")');
                 });
@@ -2598,7 +2599,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
                 });
@@ -2622,7 +2623,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "Amazon"');
                 });
@@ -2668,7 +2669,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('set the supplier to "Acme Xero"');
                 });
@@ -2690,7 +2691,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
                 });
@@ -2711,7 +2712,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                        reportName: undefined,
                     });
                     expect(result).toEqual('set the supplier to "xcDeleted"');
                 });
