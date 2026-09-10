@@ -13,6 +13,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import {getDecodedCategoryName} from './CategoryUtils';
+import {getTaxByID} from './PolicyUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
 
@@ -92,19 +93,8 @@ function getCategoryTaxRuleTaxID(expenseRules: ExpenseRule[] | undefined, catego
     return getCategoryTaxRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
 }
 
-/**
- * Whether the workspace still has this rate, and so whether a rule holding it can be named at all.
- *
- * A category tax rule stores only an `externalID`, with no label of its own, so once the rate leaves the workspace
- * there is nothing left to resolve it from, whether it was deleted or taxes were turned off and the policy re-fetched.
- * Every surface showing such a rule has to agree on that, or the table names it while the editor it opens reads empty.
- */
-function isTaxRateOnPolicy(policy: Policy | undefined, taxID: string | undefined): boolean {
-    return !!taxID && !!policy?.taxRates?.taxes?.[taxID];
-}
-
 /** The `Name (Value)` tax label. Prefers the workspace rate so renames read correctly, then the label the rule saved
- * inline, then the raw ID. Callers with no inline label should check `isTaxRateOnPolicy` first: an ID is a fallback for
+ * inline, then the raw ID. Callers with no inline label should check `getTaxByID` first: an ID is a fallback for
  * a merchant rule that carries its own name, not something to show an admin. */
 function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined, savedTaxRate?: {name?: string; value?: string}): string {
     if (!taxID) {
@@ -175,7 +165,7 @@ function getCategoryTaxRulesTableData({
                 const taxID = rule.tax?.field_id_TAX?.externalID;
                 // Blank rather than the raw ID once the rate is gone from the workspace, matching the editor this row
                 // opens. The rule still holds the ID, so it starts naming the rate again if the rate comes back.
-                const taxDisplayName = isTaxRateOnPolicy(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
+                const taxDisplayName = taxID && getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
                 const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
                 const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
                 const pendingAction = getPendingAction(rule);
@@ -214,6 +204,5 @@ export {
     isCategoryRuleDraft,
     isCategoryTaxRuleKey,
     isSelectableTaxRate,
-    isTaxRateOnPolicy,
     matchesCategoryTaxRule,
 };

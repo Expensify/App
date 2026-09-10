@@ -1,4 +1,4 @@
-import {getCategoryTaxRulesTableData, hasSelectableCategoryTaxRate, isSelectableTaxRate, isTaxRateOnPolicy} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxRulesTableData, hasSelectableCategoryTaxRate, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -107,22 +107,6 @@ describe('CategoryTaxRulesUtils', () => {
             const defaultRate = createMock<TaxRate>({name: 'Tax exempt', value: '0%'});
             expect(isSelectableTaxRate(policy, DEFAULT_TAX_ID, defaultRate, false)).toBe(true);
             expect(isSelectableTaxRate(policy, DEFAULT_TAX_ID, defaultRate, true)).toBe(false);
-        });
-    });
-
-    describe('isTaxRateOnPolicy', () => {
-        it('is true for a rate the workspace still has', () => {
-            const policy = buildPolicy({[TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%'})});
-            expect(isTaxRateOnPolicy(policy, TAX_ID)).toBe(true);
-        });
-
-        it('is false once the rate has left the workspace', () => {
-            expect(isTaxRateOnPolicy(buildPolicy({}), TAX_ID)).toBe(false);
-        });
-
-        it('is false without a rate to look up', () => {
-            const policy = buildPolicy({[TAX_ID]: createMock<TaxRate>({name: 'VAT', value: '5%'})});
-            expect(isTaxRateOnPolicy(policy, undefined)).toBe(false);
         });
     });
 

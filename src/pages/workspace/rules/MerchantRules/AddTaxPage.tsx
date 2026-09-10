@@ -30,14 +30,12 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     const isCategoryRule = isCategoryRuleDraft(form, categoryName);
 
-    // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled, or
-    // become the workspace default, after a rule chose it, and dropping it here left the picker with nothing marked
-    // selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
-    const isSelectedTax = (taxKey: string) => taxKey === form?.tax;
-
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
-        .filter(([taxKey, tax]) => isSelectedTax(taxKey) || isSelectableTaxRate(policy, taxKey, tax, isCategoryRule))
+        // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled,
+        // or become the workspace default, after a rule chose it, and dropping it here left the picker with nothing
+        // marked selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
+        .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(policy, taxKey, tax, isCategoryRule))
         .map(([taxKey, tax]) => ({
             name: `${tax.name} (${tax.value})`,
             value: taxKey,
