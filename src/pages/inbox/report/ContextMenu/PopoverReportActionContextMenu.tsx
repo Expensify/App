@@ -56,7 +56,6 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 }
 
 type PopoverReportActionContextMenuProps = {
-    /** Reference to the outer element */
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
