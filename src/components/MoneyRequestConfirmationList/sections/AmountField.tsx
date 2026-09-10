@@ -66,7 +66,7 @@ function AmountField({
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
     const shouldAutoFocusOnMount = !canUseTouchScreen();
-    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -84,10 +84,7 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
-    const firstParticipant = transactionSlice?.participants?.at(0);
-    const isP2P = isNewManualExpenseFlowEnabled
-        ? isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0))
-        : !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
+    const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is populated programmatically and `isAmountSet` is never set)
@@ -104,21 +101,20 @@ function AmountField({
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
-    // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
+    // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
     // real value. This avoids showing "$0.00" as a pre-filled default. Scan and other non-manual flows populate
     // amount programmatically and never set isAmountSet.
-    const shouldShowEmptyAmount = isNewManualExpenseFlowEnabled && !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants, isNewManualExpenseFlowEnabled);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant in the new manual
-    // expense flow. The setTimeout defers focus past the RHP entry / picker close animation so the input reliably
-    // receives focus.
+    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
+    // focus past the RHP entry / picker close animation so the input reliably receives focus.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isNewManualExpenseFlowEnabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
             return;
         }
 
@@ -130,7 +126,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isNewManualExpenseFlowEnabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -299,7 +295,7 @@ function AmountField({
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
             />
-            {isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
+            {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
                         ref={amountInputRef}
