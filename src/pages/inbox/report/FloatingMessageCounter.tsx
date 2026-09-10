@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
@@ -21,13 +21,11 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Inner button variant */
     variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
 
-    /** The icon to display */
     icon: IconAsset;
 
     /** The fill color for the icon */
@@ -36,7 +34,6 @@ type FloatingPillButtonProps = {
     /** The label text to display */
     label: string;
 
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 
@@ -74,7 +71,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
     hasNewMessages: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */

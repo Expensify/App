@@ -5,12 +5,13 @@ import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navi
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
+import InsightsPage from '@pages/Insights/InsightsPage';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
- * Tab Navigator containing Home, Inbox (Reports), Search, Settings, and Workspaces pages.
+ * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
  */
 import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
 
@@ -30,7 +31,7 @@ const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
@@ -109,6 +110,10 @@ function TabNavigator() {
                     tabBarLabel: translate('common.spend'),
                     tabBarSystemItem: 'search',
                 }}
+            />
+            <Tab.Screen
+                name={SCREENS.INSIGHTS}
+                component={InsightsPage}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
