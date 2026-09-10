@@ -36,11 +36,13 @@ jobs:
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: .jest-cache
-          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
-          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
-          # cache when dependencies or Babel config change; restore-keys warms it in between.
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
-          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
+          # MEASUREMENT BRANCH ONLY - DO NOT MERGE.
+          # The `jestcold` prefix matches no cache on main, so run 1 on this branch is genuinely
+          # cold and run 2 is warm from the cache this branch saved. That isolates the jest step
+          # from whatever main happens to have cached. jest.config.js is in the hash so this
+          # workflow is byte-identical to the one on the coverage-config branch being compared.
+          key: ${{ runner.os }}-jestcold-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js', 'jest.config.js') }}
+          restore-keys: ${{ runner.os }}-jestcold-${{ matrix.chunk }}-
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}

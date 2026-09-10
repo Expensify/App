@@ -7,6 +7,8 @@ const testFileExtension = 'ts?(x)';
 // every React Profiler render duration — and thus every Reassure `[render]` measurement.
 const isPerfTestRun = process.argv.some((arg) => arg.includes('perf-test') || arg.includes('__perf__'));
 
+// Baseline arm of the jest coverage measurement - coverage options below are untouched on purpose.
+// This comment exists so the PR contains a `**.js` file and the Jest workflow's paths filter fires.
 module.exports = {
     preset: 'jest-expo',
     collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
