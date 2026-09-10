@@ -292,7 +292,8 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const isOnXero = isXeroActiveMatchingSource(policy);
 
-    usePolicyConnectionsPrefetch(policy, true);
+    const {isFetchNeeded: isVendorConnectionsFetchNeeded, isLoadingFetchedFlag: isVendorConnectionsFetchedFlagLoading} = usePolicyConnectionsPrefetch(policy, true);
+    const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading;
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
@@ -455,7 +456,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     importFunction={importRules}
                     errors={isValidationEnabled ? validate() : undefined}
                     columnRoles={columnRoles}
-                    isButtonLoading={isImportingRules}
+                    isButtonLoading={isImportingRules || isVendorListLoading}
                     customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
                     shouldDisableButtonWhenOffline={!canImportOffline}
                 />
