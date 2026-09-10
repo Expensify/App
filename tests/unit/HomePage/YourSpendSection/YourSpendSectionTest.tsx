@@ -44,18 +44,6 @@ jest.mock('@hooks/useTheme', () =>
     })),
 );
 
-jest.mock('@hooks/useThemeStyles', () =>
-    jest.fn(
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: () => jest.fn(() => ({})),
-                },
-            ),
-    ),
-);
-
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: jest.fn(() => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false})),

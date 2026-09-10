@@ -2658,6 +2658,7 @@ const CONST = {
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
+        SUPPORT_NOT_AUTHORIZED: 411,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,

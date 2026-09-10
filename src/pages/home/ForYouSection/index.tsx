@@ -1,7 +1,7 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
-import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,15 +42,12 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
+    const isInitialLoad = useAppLoadSkeletonVisibility();
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
-    // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
-    const isOnboardingStatusKnown = onboarding !== undefined;
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
     const timeSensitiveItems = useTimeSensitiveItems();
@@ -181,53 +178,65 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
 
     const hideForYou = shouldHideForYouSection({
-        isInitialLoad,
         hasAnyTodos,
         hasSeenTodo: hasSeenForYouTodo,
         firstDayFreeTrial,
         cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
         isOnboardingCompleted,
-        isOnboardingStatusKnown,
     });
+
+    // A user known to be mid-onboarding has no body once loaded, so a shimmer would appear and then collapse
+    // (see the flashing empty state in issue #81846). Every other case gets the skeleton, including one whose
+    // onboarding NVP has not landed: the rest of the hide rules read NVPs that arrive with app load, and waiting
+    // on them leaves the card a bare Concierge box for the whole load on a cold cache.
+    const shouldShowSkeletonBody = isOnboardingCompleted !== false;
 
     const visibleForYouRows = hideForYou ? [] : forYouRows;
 
-    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty.
-    const showSkeleton = isInitialLoad && !hideForYou;
-    const showEmptyState = !isInitialLoad && !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
-    const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && visibleForYouRows.length === 0 && !showSkeleton && !showEmptyState;
+    // The empty state stands in for the to-dos only when both groups are empty.
+    const showEmptyState = !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
 
-    const getForYouFallback = () => {
-        if (showSkeleton) {
-            return <ForYouSkeleton />;
+    // One shimmer block stands in for the whole body during app load, rather than each group deferring on its own,
+    // so no heading or row appears mid-load as its data lands.
+    const renderBody = () => {
+        if (isInitialLoad) {
+            return shouldShowSkeletonBody ? <ForYouSkeleton /> : null;
         }
-        if (showEmptyState) {
-            return <EmptyState />;
-        }
-        return null;
+
+        return (
+            <>
+                <HomeTaskGroup
+                    title={translate('homePage.timeSensitiveSection.title')}
+                    rows={timeSensitiveItems}
+                />
+                <HomeTaskGroup
+                    title={translate('homePage.toDos')}
+                    rows={visibleForYouRows}
+                    reducedTopGap={timeSensitiveItems.length > 0}
+                >
+                    {showEmptyState ? <EmptyState /> : null}
+                </HomeTaskGroup>
+            </>
+        );
     };
 
+    // Nothing but the Concierge box renders when the body is empty, which is the only case that needs the tighter
+    // bottom padding.
+    const hasBodyContent = isInitialLoad ? shouldShowSkeletonBody : timeSensitiveItems.length > 0 || visibleForYouRows.length > 0 || showEmptyState;
+
+    // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
-            containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
+            containerStyles={hasBodyContent ? undefined : [styles.pb3]}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
                     setIsMenuVisible={setIsConciergeMenuVisible}
+                    isCopyLoading={isInitialLoad}
                 />
             }
         >
-            <HomeTaskGroup
-                title={translate('homePage.timeSensitiveSection.title')}
-                rows={timeSensitiveItems}
-            />
-            <HomeTaskGroup
-                title={translate('homePage.toDos')}
-                rows={visibleForYouRows}
-                reducedTopGap={timeSensitiveItems.length > 0}
-            >
-                {getForYouFallback()}
-            </HomeTaskGroup>
+            {renderBody()}
         </WidgetContainer>
     );
 }

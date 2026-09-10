@@ -44,8 +44,10 @@ For loading driven by a **WRITE** command, use a dedicated hook from `src/hooks/
 Each hook maps to a **group**, which means a set of API commands that count as pending for one use case. Every group reads the two queue keys, `ONYXKEYS.PERSISTED_REQUESTS` and `ONYXKEYS.PERSISTED_ONGOING_REQUESTS`, with selectors that return booleans. The public API is one hook per group:
 
 - `useIsAppLoadPending()`: an `OpenApp` request or its deferred updates are pending.
+- `useIsOnlineAppLoadPending()`: the same, except an `OpenApp` still queued from while the device was offline does not count.
 - `useIsReportLoadPending(reportID)`: an `OpenReport` or its deferred updates are pending for that report.
 - `useIsLoadingBarPending()` / `useLoadingBarVisibility()`: a command relevant to the top-of-screen loading bar is active. Persisted requests that started offline are excluded, and the visible bar also requires the app to be online.
+- `useAppLoadSkeletonState()` / `useAppLoadSkeletonVisibility()`: the cold-start skeleton state, and whether to actually show it. Visibility additionally requires `useShouldWaitForAppLoad()`, which is false once the device is offline and no `OpenApp` in the queue ever reached the network, because nothing can resolve the skeleton until the user reconnects.
 
 The screen still decides what to render. It can combine the hook result with offline state, cached-data readiness, or first-load state. For example:
 
@@ -65,20 +67,22 @@ const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
 
 The request remains pending while offline, but a full-page loader cannot finish until the app reconnects. The screen therefore suppresses this loader and shows cached data. Keep this presentation choice at the call site.
 
+When several call sites want the same choice, name it once as a second hook beside the base one rather than folding the condition into the base hook or repeating the expression. `useLoadingBarVisibility` and `useAppLoadSkeletonVisibility` are the two that exist. The base hooks stay exported, so a surface that wants a different presentation still has one.
+
 ## The deferred-update bridge
 
 `SequentialQueue` removes a settled `OpenApp` or `OpenReport` from both queue keys before it flushes deferred Onyx updates. Queue presence alone would become `false` too early. A skeleton could disappear while old account or report data is still visible.
 
 The existing public hooks bridge this window:
 
-- `useIsAppLoadPending()` reads the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
+- `useIsAppLoadPending()` and `useIsOnlineAppLoadPending()` read the two queue keys and `ONYXKEYS.IS_LOADING_APP`. An in-memory latch starts only after this process observes `OpenApp` in the queue. It stays set until the deferred update clears `IS_LOADING_APP`.
 - `useIsReportLoadPending(reportID)` reads the two queue keys and that report's `RAM_ONLY_REPORT_LOADING_STATE`. An in-memory set records report IDs observed with a matching `OpenReport`. It removes a report ID after `isLoadingInitialReportActions` clears.
 
 A fresh process does not inherit either latch. A stranded legacy loading value cannot make either hook pending by itself.
 
 Each hook creates exactly three Onyx subscriptions while this bridge exists:
 
-- `useIsAppLoadPending()` creates two queue subscriptions and one `IS_LOADING_APP` subscription.
+- `useIsAppLoadPending()` / `useIsOnlineAppLoadPending()` create two queue subscriptions and one `IS_LOADING_APP` subscription.
 - `useIsReportLoadPending()` creates two queue subscriptions and one report loading-state subscription.
 
 Do not call these hooks once per list row. Read the hook at screen or list level and pass the boolean down.
@@ -91,7 +95,7 @@ New groups are declared in the `PENDING_REQUEST_GROUPS` registry in `useInFlight
 const PENDING_REQUEST_GROUPS = {
     // Unscoped: matches on command alone.
     appLoad: {
-        commands: new Set<string>(APP_LOAD_COMMANDS), // WRITE_COMMANDS.OPEN_APP
+        commands: APP_LOAD_COMMANDS, // WRITE_COMMANDS.OPEN_APP
     },
     // Scoped: only requests whose scope key equals the caller's scope key match.
     reportLoad: {
@@ -106,7 +110,7 @@ const PENDING_REQUEST_GROUPS = {
 } satisfies Record<string, PendingRequestGroupConfig>;
 ```
 
-- **`commands`** (required): the WRITE commands whose presence in the queue counts as "pending" for this group. The backing arrays are typed `WriteCommand[]` (see the invariant below).
+- **`commands`** (required): the WRITE commands whose presence in the queue counts as "pending" for this group. The backing constants are typed `WriteCommand[]` (see the invariant below).
 - **`getScopeKey`** (optional): for scoped groups, extracts a scope key from a request so a caller sees only the requests it cares about (e.g. the `OpenReport` for one `reportID`). Omit it for groups that match on command alone. Callers should pass a defined scope key. An undefined request scope can only equal an undefined caller scope.
 - **`ignoreOfflineInitiatedPersisted`** (optional): when `true`, persisted requests initiated while offline are ignored, because they sit in the queue until reconnect and should not read as "loading." This filter applies to the persisted queue only, never to the ongoing request. `useLoadingBarVisibility` uses it so the bar does not show for work that is parked offline.
 
@@ -120,7 +124,7 @@ The `appLoad` group contains `OpenApp` only, **not** `ReconnectApp`. It models t
 
 Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in `src/libs/API/index.ts`). `API.read` and `API.makeRequestWithSideEffects` run straight through the middleware chain and are **never** written to `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` (see [where a request does not hit disk](SEQUENTIAL_QUEUE.md#where-the-request-actually-hits-disk-and-where-it-doesnt)). A hook that watched the queue for a READ or side-effect command would return `false` while the request runs. The skeleton would never show.
 
-The registry encodes this in the type system rather than relying on a comment: each command list is typed `WriteCommand[]`, so a READ command in a group is a compile error. Keep it that way.
+The registry encodes this in the type system rather than relying on a comment: each group's command `Set` is built from an array literal marked `satisfies WriteCommand[]`, so a READ command in a group is a compile error. Keep it that way.
 
 "WRITE" means the API function, not whether the command changes server data. `SIDE_EFFECT_REQUEST_COMMANDS` in `src/libs/API/types.ts` holds mutating commands such as `LockAccount`, `SetVacationDelegate`, and `CompleteGuidedSetup`. They go through `API.makeRequestWithSideEffects` because the caller needs the response, so they never reach the queue and cannot back a queue-derived skeleton. Use the terminal-state pattern for them.
 
@@ -163,10 +167,13 @@ The remaining initial app skeleton consumers use `HAS_LOADED_APP` to distinguish
 | `HAS_LOADED_APP` is `false` and `OpenApp` is pending | shown |
 | `HAS_LOADED_APP` is `false`, and `OpenApp` left the queue before its deferred clear flushed | shown through the hook bridge |
 | Cold restart, `HAS_LOADED_APP` hydrated to `false`, and `IS_LOADING_APP` is still `true` | shown through the recovery fallback |
+| `HAS_LOADED_APP` is `false` and `OpenApp` resolved with an app-level error | not shown, the failure modal offers the retry |
 | `HAS_LOADED_APP` is `true`, including a warm reconnect or account switch | not shown |
 
-Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the primary signal. The fallback covers a fresh process where no in-memory latch could have observed the earlier `OpenApp`. `ForYouSection` also keeps `IS_LOADING_REPORT_DATA` in its first-load gate.
+Keep `HAS_LOADED_APP` and the cold-restart fallback. The queue hook is the primary signal. The fallback covers a fresh process where no in-memory latch could have observed the earlier `OpenApp`.
 
 Report skeleton consumers use `useIsReportLoadPending(reportID)` wherever pending `OpenReport` work is part of the loading decision. They keep existing readiness checks, including `hasOnceLoadedReportActions`, report data completeness, and offline behavior. A stranded `isLoadingInitialReportActions` value without a matching queue request or in-memory latch must not show a skeleton.
+
+When `OpenApp` resolves with an app-level error, `HAS_LOADED_APP` is withheld and `IS_LOADING_APP` is cleared by `finallyData` as the queue drains, so every skeleton gate reads false and the app renders live content while unloaded (see [queueFlushedData](SEQUENTIAL_QUEUE.md#queuedonyxupdates-and-queueflusheddata)). The failure modal is dismissible, so a user who closes it lands back on live content in that unloaded state.
 
 Do not remove the legacy fields as part of this migration. `IS_LOADING_APP` and report loading state still support recovery, report positioning, navigation guards, and the deferred-flush bridge. Skeleton consumers should use the public hooks. Full flag deletion is outside this plan.
