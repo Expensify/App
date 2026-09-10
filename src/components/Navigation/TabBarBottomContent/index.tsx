@@ -1,24 +1,12 @@
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import React from 'react';
-
 import type TabBarBottomContentProps from './types';
 
-function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    if (!shouldUseNarrowLayout) {
-        return null;
-    }
-
-    return (
-        <NavigationTabBar
-            selectedTab={selectedTab}
-            shouldShowFloatingButtons={false}
-        />
-    );
+/**
+ * The navigator's own bar (TabNavigatorBar) is the only tab bar on screen. Each screen mounts this slot, and every
+ * preloaded screen is mounted at once, so rendering a bar here would stack one per screen behind the floating pill.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function TabBarBottomContent(_props: TabBarBottomContentProps) {
+    return null;
 }
 
 export default TabBarBottomContent;

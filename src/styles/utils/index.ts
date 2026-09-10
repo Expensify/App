@@ -2460,9 +2460,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        // The bar floats over the content, so the wrapper stays transparent and claims no flex space.
+        marginTop: -(variables.floatingTabBarHeight + safeAreaPaddingBottom + variables.floatingTabBarBottomInset),
+        paddingBottom: safeAreaPaddingBottom + variables.floatingTabBarBottomInset,
+        backgroundColor: theme.transparent,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({

@@ -30,6 +30,10 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // The floating mobile tab bar sizes itself, so nothing else follows these.
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    floatingTabBarBottomInset: 8,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderHeightNarrow: getValueUsingPixelRatio(64, 89),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),

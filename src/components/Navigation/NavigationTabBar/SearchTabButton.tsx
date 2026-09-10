@@ -82,7 +82,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
             wrapperStyle={styles.flex1}
-            style={styles.navigationTabBarItem}
+            style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.SEARCH && styles.navigationTabBarItemSelected]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
             <TabBarItem
@@ -90,6 +90,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 label={translate('common.spend')}
                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                 numberOfLines={1}
+                shouldShowLabel={false}
             />
         </PressableWithFeedback>
     );

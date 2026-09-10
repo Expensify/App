@@ -236,7 +236,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
             wrapperStyle={styles.flex1}
-            style={styles.navigationTabBarItem}
+            style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.INBOX && styles.navigationTabBarItemSelected]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >
             <TabBarItem
@@ -245,6 +245,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
                 isSelected={selectedTab === NAVIGATION_TABS.INBOX}
                 statusIndicatorColor={statusIndicatorColor}
                 numberOfLines={1}
+                shouldShowLabel={false}
             />
         </PressableWithFeedback>
     );

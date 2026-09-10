@@ -45,6 +45,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
      * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
      * with the correct active (ring) state for selection and hover effects.
      */
+    // The avatar carries a -2 top nudge that balances it against the label. Narrow layout drops the
+    // label, so the nudge is cancelled there to keep the avatar centered in the tab.
+    const avatarOffsetStyle = shouldUseNarrowLayout ? styles.t0 : styles.tn0Half;
+
     const renderAvatar = (active: boolean, isHovered: boolean) => {
         if (delegateEmail) {
             return (
@@ -52,7 +56,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                     delegateEmail={delegateEmail}
                     isHovered={isHovered}
                     isSelected={active}
-                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
+                    containerStyle={[styles.sidebarStatusAvatarWithEmojiContainer, avatarOffsetStyle]}
                 />
             );
         }
@@ -62,7 +66,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                 <AvatarWithOptionalStatus
                     emojiStatus={emojiStatus}
                     isSelected={active}
-                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
+                    containerStyle={[styles.sidebarStatusAvatarWithEmojiContainer, avatarOffsetStyle]}
                 />
             );
         }
@@ -70,7 +74,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         return (
             <ProfileAvatarWithIndicator
                 isSelected={active}
-                containerStyles={styles.tn0Half}
+                containerStyles={avatarOffsetStyle}
             />
         );
     };
@@ -90,12 +94,14 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             {({hovered}) => (
                 <>
                     {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
-                    >
-                        {translate('initialSettingsPage.account')}
-                    </Text>
+                    {!shouldUseNarrowLayout && (
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                        >
+                            {translate('initialSettingsPage.account')}
+                        </Text>
+                    )}
                 </>
             )}
         </PressableWithFeedback>

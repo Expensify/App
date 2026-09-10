@@ -726,8 +726,34 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            backgroundColor: theme.appBG,
+            height: variables.floatingTabBarHeight,
+            // Transparent so the blur layer rendered inside the bar is what tints it.
+            backgroundColor: theme.transparent,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // Inset the row so the active tab's pill keeps a margin inside the bar's rounded edge.
+            padding: 4,
+            borderWidth: 0.5,
+            borderColor: theme.floatingTabBarBorder,
+            // Clips each item's hover and press background to the pill's rounded ends.
+            overflow: 'hidden',
+        },
+
+        // Fills the pill behind the tabs. The tint sits on top of the blur, so it reads as frosted glass.
+        // On web the tint and blur are authored here, because expo-blur's web build overrides any
+        // backgroundColor passed to it with one derived from its own tint and intensity.
+        navigationTabBarBlur: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            ...(Platform.OS === 'web'
+                ? {
+                      backgroundColor: theme.floatingTabBarBGWeb,
+                      backdropFilter: 'saturate(180%) blur(8px)',
+                  }
+                : {backgroundColor: theme.floatingTabBarBG}),
         },
 
         // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
@@ -735,6 +761,11 @@ const staticStyles = (theme: ThemeColors) =>
         // half its blur, keeping the shadow clear of the bar's bottom edge and out of the iOS safe area below it.
         navigationTabBarTopShadow: {
             boxShadow: theme.shadowTop,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: Platform.OS === 'web' ? theme.floatingTabBarSelectedBGWeb : theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
         },
 
         navigationTabBarItem: {

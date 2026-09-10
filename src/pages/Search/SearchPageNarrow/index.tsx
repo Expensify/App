@@ -1,7 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -66,8 +64,6 @@ type SearchPageNarrowProps = {
     /** Whether the overlay lifecycle is active (used to trigger onSearchLayout independently of overlay content). */
     isOverlayActive: boolean;
 };
-
-const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} />;
 
 function SearchPageNarrow({
     queryJSON,
@@ -242,7 +238,6 @@ function SearchPageNarrow({
                 shouldEnableMaxHeight
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
-                bottomContent={tabBarContent}
                 bottomContentStyle={styles.overflowVisible}
             >
                 <View style={[styles.flex1, styles.overflowHidden]}>

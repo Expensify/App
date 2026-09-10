@@ -18,6 +18,9 @@ type TabBarItemProps = {
     isHovered?: boolean;
     statusIndicatorColor?: string;
     numberOfLines?: number;
+
+    /** Whether to render the label under the icon. The floating bottom bar shows icons only. */
+    shouldShowLabel?: boolean;
 };
 
 function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
@@ -30,7 +33,7 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
     return theme.icon;
 }
 
-function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
+function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2, shouldShowLabel = true}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -47,12 +50,14 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
                 )}
             </View>
-            <Text
-                numberOfLines={numberOfLines}
-                style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
-            >
-                {label}
-            </Text>
+            {shouldShowLabel && (
+                <Text
+                    numberOfLines={numberOfLines}
+                    style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
+                >
+                    {label}
+                </Text>
+            )}
         </>
     );
 }
