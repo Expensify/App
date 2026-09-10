@@ -47,7 +47,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const session = useSession();
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
-    const currentSelection = draftPolicyID ?? activePolicyID;
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
@@ -86,8 +85,10 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const confirmButtonOptions = {
         showButton: true,
         text: translate('common.save'),
-        onConfirm: () => selectPolicy(currentSelection),
-        isDisabled: currentSelection === activePolicyID,
+        onConfirm: () => selectPolicy(draftPolicyID),
+        // Unlike the other two pickers, selectPolicy also advances the flow (it navigates to navigateTo), so confirming the
+        // already-active workspace is a real action. Gate on whether a row is checked, not on whether the value changed.
+        isDisabled: !draftPolicyID,
     };
 
     const textInputOptions = useMemo(
