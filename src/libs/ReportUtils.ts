@@ -4663,7 +4663,9 @@ function getReasonAndReportActionThatRequiresAttention(
     // Only apply this to the fallback path: getBadgeFromIOUReport already withholds a badge from an all-held report,
     // so a chat that produced a candidate has an actionable child even when a sibling of it is fully held.
     const isExcludedForHeldExpenses =
-        !iouReportActionToApproveOrPay && hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
+        !iouReportActionToApproveOrPay &&
+        hasAllExpensesHeld &&
+        (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it

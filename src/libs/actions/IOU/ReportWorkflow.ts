@@ -343,8 +343,7 @@ function getBadgeFromIOUReport(
     // excluded because only its owner can place a hold there, and that owner is the one who submits.
     if (
         hasOnlyHeldExpenses(reportTransactions) &&
-        (isOpenExpenseReportReportUtils(iouReport) ||
-            !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReport?.reportID), reportTransactions, currentUserAccountID))
+        (isOpenExpenseReportReportUtils(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReport?.reportID), reportTransactions, currentUserAccountID))
     ) {
         return undefined;
     }
