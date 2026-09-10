@@ -30,7 +30,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
@@ -118,7 +118,10 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     };
 
     const promptSpendRuleUpgrade = () => {
-        tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias);
+        // Send them back into this same wizard step, not the workspace Rules page the hook defaults to, so upgrading
+        // doesn't strand the card they were partway through issuing.
+        const backToWizard = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, backToWizard);
     };
 
     const handleChooseSpendRule = () => {
