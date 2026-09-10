@@ -210,11 +210,11 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
-                onCapture(cameraFile, source);
-
                 if (shouldUpgradeToPhoto) {
                     upgradeReceiptWithPhoto(durableName);
                 }
+
+                onCapture(cameraFile, source);
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
