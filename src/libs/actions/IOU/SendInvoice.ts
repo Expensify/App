@@ -663,7 +663,7 @@ function getSendInvoiceInformation({
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-
+    const receiverLogin = addSMSDomainIfPhoneNumber(receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '');
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -723,7 +723,6 @@ function getSendInvoiceInformation({
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !getAllPersonalDetails()[receiverAccountID];
-    const receiverLogin = addSMSDomainIfPhoneNumber(receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '');
     if (shouldCreateOptimisticPersonalDetails) {
         receiver = {
             accountID: receiverAccountID,
