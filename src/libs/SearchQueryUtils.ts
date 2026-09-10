@@ -60,6 +60,7 @@ import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
+import getCollator from './CollatorUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Log from './Log';
@@ -553,7 +554,7 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
  * The reason for this is that the computation of hashes should not depend on the locale.
  * This is used to ensure that hashes stay consistent.
  */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const customCollator = getCollator(CONST.LOCALES.EN);
 
 let defaultSearchQueryJSON: SearchQueryJSON | undefined;
 

@@ -6,6 +6,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import getCollator from '@libs/CollatorUtils';
 import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -259,19 +260,9 @@ type GetAlternateTextConfig = {
 
 /**
  * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
- * Mirrors LocaleContextProvider's collator options against the active locale.
- * The collator is cached at module scope: constructing an Intl.Collator loads locale data,
- * which is far too expensive to repeat per comparison inside a sort.
  */
-let fallbackCollator: Intl.Collator | undefined;
-let fallbackCollatorLocale: Locale | undefined;
 function fallbackLocaleCompare(a: string, b: string): number {
-    const locale = IntlStore.getCurrentLocale();
-    if (!fallbackCollator || fallbackCollatorLocale !== locale) {
-        fallbackCollatorLocale = locale;
-        fallbackCollator = new Intl.Collator(locale, {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
-    }
-    return fallbackCollator.compare(a, b);
+    return getCollator(IntlStore.getCurrentLocale()).compare(a, b);
 }
 
 /**
