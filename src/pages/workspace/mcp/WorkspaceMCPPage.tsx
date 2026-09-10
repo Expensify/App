@@ -24,6 +24,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {openExternalLink} from '@userActions/Link';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -106,8 +108,8 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                 <Icon
                                     src={icons.QuestionMark}
-                                    width={20}
-                                    height={20}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                     fill={theme.icon}
                                     additionalStyles={styles.mr3}
                                 />
