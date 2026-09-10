@@ -23,13 +23,11 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     /** The translation key for the input label */
     labelKey?: TranslationPaths;
 
-    /** Test ID for the screen wrapper */
     testID: string;
 
     /** The translation key for the hint text to display below the TextInput */
     hintKey?: TranslationPaths;
 
-    /** Whether this field is required */
     isRequired?: boolean;
 
     /** The character limit for the input */

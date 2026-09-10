@@ -16,6 +16,7 @@ import {
     hasVendorFeature,
     isGroupPolicy,
     isMatchingVendorListLoaded,
+    isMCPEnabled,
     isPerDiemEnabled,
     isPolicyAdmin,
     isTimeTrackingEnabled,
@@ -65,7 +66,8 @@ type WorkspaceMenuIconMap = Record<
     | 'Clock'
     | 'InvoiceGeneric'
     | 'Gear'
-    | 'Bolt',
+    | 'Bolt'
+    | 'Bot',
     IconAsset
 >;
 
@@ -103,9 +105,7 @@ type GetWorkspaceMenuItemsParams = {
     shouldShowEnterCredentialsError?: boolean;
     /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
-    /** Whether the Rules revamp beta is enabled. */
     isRulesRevampBetaEnabled?: boolean;
-    /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -176,6 +176,7 @@ function getWorkspaceMenuItems({
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: isPerDiemEnabled(policy) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: policy?.receiptPartners?.enabled ?? false,
+        [CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED]: isMCPEnabled(policy),
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
     };
@@ -251,6 +252,17 @@ function getWorkspaceMenuItems({
                 screenName: SCREENS.WORKSPACE.RECEIPT_PARTNERS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.RECEIPT_PARTNERS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED] && canReadMoreFeatures) {
+            items.push({
+                translationKey: 'workspace.common.mcp',
+                icon: icons.Bot,
+                getRoute: () => ROUTES.WORKSPACE_MCP.getRoute(policyID),
+                screenName: SCREENS.WORKSPACE.MCP,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MCP,
+                highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
             });
         }
 

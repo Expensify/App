@@ -36,7 +36,6 @@ import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 
 type BankConnectionProps = {
-    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed for assign card flow */

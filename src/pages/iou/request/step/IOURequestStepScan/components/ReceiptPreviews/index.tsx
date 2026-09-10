@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -47,7 +47,6 @@ type ReceiptPreviewsProps = {
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
 
-    /** If a photo is currently being captured */
     isCapturingPhoto?: boolean;
 
     /** Whether the component is rendered in landscape orientation */
