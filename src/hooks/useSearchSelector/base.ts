@@ -206,6 +206,7 @@ function useSearchSelectorBase({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
     const isSearchingOptions = !!debouncedSearchTerm.trim();
@@ -269,8 +270,10 @@ function useSearchSelectorBase({
         };
     })();
 
-    const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
+    // Trim before deriving the phone/email search value, otherwise a leading/trailing space makes Str.isValidEmail fail
+    // and the "invite user" option disappears for logins that don't have an account yet.
     const trimmedSearchInput = debouncedSearchTerm.trim();
+    const computedSearchTerm = getSearchValueForPhoneOrEmail(trimmedSearchInput, countryCode);
 
     const {options: baseOptions, hasMore} = (() => {
         if (!areOptionsInitialized) {
@@ -301,6 +304,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
+                    rules,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(
@@ -337,6 +341,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
                 return getValidOptions(
@@ -375,6 +380,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(
@@ -411,6 +417,7 @@ function useSearchSelectorBase({
                         ...appliedGetValidOptionsConfig,
                     },
                     translate,
+                    rules,
                 );
             default:
                 return getEmptyOptions();

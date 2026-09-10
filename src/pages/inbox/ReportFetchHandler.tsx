@@ -233,6 +233,7 @@ function ReportFetchHandler() {
             reportActionID: reportActionIDFromRoute,
             participants: dmParticipants,
             betas,
+            personalDetails,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed,
@@ -273,7 +274,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID, introSelected, conciergeChat, betas, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -286,6 +287,7 @@ function ReportFetchHandler() {
             introSelected,
             conciergeChat,
             betas,
+            personalDetails,
             hasReportActions: hasViewingPublicRoomReportActions,
             currentUserAccountID,
             isSelfTourViewed,
