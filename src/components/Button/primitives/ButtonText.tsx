@@ -1,4 +1,4 @@
-import {useButtonContext} from '@components/ButtonComposed/context';
+import {useButtonContext} from '@components/Button/context';
 import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -226,6 +226,27 @@ const EMAIL = {
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
+// Declared above CONST so subsets can be built from its members instead of repeating the strings. Spliced in below
+// as `EDIT_REQUEST_FIELD`.
+const editRequestFields = {
+    AMOUNT: 'amount',
+    CURRENCY: 'currency',
+    DATE: 'date',
+    DESCRIPTION: 'description',
+    MERCHANT: 'merchant',
+    CATEGORY: 'category',
+    RECEIPT: 'receipt',
+    DISTANCE: 'distance',
+    DISTANCE_RATE: 'distanceRate',
+    TAG: 'tag',
+    TAX_RATE: 'taxRate',
+    TAX_AMOUNT: 'taxAmount',
+    REIMBURSABLE: 'reimbursable',
+    ATTENDEES: 'attendees',
+    BILLABLE: 'billable',
+    REPORT: 'report',
+} as const;
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -525,6 +546,16 @@ const CONST = {
     REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
     MERCHANT_NAME_MAX_BYTES: 255,
+
+    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    MERCHANT_RULE_SUGGESTION_FIELDS: {
+        CATEGORY: editRequestFields.CATEGORY,
+        TAG: editRequestFields.TAG,
+        TAX: editRequestFields.TAX_RATE,
+        DESCRIPTION: editRequestFields.DESCRIPTION,
+        BILLABLE: editRequestFields.BILLABLE,
+        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+    },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
@@ -3004,6 +3035,9 @@ const CONST = {
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
+
+        /** Below this many locally found room suggestions, we also search the server for more rooms */
+        MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH: 5,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
@@ -5758,24 +5792,7 @@ const CONST = {
             SHARE: 'share',
         },
     },
-    EDIT_REQUEST_FIELD: {
-        AMOUNT: 'amount',
-        CURRENCY: 'currency',
-        DATE: 'date',
-        DESCRIPTION: 'description',
-        MERCHANT: 'merchant',
-        CATEGORY: 'category',
-        RECEIPT: 'receipt',
-        DISTANCE: 'distance',
-        DISTANCE_RATE: 'distanceRate',
-        TAG: 'tag',
-        TAX_RATE: 'taxRate',
-        TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
-        ATTENDEES: 'attendees',
-        BILLABLE: 'billable',
-        REPORT: 'report',
-    },
+    EDIT_REQUEST_FIELD: editRequestFields,
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -9017,7 +9034,7 @@ const CONST = {
             TYPE_MENU_ITEM: 'Search-TypeMenuItem',
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
-            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
+            RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
@@ -9862,18 +9879,6 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
 ]);
 
-type SearchFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-
-const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
-] as SearchFilterKey[];
-
 const FRAUD_PROTECTION_EVENT = {
     START_SUPPORT_SESSION: 'StartSupportSession',
     STOP_SUPPORT_SESSION: 'StopSupportSession',
@@ -9942,6 +9947,6 @@ export type {
     EnablePaymentsSubPageType,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
+export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;
