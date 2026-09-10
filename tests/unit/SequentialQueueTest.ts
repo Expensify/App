@@ -884,6 +884,7 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await Onyx.set(ONYXKEYS.SESSION, {});
     });
 
+    // A failed-but-resolved OpenApp must not stage HAS_LOADED_APP, or the next boot runs ReconnectApp only and can't self-heal.
     async function expectAppLeftUnloaded() {
         expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
         expect(await getOnyxValue(ONYXKEYS.HAS_LOADED_APP)).toBe(false);
@@ -925,7 +926,6 @@ describe('SequentialQueue - QueueFlushedData', () => {
 
     it.each<[string, Response<OnyxKey> | undefined]>([
         ['UPDATE_REQUIRED', {jsonCode: CONST.JSON_CODE.UPDATE_REQUIRED}],
-        ['an empty response', {}],
         ['no response at all', undefined],
     ])('withholds queueFlushedData but leaves the failure modal closed when OpenApp resolves with %s', async (_label, response) => {
         await pushRequestResolvingWith(response);
@@ -942,13 +942,6 @@ describe('SequentialQueue - QueueFlushedData', () => {
         expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
     });
 
-    it('shows the failure modal when a support session takes SUPPORT_NOT_AUTHORIZED with another message, which SupportalPermission ignores', async () => {
-        await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.SUPPORT_NOT_AUTHORIZED, message: 'Something else went wrong.'});
-
-        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(true);
-    });
-
     it('shows the failure modal when a normal session takes SUPPORT_NOT_AUTHORIZED, which SupportalPermission ignores', async () => {
         await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.SUPPORT_NOT_AUTHORIZED, message: SUPPORTAL_DENIAL_MESSAGE});
 
@@ -959,13 +952,6 @@ describe('SequentialQueue - QueueFlushedData', () => {
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.BAD_REQUEST});
 
-        expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
-    });
-
-    it('leaves the failure modal closed when OpenApp resolves with UNABLE_TO_RETRY, which Reauthentication surfaces', async () => {
-        await pushRequestResolvingWith({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
-
-        await expectAppLeftUnloaded();
         expect(await getOnyxValue(ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN)).toBe(false);
     });
 

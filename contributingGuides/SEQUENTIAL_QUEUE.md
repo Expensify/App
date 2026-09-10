@@ -256,7 +256,7 @@ These are **two distinct deferral mechanisms** that are easy to confuse.
 
 **How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends whatever it is handed, and `process()` hands it a request's `queueFlushedData` field only when the response's `jsonCode` is `CONST.JSON_CODE.SUCCESS`; a resolved-but-failed response (`HttpUtils.xhr` resolves application-level failures instead of rejecting them) does not save it, so it cannot wrongly mark `HAS_LOADED_APP` true on the next boot. The queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
 
-**The failure modal on a resolved-but-failed `OPEN_APP`.** The queue opens `IS_OPEN_APP_FAILURE_MODAL_OPEN`, but only while `HAS_LOADED_APP` is false, so a later `OpenApp` that fails, an account or delegate switch, raises no blocking modal over an app that is already loaded. It also defers to whoever prompted first, through the shared `hasResponseAlreadyPromptedUser` predicate.
+**The failure modal on a resolved-but-failed `OPEN_APP`.** A first app load that fails leaves nothing on screen but a skeleton, so the queue raises a blocking modal to say so. Two conditions narrow it to that case. The app must never have loaded, which keeps the modal away from a failed account or delegate switch, where the user still has a working app. And no other module may have prompted about the same response already, which `hasResponseAlreadyPromptedUser` decides.
 
 **Sharp edges.**
 - Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` never flips and the buffers accumulate.
@@ -361,7 +361,7 @@ When a request errors, `process()`'s `.catch` walks an ordered ladder. **Which O
 | Give-up (generic, retries exhausted) | `throttle.sleep` rejects with no arg | No, drop | **`failureData` only** (not `finallyData`) | **`OPEN_APP` only** (`setIsOpenAppFailureModalOpen`) | Retry cap (10, or 2 for `OPEN_APP`) reached |
 
 Notes:
-- **Success path** does not live here. `SaveResponseInOnyx` applies the server's `onyxData` + `successData` + `finallyData`; for WRITE-type responses that is routed through [`QueuedOnyxUpdates`](#queuedonyxupdates-and-queueflusheddata) (deferred until drain). One user-facing outcome does sit on that path: a resolved-but-failed `OPEN_APP` opens the same failure modal as the give-up row, described under [`queueFlushedData`](#queuedonyxupdates-and-queueflusheddata).
+- **Success path** does not live here. `SaveResponseInOnyx` applies the server's `onyxData` + `successData` + `finallyData`; for WRITE-type responses that is routed through [`QueuedOnyxUpdates`](#queuedonyxupdates-and-queueflusheddata) (deferred until drain).
 - **`shouldFailAllRequests` vs. give-up** differ: the former applies failure **and** finally data; the give-up branch applies **only** failure data.
 
 **Sharp edges.** For all non-`OPEN_APP` commands, a transient-but-long backend outage that exceeds the retry cap **drops** the user's optimistic write: `failureData` is applied (not `finallyData`), the request is removed from the queue, and **no modal** is shown. The failure modal (`setIsOpenAppFailureModalOpen`) fires for `OPEN_APP` only.

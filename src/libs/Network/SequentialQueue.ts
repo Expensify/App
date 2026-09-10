@@ -31,7 +31,7 @@ import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import hasResponseAlreadyPromptedUser from './hasResponseAlreadyPromptedUser';
+import isUnauthorizedSupportalResponse from './isUnauthorizedSupportalResponse';
 
 let shouldFailAllRequests: boolean;
 const reportsWithProcessedOfflineComments = new Map<string, string>();
@@ -46,6 +46,24 @@ Onyx.connectWithoutView({
         hasLoadedApp = value ?? false;
     },
 });
+
+// None of the prompting modules leave a mark on the response, so each branch below names the one that owns the prompt.
+function hasResponseAlreadyPromptedUser<TKey extends OnyxKey>(response: Response<TKey> | void): boolean {
+    const jsonCode = response?.jsonCode;
+
+    // A middleware consumed the response instead of passing it on, the way handleDeletedAccount does when it signs the user out.
+    if (!jsonCode) {
+        return true;
+    }
+
+    // HttpUtils.alertUser shows the update prompt.
+    if (jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+        return true;
+    }
+
+    // SupportalPermission shows the supportal denial.
+    return isUnauthorizedSupportalResponse(response);
+}
 
 function shouldShowOpenAppFailureModal<TKey extends OnyxKey>(command: string, response: Response<TKey> | void): boolean {
     return command === WRITE_COMMANDS.OPEN_APP && !hasLoadedApp && response?.jsonCode !== CONST.JSON_CODE.SUCCESS && !hasResponseAlreadyPromptedUser(response);
@@ -471,7 +489,10 @@ function process(): Promise<void> {
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
 
-            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && requestToProcess.queueFlushedData) {
+            // Only commit queueFlushedData (e.g. HAS_LOADED_APP: true) on success — HttpUtils resolves (not rejects) app-level
+            // failures, so committing on a failed-but-resolved OpenApp/ReconnectApp would wrongly mark the app as loaded and
+            // break self-healing on the next boot.
+            if (requestToProcess.queueFlushedData && response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
                     command: requestToProcess.command,
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
