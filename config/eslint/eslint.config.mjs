@@ -776,7 +776,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}'],
+        files: ['.github/**/*.{ts,tsx,js}', 'web/proxy.ts', 'config/**/*.{ts,tsx,mts,mjs,cjs,js}', 'knip.config.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.node.json'),

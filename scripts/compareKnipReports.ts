@@ -6,7 +6,7 @@ import fs from 'fs';
 /**
  * Knip (https://knip.dev) is a static analyzer that flags unused files, exports,
  * types, dependencies, and unlisted imports across the codebase. Project-specific
- * scope and ignores live in `knip.json`.
+ * scope and ignores live in `knip.config.ts`.
  *
  * This script compares two knip JSON reports (main vs PR) and exits 1 if the PR
  * introduces any new finding that isn't present on main — even when the PR also

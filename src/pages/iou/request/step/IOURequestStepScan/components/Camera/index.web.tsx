@@ -7,7 +7,7 @@ import React, {useEffect} from 'react';
 
 import type {CameraProps} from './types';
 
-import CameraCapture from './CameraCapture';
+import CameraCapture from './CameraCapture.web';
 import FileUpload from './FileUpload';
 
 /**

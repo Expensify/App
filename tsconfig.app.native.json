@@ -22,22 +22,6 @@
         "src/types/web/**",
         "src/**/*.web.ts",
         "src/**/*.web.tsx",
-        "src/setup/addUtilsToWindow.ts",
-        "src/hooks/useWebCamera.ts",
-        "src/hooks/useResponsiveLayoutOnWideRHP/index.ts",
-        "src/libs/getIsNarrowLayout/index.ts",
-        "src/components/Attachments/AttachmentView/AttachmentViewPdf/index.tsx",
-        "src/components/Composer/implementation/index.tsx",
-        "src/components/PDFThumbnail/index.tsx",
-        "src/components/ReportActionItem/LocalPDFReceiptPreview/index.tsx",
-        "src/components/SignInButtons/AppleSignIn/index.tsx",
-        "src/components/SignInButtons/GoogleSignIn/index.tsx",
-        "src/libs/Navigation/AppNavigator/FreezeWrapper/index.tsx",
-        "src/libs/Pusher/index.ts",
-        "src/libs/actions/Attachment/index.ts",
-        "src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx",
-        "src/pages/iou/request/step/IOURequestStepScan/components/Camera/CameraCapture.tsx",
-        "src/pages/iou/request/step/IOURequestStepScan/components/Camera/index.tsx",
         "modules/ExpensifyNitroUtils/**"
     ]
 }

@@ -27,7 +27,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 const {NavigationRouteContext} = require<typeof ReactNavigationModule>('@react-navigation/native');
 // Required by path: jest resolves the platform variant first, and index.native.ts has no wide RHP to report on.
-const {default: useResponsiveLayoutOnWideRHP} = require<{default: () => ResponsiveLayoutOnWideRHPResult}>('../../src/hooks/useResponsiveLayoutOnWideRHP/index.ts');
+const {default: useResponsiveLayoutOnWideRHP} = require<{default: () => ResponsiveLayoutOnWideRHPResult}>('../../src/hooks/useResponsiveLayoutOnWideRHP/index.web.ts');
 
 function renderOnRoute(routeKey: string | undefined) {
     const wrapper =
