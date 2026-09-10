@@ -65,12 +65,12 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
 
     const isDeleting = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const enabledStatusLabel = item.enabled ? translate('common.enabled') : translate('common.disabled');
-    const accessibilityLabel = [
-        item.name,
-        item.alternateText,
-        shouldShowTaxCodeColumn && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null,
-        enabledStatusLabel,
-    ]
+
+    // Narrow and medium layouts collapse the columns into a card that has nowhere to put the code, so the label must
+    // not announce a value the row never renders.
+    const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
+
+    const accessibilityLabel = [item.name, item.alternateText, shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null, enabledStatusLabel]
         .filter(Boolean)
         .join(', ');
 
@@ -129,7 +129,7 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && shouldShowTaxCodeColumn && (
+                    {shouldShowTaxCodeCell && (
                         <View
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}

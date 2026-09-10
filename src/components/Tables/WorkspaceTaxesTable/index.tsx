@@ -108,13 +108,14 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
     const compareItems: CompareItemsCallback<WorkspaceTaxTableRowData, WorkspaceTaxTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
-        const nameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
-
         if (activeSorting.columnKey === 'enabled') {
             const enabled1 = item1.enabled ? 1 : 0;
             const enabled2 = item2.enabled ? 1 : 0;
             return (enabled1 - enabled2) * orderMultiplier;
         }
+
+        // Computed after the branch above, so sorting by the switch never pays for a locale compare it discards.
+        const nameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'taxRate') {
             const rateComparison = compareTaxRateValues(item1.taxRateValue, item2.taxRateValue);
