@@ -103,6 +103,21 @@ Only the authorized payer is prompted to pay reports. They'll see a payment remi
 
 ---
 
+## How to choose who pays currency conversion fees
+
+When you reimburse in a different currency, conversion fees may apply to the cross-border conversion. **Currency conversion fees** sets whether your company or the employee pays them.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. Under **Payments**, click **Currency conversion fees**.
+3. Select **Company pays** or **Employee pays**.
+4. Click **Save**.
+
+Selecting an option does not change the setting on its own — the new preference is saved only when you click **Save**. **Save** stays disabled until the option you select is different from the one currently saved, so leaving the page without clicking **Save** keeps your current preference. After you click **Save**, you return to **Workflows** and the **Currency conversion fees** row shows the new value.
+
+**Currency conversion fees** appears under **Payments** only when **Payments** is enabled with a connected reimbursement bank account, and it is not available on every workspace.
+
+---
+
 ## How to download your workflow configuration
 
 You can export your workspace's workflow configuration to a CSV file—for example, to review approver assignments or keep an offline record. Admins who can manage workflows will see the **More** menu on the **Workflows** page.

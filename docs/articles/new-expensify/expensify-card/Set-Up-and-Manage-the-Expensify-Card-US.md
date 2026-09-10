@@ -102,6 +102,20 @@ Your workspace also has built-in default protections that automatically block ce
 
 ![Click Settings to adjust the settlement account or frequency]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_08.png){:width="100%"}
 
+## How to change your Expensify Card settlement frequency
+
+Settlement frequency controls how often Expensify pulls from your settlement account to pay your Expensify Card balance.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > Expensify Card**.
+2. Click **Settings**.
+3. Click **Settlement frequency**.
+4. Select **Daily** or **Monthly**.
+5. Click **Save**.
+
+Selecting an option does not change the setting on its own — the new frequency is saved only when you click **Save**. **Save** stays disabled until the option you select is different from the one currently saved, so leaving the page without clicking **Save** keeps your existing frequency. After you click **Save**, you return to the Expensify Card **Settings** page and the **Settlement frequency** row shows the new value.
+
+To switch to **Monthly**, you'll need to connect your bank account via Plaid and have a positive 90-day balance history.
+
 ## When your Expensify Cards settle each month
 
 When your settlement frequency is set to **Monthly**, the **Settings** page shows the recurring day of the month your cards settle. On the Expensify Card **Settings** page, the **Settlement frequency** row displays supporting text below it, such as *Expensify cards will settle on the 27th of each month.*
