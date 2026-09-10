@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
@@ -34,13 +34,9 @@ type AddExistingExpenseFooterProps = {
     selectedIds: Set<string>;
     /** The report to add expenses to */
     report: OnyxEntry<Report>;
-    /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
-    /** The policy */
     policy: OnyxEntry<Policy>;
-    /** The policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-    /** Error message displayed in this component */
     errorMessage: string;
     /** Function for setting new error message */
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -475,6 +475,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             dropdownMenuRef={dropdownMenuRef}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
+            shouldPutHeaderTextAfterBackButton
         />
     );
 }

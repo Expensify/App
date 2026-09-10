@@ -1,4 +1,4 @@
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -188,7 +188,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */
