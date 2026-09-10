@@ -60,12 +60,9 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
         [policyData],
     );
 
-    const updateAutoCategorizeNewExpenses = useCallback(
-        (value: boolean) => {
-            setPolicyAutoCategorizeNewExpenses(policyID, value);
-        },
-        [policyID],
-    );
+    const updateAutoCategorizeNewExpenses = (value: boolean) => {
+        setPolicyAutoCategorizeNewExpenses(policyID, value);
+    };
 
     const updateShowCategoryGLCodes = (value: boolean) => {
         setPolicyShowCategoryGLCodes(policyID, value);
