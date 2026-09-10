@@ -4625,7 +4625,7 @@ describe('actions/Report', () => {
                 expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
             });
 
-            it('should negate every total column so the displayed Total stays positive', () => {
+            it('should negate every total column so the displayed Total stays positive', async () => {
                 // Given an IOU report whose totals are all stored positive
                 const policyID = '302';
                 const policy: OnyxTypes.Policy = {
@@ -4649,6 +4649,8 @@ describe('actions/Report', () => {
                     unheldNonReimbursableTotal: 0,
                 };
 
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
                 // When converting the IOU report to an expense report
                 const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
@@ -4660,8 +4662,56 @@ describe('actions/Report', () => {
                 expect(expenseReport?.unheldTotal).toBe(-10000);
                 expect(expenseReport?.unheldReimbursableTotal).toBe(-10000);
 
-                // And the Total rendered for the converted report is positive rather than -$100.00
-                const convertedReport: OnyxTypes.Report = {...iouReport, type: CONST.REPORT.TYPE.EXPENSE, ...ReportUtils.getNegatedReportTotals(iouReport)};
+                // The columns that are already zero flip to -0 rather than being dropped, so they keep overwriting the
+                // stale positive values in Onyx (`toBe` is `Object.is`, so -0 does not match 0 here).
+                expect(expenseReport?.nonReimbursableTotal).toBe(-0);
+                expect(expenseReport?.unheldNonReimbursableTotal).toBe(-0);
+
+                // And once the optimistic update is applied, the Total rendered for the converted report -- the result
+                // of the conversion itself, not a report rebuilt with the helper -- is positive rather than -$100.00
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
+            });
+
+            it('should leave absent total columns absent so they keep being derived from `total`', async () => {
+                // Given an IOU report that only carries `total`, with none of the sibling total columns set
+                const policyID = '303';
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(4, undefined),
+                    reportID: 'iouReport303',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 4,
+                    total: 10000,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat303', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+
+                // Then only `total` is negated -- writing the missing siblings as -0 would make `getReimbursableTotal`
+                // return -0 instead of falling back to `total`, and the Total would render as $0.00.
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.total).toBe(-10000);
+                expect(expenseReport).not.toHaveProperty('reimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('nonReimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('unheldTotal');
+                expect(expenseReport).not.toHaveProperty('unheldReimbursableTotal');
+                expect(expenseReport).not.toHaveProperty('unheldNonReimbursableTotal');
+
+                // And the Total rendered for the converted report is still positive
+                await Onyx.update(result.optimisticData);
+                const convertedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                 expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
             });
         });
