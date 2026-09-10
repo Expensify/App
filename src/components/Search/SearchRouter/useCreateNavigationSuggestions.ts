@@ -18,6 +18,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 // eslint-disable-next-line no-restricted-imports -- TravelDot booking requires a paid workspace, matching the existing FAB behavior.
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -113,7 +114,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
     const isTravelVisible = !!activePolicy?.isTravelEnabled;
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&

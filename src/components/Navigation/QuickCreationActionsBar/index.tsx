@@ -19,6 +19,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getDefaultChatEnabledPolicySelection, hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -84,7 +85,7 @@ function QuickCreationActionsBar() {
 
     const shouldShowBookTravel = !!travelEnabledPolicy;
 
-    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isTravelReady = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) {

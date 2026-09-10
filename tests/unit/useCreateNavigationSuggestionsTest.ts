@@ -33,9 +33,8 @@ const mockUseCreateReport = jest.fn<{createReport: typeof mockCreateReport; isVi
     isVisible: mockCreateReportIsVisible,
 }));
 const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>();
-// Enabling preventSpotnanaTravel blocks travel, so keep it off by default and let the cases that need it opt in
-const isBetaEnabledByDefault = (beta: string) => beta !== CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
-const mockIsBetaEnabled = jest.fn(isBetaEnabledByDefault);
+const mockIsBetaEnabled = jest.fn(() => true);
+const mockIsPermissionsBetaEnabled = jest.fn(() => false);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
 const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
@@ -105,6 +104,13 @@ jest.mock('@hooks/useNetwork', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string, options?: MockOnyxOptions) => mockUseOnyx(key, options),
+}));
+
+jest.mock('@libs/Permissions', () => ({
+    __esModule: true,
+    default: {
+        isBetaEnabled: () => mockIsPermissionsBetaEnabled(),
+    },
 }));
 
 jest.mock('@hooks/usePermissions', () => ({
@@ -219,7 +225,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(false);
         mockIsPaidGroupPolicy.mockReturnValue(false);
-        mockIsBetaEnabled.mockImplementation(isBetaEnabledByDefault);
+        mockIsPermissionsBetaEnabled.mockReturnValue(false);
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
@@ -366,7 +372,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
         mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
-        mockIsBetaEnabled.mockImplementation((beta: string) => (beta === CONST.BETAS.PREVENT_SPOTNANA_TRAVEL ? isBlocked : true));
+        mockIsPermissionsBetaEnabled.mockReturnValue(isBlocked);
         mockIsPaidGroupPolicy.mockReturnValue(isPaid);
         mockHasAcceptedTravelTerms.mockReturnValue(hasAcceptedTerms);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
