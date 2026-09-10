@@ -442,8 +442,11 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, las
 
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @returns true when the user was redirected to the manual flow (Chase returns dummy numbers via Plaid),
+ * in which case no bank account was created and the caller must not advance to the next step.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined): boolean {
     const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
     if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
@@ -457,7 +460,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
             accountNumber: '',
             routingNumber: '',
         });
-        return;
+        return true;
     }
 
     const parameters: ConnectBankAccountParams = {
@@ -473,6 +476,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     };
 
     API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
+    return false;
 }
 
 /**
