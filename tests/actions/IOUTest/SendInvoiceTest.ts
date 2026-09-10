@@ -786,8 +786,9 @@ describe('actions/SendInvoice', () => {
             writeSpy.mockRestore();
         });
 
-        it('should normalize phone receiver login with SMS domain', () => {
+        it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
             const phoneNumber = '+12025550123';
+            const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const transaction = createMock<Transaction>({
@@ -816,9 +817,16 @@ describe('actions/SendInvoice', () => {
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SEND_INVOICE,
                 expect.objectContaining({
-                    receiverEmail: `${phoneNumber}${CONST.SMS.DOMAIN}`,
+                    receiverEmail: smsLogin,
                 }),
-                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {456: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
+                        }),
+                    ]),
+                }),
             );
 
             writeSpy.mockRestore();
