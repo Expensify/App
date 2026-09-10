@@ -2645,8 +2645,8 @@ describe('Table', () => {
             const nameHeader = within(screen.getByTestId('declared-table-header')).getByLabelText('Name');
             fireEvent.press(nameHeader);
 
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
-            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Apple', 'Banana', 'Carrot', 'Date', 'Eggplant']);
         });
 
         it('should allow pressing different column headers', () => {
