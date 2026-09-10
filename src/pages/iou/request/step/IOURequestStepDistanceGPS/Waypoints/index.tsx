@@ -24,7 +24,6 @@ type WaypointsProps = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
 
-    /** Whether the screen is in landscape mode */
     isInLandscapeMode: boolean;
 } & MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT];
 
