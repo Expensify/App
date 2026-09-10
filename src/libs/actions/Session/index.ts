@@ -363,6 +363,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.NETWORK,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -823,10 +824,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                if (value === undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: value ?? {},
+                    value,
                 } as OnyxUpdate<keyof typeof newDotOnyxValues>);
             }
 

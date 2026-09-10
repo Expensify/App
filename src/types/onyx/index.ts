@@ -18,6 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -51,6 +52,7 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
+import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -232,6 +234,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -419,6 +422,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    CorpayPayModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,

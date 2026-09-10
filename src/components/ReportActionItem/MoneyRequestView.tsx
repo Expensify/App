@@ -165,9 +165,7 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
-    /** The report currently being looked at */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-
     parentReportID?: string;
 
     /** Policy that the report belongs to */
@@ -616,7 +614,8 @@ function MoneyRequestView({
         (transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate)) && !isTrackExpense;
     const calculateFromTransactionData = isTrackExpense && !rate;
     const distanceUnit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : unit;
-    const distanceRate = calculateFromTransactionData ? (transactionAmount ?? 0) / (transaction?.comment?.customUnit?.quantity ?? 1) : rate;
+    const backCalculationQuantity = transaction?.comment?.customUnit?.quantity;
+    const distanceRate = calculateFromTransactionData && !!backCalculationQuantity ? (transactionAmount ?? 0) / backCalculationQuantity : rate;
     let rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(
         rateName,
         isCustomUnitOutOfPolicy,

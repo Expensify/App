@@ -49,13 +49,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Button variant */
     buttonVariant?: ButtonVariant;
-
-    /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
-    /** Whether we should show the cancel button */
     shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
@@ -64,58 +59,26 @@ type ConfirmContentProps = {
     /** Fill color for the Icon */
     iconFill?: string | false;
 
-    /** Icon width */
     iconWidth?: number;
-
-    /** Icon height */
     iconHeight?: number;
-
-    /** Should the icon be centered? */
     shouldCenterIcon?: boolean;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
-    /** Whether to show the dismiss icon */
     shouldShowDismissIcon?: boolean;
-
-    /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
-
-    /** Whether to reverse the order of the stacked buttons */
     shouldReverseStackedButtons?: boolean;
-
-    /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for title container */
     titleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
-
-    /** Styles for subtitle */
     subtitleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
-
-    /** Image to display with content */
     image?: IconAsset;
-
-    /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
-
-    /** Image width */
     imageWidth?: number;
-
-    /** Image height */
     imageHeight?: number;
-
-    /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
     /** Whether the modal is visible */

@@ -20,10 +20,7 @@ type WidgetContainerProps = {
     /** The content to display inside the widget container */
     children: ReactNode;
 
-    /** Additional styles to pass to the container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** The content to display on the right side of the title */
     titleRightContent?: ReactNode;
 
     /** A decorative layer painted behind the card's content. Position it absolutely; it does not take up space. */
