@@ -19,6 +19,13 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     let textInputRef: RefObject<HTMLDivElement | null>;
     let textInputElement: HTMLDivElement;
 
+    /**
+     * Creates a paste event with plain-text and optional HTML clipboard data.
+     *
+     * @param text Plain-text clipboard content.
+     * @param html HTML clipboard content.
+     * @returns A paste event containing the requested clipboard data.
+     */
     const createMockClipboardEvent = (text: string, html = ''): ClipboardEvent => {
         const clipboardData = createMock<DataTransfer>({
             getData: (type: string) => {

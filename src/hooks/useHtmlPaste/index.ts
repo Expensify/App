@@ -44,8 +44,20 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
+/**
+ * Converts recognized emoji shortcodes to Unicode characters.
+ *
+ * @param text Text that may contain emoji shortcodes.
+ * @returns Text with recognized shortcodes replaced by Unicode characters.
+ */
 const convertEmojiImageShortcodesToUnicode = (text: string): string => text.replaceAll(CONST.REGEX.EMOJI_NAME, (shortcode) => emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode);
 
+/**
+ * Converts hexadecimal codepoints in image alt text to an emoji.
+ *
+ * @param alt Alt text to inspect.
+ * @returns The decoded emoji when the alt text represents only an emoji; otherwise, an empty string.
+ */
 const getEmojiFromImageAlt = (alt: string): string => {
     // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
     const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
@@ -64,12 +76,24 @@ const getEmojiFromImageAlt = (alt: string): string => {
     return containsOnlyEmojis(emoji) ? emoji : '';
 };
 
+/**
+ * Checks whether an image contains the metadata used to identify it as an emoji.
+ *
+ * @param image Image element to inspect.
+ * @returns Whether the image is marked as an emoji.
+ */
 const isEmojiImage = (image: HTMLImageElement): boolean => {
     const dataset = image.dataset;
 
     return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
 };
 
+/**
+ * Returns the text that should replace an emoji image during paste.
+ *
+ * @param image Image element being pasted.
+ * @returns Unicode emoji, shortcode text, or an empty string when the image should remain unchanged.
+ */
 const getEmojiReplacementText = (image: HTMLImageElement): string => {
     const shouldReadEmojiFromAlt = isEmojiImage(image) || image.src.startsWith('blob:');
 
