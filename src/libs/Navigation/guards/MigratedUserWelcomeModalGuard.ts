@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +30,6 @@ let session: OnyxEntry<Session>;
 let isLoadingApp = true;
 
 let hasRedirectedToMigratedUserModal = false;
-let isEvaluationScheduled = false;
 
 function getMigratedUserWelcomeModalRoute(basePath?: string): Route {
     return createDynamicRoute(
@@ -71,17 +71,7 @@ function navigateToMigratedUserWelcomeModalIfReady() {
 }
 
 /** Waits until the current Onyx update batch has populated every value used by the guard. */
-function scheduleMigratedUserWelcomeModalEvaluation() {
-    if (isEvaluationScheduled) {
-        return;
-    }
-
-    isEvaluationScheduled = true;
-    Promise.resolve().then(() => {
-        isEvaluationScheduled = false;
-        navigateToMigratedUserWelcomeModalIfReady();
-    });
-}
+const scheduleMigratedUserWelcomeModalEvaluation = createScheduleOnce(navigateToMigratedUserWelcomeModalIfReady);
 
 /**
  * Called by guards/index.ts when session or loading app state changes.

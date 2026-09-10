@@ -1,4 +1,5 @@
 import getUserSecurityGroup from '@libs/getUserSecurityGroup';
+import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +36,6 @@ let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
-let isEvaluationScheduled = false;
 
 // An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
 // top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
@@ -126,16 +126,7 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
  * pre-sign-in-stale IS_LOADING_APP) only flips true once this session's account data — including the shown-flag —
  * has loaded, covering the sign-in race where eligibility NVPs arrive before the shown-flag.
  */
-function scheduleSubmitPlanWelcomeModalEvaluation() {
-    if (isEvaluationScheduled) {
-        return;
-    }
-    isEvaluationScheduled = true;
-    Promise.resolve().then(() => {
-        isEvaluationScheduled = false;
-        navigateToSubmitPlanWelcomeModalIfReady();
-    });
-}
+const scheduleSubmitPlanWelcomeModalEvaluation = createScheduleOnce(navigateToSubmitPlanWelcomeModalIfReady);
 
 // Session/app-load state drive the one-shot proactive redirect: they are the boot-time signal by which point
 // every eligibility value below has already landed in the same OpenApp batch, so re-evaluating here is safe.
