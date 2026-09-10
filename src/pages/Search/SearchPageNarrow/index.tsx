@@ -43,7 +43,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, FadeOut, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -55,6 +55,7 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
+
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
@@ -334,22 +335,37 @@ function SearchPageNarrow({
                         )}
                         {!useStaticRendering && (
                             <>
-                                {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
-                                ) : (
-                                    <SearchWithNavigationDeferredMount
-                                        searchResults={searchResults}
-                                        queryJSON={queryJSON}
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* A query change remounts this layer, which stays hidden for the delay before fading in — plus a grace
+                                        window when its results aren't in memory, so a quick query never shows a skeleton. */}
+                                    <Animated.View
                                         key={queryJSON.hash}
-                                        onSearchListScroll={scrollHandler}
-                                        contentContainerStyle={contentContainerStyle}
-                                        handleSearch={handleSearchAction}
-                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        onDestinationVisible={endSubmitNavigationSpans}
-                                        onContentReady={onSearchContentReady}
-                                        hasFilterBars={hasFilterBars}
-                                    />
-                                )}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION).delay(
+                                            shouldShowLoadingSkeleton
+                                                ? CONST.SEARCH.ANIMATION.FADE_DURATION + CONST.SEARCH.ANIMATION.SKELETON_GRACE_DURATION
+                                                : CONST.SEARCH.ANIMATION.FADE_DURATION,
+                                        )}
+                                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                searchResults={searchResults}
+                                                queryJSON={queryJSON}
+                                                onSearchListScroll={scrollHandler}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
                                 {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
