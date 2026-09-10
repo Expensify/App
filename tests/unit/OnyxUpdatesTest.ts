@@ -729,7 +729,6 @@ describe('OnyxUpdatesTest', () => {
             await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.write-marker-failed')).catch(() => {});
             await waitForBatchedUpdates();
 
-            // When a WRITE lands after the failure and its deferred flush succeeds
             await OnyxUpdates.apply({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,
                 previousUpdateID: 29,
@@ -741,7 +740,6 @@ describe('OnyxUpdatesTest', () => {
             await flushQueue();
             await waitForBatchedUpdates();
 
-            // Then the range the gap fetch asks from still starts below the failed update, so 11-20 is refetched
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
             expect(OnyxUpdates.getEffectiveLastUpdateID()).toBe(10);
             expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 25})).toBe(true);
@@ -784,12 +782,10 @@ describe('OnyxUpdatesTest', () => {
                     }),
             );
 
-            // Given a Pusher apply still in flight
             const heldApply = OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.covered-failure'));
             const heldApplyRejects = expect(heldApply).rejects.toThrow('storage write failed');
             await waitForBatchedUpdates();
 
-            // When a full reconnect re-downloads everything and only then does that apply fail
             await OnyxUpdates.apply({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,
                 previousUpdateID: 0,
@@ -802,7 +798,6 @@ describe('OnyxUpdatesTest', () => {
             await heldApplyRejects;
             await waitForBatchedUpdates();
 
-            // Then the next update advances normally instead of paying for a gap that is already closed
             PusherUtils.subscribeToMultiEvent('test.pusher.covered-ok', () => Promise.resolve());
             await OnyxUpdates.apply(pusherUpdate(510, 'test.pusher.covered-ok'));
             await waitForBatchedUpdates();
@@ -824,12 +819,10 @@ describe('OnyxUpdatesTest', () => {
             await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.redelivered')).catch(() => {});
             await waitForBatchedUpdates();
 
-            // When the same update is replayed from the deferred queue and applies, its range is covered
             await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.redelivered'));
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(20);
 
-            // Then the next update is not blocked behind a hold nothing would clear
             await OnyxUpdates.apply(pusherUpdate(30, 'test.pusher.redelivered'));
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
@@ -843,8 +836,6 @@ describe('OnyxUpdatesTest', () => {
             await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.uncovered')).catch(() => {});
             await waitForBatchedUpdates();
 
-            // A READ response carries the server's latest update ID with no previousUpdateID, so it proves nothing
-            // about the range below it, even when that ID happens to be the one that failed.
             const reportID = NumberUtils.rand64();
             await OnyxUpdates.apply({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,

@@ -29,10 +29,6 @@ let lastUpdateIDPendingPusherApply = 0;
 let lastFailedUpdateID = 0;
 
 function getEffectiveLastUpdateID(): number {
-    // Every catch-up range is computed from this value, so while an apply failure is outstanding the pending
-    // markers must not carry it past the failed range: a marker raised by a later update would make the
-    // recovery fetch start above the hole and skip it, and would make a redelivery of the failed update itself
-    // look old and get discarded.
     if (lastFailedUpdateID) {
         return lastUpdateIDAppliedToClient ?? 0;
     }
@@ -212,9 +208,6 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
-                // Releasing the hold needs proof the response covered the failed range, not just that it ended past it.
-                // A catch-up only counts when it started at or below the failure, and any other response only when the
-                // server says nothing happened between our watermark and it, which makes its range contiguous over the hole.
                 const doesResponseCoverFailedRange =
                     (isCatchUpRequest && Number(request?.data?.updateIDFrom ?? 0) <= lastFailedUpdateID) ||
                     isFullReconnectRequest ||
@@ -225,8 +218,6 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
                     lastFailedUpdateID = 0;
                 }
 
-                // Refuse the failed ID itself too: a response that only ends on it, without covering the range below it,
-                // would otherwise pull the watermark onto the hole and leave nothing to recover from.
                 if (lastFailedUpdateID && Number(lastUpdateID) >= lastFailedUpdateID) {
                     lastUpdateIDPendingPusherApply = 0;
                     lastUpdateIDPendingWriteFlush = 0;
@@ -258,9 +249,6 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
                 lastUpdateIDPendingPusherApply = 0;
 
                 if (shouldAdvanceLastUpdateID) {
-                    // shouldAdvanceLastUpdateID was captured before the apply was awaited, so re-check the live watermark:
-                    // a covering response that landed while this apply was in flight has already recovered this range, and
-                    // holding it back again would only cost a false gap and a redundant refetch.
                     if (Number(lastUpdateID) > getPersistedLastUpdateID()) {
                         lastFailedUpdateID = lastFailedUpdateID ? Math.min(lastFailedUpdateID, Number(lastUpdateID)) : Number(lastUpdateID);
                     }
