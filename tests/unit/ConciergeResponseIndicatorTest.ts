@@ -1,5 +1,6 @@
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import type EventType from '@libs/Pusher/EventType';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -23,7 +24,10 @@ jest.mock('@libs/Log', () => ({__esModule: true, default: {hmmm: jest.fn()}}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {getTopmostReportId: jest.fn()},
-    navigationRef: {isReady: jest.fn(() => true), addListener: jest.fn()},
+}));
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {isReady: jest.fn(() => true), addListener: jest.fn()},
 }));
 jest.mock('@libs/Visibility', () => ({
     __esModule: true,

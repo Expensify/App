@@ -1,6 +1,7 @@
 /** Tracks requested Concierge replies and updates the browser favicon until they are acknowledged. */
 import Log from '@libs/Log';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {setConciergeAttention} from '@libs/UnreadIndicatorUpdater/updateUnread';
