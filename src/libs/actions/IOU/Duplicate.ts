@@ -27,7 +27,6 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
-    getDistanceRequestType,
     getReimbursable,
     getRequestType,
     getTransactionType,
@@ -35,6 +34,7 @@ import {
     isDistanceRequest,
     isExpenseSplit,
     isFromCreditCardImport,
+    isGPSDistanceRequest,
     isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
@@ -603,13 +603,19 @@ function resolveDuplicates({
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
+function shouldDuplicateAsManualDistance(transaction: OnyxTypes.Transaction, shouldDuplicateSelfDMExpense: boolean) {
+    return shouldDuplicateSelfDMExpense && isGPSDistanceRequest(transaction);
+}
+
 /**
  * Builds the transactionParams object and computes waypoints used when duplicating a transaction.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
-function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>) {
+function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, transactionDetails: ReturnType<typeof getTransactionDetails>, shouldDuplicateSelfDMExpense = false) {
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
-    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
+    const isManualDistanceDuplicate = shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense);
+    const shouldKeepWaypoints = !isExpenseSplit(transaction) && !isManualDistanceDuplicate;
+    const waypoints = shouldKeepWaypoints ? (transactionDetails?.waypoints as WaypointCollection | undefined) : undefined;
 
     const transactionParams = {
         ...transactionWithoutLinkedAction,
@@ -641,7 +647,8 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         unit: transaction.comment?.units?.unit,
     };
 
-    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction))) {
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceDuplicate)) {
+        // Completed GPS expenses store their measured distance in customUnit.quantity; duplicating as manual uses that saved value because the raw GPS track is no longer available.
         transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
@@ -651,10 +658,18 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
 /**
  * Returns the request type the duplicate should be created with. SCAN sources become MANUAL because
  * `buildDuplicateTransactionParams` strips the receipt — without one, the duplicate cannot be a scan request.
+ * GPS distance sources become manual distance requests for self-DM duplicates because the saved transaction
+ * does not contain the raw GPS track needed to create another GPS request.
  */
-function getDuplicateRequestType(transaction: OnyxTypes.Transaction) {
+function getDuplicateRequestType(transaction: OnyxTypes.Transaction, shouldDuplicateSelfDMExpense = false) {
     const sourceRequestType = getRequestType(transaction);
-    return sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? CONST.IOU.REQUEST_TYPE.MANUAL : sourceRequestType;
+    if (sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+        return CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+    if (shouldDuplicateAsManualDistance(transaction, shouldDuplicateSelfDMExpense)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    }
+    return sourceRequestType;
 }
 
 /**
@@ -678,6 +693,7 @@ function createExpenseByType({
     dateFnsLocale,
     participantsPolicyTags,
     policyTags,
+    rules,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -695,16 +711,18 @@ function createExpenseByType({
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const duplicateRequestType = getDuplicateRequestType(transaction);
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
-                    iouRequestType: getDuplicateRequestType(transaction),
+                    iouRequestType: duplicateRequestType,
                     amount: 0,
                     currency: '',
                     created: '',
@@ -724,7 +742,7 @@ function createExpenseByType({
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
                     validWaypoints: waypoints,
                     modifiedAmount: transactionDetails?.amount,
-                    distanceRequestType: getDistanceRequestType(transaction),
+                    distanceRequestType: duplicateRequestType,
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
@@ -733,6 +751,7 @@ function createExpenseByType({
                 recentWaypoints,
                 formatPhoneNumber,
                 participantsPolicyTags,
+                rules,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -750,6 +769,7 @@ function createExpenseByType({
                 isTrackIntentUser,
                 formatPhoneNumber,
                 policyTags,
+                rules,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -792,6 +812,7 @@ type DuplicateExpenseTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function duplicateExpenseTransaction({
@@ -826,6 +847,7 @@ function duplicateExpenseTransaction({
     participantsPolicyTags,
     conciergeChat,
     targetPolicyTags,
+    rules,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -834,7 +856,11 @@ function duplicateExpenseTransaction({
     const participants = getMoneyRequestParticipantsFromReport(targetReport, currentUserAccountID);
 
     const transactionDetails = getTransactionDetails(transaction);
-    const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
+    // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
+    const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const shouldDuplicateSelfDMExpense = !targetPolicy || isSourceUnreported;
+    const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
+    const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
     const params: RequestMoneyInformation = {
         report: targetReport,
@@ -860,8 +886,9 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
+        rules,
         existingTransaction: {
-            iouRequestType: getDuplicateRequestType(transaction),
+            iouRequestType: duplicateRequestType,
             amount: 0,
             currency: '',
             created: '',
@@ -880,8 +907,6 @@ function duplicateExpenseTransaction({
         getCurrencyDecimals,
     };
 
-    // A duplicate mirrors the source, so an unreported source stays unreported even when a workspace is available
-    const isSourceUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     if (!targetPolicy || isSourceUnreported) {
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
@@ -890,7 +915,7 @@ function duplicateExpenseTransaction({
                 participant: {accountID: currentUserAccountID, selected: true},
             },
             existingTransaction: {
-                iouRequestType: getDuplicateRequestType(transaction),
+                iouRequestType: duplicateRequestType,
                 amount: 0,
                 currency: '',
                 created: '',
@@ -908,9 +933,11 @@ function duplicateExpenseTransaction({
             transactionParams: {
                 ...(params.transactionParams ?? {}),
                 validWaypoints: waypoints,
+                ...(isGPSDistanceRequest(transaction) && {distanceRequestType: duplicateRequestType}),
             },
             report: undefined,
             isDraftPolicy: false,
+            isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             conciergeChat,
@@ -921,6 +948,7 @@ function duplicateExpenseTransaction({
             currentUserLocalCurrency,
             delegateAccountID,
             reportActionsList: undefined,
+            rules,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -948,6 +976,7 @@ function duplicateExpenseTransaction({
         formatPhoneNumber,
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
+        rules,
     });
 }
 
@@ -979,6 +1008,7 @@ type DuplicateReportParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function duplicateReport({
@@ -1009,6 +1039,7 @@ function duplicateReport({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1023,6 +1054,7 @@ function duplicateReport({
         betas,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
         false,
         undefined,
         {
@@ -1099,6 +1131,7 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
+            rules,
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1136,6 +1169,7 @@ function duplicateReport({
             formatPhoneNumber,
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1175,6 +1209,7 @@ type BulkDuplicateExpensesParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function bulkDuplicateExpenses({
@@ -1204,6 +1239,7 @@ function bulkDuplicateExpenses({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1260,7 +1296,7 @@ function bulkDuplicateExpenses({
         // reads transactions from Onyx, which hasn't been updated yet for
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
-        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport))) {
+        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
             optimisticIOUReport = undefined;
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
@@ -1309,6 +1345,7 @@ function bulkDuplicateExpenses({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1350,6 +1387,7 @@ type BulkDuplicateReportsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 async function bulkDuplicateReports({
@@ -1379,6 +1417,7 @@ async function bulkDuplicateReports({
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1481,6 +1520,7 @@ async function bulkDuplicateReports({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         hasDuplicatedReport = true;

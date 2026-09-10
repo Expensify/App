@@ -1,4 +1,3 @@
-import '@libs/Middleware/register';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -13,6 +12,7 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 
+import registerMiddlewares from '@libs/Middleware/register';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
@@ -29,6 +29,8 @@ import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext'
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+registerMiddlewares();
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
     handleActionButtonPress: jest.fn(),
@@ -39,7 +41,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
-    getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
+    isTodoSearch: jest.fn(() => false),
+    getSubmittedViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -335,7 +339,6 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -459,7 +462,6 @@ describe('Empty Report Selection', () => {
         onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
-        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -684,7 +686,6 @@ describe('Lazily loaded group selection', () => {
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
         canSelectMultiple: true,
-        keyForList: 'Advertising',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
