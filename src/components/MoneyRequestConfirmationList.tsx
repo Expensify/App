@@ -4,7 +4,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -15,8 +14,6 @@ import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -34,7 +31,6 @@ import {
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -76,8 +72,8 @@ type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
     onConfirm?: () => void;
 
-    /** When set, used in the new manual expense flow to open the parent-owned participant picker instead of navigating away */
-    onOpenParticipantPicker?: () => void;
+    /** Opens the participant picker owned by the page hosting this list. Pages that cannot show an editable participant row pass a no-op. */
+    onOpenParticipantPicker: () => void;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible?: boolean;
@@ -202,8 +198,6 @@ function MoneyRequestConfirmationList({
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
     const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -250,7 +244,6 @@ function MoneyRequestConfirmationList({
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
@@ -313,7 +306,7 @@ function MoneyRequestConfirmationList({
     });
 
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    const shouldForceTopEmptySections = isNewManualExpenseFlowEnabled && (iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest);
+    const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;
 
     const isFocused = useIsFocused();
 
@@ -353,7 +346,6 @@ function MoneyRequestConfirmationList({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        isNewManualExpenseFlowEnabled,
         isDistanceRequest,
         isReadOnly,
         shouldShowDate,
@@ -375,7 +367,6 @@ function MoneyRequestConfirmationList({
     const splitOrRequestOptions = useConfirmationCtaText({
         expensesNumber,
         isTypeInvoice,
-        isTypeTrackExpense,
         isTypeSplit,
         isTypeRequest,
         iouAmount,
@@ -385,7 +376,6 @@ function MoneyRequestConfirmationList({
         receiptPath,
         isDistanceRequestWithPendingRoute,
         isPerDiemRequest,
-        isNewManualExpenseFlowEnabled,
     });
 
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
@@ -443,13 +433,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        if (isNewManualExpenseFlowEnabled) {
-            onOpenParticipantPicker?.();
-            return;
-        }
-
-        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType: newIOUType, transactionID, reportID: transaction?.reportID})));
+        onOpenParticipantPicker();
     };
 
     const {validate} = useConfirmationValidation({
@@ -480,7 +464,6 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
-        isNewManualExpenseFlowEnabled,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
@@ -545,7 +528,6 @@ function MoneyRequestConfirmationList({
             isReadOnly={isReadOnly}
             didConfirm={!!didConfirm}
             isEditingSplitBill={isEditingSplitBill}
-            isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isScanRequest={isScanRequest}
             isDistanceRequest={isDistanceRequest}

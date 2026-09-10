@@ -1,6 +1,7 @@
 import {
     FailureTracking,
     FraudMonitoring,
+    GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
@@ -30,6 +31,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     Reauthentication,
     handleDeletedAccount,
     SupportalPermission,
+    GlobalReimbursementPayError,
     HandleUnusedOptimisticID,
     Pagination,
     SentryServerTiming,
@@ -52,9 +54,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 14 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(14);
-        expect(new Set(registered).size).toBe(14);
+    it('registers all 15 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(15);
+        expect(new Set(registered).size).toBe(15);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
