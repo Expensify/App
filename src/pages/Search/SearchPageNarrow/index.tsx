@@ -48,7 +48,6 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
 
-const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
@@ -130,7 +129,10 @@ function SearchPageNarrow({
 
                 scheduleOnRN(saveScrollOffset, route, currentOffset);
 
-                if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                // Move the header on the very first pixel of scroll. Gating this on a larger offset would leave the
+                // header sitting still while the list moves, and the skipped distance is never made up because the
+                // offset below accumulates per-frame deltas. The 0 still excludes rubber-band overscroll at the top.
+                if (isScrollingDown && contentOffset.y > 0) {
                     topBarOffset.set(
                         clamp(
                             topBarOffset.get() - distanceScrolled,
