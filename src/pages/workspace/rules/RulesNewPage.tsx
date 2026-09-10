@@ -13,7 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -134,6 +134,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         clearGeneratedRule();
 
         if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
+            clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
             seedDraftAndNavigate(rule);
             return;
         }
