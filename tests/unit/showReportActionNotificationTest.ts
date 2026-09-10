@@ -100,7 +100,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            '',
+            undefined,
             DERIVED_REPORT_NAME,
         );
         await waitForBatchedUpdates();
@@ -111,7 +111,7 @@ describe('showReportActionNotification', () => {
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
-    it('passes empty derivedMovedFromReportName to showModifiedExpenseNotification when not provided', async () => {
+    it('passes undefined derivedMovedFromReportName to showModifiedExpenseNotification when not provided', async () => {
         await setupReport();
 
         const reportAction = {
@@ -129,14 +129,14 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            '',
-            '',
+            undefined,
+            undefined,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
         const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
-        expect(callArgs?.derivedMovedFromReportName).toBe('');
+        expect(callArgs?.derivedMovedFromReportName).toBeUndefined();
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
@@ -159,7 +159,7 @@ describe('showReportActionNotification', () => {
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
             DERIVED_REPORT_NAME,
-            '',
+            undefined,
         );
         await waitForBatchedUpdates();
 

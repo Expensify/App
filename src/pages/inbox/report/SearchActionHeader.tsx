@@ -62,7 +62,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
         translate,
         convertToDisplayString,
         personalDetailsList,
-        derivedReportName ?? '',
+        derivedReportName,
     );
 
     return (

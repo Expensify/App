@@ -187,7 +187,7 @@ function getMovedFromOrToReportMessage(
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserAccountID: number | undefined,
     policy: OnyxEntry<Policy>,
-    movedFromReportName: string,
+    movedFromReportName: string | undefined,
 ): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserAccountID, policy);
@@ -291,7 +291,7 @@ function getForReportAction({
     policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
-    reportName: string;
+    reportName: string | undefined;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
