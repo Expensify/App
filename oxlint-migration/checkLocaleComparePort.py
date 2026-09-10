@@ -93,7 +93,7 @@ def oxlint_lines(paths):
 def eslint_lines(paths):
     # Raw ESLint, not the pipeline: the only rule read here is prefer-locale-compare-from-context, which
     # no pipeline stage filters. Only the two rules in RULES_SUPPRESSED_BY_REACT_COMPILER and
-    # @typescript-eslint/no-deprecated need applyLintProcessors.ts to mean what the repo's gate means.
+    # @typescript-eslint/no-deprecated need the pipeline to mean what the repo's gate means.
     out = subprocess.run(
         ['npx', 'eslint', '--no-warn-ignored', '--format', 'json', *paths],
         capture_output=True, text=True, cwd=ROOT,

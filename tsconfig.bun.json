@@ -9,8 +9,6 @@
     // `prompts` and `.github/libs` are not Bun directories, but `scripts`, `evals` and
     // `tests/tooling` import them, so this program has to list them.
     //
-    // oxlint-migration is named file by file, not as a directory: port-probe/fixtures holds code that is
-    // deliberately invalid, which is the point of a fixture.
-    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals", "prompts", ".github/libs", "oxlint-migration/applyLintProcessors.ts"],
+    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals", "prompts", ".github/libs"],
     "exclude": ["**/node_modules/*", "**/dist/*", "server/victory-chart-renderer/**"]
 }

@@ -8,9 +8,9 @@ rather than inside it; oxlint has no processor concept, so config/oxlint/reactCo
 it by wrapping `context.report` inside the JS plugin. This checks the two agree, on both answers.
 
 Because the suppression is no longer wired into the ESLint config, `npx eslint` alone reports the
-findings the repo's gate does not. The ESLint side here therefore pipes its report through
-oxlint-migration/applyLintProcessors.ts, which applies the production stage. Comparing against raw
-ESLint would fail on the memoized variant no matter what oxlint does.
+findings the repo's gate does not. The ESLint side here therefore runs the repo's own gate,
+`scripts/lint/index.ts --linter=eslint --format=json`, which applies the production stage. Comparing
+against raw ESLint would fail on the memoized variant no matter what oxlint does.
 
 The per-rule fixtures in oxlint-migration/port-probe cannot check this. They deliberately opt out of
 memoization with 'use no memo', because their job is "does the rule run at all" and a gate that
@@ -89,19 +89,15 @@ def oxlint_findings(paths):
 
 def eslint_findings(paths):
     out = subprocess.run(
-        ['npx', 'eslint', '--no-warn-ignored', '--format', 'json', *paths],
+        ['bun', os.path.join('scripts', 'lint', 'index.ts'), '--linter=eslint', '--format=json', *paths],
         capture_output=True, text=True, cwd=ROOT,
-        env={**os.environ, 'NODE_OPTIONS': '--max-old-space-size=8192'},
-    )
-    filtered = subprocess.run(
-        ['bun', os.path.join('oxlint-migration', 'applyLintProcessors.ts')],
-        input=out.stdout, capture_output=True, text=True, cwd=ROOT,
+        env={**os.environ, 'NODE_OPTIONS': '--max-old-space-size=8192', 'SEATBELT_DISABLE': '1'},
     )
     try:
-        report = json.loads(filtered.stdout)
+        report = json.loads(out.stdout)
     except json.JSONDecodeError:
-        sys.exit(f'eslint run failed:\n{out.stdout[:600]}{out.stderr[:600]}{filtered.stderr[:600]}')
-    return {(os.path.relpath(f['filePath'], ROOT), m.get('ruleId')) for f in report for m in f['messages']}
+        sys.exit(f'eslint run failed:\n{out.stdout[:600]}{out.stderr[:600]}')
+    return {(os.path.relpath(m['filePath'], ROOT), m.get('ruleID')) for m in report['messages']}
 
 
 def main():

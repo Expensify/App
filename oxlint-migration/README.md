@@ -11,9 +11,9 @@ One thing to know before reading any of it: "what ESLint reports" is no longer `
 React Compiler suppression and the `@typescript-eslint/no-deprecated` stratification used to be
 ESLint processors wired into `config/eslint/eslint.config.mjs`; they are now stages in
 `scripts/lint/`, which runs them over ESLint's output rather than inside it. Scripts whose rule of
-interest one of those stages filters pipe their report through `applyLintProcessors.ts`, which
-applies the production stages rather than reimplementing them. The rest read raw ESLint and say so
-at the call site.
+interest one of those stages filters run the repo's own gate,
+`bun scripts/lint/index.ts --linter=eslint --format=json`, rather than reimplementing the stages or
+reapplying them to a raw report. The rest read raw ESLint and say so at the call site.
 
 The same move retired this migration's first blocker. The seatbelt baseline used to be a pseudo-rule
 contributed by the `eslint-seatbelt` plugin, which only ESLint could run, so switching to Oxlint
@@ -52,7 +52,6 @@ stopped matching. The root file is therefore the real config, and that is delibe
 | `rule-tester/` | harvests the upstream `RuleTester` cases for the custom rules and replays them as real files through both tools | `npm run oxlint-rule-tester` |
 | `checkSidecarCoverage.py` | fails if any hand-hosted sidecar rule has no fixture, replayed case or probe | `npm run oxlint-sidecar-coverage` |
 | `checkReactCompilerGate.py` | asserts the gate suppresses exactly what the ESLint side suppresses | `npm run oxlint-react-compiler-gate` |
-| `applyLintProcessors.ts` | filter, not a check: applies the repo's lint processors to an ESLint JSON report so the ESLint side of a comparison means what the repo's gate reports | piped into the scripts above |
 | `checkLocaleComparePort.py` | asserts the type-free rule rewrite matches the type-aware original, receiver shape by receiver shape | `npm run oxlint-locale-compare-port` |
 | `checkJsxUsesPort.py` | the two rules that cannot report anything, asserted by outcome instead | `npm run oxlint-jsx-uses-port` |
 | `listAllRules.py` | inventory of every rule either tool enables, and why anything is off | `npm run oxlint-rule-inventory`, `npm run oxlint-rule-availability` |

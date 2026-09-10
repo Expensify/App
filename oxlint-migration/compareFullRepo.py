@@ -57,23 +57,26 @@ def oxlint_locations(diagnostics):
     return per_rule, errors
 
 
-def eslint_locations(report):
+def eslint_messages(report):
+    """The flat LintMessage list `scripts/lint --format json` writes."""
+    return report['messages']
+
+
+def eslint_locations(messages):
     per_rule = collections.defaultdict(set)
-    for result in report:
-        rel = relative(result['filePath'])
-        for message in result['messages']:
-            per_rule[norm_es(message.get('ruleId'))].add((rel, message['line']))
+    for message in messages:
+        per_rule[norm_es(message.get('ruleID'))].add((relative(message['filePath']), message['line']))
     return per_rule
 
 
 def findings_table(ox_file, es_file):
     ox = json.load(open(ox_file))
-    es = json.load(open(es_file))
+    es = eslint_messages(json.load(open(es_file)))
     diagnostics = ox['diagnostics']
     ox_at, ox_errors = oxlint_locations(diagnostics)
     es_at = eslint_locations(es)
     cox = collections.Counter(norm_ox(x['code']) for x in diagnostics if x.get('code'))
-    ces = collections.Counter(norm_es(m.get('ruleId')) for r in es for m in r['messages'])
+    ces = collections.Counter(norm_es(m.get('ruleID')) for m in es)
 
     print(f'{"rule":62} {"eslint":>7} {"oxlint":>7}')
     diffs, misplaced = [], []
