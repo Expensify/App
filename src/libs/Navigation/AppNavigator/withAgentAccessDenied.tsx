@@ -22,8 +22,6 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
                 const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
-
-                // Show the not found page when the agent is first detected and the previous value is undefined
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
