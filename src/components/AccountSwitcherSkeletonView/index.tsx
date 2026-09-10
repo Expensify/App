@@ -5,8 +5,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
