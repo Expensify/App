@@ -1,7 +1,10 @@
 import useOnyx from '@hooks/useOnyx';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Modal} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useState} from 'react';
@@ -14,12 +17,12 @@ type FreezeWrapperProps = ChildrenProps & {
     freezeWhenInTabBackground?: boolean;
 };
 
+const isAnyModalOpenSelector = (modal: OnyxEntry<Modal>) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
+
 function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapperProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
-    const [isAnyModalOpen] = useOnyx(ONYXKEYS.MODAL, {
-        selector: (modal) => !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible,
-    });
+    const [isAnyModalOpen] = useOnyx(ONYXKEYS.MODAL, {selector: isAnyModalOpenSelector});
 
     const [isScreenBlurred, setIsScreenBlurred] = useState(false);
     const [freezed, setFreezed] = useState(false);

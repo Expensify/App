@@ -100,8 +100,8 @@
 "../../src/components/CheckboxWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/ColumnsSettingsList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Composer/implementation/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Composer/implementation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/components/Composer/implementation/index.tsx"	"react-hooks/set-state-in-effect"	2
+"../../src/components/Composer/implementation/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/components/Composer/implementation/index.web.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/ConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ConfirmModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/ConnectToNetSuiteFlow/index.tsx"	"react-hooks/refs"	5
@@ -741,7 +741,7 @@
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createWorkspaceNavigator/WorkspaceRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/FreezeWrapper/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/libs/Navigation/AppNavigator/FreezeWrapper/index.web.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/NewChatHandler.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/SearchHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/ShortcutsOverviewHandler.tsx"	"no-restricted-syntax"	1
@@ -825,7 +825,7 @@
 "../../src/libs/prepareRequestPayload/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/prepareRequestPayload/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../src/libs/Pusher/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/Pusher/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/QuickActionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReceiptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportActionFollowupUtils/tokenizeForReveal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -974,7 +974,7 @@
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.ios.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.web.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/ScanEditReceipt.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/DynamicReceiptView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1271,7 +1271,7 @@
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/setup/addUtilsToWindow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
+"../../src/setup/addUtilsToWindow.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/AddressSearch.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
