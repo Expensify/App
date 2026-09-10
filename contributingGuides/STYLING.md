@@ -17,6 +17,25 @@ These helper styles are loosely based on the [Bootstrap system of CSS utility he
 
 **Note:** Not all helpers from Bootstrap exist, so it may be necessary to create the helper style we need.
 
+## Type and Responsive Spacing Come From Tokens
+
+Two kinds of values must never be written by hand in a component: font sizes and the paddings or margins that change between narrow and wide layouts.
+
+- **Type**: use `<Text variant="...">` (see `src/styles/typography.ts`). Raw `fontSize` / `lineHeight` are blocked by `rulesdir/no-raw-typography`.
+- **Responsive insets**: use `useLayoutSpacing()` (see `src/styles/layoutSpacing.ts`). It resolves `cardPadding` and `pageGutter` for the current layout and returns ready styles: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `pageGutter`, `pageGutterMargin`. Picking a spacing helper with a layout flag is blocked by `rulesdir/no-layout-spacing-conditional`.
+
+```tsx
+// Bad - the card inset is decided here, so every card row has to agree by hand
+const {shouldUseNarrowLayout} = useResponsiveLayout();
+<View style={[styles.flexRow, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]} />
+
+// Good - the inset is a token, resolved once for the current layout
+const {cardPaddingHorizontal} = useLayoutSpacing();
+<View style={[styles.flexRow, cardPaddingHorizontal]} />
+```
+
+Spacing that is not a card inset or page gutter (for example a `pb2` vs `pb5` rhythm tweak) is still written with the helper styles. If you need a new responsive inset, add it to `layoutSpacing.ts` rather than writing the ternary.
+
 ## When to Create a New Style
 
 If we need some minimal set of styling rules applied to a single-use component, then it's almost always better to use an array of helper styles rather than create an entirely new style if it will only be used once. Resist the urge to create a new style for every new element added to a screen. There is a very good chance the style we are adding is a "single-use" style.
