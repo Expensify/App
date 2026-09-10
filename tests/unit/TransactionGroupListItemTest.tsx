@@ -42,6 +42,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
+    getViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({

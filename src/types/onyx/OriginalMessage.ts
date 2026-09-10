@@ -1220,6 +1220,9 @@ type OriginalMessageApproved = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Snapshot of transaction violations present when the report was approved */
+    violations?: SubmittedViolationsSnapshot;
 };
 
 /** Model of `forwarded` report action */
@@ -1243,6 +1246,9 @@ type OriginalMessageForwarded = {
 
     /** Optional message explaining why the report was forwarded that way */
     message?: string;
+
+    /** Snapshot of transaction violations present when the report was forwarded */
+    violations?: SubmittedViolationsSnapshot;
 };
 
 /**
