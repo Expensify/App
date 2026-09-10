@@ -1,6 +1,6 @@
 import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -80,14 +80,13 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                     isToggleTriggered={shouldAnimateAccordionSection}
                 >
                     <OfflineWithFeedback pendingAction={pendingAction}>
-                        <MenuItemWithTopDescription
-                            title={
+                        <MenuItemField
+                            value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                     : translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
-                            description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
-                            shouldShowRightIcon
+                            name={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>
