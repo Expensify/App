@@ -10,6 +10,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
@@ -1346,7 +1347,9 @@ function bulkDuplicateExpenses({
     }
 
     playSound(SOUNDS.DONE);
-    signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (isSearchTopmostFullScreenRoute()) {
+        signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 }
 
 type BulkDuplicateReportsParams = {

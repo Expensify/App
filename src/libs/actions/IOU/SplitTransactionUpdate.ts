@@ -2109,7 +2109,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
         // next time that report is opened from the Inbox.
         updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
-        if (!isReverseSplitOperation) {
+        if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
             signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
         }
 

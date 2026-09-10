@@ -897,6 +897,7 @@ describe('actions/IOU', () => {
         });
 
         it('does not signal the "Expense added" growl during a reverse split operation', async () => {
+            // Given an existing split is being reversed from the expense report
             const existingChildTx = {
                 transactionID: 'child-tx-1',
                 reportID: EXPENSE_REPORT_ID,
@@ -912,11 +913,62 @@ describe('actions/IOU', () => {
                 },
             });
 
+            // When saving the reverse split
             updateSplitTransactionsFromSplitExpensesFlow(params);
             await waitForBatchedUpdates();
 
+            // Then no expense-added growl is queued
             const growlTransactionIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
             expect(growlTransactionIDs?.['new-merged-tx']).toBeUndefined();
+        });
+
+        it('signals the "Expense added" growl when splitting from Spend', async () => {
+            // Given a transaction is being split from the Search tab
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
+            const params = buildBaseParams({
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-search-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-search-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then the latest new split is queued for the expense-added growl
+            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(growlTransactionIDs?.['new-search-tx-2']).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+        });
+
+        it('does not signal the "Expense added" growl for a report without a parent outside Spend', async () => {
+            // Given a transaction in an Inbox report without a parent is being split
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
+            const params = buildBaseParams({
+                transactionReport: {reportID: 'report-without-parent'},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [
+                        {transactionID: 'new-inbox-tx-1', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                        {transactionID: 'new-inbox-tx-2', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 500, created: '2024-01-01'},
+                    ],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            // When saving the split
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            // Then no expense-added growl is queued
+            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(growlTransactionIDs?.['new-inbox-tx-2']).toBeUndefined();
         });
     });
 });
