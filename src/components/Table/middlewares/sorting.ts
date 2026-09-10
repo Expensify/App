@@ -126,7 +126,11 @@ function useSorting<T, ColumnKey extends string = string>({
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
         setUserSorting((previousSorting) => {
             const columnKeyToUse = columnKey ?? previousSorting.columnKey;
-            const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
+            const isSameColumn = columnKeyToUse === previousSorting.columnKey;
+
+            // Switching to a column that wasn't already active starts its cycle over, so the first press always
+            // reads as ascending rather than inheriting whatever order the previous column was left on.
+            const orderToUse = isSameColumn && previousSorting.order === 'asc' ? 'desc' : 'asc';
 
             return {
                 columnKey: columnKeyToUse,
