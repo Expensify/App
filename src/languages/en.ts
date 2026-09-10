@@ -85,6 +85,7 @@ const translations = {
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
+        insights: 'Insights',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -4759,6 +4760,7 @@ const translations = {
             accounting: 'Accounting',
             hr: 'HR',
             recruiting: 'Recruiting',
+            mcp: 'MCP',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -4901,6 +4903,25 @@ const translations = {
         createdForClient: {
             title: "You've created a workspace for your client!",
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
+        mcp: {
+            connectors: 'Connectors',
+            connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
+            connect: 'Connect',
+            helpPrompt: 'Need help connecting?',
+            helpLink: 'Read our guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'by Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'by Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'by OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6662,6 +6683,10 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Connect an AI assistant to your Expensify account.',
+            },
             receiptPartners: {
                 title: 'Receipt partners',
                 subtitle: 'Automatically import receipts.',
@@ -8305,6 +8330,8 @@ const translations = {
                 subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
+                createRuleFromExpenseAction: 'Create a rule',
+                createRuleFromExpensePrompt: 'to apply your changes to all expenses that match your criteria.',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',
@@ -8347,10 +8374,13 @@ const translations = {
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
                 confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
                 confirmErrorCondition: 'Please enter a merchant',
                 confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
                 turnOnTaxesFirstTitle: 'Turn on taxes first',
                 turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                addTaxRateFirstTitle: 'Add a tax rate first',
+                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
                 categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
                 categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
             },

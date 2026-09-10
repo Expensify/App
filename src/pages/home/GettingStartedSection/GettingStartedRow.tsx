@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';

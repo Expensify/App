@@ -55,6 +55,10 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
+const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
+const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
+const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -226,6 +230,27 @@ const EMAIL = {
     QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
+// Declared above CONST so subsets can be built from its members instead of repeating the strings. Spliced in below
+// as `EDIT_REQUEST_FIELD`.
+const editRequestFields = {
+    AMOUNT: 'amount',
+    CURRENCY: 'currency',
+    DATE: 'date',
+    DESCRIPTION: 'description',
+    MERCHANT: 'merchant',
+    CATEGORY: 'category',
+    RECEIPT: 'receipt',
+    DISTANCE: 'distance',
+    DISTANCE_RATE: 'distanceRate',
+    TAG: 'tag',
+    TAX_RATE: 'taxRate',
+    TAX_AMOUNT: 'taxAmount',
+    REIMBURSABLE: 'reimbursable',
+    ATTENDEES: 'attendees',
+    BILLABLE: 'billable',
+    REPORT: 'report',
+} as const;
+
 const CONST = {
     HEIC_SIGNATURES: [
         '6674797068656963', // 'ftypheic' - Indicates standard HEIC file
@@ -319,7 +344,6 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
-    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -527,6 +551,16 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
+    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    MERCHANT_RULE_SUGGESTION_FIELDS: {
+        CATEGORY: editRequestFields.CATEGORY,
+        TAG: editRequestFields.TAG,
+        TAX: editRequestFields.TAX_RATE,
+        DESCRIPTION: editRequestFields.DESCRIPTION,
+        BILLABLE: editRequestFields.BILLABLE,
+        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+    },
+
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
     REQUEST_PREVIEW: {
@@ -642,6 +676,10 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    CHATGPT_CONNECT_URL,
+    MCP_HELP_URL,
+    CLAUDE_CONNECT_URL,
+    CURSOR_MCP_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
@@ -1387,7 +1425,9 @@ const CONST = {
         US: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States',
     },
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
-    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
+
+    // Package name of the Google Play Store app. Android reports it as the installer of every app Play installed.
+    PLAY_STORE_INSTALLER_PACKAGE_NAME: 'com.android.vending',
     FEES_URL: `${EXPENSIFY_URL}/fees`,
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
@@ -2199,6 +2239,8 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
+        /** How long the cursor has to rest on an advanced filter row before its content may derive the contact list */
+        SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,
@@ -2317,6 +2359,10 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
+        SPAN_SEND_MESSAGE_PHASE: {
+            PROPAGATE: 'ManualSendMessagePropagate',
+            POST_COMMIT: 'ManualSendMessagePostCommit',
+        },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
@@ -2999,6 +3045,9 @@ const CONST = {
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
         BIG_SCREEN_SUGGESTION_WIDTH: 300,
+
+        /** Below this many locally found room suggestions, we also search the server for more rooms */
+        MIN_ROOM_SUGGESTIONS_BEFORE_SERVER_SEARCH: 5,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
@@ -4448,6 +4497,7 @@ const CONST = {
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
             IS_HR_ENABLED: 'isHREnabled',
             IS_RECRUITING_ENABLED: 'isRecruitingEnabled',
+            IS_MCP_ENABLED: 'isMCPEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -5753,24 +5803,7 @@ const CONST = {
             SHARE: 'share',
         },
     },
-    EDIT_REQUEST_FIELD: {
-        AMOUNT: 'amount',
-        CURRENCY: 'currency',
-        DATE: 'date',
-        DESCRIPTION: 'description',
-        MERCHANT: 'merchant',
-        CATEGORY: 'category',
-        RECEIPT: 'receipt',
-        DISTANCE: 'distance',
-        DISTANCE_RATE: 'distanceRate',
-        TAG: 'tag',
-        TAX_RATE: 'taxRate',
-        TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
-        ATTENDEES: 'attendees',
-        BILLABLE: 'billable',
-        REPORT: 'report',
-    },
+    EDIT_REQUEST_FIELD: editRequestFields,
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -7113,6 +7146,8 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
+        HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
@@ -8878,6 +8913,7 @@ const CONST = {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
             REPORTS: 'NavigationTabBar-Reports',
+            INSIGHTS: 'NavigationTabBar-Insights',
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
@@ -9012,7 +9048,7 @@ const CONST = {
             TYPE_MENU_ITEM: 'Search-TypeMenuItem',
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
-            CLEAR_FILTERS_BUTTON: 'Search-ClearFiltersButton',
+            RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
@@ -9388,6 +9424,7 @@ const CONST = {
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
                 VENDORS: 'WorkspaceInitial-Vendors',
+                MCP: 'WorkspaceInitial-MCP',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -9801,6 +9838,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
     },
 
+    INSIGHTS: {
+        DASHBOARD: {
+            SPEND: 'spend',
+        },
+    },
+
     SECTION_LIST_ITEM_TYPE: {
         HEADER: 'header',
         ROW: 'row',
@@ -9856,18 +9899,6 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id,
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
 ]);
-
-type SearchFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
-
-const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
-    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
-] as SearchFilterKey[];
 
 const FRAUD_PROTECTION_EVENT = {
     START_SUPPORT_SESSION: 'StartSupportSession',
@@ -9937,6 +9968,6 @@ export type {
     EnablePaymentsSubPageType,
 };
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
+export {FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW, SUBMIT_FEATURE_IDS};
 
 export default CONST;

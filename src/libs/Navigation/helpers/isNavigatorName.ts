@@ -4,7 +4,14 @@ import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNaviga
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR, SCREENS.HOME, NAVIGATORS.WORKSPACE_NAVIGATOR]);
+const FULL_SCREENS_SET = new Set([
+    ...Object.values(SIDEBAR_TO_SPLIT),
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    NAVIGATORS.TAB_NAVIGATOR,
+    SCREENS.HOME,
+    SCREENS.INSIGHTS,
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+]);
 // Root-level navigators that render as an overlay/modal on top of the current screen. These do NOT go through the
 // shared `Modal` component, so they never set `ONYXKEYS.MODAL` — the only way to know one is open is the navigation state.
 const MODAL_NAVIGATORS_SET = new Set<string>([

@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Buscar',
         reports: 'Relatórios',
         spend: 'Gastos',
+        insights: 'Insights',
         find: 'Localizar',
         searchWithThreeDots: 'Buscar...',
         next: 'Próximo',
@@ -4605,6 +4606,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viagens',
             members: 'Membros',
             accounting: 'Contabilidade',
+            mcp: 'MCP',
             receiptPartners: 'Parceiros de recibos',
             rules: 'Regras',
             displayedAs: 'Exibido como',
@@ -4741,6 +4743,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
             description: 'Ótimas notícias 🎉. Entre em contato conosco se precisarem de ajuda com a configuração.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
+            connect: 'Conectar',
+            helpPrompt: 'Precisa de ajuda para conectar?',
+            helpLink: 'Leia nosso guia.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'da Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'da Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'da OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6508,6 +6529,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Contabilidade',
                 subtitle: 'Sincronize seu plano de contas e muito mais.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecte um assistente de IA à sua conta do Expensify.',
+            },
             receiptPartners: {
                 title: 'Parceiros de recibos',
                 subtitle: 'Importe recibos automaticamente.',
@@ -8018,6 +8043,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
                 categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
                 categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'A alíquota de imposto selecionada agora é o padrão do seu workspace, então esta regra não é mais válida. Escolha uma alíquota de imposto diferente.',
+                addTaxRateFirstTitle: 'Adicione uma alíquota de imposto primeiro',
+                addTaxRateFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Adicione uma taxa diferente da padrão do seu espaço de trabalho para usá-las.',
+                createRuleFromExpenseAction: 'Criar regra',
+                createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
             },
             categoryRules: {
                 title: 'Regras de categoria',
