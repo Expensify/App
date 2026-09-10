@@ -64,7 +64,10 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const lockedExpenseChatReportID =
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
     const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-    const defaultReportID = canUseDefaultPolicy ? (shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : selfDMReport.reportID) : undefined;
+    let defaultReportID: string | undefined;
+    if (canUseDefaultPolicy) {
+        defaultReportID = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : selfDMReport.reportID;
+    }
     const autoNavigateReportID = lockedExpenseChatReportID ?? defaultReportID;
     const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);
 
