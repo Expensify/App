@@ -129,7 +129,8 @@ function TestToolMenu() {
                                     if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
                                         Navigation.dismissModal();
                                     }
-                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+                                    // Skip the full screen match so the page opens over the screen the Test Tools modal was opened from, not over Troubleshoot
+                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
                                 }}
                             >
                                 <Button.Text>{translate('common.view')}</Button.Text>
