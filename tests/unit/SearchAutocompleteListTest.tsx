@@ -175,13 +175,21 @@ const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-    dateFnsLocale: undefined,
-    convertToDisplayString: TestHelper.convertToDisplayString,
-    conciergeReportID: undefined,
-    isSearching: true,
-});
+const mockedOptions = createFilteredOptionList(
+    mockedPersonalDetails,
+    mockedReports,
+    undefined,
+    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+    undefined,
+    {
+        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+        dateFnsLocale: undefined,
+        convertToDisplayString: TestHelper.convertToDisplayString,
+        conciergeReportID: undefined,
+        isSearching: true,
+    },
+    undefined,
+);
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
@@ -466,6 +474,7 @@ describe('SearchAutocompleteList', () => {
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
@@ -556,6 +565,7 @@ describe('SearchAutocompleteList', () => {
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),

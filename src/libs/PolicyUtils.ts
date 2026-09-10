@@ -19,6 +19,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
+import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ApprovalRule,
@@ -38,6 +39,7 @@ import type {
     Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type Rule from '@src/types/onyx/Rule';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -84,6 +86,24 @@ type WorkspaceDetails = {
 
 type ConnectionWithLastSyncData = {
     lastSync?: ConnectionLastSync;
+};
+
+/** The report facts an approval workflow rule is matched against. */
+type ApprovalWorkflowContext = {
+    /** Email of the member who submitted the report. */
+    submitterEmail: string;
+
+    /** Email of the approver the report is currently with. Empty when the report has not been approved yet. */
+    currentApproverEmail?: string;
+
+    /** Total of the report, in the backend (cents) amount the rules' `amount` filters are written in. */
+    reportTotal: number;
+};
+
+/** The outcome of matching a report against the policy's approval workflow rules. */
+type ApprovalWorkflowRuleMatch = {
+    /** Email the matched rule forwards the report to. Undefined when the rule finalizes the report instead. */
+    forwardsTo?: string;
 };
 
 /**
@@ -1927,7 +1947,109 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
+/**
+ * True when this node is a single comparison instead of a combination of two children.
+ */
+function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
+    return typeof node.left === 'string';
+}
+
+function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+    const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
+    const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
+    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
+}
+
+function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+    const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
+    if (Number.isNaN(expectedAmount)) {
+        return false;
+    }
+
+    switch (node.operator) {
+        case CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO:
+            return amount === expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO:
+            return amount !== expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN:
+            return amount > expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO:
+            return amount >= expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN:
+            return amount < expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO:
+            return amount <= expectedAmount;
+        default:
+            return false;
+    }
+}
+
+function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
+    if (!isApprovalWorkflowComparison(node)) {
+        const left = evaluateApprovalWorkflowFilter(node.left, context);
+        const right = evaluateApprovalWorkflowFilter(node.right, context);
+        return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
+    }
+
+    switch (node.left) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            return matchesApprovalWorkflowEmailComparison(node, context.submitterEmail);
+
+        // A report with no current approver has not been approved by anybody yet, so a rule based on who
+        // approved it last cannot apply.
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+            return !!context.currentApproverEmail && matchesApprovalWorkflowEmailComparison(node, context.currentApproverEmail);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            return matchesApprovalWorkflowAmountComparison(node, Math.abs(context.reportTotal));
+
+        default:
+            return false;
+    }
+}
+
+/**
+ * True when every condition in the rule's filter tree is true for `context`.
+ */
+function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: ApprovalWorkflowContext): boolean {
+    return evaluateApprovalWorkflowFilter(rule.filters, context);
+}
+
+/**
+ * Check the policy's approval workflow rules to determine where the report goes next.
+ */
+function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
+    if (!policy?.id || !context.submitterEmail) {
+        return undefined;
+    }
+
+    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+
+    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
+    const ruleKeys = Object.keys(rules ?? {}).sort();
+    for (const ruleKey of ruleKeys) {
+        const rule = rules?.[ruleKey];
+        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+            continue;
+        }
+        if (!evaluateApprovalWorkflowRule(rule, context)) {
+            continue;
+        }
+
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+    }
+
+    return undefined;
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -1943,8 +2065,8 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     return employee?.submitsTo ?? defaultApprover ?? '';
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
     return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
 }
 
@@ -1952,7 +2074,13 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  * Returns the email the expense report should submit to per workspace approval config
  * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
+function getSubmitToEmail(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -1962,7 +2090,12 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal: expenseReport?.total ?? 0}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
@@ -1975,12 +2108,18 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, shouldFallBackWhenManagerIsNotMember);
+function getSubmitToAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): number {
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -1992,7 +2131,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, true));
+    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }
@@ -2003,8 +2142,17 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
 /**
  * Returns the email of the account to forward the report to depending on the approver's approval limit.
  * Used for advanced approval mode only.
+ *
+ * `submitterEmail` is needed to consult the workspace's approval workflow rules, which describe each hop in
+ * terms of who submitted the report as well as who is approving it. Without it only the legacy employeeList
+ * forwardsTo/overLimitForwardsTo is considered.
  */
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, rules: OnyxCollection<Rule>, submitterEmail?: string): string {
+    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}, rules) : undefined;
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     if (!isControlOnAdvancedApprovalMode(policy)) {
         return '';
     }
@@ -3416,6 +3564,8 @@ export {
     getDefaultChatEnabledPolicy,
     getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
+    getForwardsToFromRules,
+    evaluateApprovalWorkflowRule,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,

@@ -35,6 +35,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
+    Rule,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -88,6 +89,8 @@ type TransactionEditPermissionsParams = {
 
     /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    rules: OnyxCollection<Rule>;
 
     policy?: OnyxEntry<Policy>;
 
@@ -155,6 +158,8 @@ type GetIouParamsInput = {
 
     /** The current user's email/login. */
     currentUserEmail: string;
+
+    rules: OnyxCollection<Rule>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -196,6 +201,7 @@ function getIouParamsForTransaction({
     introSelected,
     currentUserAccountID,
     currentUserEmail,
+    rules,
 }: GetIouParamsInput) {
     // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
     const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -238,6 +244,7 @@ function getIouParamsForTransaction({
         getCurrencyDecimals,
         getCurrencySymbol,
         reportPolicyTags,
+        rules,
         violations: transactionViolationsForTransaction,
         // Field-specific extras
         transaction,
@@ -376,6 +383,7 @@ function getTransactionEditPermissions({
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
+    rules,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
     if (disabled || !transaction) {
         return NO_EDIT;
@@ -400,7 +408,8 @@ function getTransactionEditPermissions({
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
     const canEdit =
-        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+        isUnreported ||
+        (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }
@@ -472,6 +481,7 @@ function getTransactionEditPermissions({
                 transaction,
                 report: parentReport,
                 policy,
+                rules,
             })
         );
     };

@@ -96,6 +96,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 1,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
+                rules: undefined,
             }),
         );
     });

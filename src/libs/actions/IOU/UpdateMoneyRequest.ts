@@ -93,6 +93,7 @@ type UpdateMoneyRequestDateParams = {
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type SearchSnapshotOnyxData = {
@@ -244,6 +245,7 @@ function updateMoneyRequestDate({
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMoneyRequestDateParams) {
     const transaction = transactionParam ?? getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -293,6 +295,7 @@ function updateMoneyRequestDate({
             personalPolicyOutputCurrency,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         return;
     }
@@ -338,6 +341,7 @@ function updateMoneyRequestDate({
             isTrackIntentUser,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -364,6 +368,7 @@ function updateMoneyRequestBillable({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -382,6 +387,7 @@ function updateMoneyRequestBillable({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -407,6 +413,7 @@ function updateMoneyRequestBillable({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
@@ -430,6 +437,7 @@ function updateMoneyRequestReimbursable({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -449,6 +457,7 @@ function updateMoneyRequestReimbursable({
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -475,6 +484,7 @@ function updateMoneyRequestReimbursable({
         violations,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
 }
@@ -501,6 +511,7 @@ function updateMoneyRequestMerchant({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -522,6 +533,7 @@ function updateMoneyRequestMerchant({
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -561,6 +573,7 @@ function updateMoneyRequestMerchant({
             violations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     }
     const {params, onyxData} = data;
@@ -587,6 +600,7 @@ function updateMoneyRequestAttendees({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -606,6 +620,7 @@ function updateMoneyRequestAttendees({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -629,6 +644,7 @@ function updateMoneyRequestAttendees({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
@@ -841,6 +857,7 @@ type UpdateMoneyRequestTagParams = {
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /** Updates the tag of an expense */
@@ -866,6 +883,7 @@ function updateMoneyRequestTag({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMoneyRequestTagParams) {
     const transactionChanges: TransactionChanges = {
         tag,
@@ -892,6 +910,7 @@ function updateMoneyRequestTag({
         violations,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
@@ -914,6 +933,7 @@ function updateMoneyRequestTaxAmount({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -931,6 +951,7 @@ function updateMoneyRequestTaxAmount({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -952,6 +973,7 @@ function updateMoneyRequestTaxAmount({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
 }
@@ -976,6 +998,7 @@ type UpdateMoneyRequestTaxRateParams = {
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /** Updates the created tax rate of an expense */
@@ -999,6 +1022,7 @@ function updateMoneyRequestTaxRate({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
@@ -1023,6 +1047,7 @@ function updateMoneyRequestTaxRate({
         violations,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
@@ -1055,6 +1080,7 @@ type UpdateMoneyRequestDistanceParams = {
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -1085,6 +1111,7 @@ function updateMoneyRequestDistance({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -1132,6 +1159,7 @@ function updateMoneyRequestDistance({
             violations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     }
     const {params, onyxData} = data;
@@ -1218,6 +1246,7 @@ function updateMoneyRequestCategory({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -1239,6 +1268,7 @@ function updateMoneyRequestCategory({
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -1265,6 +1295,7 @@ function updateMoneyRequestCategory({
         violations,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
@@ -1290,6 +1321,7 @@ function updateMoneyRequestDescription({
     violations,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -1310,6 +1342,7 @@ function updateMoneyRequestDescription({
     violations: OnyxEntry<OnyxTypes.TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -1349,6 +1382,7 @@ function updateMoneyRequestDescription({
             violations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     }
     const {params, onyxData} = data;
@@ -1386,6 +1420,7 @@ function updateMoneyRequestDistanceRate({
     reportPolicyTags,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1415,6 +1450,7 @@ function updateMoneyRequestDistanceRate({
     reportPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -1480,6 +1516,7 @@ function updateMoneyRequestDistanceRate({
             personalPolicyOutputCurrency,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         if (created && transaction?.transactionID && transactions && transactionViolations) {
             removeTransactionFromDuplicateTransactionViolation(data.onyxData, transaction.transactionID, transactions, transactionViolations);
@@ -1519,6 +1556,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -1549,6 +1587,7 @@ function updateMoneyRequestAmountAndCurrency({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -1594,6 +1633,7 @@ function updateMoneyRequestAmountAndCurrency({
             violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -1633,6 +1673,7 @@ type GetUpdateMoneyRequestParamsType = {
     personalPolicyOutputCurrency?: string;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1682,6 +1723,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         personalPolicyOutputCurrency,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2261,6 +2303,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 isASAPSubmitBetaEnabled,
                 policy,
                 isTrackIntentUser,
+                rules,
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
