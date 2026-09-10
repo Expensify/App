@@ -8878,6 +8878,7 @@ const CONST = {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',
             REPORTS: 'NavigationTabBar-Reports',
+            INSIGHTS: 'NavigationTabBar-Insights',
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
@@ -9799,6 +9800,12 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
+    },
+
+    INSIGHTS: {
+        DASHBOARD: {
+            SPEND: 'spend',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {

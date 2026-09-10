@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Αναζήτηση',
         reports: 'Αναφορές',
         spend: 'Δαπάνη',
+        insights: 'Στατιστικά',
         find: 'Εύρεση',
         searchWithThreeDots: 'Αναζήτηση...',
         next: 'Επόμενο',
