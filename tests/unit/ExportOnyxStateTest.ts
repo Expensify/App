@@ -500,8 +500,6 @@ describe('Onyx key export coverage', () => {
     });
 
     it('removes the Cloudflare QA session from the export entirely', () => {
-        // The classification lists only prove the key is bucketed. This pins the actual behavior:
-        // both OAuth tokens must vanish from the exported state, not just get masked.
         const input = {
             [ONYXKEYS.CLOUDFLARE_SESSION]: {accessToken: 'oauth:access-token', refreshToken: 'oauth:refresh-token', expiresAt: 1753600000000},
             [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: true,

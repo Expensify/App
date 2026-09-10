@@ -1,5 +1,5 @@
 import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
-import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
+import finishCloudflareSignInFromURL from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
@@ -106,9 +106,7 @@ export default function () {
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
-    // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
-    // picked up and the URL restored here, before React Navigation resolves the initial route. After
-    // Onyx.init() because a completed exchange persists the session. No-op on every other load.
+    // Must run after Onyx.init(): a completed exchange persists the session
     finishCloudflareSignInFromURL();
 
     startMainQueue();

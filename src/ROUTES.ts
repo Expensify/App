@@ -2558,6 +2558,7 @@ const ROUTES = {
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_TROUBLESHOOT_BETA_OVERRIDES: 'settings/troubleshoot/beta-overrides',
+    SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
@@ -5017,6 +5018,7 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+    TEST_TOOLS_SERVER: 'test-tools/server',
     WORKSPACES_VERIFY_DOMAIN: {
         route: 'workspaces/verify-domain/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,

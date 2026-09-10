@@ -82,7 +82,14 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
 }));
 
 const mockProductionServer = CONST.SERVER.PRODUCTION;
+
+jest.mock('@hooks/useActiveServer', () => ({
+    __esModule: true,
+    default: () => ({activeServer: mockProductionServer, isPinnedByEnvironment: false, isStagingIgnored: false}),
+}));
+
 jest.mock('@libs/ApiUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
     isQAServerActive: () => false,
     getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
@@ -218,7 +225,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Never registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNeverRegistered/);
     });
@@ -230,7 +237,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredThisDevice/);
     });
@@ -241,7 +248,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusRegisteredOtherDevice/);
     });
@@ -249,7 +256,7 @@ describe('TestToolMenu biometrics', () => {
     it('renders biometrics title with "Not registered" status', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NOT_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText(/troubleshootBiometricsStatus.*statusNotRegistered/);
     });
@@ -257,7 +264,7 @@ describe('TestToolMenu biometrics', () => {
     it('does not show the Revoke button when device is not registered', () => {
         setBiometricStatus({isCurrentDeviceRegistered: false});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText('multifactorAuthentication.revoke.revoke')).toBeNull();
     });
@@ -269,7 +276,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         screen.getByText('multifactorAuthentication.revoke.revoke');
     });
@@ -281,7 +288,7 @@ describe('TestToolMenu biometrics', () => {
             registrationStatus: REGISTRATION_STATUS.REGISTERED_THIS_DEVICE,
         });
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const revokeButton = screen.getByText('multifactorAuthentication.revoke.revoke');
         fireEvent.press(revokeButton);
@@ -292,7 +299,7 @@ describe('TestToolMenu biometrics', () => {
     it('always shows the Test button and invokes executeScenario with BIOMETRICS_TEST when pressed', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         const testButton = screen.getByText('multifactorAuthentication.biometricsTest.test');
         fireEvent.press(testButton);
@@ -304,7 +311,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -316,7 +323,7 @@ describe('TestToolMenu biometrics', () => {
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
         mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         fireEvent.press(screen.getByText('multifactorAuthentication.biometricsTest.test'));
 
@@ -328,7 +335,7 @@ describe('TestToolMenu biometrics', () => {
         mockIsAgentAccount = true;
         setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
 
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
         expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
@@ -348,7 +355,7 @@ describe('TestToolMenu beta overrides', () => {
     it('renders the beta overrides row outside production', () => {
         // Given a build that is not production
         // When the menu is rendered
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // Then the beta overrides row is offered
         screen.getByText('initialSettingsPage.troubleshoot.betaOverrides');
@@ -359,7 +366,7 @@ describe('TestToolMenu beta overrides', () => {
         mockIsProduction = true;
 
         // When the menu is rendered
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // Then the beta overrides row is not offered
         expect(screen.queryByText('initialSettingsPage.troubleshoot.betaOverrides')).toBeNull();
@@ -368,7 +375,7 @@ describe('TestToolMenu beta overrides', () => {
     it('dismisses the Test Tools modal before opening the overrides page', () => {
         // Given The menu rendered inside the Test Tools modal
         mockGetActiveRoute.mockReturnValue(ROUTES.TEST_TOOLS_MODAL.route);
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
@@ -381,7 +388,7 @@ describe('TestToolMenu beta overrides', () => {
     it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
         // Given The menu rendered inline on the Troubleshoot page
         mockGetActiveRoute.mockReturnValue(ROUTES.SETTINGS_TROUBLESHOOT);
-        render(<TestToolMenu />);
+        render(<TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />);
 
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
