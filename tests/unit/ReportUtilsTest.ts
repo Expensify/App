@@ -21520,7 +21520,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID)).toBe(true);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
@@ -21550,7 +21550,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID)).toBe(false);
+            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(false);
         });
     });
 
