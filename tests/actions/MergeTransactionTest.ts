@@ -216,6 +216,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         sourceIOUAction,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
     });
 }
 
@@ -337,6 +338,7 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -459,6 +461,7 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -564,6 +567,7 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -719,6 +723,7 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -829,6 +834,7 @@ describe('mergeTransactionRequest', () => {
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
+            rules: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -1062,6 +1068,7 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -1270,6 +1277,7 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1427,6 +1435,7 @@ describe('mergeTransactionRequest', () => {
                 sourceIOUAction: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1479,6 +1488,7 @@ describe('getTransactionsForMerging', () => {
             policy: undefined,
             report: undefined,
             currentUserLogin: undefined,
+            rules: undefined,
         });
         await waitForBatchedUpdates();
 
