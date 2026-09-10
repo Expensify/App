@@ -4,7 +4,6 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -142,8 +141,11 @@ type GetIouParamsInput = {
     /** Violations for the transaction being edited plus any of its duplicates, scoped by the caller. */
     transactionViolations: OnyxCollection<TransactionViolations>;
 
-    /** Betas the current user has access to, used to gate ASAP submit behavior. */
+    /** Betas the current user has access to, forwarded when a transaction thread report has to be built. */
     betas: Beta[] | undefined;
+
+    /** Resolved by the caller through usePermissions so local beta overrides apply here too. */
+    isASAPSubmitBetaEnabled: boolean;
 
     /** Onboarding intro data, needed to build a transaction thread report when one doesn't exist yet. */
     introSelected: OnyxEntry<IntroSelected>;
@@ -190,6 +192,7 @@ function getIouParamsForTransaction({
     getCurrencySymbol,
     transactionViolations,
     betas,
+    isASAPSubmitBetaEnabled,
     introSelected,
     currentUserAccountID,
     currentUserEmail,
@@ -229,7 +232,7 @@ function getIouParamsForTransaction({
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas),
+        isASAPSubmitBetaEnabled,
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
