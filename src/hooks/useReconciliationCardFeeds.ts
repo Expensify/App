@@ -48,7 +48,7 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
         return !!policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
     });
 
-    // Resolve the default from the candidates only. useDefaultFundID prioritises the last-selected-feed NVP, which the
+    // Resolve the default from the candidates only. useDefaultFundID prioritizes the last-selected-feed NVP, which the
     // Expensify Card pages set and which can name a feed this page rejects, so returning it unchecked would let the
     // toggle act on a feed whose export policy is not this workspace's to claim.
     const findCandidate = (fundID: number) => candidates.find((entry) => entry.fundID === fundID);

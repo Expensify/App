@@ -274,7 +274,7 @@ describe('useReconciliationCardFeeds', () => {
         });
 
         it('ignores the card pages default when it names a feed this workspace cannot claim', () => {
-            // useDefaultFundID prioritises the last-selected-feed NVP, which the Expensify Card pages can point at
+            // useDefaultFundID prioritizes the last-selected-feed NVP, which the Expensify Card pages can point at
             // another workspace's feed. Toggling reconciliation on that feed would be unauthorized.
             mockDefaultFundIDFromCardPages = otherWorkspaceAccountID;
             mockCollections({
