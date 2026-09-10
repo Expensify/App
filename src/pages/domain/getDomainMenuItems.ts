@@ -42,7 +42,6 @@ type GetDomainMenuItemsParams = {
     /** Errors used to show indicators on the affected Domain sections. */
     domainErrors?: DomainErrors;
 
-    /** Icons used by the Domain menu items. */
     icons: DomainMenuIconMap;
 };
 
