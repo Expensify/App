@@ -2024,12 +2024,6 @@ function getCachedAlternateText(cacheKey: string, resolveAlternateText: () => st
     return alternateText;
 }
 
-/** Clears the alternate-text cache. For tests that measure or exercise the preview path with unchanged inputs. */
-function clearAlternateTextCache() {
-    alternateTextCache.clear();
-    alternateTextCacheInputs = undefined;
-}
-
 /**
  * Prepares report options for display by enriching them with UI-specific properties and filtering out invalid options.
  *
@@ -3297,7 +3291,6 @@ export {
     clearFilteredOptionListCache,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
-    clearAlternateTextCache,
     createFilteredOptionList,
     hydrateContactOption,
     createOption,
