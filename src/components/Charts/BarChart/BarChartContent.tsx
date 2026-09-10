@@ -13,7 +13,6 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
-    useMeasuredChartSize,
 } from '@components/Charts/hooks';
 import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {getCartesianChartHeight, getXAxisLabelSpace, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
@@ -47,11 +46,14 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+type BarChartContentProps = BarChartProps & {
+    chartWidth: number;
+};
+
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress, chartWidth}: BarChartContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const {onLayout, width: chartWidth, measuredSize} = useMeasuredChartSize();
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
@@ -226,16 +228,16 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     };
 
     const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
-    const chartBoxStyle = [styles.chartContent, {height: getCartesianChartHeight(xAxisLabelHeight)}];
+    const chartHeight = getCartesianChartHeight(xAxisLabelHeight);
+    const chartBoxStyle = [styles.chartContent, {height: chartHeight}];
+
+    const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontManager) {
         return (
-            <View
-                style={chartBoxStyle}
-                onLayout={onLayout}
-            >
+            <View style={chartBoxStyle}>
                 <ChartSkeleton view={CONST.SEARCH.VIEW.BAR} />
             </View>
         );
@@ -247,13 +249,10 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
 
     return (
         <GestureDetector gesture={customGestures}>
-            <Animated.View
-                style={[chartBoxStyle, cursorStyle]}
-                onLayout={onLayout}
-            >
-                {measuredSize ? (
+            <Animated.View style={[chartBoxStyle, cursorStyle]}>
+                {chartSize ? (
                     <CartesianChart
-                        explicitSize={measuredSize}
+                        explicitSize={chartSize}
                         xKey="x"
                         padding={chartPadding}
                         yKeys={['y']}
@@ -293,7 +292,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     );
 }
 
-function BarChartContent(props: BarChartProps) {
+function BarChartContent(props: BarChartContentProps) {
     return (
         <ChartFontsProvider>
             <BarChartContentBody {...props} />
@@ -302,4 +301,4 @@ function BarChartContent(props: BarChartProps) {
 }
 
 export default BarChartContent;
-export type {BarChartProps};
+export type {BarChartProps, BarChartContentProps};

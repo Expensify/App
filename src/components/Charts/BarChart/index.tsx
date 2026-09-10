@@ -1,4 +1,5 @@
 import ChartSkeleton from '@components/Charts/ChartSkeleton';
+import ChartWidthBox from '@components/Charts/ChartWidthBox';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 
 import CONST from '@src/CONST';
@@ -10,11 +11,15 @@ import type {BarChartProps} from './BarChartContent';
 const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
     return (
-        <SkiaWebChart
-            getComponent={getBarChartContent}
-            componentProps={props}
-            loadingFallback={<ChartSkeleton view={CONST.SEARCH.VIEW.BAR} />}
-        />
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getBarChartContent}
+                    componentProps={{...props, chartWidth}}
+                    loadingFallback={<ChartSkeleton view={CONST.SEARCH.VIEW.BAR} />}
+                />
+            )}
+        </ChartWidthBox>
     );
 }
 

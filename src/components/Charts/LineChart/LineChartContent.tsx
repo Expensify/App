@@ -15,7 +15,6 @@ import {
     useChartLabelMeasurements,
     useDynamicYDomain,
     useLabelHitTesting,
-    useMeasuredChartSize,
 } from '@components/Charts/hooks';
 import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {getCartesianChartHeight, getXAxisLabelSpace, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
@@ -47,11 +46,14 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+type LineChartContentProps = LineChartProps & {
+    chartWidth: number;
+};
+
+function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth}: LineChartContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const {onLayout, width: chartWidth, measuredSize} = useMeasuredChartSize();
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
@@ -218,7 +220,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     };
 
     const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
-    const chartBoxStyle = [styles.chartContent, {height: getCartesianChartHeight(xAxisLabelHeight)}];
+    const chartHeight = getCartesianChartHeight(xAxisLabelHeight);
+    const chartBoxStyle = [styles.chartContent, {height: chartHeight}];
+
+    const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
@@ -227,10 +232,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     if (isLoading || !fontManager) {
         return (
-            <View
-                style={chartBoxStyle}
-                onLayout={onLayout}
-            >
+            <View style={chartBoxStyle}>
                 <ChartSkeleton view={CONST.SEARCH.VIEW.LINE} />
             </View>
         );
@@ -242,13 +244,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     return (
         <GestureDetector gesture={customGestures}>
-            <Animated.View
-                style={[chartBoxStyle, cursorStyle]}
-                onLayout={onLayout}
-            >
-                {measuredSize ? (
+            <Animated.View style={[chartBoxStyle, cursorStyle]}>
+                {chartSize ? (
                     <CartesianChart
-                        explicitSize={measuredSize}
+                        explicitSize={chartSize}
                         xKey="x"
                         padding={chartPadding}
                         yKeys={['y']}
@@ -302,7 +301,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     );
 }
 
-function LineChartContent(props: LineChartProps) {
+function LineChartContent(props: LineChartContentProps) {
     return (
         <ChartFontsProvider>
             <LineChartContentBody {...props} />
@@ -311,4 +310,4 @@ function LineChartContent(props: LineChartProps) {
 }
 
 export default LineChartContent;
-export type {LineChartProps};
+export type {LineChartProps, LineChartContentProps};

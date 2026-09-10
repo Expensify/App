@@ -1,16 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import BarChartContent from '@components/Charts/BarChart/BarChartContent';
+import BarChart from '@components/Charts/BarChart';
 import {CHART_SKELETON_TEST_ID} from '@components/Charts/ChartSkeleton';
-import LineChartContent from '@components/Charts/LineChart/LineChartContent';
-import PieChartContent from '@components/Charts/PieChart/PieChartContent';
+import LineChart from '@components/Charts/LineChart';
+import PieChart from '@components/Charts/PieChart';
 import type {ChartDataPoint} from '@components/Charts/types';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 
 import React from 'react';
 import {PolarChart} from 'victory-native';
 
 const CONTAINER_WIDTH = 320;
-const CONTAINER_HEIGHT = 240;
 
 const data: ChartDataPoint[] = [
     {label: 'Amazon', total: 120},
@@ -42,12 +42,12 @@ describe('chart placeholder handover', () => {
     });
 
     it.each([
-        ['bar', BarChartContent],
-        ['line', LineChartContent],
-        ['pie', PieChartContent],
-    ])('should measure the %s chart box around its placeholder', (_name, ChartContent) => {
+        ['bar', BarChart],
+        ['line', LineChart],
+        ['pie', PieChart],
+    ])('should measure the %s chart box around its placeholder', (_name, Chart) => {
         render(
-            <ChartContent
+            <Chart
                 data={data}
                 isLoading
             />,
@@ -56,28 +56,28 @@ describe('chart placeholder handover', () => {
         expect(getMeasuredBox()).toBeTruthy();
     });
 
-    it('should hand the pie chart the size measured around its placeholder', () => {
+    it('should hand the pie chart the width measured around its placeholder', () => {
         const {rerender} = render(
-            <PieChartContent
+            <PieChart
                 data={data}
                 isLoading
             />,
         );
 
-        fireEvent(getMeasuredBox(), 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT}}});
+        fireEvent(getMeasuredBox(), 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}});
         rerender(
-            <PieChartContent
+            <PieChart
                 data={data}
                 isLoading={false}
             />,
         );
 
-        expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT}}), undefined);
+        expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
     });
 
-    it('should hand the pie chart no size before one has been measured', () => {
+    it('should hand the pie chart no size before a width has been measured', () => {
         render(
-            <PieChartContent
+            <PieChart
                 data={data}
                 isLoading={false}
             />,
