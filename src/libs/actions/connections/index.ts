@@ -169,6 +169,12 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            return {
+                readCommand: READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL,
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.BUSINESS_CENTRAL_SYNC_CONNECTION,
+            };
+        }
         default:
             return undefined;
     }

@@ -364,6 +364,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'ワークスペースをダウングレード',
         companyID: '会社ID',
         userID: 'ユーザーID',
+        tenantID: 'テナント ID',
+        environmentName: '環境名',
+        clientID: 'クライアント ID',
+        clientSecret: 'クライアント シークレット',
         disable: '無効にする',
         export: 'エクスポート',
         initialValue: '初期値',
@@ -6956,6 +6960,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7190,6 +7196,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'カード精算を同期しています';
                         case 'campfireSyncTravelSettlements':
                             return '出張精算を同期しています';
+                        case 'businessCentralSyncTitle':
+                            return 'Dynamics 365 Business Central データを同期しています';
+                        case 'businessCentralSyncConnection':
+                            return 'Dynamics 365 Business Central への接続を初期化しています';
+                        case 'businessCentralSyncImportData':
+                            return 'データを読み込んでいます';
                         default: {
                             return `ステージの翻訳が見つかりません: ${stage}`;
                         }
@@ -7232,6 +7244,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelInvoicingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',
@@ -7539,6 +7552,12 @@ ${reportName}`,
                 description: `Expensify と Campfire の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Campfire の設定に合わせて、財務の可視性を高めます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Campfire 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Expensify と Dynamics 365 Business Central の連携で自動同期を活用し、手入力を減らしましょう。経費のコーディングディメンションと税務同期を Dynamics 365 Business Central の設定に合わせて、財務の可視性を高めます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Dynamics 365 Business Central 連携は Control プランでのみご利用いただけます。<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`} からご利用いただけます。</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: '高度な承認',
@@ -8465,6 +8484,17 @@ ${reportName}`,
             subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Dynamics 365 Business Central の設定',
+            prerequisitesTitle: '接続する前に...',
+            followSteps: 'ハウツーガイド「Dynamics 365 Business Central に接続する」の手順に従ってください',
+            enterCredentials: 'Dynamics 365 Business Central の情報を入力してください',
+            helpArticle: `<muted-text>この情報は、こちらの<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">ヘルプ記事</a>を参照してください。</muted-text>`,
+            company: '会社',
+            companySelectDescription: 'このワークスペースと同期する Dynamics 365 Business Central の会社を選択してください。',
+            noCompaniesFound: '会社が見つかりません',
+            noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続を再同期してください',
         },
     },
     getAssistancePage: {

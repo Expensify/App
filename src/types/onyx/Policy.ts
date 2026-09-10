@@ -2457,6 +2457,62 @@ type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     CampfireCodingOfflineFeedbackKeys | CampfireExportOfflineFeedbackKeys | keyof CampfireAutoSync | keyof CampfireSync
 >;
 
+/**
+ * A company (legal entity) reachable with the Business Central connection's credentials.
+ */
+type BusinessCentralCompany = {
+    /** Unique identifier of the company */
+    id: string;
+
+    /** Internal name of the company */
+    name: string;
+
+    /** Name shown to admins when picking a company */
+    displayName: string;
+
+    /** Currency code the company reports in */
+    currencyCode: string;
+};
+
+/**
+ * Connection data retrieved from Business Central.
+ */
+type BusinessCentralConnectionData = {
+    /** Companies the connection can import from */
+    companies?: BusinessCentralCompany[];
+};
+
+/**
+ * Automatic synchronization settings for Business Central.
+ */
+type BusinessCentralAutoSync = {
+    /** Whether automatic synchronization is enabled */
+    enabled: boolean;
+};
+
+/**
+ * Connection config for Business Central.
+ */
+type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** ID of the company the workspace syncs with */
+        companyID: string;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Auto-sync settings */
+        autoSync?: BusinessCentralAutoSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'companyID'
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -2713,6 +2769,9 @@ type Connections = {
 
     /** Campfire integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
+
+    /** Business Central integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: Connection<BusinessCentralConnectionData, BusinessCentralConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
@@ -3541,4 +3600,7 @@ export type {
     DualEntrySync,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
+    BusinessCentralCompany,
+    BusinessCentralConnectionData,
+    BusinessCentralConnectionsConfig,
 };

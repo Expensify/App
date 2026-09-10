@@ -1395,6 +1395,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;

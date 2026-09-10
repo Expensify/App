@@ -595,6 +595,7 @@ const CONST = {
         ZENEFITS: 'Zenefits',
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
+        BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -1449,6 +1450,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-mastercard-commercial-feed',
@@ -3870,6 +3872,10 @@ const CONST = {
         EMPLOYEE: 'employee',
     },
 
+    BUSINESS_CENTRAL_CONFIG: {
+        COMPANY_ID: 'companyID',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -4638,6 +4644,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualEntry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'businessCentral',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -4657,6 +4664,7 @@ const CONST = {
                 RILLET: 'rillet',
                 DUALENTRY: 'dualentry',
                 CAMPFIRE: 'campfire',
+                BUSINESS_CENTRAL: 'business-central',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge-hr',
@@ -4672,6 +4680,7 @@ const CONST = {
                 rillet: 'Rillet',
                 dualEntry: 'DualEntry',
                 campfire: 'Campfire',
+                businessCentral: 'Dynamics 365 Business Central',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -4697,6 +4706,7 @@ const CONST = {
                     this.NAME.RILLET,
                     this.NAME.DUALENTRY,
                     this.NAME.CAMPFIRE,
+                    this.NAME.BUSINESS_CENTRAL,
                 ] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
@@ -4712,6 +4722,7 @@ const CONST = {
                     [this.NAME.RILLET]: 'rillet',
                     [this.NAME.DUALENTRY]: 'dualentry',
                     [this.NAME.CAMPFIRE]: 'campfire',
+                    [this.NAME.BUSINESS_CENTRAL]: 'businessCentral',
                 } as const;
             },
             get HR_CONNECTION_NAMES() {
@@ -4729,6 +4740,7 @@ const CONST = {
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
+                businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -4830,6 +4842,9 @@ const CONST = {
                 CAMPFIRE_SYNC_PAYMENTS: 'campfireSyncPayments',
                 CAMPFIRE_SYNC_CARD_SETTLEMENTS: 'campfireSyncCardSettlements',
                 CAMPFIRE_SYNC_TRAVEL_SETTLEMENTS: 'campfireSyncTravelSettlements',
+                BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
+                BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
+                BUSINESS_CENTRAL_SYNC_IMPORT_DATA: 'businessCentralSyncImportData',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -8234,6 +8249,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
+                alias: 'businessCentral',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL}.description` as const,
+                icon: 'BusinessCentralSquare',
             },
             approvals: {
                 id: 'approvals' as const,

@@ -135,6 +135,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import BusinessCentralSquare from '@assets/images/integrationicons/business-central-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
@@ -330,6 +331,7 @@ const Expensicons = {
     Bug,
     Building,
     Buildings,
+    BusinessCentralSquare,
     Calendar,
     Camera,
     Car,
