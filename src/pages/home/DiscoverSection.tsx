@@ -6,6 +6,7 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +30,7 @@ const MAX_NUMBER_OF_LINES_TITLE = 4;
 function DiscoverSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {values, cardPaddingHorizontal} = useLayoutSpacing();
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const styles = useThemeStyles();
@@ -73,7 +75,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
-                style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
+                style={[{marginHorizontal: values.cardPadding}, styles.mb5]}
                 sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
@@ -91,7 +93,7 @@ function DiscoverSection() {
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
-                wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                wrapperStyle={cardPaddingHorizontal}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
                 hasSubMenuItems
                 viewMode={CONST.OPTION_MODE.COMPACT}

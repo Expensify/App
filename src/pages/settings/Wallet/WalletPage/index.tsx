@@ -22,6 +22,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -118,6 +119,7 @@ function WalletPage() {
     const styles = useThemeStyles();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
@@ -703,8 +705,8 @@ function WalletPage() {
                                 onPress={onBankAccountRowPressed}
                                 onAddBankAccountPress={addBankAccountPressed}
                                 onThreeDotsMenuPress={paymentMethodPressed}
-                                style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                style={[styles.mt5, cardEdgeToEdge]}
+                                listItemStyle={cardPaddingHorizontal}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
                                 threeDotsMenuItems={threeDotMenuItems}
@@ -724,39 +726,39 @@ function WalletPage() {
                                     shouldShowAssignedCards
                                     onPress={assignedCardPressed}
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
-                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    style={[styles.mt5, cardEdgeToEdge]}
+                                    listItemStyle={cardPaddingHorizontal}
                                     shouldShowConnectionStatus
                                 />
-                                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                                <View style={cardEdgeToEdge}>
                                     <MenuItem
                                         onPress={onAddPersonalCardPress}
                                         title={translate('personalCard.addPersonalCard')}
                                         icon={icons.Plus}
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        wrapperStyle={[styles.paymentMethod, cardPaddingHorizontal]}
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
                                     />
                                 </View>
                             </>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                            <View style={cardEdgeToEdge}>
                                 <MenuItem
                                     title={translate('workspace.companyCards.importTransactions.importButton')}
                                     icon={icons.Table}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    wrapperStyle={[styles.paymentMethod, cardPaddingHorizontal]}
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
                                 />
                             </View>
                             {!hasAssignedCard && (
-                                <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                <View style={cardEdgeToEdge}>
                                     <MenuItem
                                         iconHeight={40}
                                         iconWidth={40}
                                         shouldShowRightIcon
                                         icon={illustrations.VerticalCreditCards}
                                         displayInDefaultIconColor
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        wrapperStyle={[styles.paymentMethod, cardPaddingHorizontal]}
                                         title={translate('personalCard.lookingForCompanyCards')}
                                         description={translate('personalCard.lookingForCompanyCardsDescription')}
                                         titleStyle={styles.textStrong}
@@ -830,11 +832,7 @@ function WalletPage() {
                                                             triggerKYCFlow({event});
                                                         }}
                                                         shouldShowRightIcon
-                                                        wrapperStyle={[
-                                                            styles.transferBalance,
-                                                            shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                            shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                        ]}
+                                                        wrapperStyle={[styles.transferBalance, cardEdgeToEdge, cardPaddingHorizontal]}
                                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
                                                     />
                                                 );
@@ -883,11 +881,7 @@ function WalletPage() {
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute());
                                                     }}
-                                                    wrapperStyle={[
-                                                        styles.transferBalance,
-                                                        shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                    ]}
+                                                    wrapperStyle={[styles.transferBalance, cardEdgeToEdge, cardPaddingHorizontal]}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
                                                 />
                                             );

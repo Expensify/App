@@ -2,7 +2,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
 import useContainerWidth from '@hooks/useContainerWidth';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -62,7 +62,7 @@ function getMerchantSkeletonWidth(itemIndex: number) {
 function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholderProps) {
     const {onLayout, containerWidth} = useContainerWidth(ROW_RIGHT_MARGIN);
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     const renderSkeletonItem = (args: {itemIndex: number}) => {
         const textX = RECEIPT_WIDTH + COLUMN_GAP;
@@ -118,7 +118,7 @@ function RecentlyAddedPlaceholder({shouldShowSkeleton}: RecentlyAddedPlaceholder
     return (
         <View
             testID="recentlyAddedSkeleton"
-            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+            style={cardPaddingHorizontal}
         >
             {/* Measured without padding: the padded parent's width includes the inset, which pushes the right-aligned bars off the svg. */}
             <View
