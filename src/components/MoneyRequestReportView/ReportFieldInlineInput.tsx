@@ -1,17 +1,20 @@
 /**
  * Renders a single report field in the report view as an editable input instead of a row that navigates to the
  * report field editor page. Text and formula fields are typed into directly, dates open the calendar in place, and
- * list fields open the option list in a modal, so changing a value never takes the user off the report.
+ * list fields open the option list in a dropdown anchored under the input, so changing a value never takes the user
+ * off the report.
  */
 
 import DatePicker from '@components/DatePicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
-import ScreenWrapper from '@components/ScreenWrapper';
+import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import TextInput from '@components/TextInput';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
@@ -24,6 +27,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ReportFieldInlineInputProps = {
     reportField: PolicyReportField;
@@ -49,11 +53,16 @@ type ReportFieldInlineInputProps = {
 function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, errorText, fieldList, onSaveValue}: ReportFieldInlineInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     const [draftValue, setDraftValue] = useState(value);
     const [previousValue, setPreviousValue] = useState(value);
     const [validationError, setValidationError] = useState('');
-    const [isOptionListVisible, setIsOptionListVisible] = useState(false);
+
+    // Width of the input, measured so the dropdown matches the field it is anchored to rather than the default 334px.
+    const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
 
     // Tracks the value that was last sent to the server so a second save attempt for the same value, for example when
     // the input is blurred right after it was submitted, is skipped while the update is still in flight.
@@ -103,7 +112,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     };
 
     const saveSelectedOption = (selectedValue: string) => {
-        setIsOptionListVisible(false);
         if (selectedValue === lastSavedValue) {
             return;
         }
@@ -129,47 +137,61 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST && !isReadOnly) {
         const enabledOptions = reportField.values.filter((_option: string, index: number) => !reportField.disabledOptions.at(index));
 
-        return (
-            <>
-                <TextInput
-                    inputID={fieldKey}
-                    label={label}
-                    accessibilityLabel={label}
-                    role={CONST.ROLE.COMBOBOX}
-                    accessibilityState={{expanded: isOptionListVisible}}
-                    value={value}
-                    errorText={errorText}
-                    inputStyle={styles.pointerEventsNone}
-                    onPress={() => setIsOptionListVisible(true)}
-                    onSubmitEditing={() => setIsOptionListVisible(true)}
-                    disableKeyboard
+        // FilterPopupButton calls this as a plain function during its own render, so it must not use hooks — everything
+        // it needs is read from this component's scope.
+        const renderOptionsPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay}) => (
+            <View
+                // The option list is `flex1`, so the popover needs a definite height. This is the same helper every
+                // other SelectionList-in-a-popover uses, and it caps at the same window ratio and
+                // `POPOVER_DROPDOWN_MAX_HEIGHT` that `getPopoverMaxHeight` does.
+                style={styles.getSelectionListPopoverHeight({
+                    itemCount: enabledOptions.length,
+                    windowHeight,
+                    isInLandscapeMode,
+                    isSearchable: true,
+                    // Selecting an option submits straight away, so there is no apply button to leave room for.
+                    hasButton: false,
+                })}
+            >
+                <EditReportFieldDropdown
+                    fieldKey={fieldKey}
+                    fieldValue={value}
+                    fieldOptions={enabledOptions}
+                    onSubmit={(form) => {
+                        closeOverlay();
+                        saveSelectedOption(form[fieldKey] ?? '');
+                    }}
                 />
-                <Modal
-                    type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                    isVisible={isOptionListVisible}
-                    onClose={() => setIsOptionListVisible(false)}
-                    onBackdropPress={() => setIsOptionListVisible(false)}
-                    shouldHandleNavigationBack
-                    enableEdgeToEdgeBottomSafeAreaPadding
-                >
-                    <ScreenWrapper
-                        includePaddingTop={false}
-                        enableEdgeToEdgeBottomSafeAreaPadding
-                        testID="ReportFieldOptionListModal"
+            </View>
+        );
+
+        return (
+            <FilterPopupButton
+                popoverWidth={triggerWidth}
+                PopoverComponent={renderOptionsPopup}
+                renderButton={({onPress, ref, isExpanded}) => (
+                    <View
+                        ref={ref}
+                        onLayout={(event) => setTriggerWidth(event.nativeEvent.layout.width)}
                     >
-                        <HeaderWithBackButton
-                            title={label}
-                            onBackButtonPress={() => setIsOptionListVisible(false)}
+                        <TextInput
+                            inputID={fieldKey}
+                            label={label}
+                            accessibilityLabel={label}
+                            role={CONST.ROLE.COMBOBOX}
+                            accessibilityState={{expanded: isExpanded}}
+                            value={value}
+                            errorText={errorText}
+                            inputStyle={styles.pointerEventsNone}
+                            icon={icons.DownArrow}
+                            iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDown]}
+                            onPress={onPress}
+                            onSubmitEditing={onPress}
+                            disableKeyboard
                         />
-                        <EditReportFieldDropdown
-                            fieldKey={fieldKey}
-                            fieldValue={value}
-                            fieldOptions={enabledOptions}
-                            onSubmit={(form) => saveSelectedOption(form[fieldKey] ?? '')}
-                        />
-                    </ScreenWrapper>
-                </Modal>
-            </>
+                    </View>
+                )}
+            />
         );
     }
 

@@ -49,6 +49,14 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: jest.fn(() => ({navigate: jest.fn(), addListener: jest.fn(() => jest.fn())})),
     useIsFocused: jest.fn(() => true),
     useRoute: jest.fn(() => ({key: '', name: '', params: {reportID: '1'}})),
+    // The option list is rendered outside a navigator here, so there is no focus cycle to refresh its snapshot on.
+    useFocusEffect: jest.fn(),
+}));
+
+// The list field's dropdown is built on FilterPopupButton, which reads focus straight from @react-navigation/core.
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/core'),
+    useIsFocused: jest.fn(() => true),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -78,6 +86,16 @@ const buildTextField = (index: number): OnyxTypes.PolicyReportField => ({
     isTax: false,
 });
 
+const buildListField = (): OnyxTypes.PolicyReportField => ({
+    ...buildTextField(1),
+    name: 'ListField',
+    fieldID: 'listField',
+    type: CONST.REPORT_FIELD_TYPES.LIST,
+    value: 'Option1',
+    values: ['Option1', 'Option2'],
+    disabledOptions: [false, false],
+});
+
 const buildFieldList = (fieldCount: number): Record<string, OnyxTypes.PolicyReportField> => {
     const fieldList: Record<string, OnyxTypes.PolicyReportField> = {};
     for (let index = 1; index <= fieldCount; index++) {
@@ -87,14 +105,21 @@ const buildFieldList = (fieldCount: number): Record<string, OnyxTypes.PolicyRepo
     return fieldList;
 };
 
-const buildPolicy = (fieldCount: number): OnyxTypes.Policy => ({
-    ...LHNTestUtils.getFakePolicy(policyID, 'Policy'),
-    type: CONST.POLICY.TYPE.TEAM,
-    role: CONST.POLICY.ROLE.ADMIN,
-    outputCurrency: CONST.CURRENCY.USD,
-    areReportFieldsEnabled: true,
-    fieldList: buildFieldList(fieldCount),
-});
+const buildPolicy = (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = []): OnyxTypes.Policy => {
+    const fieldList = buildFieldList(fieldCount);
+    for (const field of extraFields) {
+        fieldList[`expensify_${field.fieldID}`] = field;
+    }
+
+    return {
+        ...LHNTestUtils.getFakePolicy(policyID, 'Policy'),
+        type: CONST.POLICY.TYPE.TEAM,
+        role: CONST.POLICY.ROLE.ADMIN,
+        outputCurrency: CONST.CURRENCY.USD,
+        areReportFieldsEnabled: true,
+        fieldList,
+    };
+};
 
 const buildReport = (): OnyxTypes.Report => ({
     ...LHNTestUtils.getFakeReport([accountID, 2]),
@@ -108,8 +133,8 @@ const buildReport = (): OnyxTypes.Report => ({
     total: 0,
 });
 
-const renderReportFields = async (fieldCount: number) => {
-    const policy = buildPolicy(fieldCount);
+const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = []) => {
+    const policy = buildPolicy(fieldCount, extraFields);
     const report = buildReport();
 
     await act(async () => {
@@ -196,5 +221,27 @@ describe('MoneyRequestViewReportFields', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(updateReportField).not.toHaveBeenCalled();
+    });
+
+    it('renders a list field as a collapsed combobox rather than a row that opens a page', async () => {
+        await renderReportFields(1, [buildListField()]);
+
+        const listInput = screen.getByLabelText('ListField');
+        expect(listInput).toHaveProp('role', CONST.ROLE.COMBOBOX);
+        expect(listInput).toHaveProp('accessibilityState', {expanded: false});
+        expect(listInput).toHaveProp('value', 'Option1');
+
+        // The dropdown content is deferred until the field is first opened, so no option row is mounted up front.
+        expect(screen.queryByText('Option2')).toBeNull();
+    });
+
+    it('opens the option list in place when a list field is pressed', async () => {
+        await renderReportFields(1, [buildListField()]);
+
+        fireEvent.press(screen.getByLabelText('ListField'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByLabelText('ListField')).toHaveProp('accessibilityState', {expanded: true});
+        expect(screen.getByText('Option2')).toBeOnTheScreen();
     });
 });
