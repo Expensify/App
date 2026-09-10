@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -104,6 +105,7 @@ function GroupHeader({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -144,8 +146,9 @@ function GroupHeader({
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            fallbackPolicyID: policyForMovingExpensesID,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns]);
+    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, policyForMovingExpensesID]);
 
     const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
         let amountWide = false;
