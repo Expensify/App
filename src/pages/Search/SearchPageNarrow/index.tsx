@@ -19,6 +19,7 @@ import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,7 +44,7 @@ import type {SearchResults} from '@src/types/onyx';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, LayoutAnimationConfig, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
@@ -55,6 +56,11 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     searchResults?: SearchResults;
+
+    /** The last query whose results resolved. The area renders these, holding them while a new query loads. */
+    contentQueryJSON?: SearchQueryJSON;
+    contentSearchResults: SearchResults | undefined;
+
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
@@ -72,6 +78,8 @@ const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} 
 function SearchPageNarrow({
     queryJSON,
     searchResults,
+    contentQueryJSON,
+    contentSearchResults,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchOverlayContent,
@@ -79,7 +87,12 @@ function SearchPageNarrow({
     hasFilterBars,
     isOverlayActive,
 }: SearchPageNarrowProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(contentQueryJSON, contentSearchResults);
+
+    // A layer replacing results already on screen renders its hydrate placeholder invisibly, since a skeleton there
+    // reads as a flash between two sets of results.
+    const previousContentHash = usePrevious(contentQueryJSON?.hash);
+    const isReplacingPreviousContent = previousContentHash !== contentQueryJSON?.hash;
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -208,7 +221,7 @@ function SearchPageNarrow({
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
 
-    if (!queryJSON) {
+    if (!queryJSON || !contentQueryJSON) {
         return (
             <ScreenWrapper
                 testID="SearchPageNarrow"
@@ -309,9 +322,9 @@ function SearchPageNarrow({
                             <>
                                 {isInteractive && (
                                     <Search
-                                        searchResults={searchResults}
-                                        queryJSON={queryJSON}
-                                        key={queryJSON.hash}
+                                        searchResults={contentSearchResults}
+                                        queryJSON={contentQueryJSON}
+                                        key={contentQueryJSON.hash}
                                         contentContainerStyle={contentContainerStyle}
                                         handleSearch={handleSearchAction}
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -334,22 +347,33 @@ function SearchPageNarrow({
                         )}
                         {!useStaticRendering && (
                             <>
-                                {shouldShowLoadingSkeleton ? (
-                                    <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
-                                ) : (
-                                    <SearchWithNavigationDeferredMount
-                                        searchResults={searchResults}
-                                        queryJSON={queryJSON}
-                                        key={queryJSON.hash}
-                                        onSearchListScroll={scrollHandler}
-                                        contentContainerStyle={contentContainerStyle}
-                                        handleSearch={handleSearchAction}
-                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        onDestinationVisible={endSubmitNavigationSpans}
-                                        onContentReady={onSearchContentReady}
-                                        hasFilterBars={hasFilterBars}
-                                    />
-                                )}
+                                {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
+                                <LayoutAnimationConfig skipEntering>
+                                    {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
+                                        filled so it never shares the parent's column layout with the layer it replaces. */}
+                                    <Animated.View
+                                        key={contentQueryJSON.hash}
+                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        style={StyleSheet.absoluteFill}
+                                    >
+                                        {shouldShowLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <SearchWithNavigationDeferredMount
+                                                isReplacingContent={isReplacingPreviousContent}
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                onSearchListScroll={scrollHandler}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        )}
+                                    </Animated.View>
+                                </LayoutAnimationConfig>
                                 {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                 {!!searchOverlayContent && (
                                     <View
@@ -362,7 +386,7 @@ function SearchPageNarrow({
                             </>
                         )}
                     </View>
-                    <SearchSelectionFooter searchResults={searchResults} />
+                    <SearchSelectionFooter searchResults={contentSearchResults} />
                 </View>
             </ScreenWrapper>
             {(!useStaticRendering || isHeaderInteractive) && (
