@@ -9,6 +9,7 @@ import {editReportComment} from '@libs/actions/Report';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+import ReportActionIndexContext, {ReportActionIsNewestContext, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
@@ -86,13 +87,19 @@ function ReportScreenProviders({children}: PropsWithChildren) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
 }
 
-const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessageEditProps>) => {
+const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessageEditProps>, listContext?: {index: number; isNewest: boolean; scrollToNewestAction?: () => void}) => {
     return render(
         <ReportScreenProviders>
-            <ReportActionItemMessageEdit
-                {...defaultProps}
-                {...props}
-            />
+            <ReportActionScrollToNewestContext.Provider value={listContext?.scrollToNewestAction}>
+                <ReportActionIsNewestContext.Provider value={listContext?.isNewest}>
+                    <ReportActionIndexContext.Provider value={listContext?.index ?? 0}>
+                        <ReportActionItemMessageEdit
+                            {...defaultProps}
+                            {...props}
+                        />
+                    </ReportActionIndexContext.Provider>
+                </ReportActionIsNewestContext.Provider>
+            </ReportActionScrollToNewestContext.Provider>
         </ReportScreenProviders>,
     );
 };
@@ -209,6 +216,26 @@ describe('ReportActionCompose Integration Tests', () => {
             expect(videoAttributeCache?.[videoSource]).toContain('data-name');
             expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-height');
             expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-width');
+        });
+
+        it('should use the list-specific scroll after saving the newest message', () => {
+            const scrollToNewestAction = jest.fn();
+            renderReportActionItemMessageEdit(undefined, {index: 9, isNewest: true, scrollToNewestAction});
+
+            fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
+            fireEvent.press(screen.getByLabelText('common.saveChanges'));
+
+            expect(scrollToNewestAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not scroll after saving a non-newest message at index zero', () => {
+            const scrollToNewestAction = jest.fn();
+            renderReportActionItemMessageEdit(undefined, {index: 0, isNewest: false, scrollToNewestAction});
+
+            fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
+            fireEvent.press(screen.getByLabelText('common.saveChanges'));
+
+            expect(scrollToNewestAction).not.toHaveBeenCalled();
         });
     });
 });
