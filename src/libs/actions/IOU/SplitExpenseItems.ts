@@ -7,7 +7,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate, getTaxByID, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails, isExpenseReport, isSelfDM} from '@libs/ReportUtils';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -474,7 +474,9 @@ function redistributeExcludingFrozenSplits(
         if (!liveTransaction) {
             return original;
         }
-        const liveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
+        const isLiveTransactionFromExpenseReport = isExpenseReport(getReportOrDraftReport(liveTransaction.reportID));
+        const rawLiveAmount = hasValidModifiedAmount(liveTransaction) ? Number(liveTransaction.modifiedAmount) : (liveTransaction.amount ?? 0);
+        const liveAmount = isLiveTransactionFromExpenseReport && rawLiveAmount ? -rawLiveAmount : rawLiveAmount;
         return {...original, amount: liveAmount, taxAmount: convertToBackendAmount(calculateTaxAmount(original.taxValue, liveAmount, getCurrencyDecimals(currency)))};
     });
 }
@@ -831,8 +833,15 @@ function updateSplitExpenseField(
     personalPolicyOutputCurrency: string | undefined,
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     policies?: OnyxCollection<OnyxTypes.Policy>,
+    frozenSplitsContext?: FrozenSplitsContext,
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
+        return;
+    }
+
+    // A frozen split's fields must stay fixed - editing it here and saving would push the dirty amount/tax
+    // into the finalized report.
+    if (frozenSplitsContext?.frozenSplitTransactionIDs?.has(splitExpenseTransactionID)) {
         return;
     }
 

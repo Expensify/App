@@ -8725,6 +8725,74 @@ describe('updateSplitExpenseAmountField', () => {
         expect(frozenSplitAfter?.amount).toBe(6000);
     });
 
+    it('restores a frozen split on an expense report with the correct (positive) sign, not the report-internal negative one', async () => {
+        const originalTransactionID = '123-frozen-signed';
+        const frozenTransactionID = '789-frozen-signed';
+        const editedTransactionID = '999-frozen-signed';
+
+        const expenseReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        // Expense reports store the transaction amount with the opposite sign of what SplitExpense uses.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`, {
+            transactionID: frozenTransactionID,
+            amount: -6000,
+            currency: 'USD',
+            reportID: expenseReport.reportID,
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-signed',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 5000,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then the frozen split is restored to the positive SplitExpense convention (6000), not the
+        // expense-report-internal negative one (-6000) that would sneak a wrong-signed value into Save.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
+    });
+
     it('should update distance and merchant for distance transactions when amount changes', async () => {
         const customUnitRateID = 'rate-update';
         const customUnitID = 'distance-unit';
@@ -9659,6 +9727,97 @@ describe('updateSplitExpenseField', () => {
         });
         expect(updatedSplit?.odometerStart).toBe(1000);
         expect(updatedSplit?.odometerEnd).toBe(1100);
+    });
+
+    it('does not apply a field edit to a split that is frozen', async () => {
+        const originalTransactionID = 'orig-update-frozen';
+        const splitExpenseTransactionID = 'split-update-frozen';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -20000,
+            currency: 'USD',
+            merchant: 'Original Merchant',
+            comment: {
+                comment: 'Original comment',
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await waitForBatchedUpdates();
+
+        const originalTransactionDraft: Transaction = {
+            transactionID: 'draft-orig-frozen',
+            amount: 20000,
+            currency: 'USD',
+            merchant: 'Draft Merchant',
+            comment: {
+                comment: 'Draft comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: splitExpenseTransactionID,
+                        amount: 10000,
+                        description: 'Original description',
+                        category: 'Food',
+                        tags: ['tag1'],
+                        created: '2024-01-01',
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+        await waitForBatchedUpdates();
+
+        const splitExpenseDraftTransaction: Transaction = {
+            transactionID: 'draft-split-frozen',
+            amount: 15000,
+            currency: 'USD',
+            merchant: 'Updated Merchant',
+            comment: {
+                comment: 'Updated description',
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                originalTransactionID,
+            },
+            category: 'Car',
+            tag: 'tag2',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When saving the per-split edit page for a split that has since become frozen.
+        updateSplitExpenseField(
+            splitExpenseDraftTransaction,
+            originalTransactionDraft,
+            splitExpenseTransactionID,
+            originalTransaction,
+            undefined,
+            false,
+            undefined,
+            getCurrencySymbolLocal,
+            undefined,
+            {
+                frozenSplitTransactionIDs: new Set([splitExpenseTransactionID]),
+            },
+        );
+        await waitForBatchedUpdates();
+
+        // Then the split is left exactly as it was - the dirty edit never lands in the shared draft.
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const updatedSplit = updatedDraft?.comment?.splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+        expect(updatedSplit?.amount).toBe(10000);
+        expect(updatedSplit?.description).toBe('Original description');
+        expect(updatedSplit?.category).toBe('Food');
+        expect(updatedSplit?.tags).toEqual(['tag1']);
     });
 
     it('should recalculate amount for distance transactions when distance changes', async () => {

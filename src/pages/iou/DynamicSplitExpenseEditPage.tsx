@@ -608,6 +608,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     personalPolicy?.outputCurrency,
                                     getCurrencySymbol,
                                     allPolicies,
+                                    frozenSplitsContext,
                                 );
                                 Navigation.goBack(backTo);
                             }}
