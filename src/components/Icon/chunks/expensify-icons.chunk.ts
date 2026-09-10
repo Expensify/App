@@ -135,6 +135,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
@@ -591,6 +592,7 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    CampfireSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
