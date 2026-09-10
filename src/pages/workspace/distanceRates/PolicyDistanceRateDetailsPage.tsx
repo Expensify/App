@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -279,12 +280,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    onPress={editTaxRateValue}
-                                    interactive={canWriteDistanceRates}
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    value={taxRate}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -320,7 +319,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                     prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteRate();
