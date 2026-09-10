@@ -1278,7 +1278,7 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
-    reportName?: string,
+    reportName: string | undefined,
     pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
