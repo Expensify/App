@@ -50,9 +50,6 @@ type FormulaContext = {
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
 
-/** Modifier that formats an amount without its currency symbol, e.g. {report:total:nosymbol} */
-const NO_CURRENCY_SYMBOL = 'NOSYMBOL';
-
 const FORMULA_PART_TYPES = {
     REPORT: 'report',
     FIELD: 'field',
@@ -284,14 +281,6 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
- * Check if a formula part is a reimbursement-amount part (report:debitedAmount or report:creditedAmount)
- */
-function isReimbursementAmountPart(part: FormulaPart): boolean {
-    const field = part.fieldPath.at(0)?.toLowerCase();
-    return part.type === FORMULA_PART_TYPES.REPORT && (field === 'debitedamount' || field === 'creditedamount');
-}
-
-/**
  * Compute a formula and report whether any tokenized part fell back to its raw `{...}` definition.
  * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
@@ -310,8 +299,9 @@ function computeWithMetadata(formula?: string, context?: FormulaContext): {value
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                // Empty is a real value for submit and reimbursement-amount tokens. Keep it instead of falling back to the raw definition.
-                if (value === '' && !isSubmissionInfoPart(part) && !isReimbursementAmountPart(part)) {
+                // Apply fallback to formula definition for empty values, except for submission info
+                // Submission info explicitly returns empty strings when data is missing (matches backend)
+                if (value === '' && !isSubmissionInfoPart(part)) {
                     value = part.definition;
                 }
                 break;
@@ -372,25 +362,6 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 }
 
 /**
- * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
- */
-function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
-    // Check the modifier first so a bad one falls back to the raw token even before any amount exists.
-    const trimmedFormat = format?.trim().toUpperCase();
-    if (trimmedFormat && trimmedFormat !== NO_CURRENCY_SYMBOL && !isValidCurrencyCode(trimmedFormat)) {
-        return part.definition;
-    }
-
-    if (!amount || !currency) {
-        return '';
-    }
-
-    // The modifier is validated above, so only a malformed source currency reaches '' here.
-    const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
-    return formattedAmount === null || formattedAmount === '' ? part.definition : formattedAmount;
-}
-
-/**
  * Compute the value of a report formula part
  */
 function computeReportPart(part: FormulaPart, context: FormulaContext): string {
@@ -426,10 +397,6 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
         }
-        case 'debitedamount':
-            return formatReimbursementAmount(report.debitedAmount, report.debitedCurrency, format, part, context);
-        case 'creditedamount':
-            return formatReimbursementAmount(report.creditedAmount, report.creditedCurrency, format, part, context);
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -631,7 +598,7 @@ function formatAmount(
         const trimmedCurrency = currency?.trim().toUpperCase();
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
-            if (trimmedDisplayCurrency === NO_CURRENCY_SYMBOL) {
+            if (trimmedDisplayCurrency === 'NOSYMBOL') {
                 return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
             }
 
