@@ -973,6 +973,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 report: submittedExpenseReport,
                 policy: corporatePolicy,
                 reportActions,
+                rules: undefined,
             });
 
         it('should let the submitter edit a restricted field when the passed reportActions show no forward since the last submit', () => {

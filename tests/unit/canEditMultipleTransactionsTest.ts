@@ -340,9 +340,9 @@ describe('canEditMultipleTransactions', () => {
         };
 
         // When the snapshot shows no forward since the last submit, the submitter can still bulk edit
-        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, false, snapshotWithoutForward)).toBe(true);
+        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined, false, snapshotWithoutForward)).toBe(true);
 
         // When the snapshot-only actions show the report was forwarded after the last submit, bulk editing must be blocked
-        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, false, snapshotWithForward)).toBe(false);
+        expect(canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined, false, snapshotWithForward)).toBe(false);
     });
 });
