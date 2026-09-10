@@ -30,10 +30,16 @@ const mockQAServer = CONST.SERVER.QA;
 let mockActiveServer: ValueOf<typeof CONST.SERVER> = CONST.SERVER.PRODUCTION;
 let mockIsPinnedByEnvironment = false;
 let mockIsStagingIgnored = false;
+let mockIsQASelectable = true;
 
 jest.mock('@hooks/useActiveServer', () => ({
     __esModule: true,
-    default: (): ActiveServerState => ({activeServer: mockActiveServer, isPinnedByEnvironment: mockIsPinnedByEnvironment, isStagingIgnored: mockIsStagingIgnored}),
+    default: (): ActiveServerState => ({
+        activeServer: mockActiveServer,
+        isPinnedByEnvironment: mockIsPinnedByEnvironment,
+        isStagingIgnored: mockIsStagingIgnored,
+        isQASelectable: mockIsQASelectable,
+    }),
 }));
 
 jest.mock('@libs/ApiUtils', () => ({
@@ -137,6 +143,7 @@ describe('Server selection', () => {
         mockActiveServer = CONST.SERVER.PRODUCTION;
         mockIsPinnedByEnvironment = false;
         mockIsStagingIgnored = false;
+        mockIsQASelectable = true;
         jest.clearAllMocks();
         jest.mocked(isQAAuthConfigured).mockReturnValue(false);
     });
@@ -226,6 +233,14 @@ describe('Server selection', () => {
             render(<ServerSelector />);
 
             expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING, CONST.SERVER.QA]);
+        });
+
+        it('hides QA where a stored QA would be ignored, so the list cannot offer a pick the resolver drops', () => {
+            mockIsQASelectable = false;
+            jest.mocked(isQAAuthConfigured).mockReturnValue(true);
+            render(<ServerSelector />);
+
+            expect(getListedServers()).toEqual([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING]);
         });
 
         it('drops staging where a stored staging is ignored, and still commits QA, which is not', () => {

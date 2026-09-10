@@ -21,6 +21,9 @@ type ActiveServerState = {
 
     /** When true, a stored staging resolves to another server, so nothing reaches the staging hosts. */
     isStagingIgnored: boolean;
+
+    /** When true, a stored QA is honored. The selector reads it so it cannot offer a server this refuses. */
+    isQASelectable: boolean;
 };
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
@@ -56,7 +59,7 @@ function resolveActiveServer(value: Server | undefined, environment: ValueOf<typ
     // The environment is baked into the bundle, and there is no meaningful way
     // to point qa.new.exops.io at production
     if (environment === CONST.ENVIRONMENT.QA && isQAConfigured) {
-        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true, isStagingIgnored: false};
+        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true, isStagingIgnored: false, isQASelectable: true};
     }
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
@@ -66,11 +69,11 @@ function resolveActiveServer(value: Server | undefined, environment: ValueOf<typ
     const server = value === CONST.SERVER.QA && !isQASelectable ? undefined : value;
 
     if (CONFIG.IS_USING_LOCAL_WEB && server !== CONST.SERVER.QA) {
-        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false, isStagingIgnored: true};
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false, isStagingIgnored: true, isQASelectable};
     }
 
     const defaultServer = environment === CONST.ENVIRONMENT.STAGING || environment === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
-    return {activeServer: server ?? defaultServer, isPinnedByEnvironment: false, isStagingIgnored: false};
+    return {activeServer: server ?? defaultServer, isPinnedByEnvironment: false, isStagingIgnored: false, isQASelectable};
 }
 
 /**

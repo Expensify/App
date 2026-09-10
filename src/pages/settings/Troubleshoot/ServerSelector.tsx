@@ -31,13 +31,16 @@ type ServerSelectorProps = {
 function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeServer, isPinnedByEnvironment, isStagingIgnored} = useActiveServer();
+    const {activeServer, isPinnedByEnvironment, isStagingIgnored, isQASelectable} = useActiveServer();
 
     // The resolved server arrives a tick after mount, so it cannot seed this state
     const [pickedServer, setPickedServer] = useState<Server>();
     const selectedServer = pickedServer ?? activeServer;
 
-    const offeredServers = [CONST.SERVER.PRODUCTION, ...(isStagingIgnored ? [] : [CONST.SERVER.STAGING]), ...(isQAAuthConfigured() ? [CONST.SERVER.QA] : [])];
+    // Two separate facts: whether a stored QA would be honored at all, and whether this platform can sign in
+    // to it. Offering QA without both would store a pick the resolver drops on the next read
+    const canPickQA = isQASelectable && isQAAuthConfigured();
+    const offeredServers = [CONST.SERVER.PRODUCTION, ...(isStagingIgnored ? [] : [CONST.SERVER.STAGING]), ...(canPickQA ? [CONST.SERVER.QA] : [])];
 
     // A pinned build can be on a server the list would not otherwise offer
     const listedServers = offeredServers.includes(activeServer) ? offeredServers : [...offeredServers, activeServer];

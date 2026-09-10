@@ -85,7 +85,7 @@ const mockProductionServer = CONST.SERVER.PRODUCTION;
 
 jest.mock('@hooks/useActiveServer', () => ({
     __esModule: true,
-    default: () => ({activeServer: mockProductionServer, isPinnedByEnvironment: false, isStagingIgnored: false}),
+    default: () => ({activeServer: mockProductionServer, isPinnedByEnvironment: false, isStagingIgnored: false, isQASelectable: false}),
 }));
 
 jest.mock('@libs/ApiUtils', () => ({
