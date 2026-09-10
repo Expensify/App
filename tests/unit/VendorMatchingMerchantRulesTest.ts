@@ -19,20 +19,21 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
  * A minimal merchant rule form. Individual tests override only the fields they exercise, so the
  * mappers are validated against a realistic full form rather than a hand-picked subset.
  */
-const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm =>
-    ({
-        merchantToMatch: 'Coffee Shop',
-        matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-        merchant: '',
-        category: '',
-        tag: '',
-        tax: '',
-        vendorID: '',
-        comment: '',
-        reimbursable: false,
-        billable: false,
-        ...overrides,
-    }) as MerchantRuleForm;
+const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm => ({
+    merchantToMatch: 'Coffee Shop',
+    matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+    merchant: '',
+    category: '',
+    categoriesToMatch: [],
+    ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT,
+    tag: '',
+    tax: '',
+    vendorID: '',
+    comment: '',
+    reimbursable: false,
+    billable: false,
+    ...overrides,
+});
 
 /** QBO policy whose non-reimbursable export destination scopes vendor matching to QBO. */
 const buildQBOPolicy = (vendors: Array<{id: string; name: string; currency: string}> | undefined): Policy =>
@@ -206,7 +207,7 @@ describe('Vendor matching on merchant rules', () => {
             vendor: translateLocal(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor').toLowerCase(),
         });
 
-        const describeRule = (policy: Policy, vendorID: string) => getRuleDescription(buildVendorRule(vendorID), translateLocal, buildLabels(policy), policy);
+        const describeRule = (policy: Policy, vendorID: string) => getRuleDescription(buildVendorRule(vendorID), translateLocal, buildLabels(policy), policy, undefined);
 
         it('resolves the vendor name when the vendor is in the loaded list', () => {
             const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);

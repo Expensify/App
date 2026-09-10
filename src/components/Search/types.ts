@@ -69,8 +69,11 @@ type SelectedTransactionInfo = {
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
 
-    /** The transaction amount */
+    /** The transaction amount as a magnitude, used for bulk pay. Signed only on the reconcile path. */
     amount: number;
+
+    /** The signed amount the row displays */
+    displayAmount: number;
 
     /** The transaction currency */
     currency: string;
@@ -457,7 +460,6 @@ type SearchChartProps = {
     /** Callback when a chart item is pressed - receives the filter query to apply */
     onItemPress?: (filterQuery: string) => void;
 
-    /** Whether data is loading */
     isLoading?: boolean;
 
     /** Currency unit with font fallback support */

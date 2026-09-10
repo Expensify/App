@@ -211,6 +211,30 @@ describe('maskOnyxState', () => {
         });
     });
 
+    it('should mask policy vendor names while preserving the matching fields', () => {
+        const vendorKey = `${ONYXKEYS.COLLECTION.POLICY_VENDORS}123`;
+        const externalID = 'vendor-1';
+        const input = {
+            [vendorKey]: {
+                [externalID]: {
+                    externalID,
+                    name: 'Acme Supplies',
+                    enabled: true,
+                    origin: 'quickbooksOnline',
+                },
+            },
+        };
+
+        const result = maskOnyxState(input);
+        const vendors = result[vendorKey];
+        if (!isRecord(vendors) || !isRecord(vendors[externalID])) {
+            throw new Error('Expected policy vendors record');
+        }
+
+        expect(vendors[externalID]).toMatchObject({externalID, enabled: true, origin: 'quickbooksOnline'});
+        expect(vendors[externalID].name).not.toBe('Acme Supplies');
+    });
+
     describe('full pass-through safe collection keys', () => {
         it('should pass through data as-is for safe collection keys', () => {
             const mockViolations = [
