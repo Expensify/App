@@ -892,7 +892,7 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
     Navigation.waitForProtectedRoutes().then(() => {
         // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
-        if (login && deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+        if (!login || deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
             return;
         }
         // Rebuilt like a cold start restore of this path, and the navigator only ever produced valid routes.
