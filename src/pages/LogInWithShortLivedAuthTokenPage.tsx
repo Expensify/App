@@ -53,8 +53,9 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
             return;
         }
 
-        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
-        if (token && !account?.isLoading) {
+        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts.
+        // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
+        if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined);
             // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
@@ -81,7 +82,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
                 Navigation.navigate(exitTo as Route);
             });
         }
-        // The only dependencies of the effect are based on props.route
+        // Runs once the route and the last visited path are known, later Onyx changes must not restart the sign-in.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLoadingLastVisitedPath]);
 

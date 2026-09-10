@@ -81,6 +81,29 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, undefined);
     });
 
+    it('signs in with a SAML token while the account is still marked loading by a forced re-auth', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isLoading: true});
+            await Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+        });
+
+        renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+    });
+
+    it('waits for the account while it is loading for a non-SAML sign-in', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isLoading: true});
+        });
+
+        renderPage({shortLivedAuthToken: 'token', shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(signInWithShortLivedAuthToken).not.toHaveBeenCalled();
+    });
+
     it('leaves the landing page to the transition link for a non-SAML sign-in', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
