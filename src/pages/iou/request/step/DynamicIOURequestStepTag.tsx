@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';

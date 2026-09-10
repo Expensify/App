@@ -29,8 +29,10 @@ import {
     getExcludedUsers,
     getExpensifyTeamExclusions,
     getManagerAccountID,
+    getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getVendorEmptyState,
     getPolicyApproverLogins,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyByCustomUnitID,
@@ -69,6 +71,7 @@ import {
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isRilletVendorMatchingActive,
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
@@ -3918,6 +3921,21 @@ describe('PolicyUtils', () => {
                 },
             });
 
+        const RILLET_VENDORS_UNSYNCED = Symbol('RILLET_VENDORS_UNSYNCED');
+        const buildRilletPolicy = (
+            vendors: Array<{id: string; name: string; email?: string}> | typeof RILLET_VENDORS_UNSYNCED = [{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}],
+            {isConfigured = true}: {isConfigured?: boolean} = {},
+        ): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                        config: {isConfigured},
+                        data: vendors === RILLET_VENDORS_UNSYNCED ? {} : {vendors},
+                    },
+                },
+            });
+
         describe('hasVendorFeature', () => {
             it('returns true when beta is enabled and QBO non-reimbursable export is Credit Card', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), true)).toBe(true);
@@ -3950,6 +3968,18 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(undefined, {isConfigured: false}), true)).toBe(false);
             });
 
+            it('returns true when beta is enabled and Rillet is connected with isConfigured=true', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), true)).toBe(true);
+            });
+
+            it('returns true when beta is enabled and Rillet is configured but vendors have not synced yet', () => {
+                expect(hasVendorFeature(buildRilletPolicy(RILLET_VENDORS_UNSYNCED), true)).toBe(true);
+            });
+
+            it('returns false when Rillet is connected but isConfigured=false', () => {
+                expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), true)).toBe(false);
+            });
+
             it('returns true when beta is disabled and QBO non-reimbursable export is Credit Card because QBO (R1) is generally available', () => {
                 expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(true);
             });
@@ -3968,6 +3998,10 @@ describe('PolicyUtils', () => {
 
             it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and Rillet is connected because Rillet is still pre-GA', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -4071,6 +4105,41 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendors(buildXeroPolicy(XERO_CONTACTS_UNSYNCED))).toEqual([]);
             });
 
+            it('returns the Rillet vendor list normalized to {id, name, currency, email}', () => {
+                const rilletVendors = [
+                    {id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'},
+                    {id: 'rv-2', name: 'Other Rillet'},
+                ];
+                const policy = buildRilletPolicy(rilletVendors);
+                expect(getMatchingVendors(policy)).toEqual([
+                    {id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'},
+                    {id: 'rv-2', name: 'Other Rillet', currency: '', email: ''},
+                ]);
+            });
+
+            it('returns Xero vendors when both Xero and Rillet are connected (Xero precedence over Rillet)', () => {
+                const xeroContacts = {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@xero.com'}};
+                const rilletVendors = [{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}];
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                            data: {contacts: xeroContacts},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {isConfigured: true},
+                            data: {vendors: rilletVendors},
+                        },
+                    }),
+                });
+                expect(getMatchingVendors(policy)).toEqual([{id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@xero.com'}]);
+            });
+
+            it('returns an empty array when Rillet is connected but vendors have not synced yet (data.vendors undefined)', () => {
+                expect(getMatchingVendors(buildRilletPolicy(RILLET_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
             it('returns an empty array when no supported connection exists', () => {
                 const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
                 expect(getMatchingVendors(policy)).toEqual([]);
@@ -4110,6 +4179,19 @@ describe('PolicyUtils', () => {
                 expect(getMatchingVendorByID(buildXeroPolicy(), 'xcMissing')).toBeUndefined();
             });
 
+            it('returns the matching Rillet vendor (normalized) when the ID exists in the list', () => {
+                const policy = buildRilletPolicy([
+                    {id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'},
+                    {id: 'rv-2', name: 'Other Rillet'},
+                ]);
+                expect(getMatchingVendorByID(policy, 'rv-1')).toEqual({id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'});
+                expect(getMatchingVendorByID(policy, 'rv-2')).toEqual({id: 'rv-2', name: 'Other Rillet', currency: '', email: ''});
+            });
+
+            it('returns undefined for a Rillet vendor ID that is not in the list (inactive-vendor case)', () => {
+                expect(getMatchingVendorByID(buildRilletPolicy(), 'rv-missing')).toBeUndefined();
+            });
+
             it('returns undefined when the ID is not in the list (the inactive-vendor case)', () => {
                 const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
                 expect(getMatchingVendorByID(policy, 'v-missing')).toBeUndefined();
@@ -4135,6 +4217,41 @@ describe('PolicyUtils', () => {
             it('resolves a Xero supplier (normalized) from connections.xero.data.contacts (R4)', () => {
                 const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
                 expect(findVendorByID(policy, 'xc1')).toEqual({id: 'xc1', name: 'Acme Xero', currency: '', email: 'acme@example.com'});
+            });
+
+            it('resolves a Rillet vendor (normalized) from connections.rillet.data.vendors', () => {
+                const policy = buildRilletPolicy([{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}]);
+                expect(findVendorByID(policy, 'rv-1')).toEqual({id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'});
+            });
+
+            it('prefers the active Xero integration over stale Rillet data when both hold the same vendor ID', () => {
+                const xeroPolicy = buildXeroPolicy({shared: {id: 'shared', name: 'Xero Name', email: 'xero@xero.com'}});
+                const policy = createMock<Policy>({
+                    ...xeroPolicy,
+                    connections: {
+                        ...xeroPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {isConfigured: true},
+                            data: {vendors: [{id: 'shared', name: 'Rillet Name', email: 'rillet@rillet.com'}]},
+                        },
+                    },
+                });
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'Xero Name', currency: '', email: 'xero@xero.com'});
+            });
+
+            it('prefers the active Rillet integration over stale QBO data when both hold the same vendor ID', () => {
+                const rilletPolicy = buildRilletPolicy([{id: 'shared', name: 'Rillet Name', email: 'rillet@rillet.com'}]);
+                const policy = createMock<Policy>({
+                    ...rilletPolicy,
+                    connections: {
+                        ...rilletPolicy.connections,
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                            data: {vendors: [{id: 'shared', name: 'QBO Stale Name', currency: 'USD'}]},
+                        },
+                    },
+                });
+                expect(findVendorByID(policy, 'shared')).toEqual({id: 'shared', name: 'Rillet Name', currency: '', email: 'rillet@rillet.com'});
             });
 
             it('prefers the active Intacct integration over stale QBO data when both hold the same vendor ID', () => {
@@ -4414,6 +4531,136 @@ describe('PolicyUtils', () => {
 
             it('returns false when policy is undefined', () => {
                 expect(isXeroVendorMatchingActive(undefined)).toBe(false);
+            });
+        });
+
+        describe('isRilletVendorMatchingActive', () => {
+            it('returns true when Rillet is connected with isConfigured=true', () => {
+                expect(isRilletVendorMatchingActive(buildRilletPolicy())).toBe(true);
+            });
+
+            it('returns false when Rillet is connected but isConfigured=false', () => {
+                expect(isRilletVendorMatchingActive(buildRilletPolicy(undefined, {isConfigured: false}))).toBe(false);
+            });
+
+            it('returns false when Rillet is not connected', () => {
+                const policy = {...createRandomPolicy(0), connections: {}};
+                expect(isRilletVendorMatchingActive(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(isRilletVendorMatchingActive(undefined)).toBe(false);
+            });
+        });
+
+        describe('getActiveVendorMatchingIntegration', () => {
+            it('returns QBO when QBO is in vendor matching export mode', () => {
+                expect(getActiveVendorMatchingIntegration(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD))).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            });
+
+            it('returns Sage Intacct when Intacct is in vendor matching export mode', () => {
+                expect(getActiveVendorMatchingIntegration(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE))).toBe(
+                    CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+                );
+            });
+
+            it('returns Xero when Xero is connected and configured', () => {
+                expect(getActiveVendorMatchingIntegration(buildXeroPolicy())).toBe(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            });
+
+            it('returns Rillet when Rillet is connected and configured', () => {
+                expect(getActiveVendorMatchingIntegration(buildRilletPolicy())).toBe(CONST.POLICY.CONNECTIONS.NAME.RILLET);
+            });
+
+            it('follows cascade precedence QBO > Sage Intacct > Xero > Rillet', () => {
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {isConfigured: true},
+                        },
+                    },
+                });
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
+            });
+
+            it('returns Xero over Rillet when both are configured', () => {
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {isConfigured: true},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {isConfigured: true},
+                        },
+                    },
+                });
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            });
+
+            it('returns undefined when no integration is configured for vendor matching', () => {
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {isConfigured: false},
+                        },
+                    },
+                });
+                expect(getActiveVendorMatchingIntegration(policy)).toBeUndefined();
+            });
+
+            it('returns undefined when policy is undefined', () => {
+                expect(getActiveVendorMatchingIntegration(undefined)).toBeUndefined();
+            });
+        });
+
+        describe('getVendorEmptyState', () => {
+            const translate = TestHelper.translateLocal;
+
+            it('returns QBO empty state copy when QBO is the active integration', () => {
+                const policy = buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD);
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.qbo.noAccountsFound'),
+                    subtitle: translate('workspace.qbo.noAccountsFoundDescription', 'QuickBooks Online'),
+                });
+            });
+
+            it('returns Sage Intacct empty state copy when Intacct is the active integration', () => {
+                const policy = buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE);
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.sageIntacct.noAccountsFound'),
+                    subtitle: translate('workspace.sageIntacct.noAccountsFoundDescription'),
+                });
+            });
+
+            it('returns Xero empty state copy when Xero is the active integration', () => {
+                const policy = buildXeroPolicy();
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.xero.noSuppliersFound'),
+                    subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                });
+            });
+
+            it('returns Rillet empty state copy when Rillet is the active integration', () => {
+                const policy = buildRilletPolicy();
+                expect(getVendorEmptyState(policy, translate)).toEqual({
+                    title: translate('workspace.rillet.noVendorsFound'),
+                    subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
+                });
             });
         });
     });

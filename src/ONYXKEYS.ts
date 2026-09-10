@@ -49,6 +49,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Boolean flag set whenever we are searching for users in the server */
+    RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
+
     /** Boolean flag indicating a SignInWithShortLivedAuthToken request is in flight. RAM-only so an interrupted request never persists a stuck `true` to IndexedDB and blocks future reauth attempts. */
     RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN: 'isAuthenticatingWithShortLivedToken',
 
@@ -503,7 +506,6 @@ const ONYXKEYS = {
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
     /** Is app in beta version */
-    IS_BETA: 'isBeta',
 
     /** Whether we're checking if the room is public or not */
     RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
@@ -1324,6 +1326,8 @@ const ONYXKEYS = {
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
         DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
+        CAMPFIRE_CREDENTIALS_FORM: 'campfireCredentialsForm',
+        CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1477,6 +1481,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
+    [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1730,7 +1735,6 @@ type OnyxValuesMapping = {
         | typeof CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
-    [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
@@ -1753,6 +1757,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;

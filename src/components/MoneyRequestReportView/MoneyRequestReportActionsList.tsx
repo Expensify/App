@@ -2,7 +2,6 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
-import useIsReportVisible from '@hooks/useIsReportVisible';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -121,7 +120,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const isReportVisible = useIsReportVisible(shouldUseNarrowLayout);
+    // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
+    const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -154,7 +154,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
     });
-    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isReportVisible);
+    const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
