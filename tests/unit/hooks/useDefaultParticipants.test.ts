@@ -17,6 +17,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID = 1;
 const POLICY_ID = 'policy1';
+const PERSONAL_POLICY_ID = 'personalPolicy1';
 
 const mockSelfDMReport: Report = createSelfDM(1, ACCOUNT_ID);
 
@@ -24,6 +25,7 @@ const workspaceChat: Report = {...createPolicyExpenseChat(2), policyID: POLICY_I
 
 // Auto-reporting is on, so without the track-expense carve-out the default target resolves to the workspace chat.
 const mockDefaultExpensePolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, autoReporting: true};
+const mockPersonalPolicy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), id: PERSONAL_POLICY_ID, autoReporting: true};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -70,6 +72,12 @@ describe('useDefaultParticipants', () => {
         mockResolvedSelfDMReport = {selfDMReport: mockSelfDMReport, isLoading: false};
     });
 
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
+        });
+    });
+
     beforeAll(async () => {
         // `getPolicyExpenseChat` scans the report collection, so the default workspace chat has to exist in Onyx.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
@@ -80,6 +88,15 @@ describe('useDefaultParticipants', () => {
         const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
 
         expect(participants).toEqual([expect.objectContaining({reportID: workspaceChat.reportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true})]);
+    });
+
+    it('should seed the self DM when the active destination is a personal policy', async () => {
+        await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, PERSONAL_POLICY_ID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${PERSONAL_POLICY_ID}`, mockPersonalPolicy);
+
+        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.CREATE);
+
+        expect(participants).toEqual([expect.objectContaining({reportID: mockSelfDMReport.reportID, isSelfDM: true, selected: true})]);
     });
 
     it('should seed the self DM for a track expense instead of the default workspace chat', async () => {
