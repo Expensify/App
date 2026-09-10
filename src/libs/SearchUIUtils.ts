@@ -168,6 +168,7 @@ import {
     getReportOrDraftReport,
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
+    getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasOnlyNonReimbursableTransactions,
@@ -221,7 +222,6 @@ import {
     getTag,
     getTaxAmount,
     getTaxName,
-    getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
@@ -280,6 +280,7 @@ type GetReportSectionsParams = {
     isActionLoadingSet: ReadonlySet<string> | undefined;
     isOffline: boolean | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
@@ -294,6 +295,7 @@ type GetTransactionSectionsParams = {
     translate: LocalizedTranslate;
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     isAttendeesEnabledForMovingPolicy?: boolean;
@@ -648,6 +650,7 @@ type GetSectionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     currentSearch?: SearchKey;
@@ -1278,8 +1281,6 @@ function getTransactionItemCommonFormattedProperties(
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
-    const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
-
     const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate, formatPhoneNumber});
 
     // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
@@ -1289,8 +1290,8 @@ function getTransactionItemCommonFormattedProperties(
         formattedTo = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailsForAccountID(to?.accountID), translate, formatPhoneNumber});
     }
 
-    const isDeleted = isDeletedTransaction(transactionItem);
-    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
+    // formattedTotal is the Amount column's sort key and holds the same signed value the row displays.
+    const formattedTotal = getTransactionDisplayAmount(transactionItem, report, policy);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
@@ -2258,6 +2259,7 @@ function getTransactionsSections({
     translate,
     isActionLoadingSet,
     bankAccountList,
+    rules,
     reportActions = {},
     queryJSON,
     isAttendeesEnabledForMovingPolicy,
@@ -2341,7 +2343,7 @@ function getTransactionsSections({
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
             const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
@@ -2554,6 +2556,7 @@ function getViolationsFromSearchData(data: OnyxTypes.SearchResults['data']): Ony
  *
  * Do not use directly, use only via `getSections()` facade.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getActions(
     data: OnyxTypes.SearchResults['data'],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
@@ -2563,6 +2566,7 @@ function getActions(
     currentUserAccountID: number,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    rules: OnyxCollection<OnyxTypes.Rule>,
     reportActions: OnyxTypes.ReportAction[] = [],
     precomputedTransactionsForReport?: OnyxTypes.Transaction[],
 ): SearchTransactionAction[] {
@@ -2660,7 +2664,7 @@ function getActions(
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
@@ -3156,6 +3160,7 @@ function getReportSections({
     formatPhoneNumber,
     isActionLoadingSet,
     bankAccountList,
+    rules,
     reportActions = {},
     queryJSON,
     onyxPersonalDetailsList,
@@ -3213,7 +3218,19 @@ function getReportSections({
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
+                const allActions = getActions(
+                    data,
+                    allViolations,
+                    key,
+                    currentSearch,
+                    currentUserEmail,
+                    currentAccountID,
+                    bankAccountList,
+                    reportMetadata,
+                    rules,
+                    actions,
+                    allReportTransactions,
+                );
 
                 const fromDetails =
                     mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -3346,7 +3363,7 @@ function getReportSections({
             );
 
             const transactionReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transaction = {
                 ...transactionItem,
@@ -4007,6 +4024,7 @@ function getSections({
     translate,
     formatPhoneNumber,
     bankAccountList,
+    rules,
     groupBy,
     reportActions,
     currentSearch = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -4044,6 +4062,7 @@ function getSections({
             formatPhoneNumber,
             isActionLoadingSet,
             bankAccountList,
+            rules,
             reportActions,
             queryJSON,
             onyxPersonalDetailsList,
@@ -4087,6 +4106,7 @@ function getSections({
         translate,
         isActionLoadingSet,
         bankAccountList,
+        rules,
         reportActions,
         queryJSON,
         isAttendeesEnabledForMovingPolicy,
@@ -7064,6 +7084,7 @@ function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
+    rules: OnyxCollection<OnyxTypes.Rule>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7088,7 +7109,7 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID);
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7102,7 +7123,7 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID);
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules);
           });
 }
 

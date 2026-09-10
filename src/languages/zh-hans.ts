@@ -7741,6 +7741,8 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: '类别规则会设置默认税率。请在工作区设置中启用税费以使用此功能。',
                 categoryRulesApplyGoingForwardTitle: '类别规则将从现在起生效',
                 categoryRulesApplyGoingForwardPrompt: '此类别中的新报销将应用默认税率，已存在的报销不会改变。',
+                createRuleFromExpenseAction: '创建规则',
+                createRuleFromExpensePrompt: '将您的更改应用于所有符合条件的报销。',
             },
             categoryRules: {
                 title: '类别规则',

@@ -1,5 +1,5 @@
 import BookTravelButton from '@components/BookTravelButton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';

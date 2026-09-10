@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
@@ -106,6 +106,7 @@ function DynamicIOURequestStepCategory({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
@@ -207,6 +208,7 @@ function DynamicIOURequestStepCategory({
                     violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
                 saveAndNavigateBack();
                 return;

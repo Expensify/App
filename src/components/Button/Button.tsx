@@ -1,5 +1,4 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getButtonRole} from '@components/Button/utils';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
@@ -135,13 +134,14 @@ function Button({
 
     return (
         <PressableWithFeedback
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             ref={ref as PressableRef}
             id={id}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
             sentryLabel={sentryLabel}
-            role={getButtonRole(isNested)}
+            role={CONST.ROLE.BUTTON}
             isNested={isNested}
             disabled={isLoading || isDisabled}
             disabledStyle={!stayNormalOnDisable ? disabledStyle : undefined}
@@ -173,9 +173,8 @@ function Button({
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
             onPress={(event) => {
-                if (event?.type === 'click') {
-                    const currentTarget = event?.currentTarget as HTMLElement;
-                    currentTarget?.blur();
+                if (event?.type === 'click' && event.currentTarget instanceof HTMLElement) {
+                    event.currentTarget.blur();
                 }
 
                 if (enableHapticFeedback) {

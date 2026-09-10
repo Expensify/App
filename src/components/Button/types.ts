@@ -115,4 +115,4 @@ type ButtonProps = BaseButtonProps & {
     children: React.ReactNode;
 };
 
-export type {ButtonEventsProps, ButtonBehaviorProps, ButtonStyleProps, BaseButtonProps, ButtonProps, ButtonKeyboardShortcutProps};
+export type {ButtonProps, ButtonKeyboardShortcutProps};
