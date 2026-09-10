@@ -104,6 +104,16 @@ describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
         expect(isReportFieldNameExisting(fieldList, 'FIELD1')).toBe(true);
         expect(isReportFieldNameExisting(fieldList, 'field1')).toBe(true);
     });
+
+    it('should return true across targets when no expectedTarget is passed, since the backend keys fields by name regardless of target', () => {
+        const mixedTargetFieldList: Record<string, PolicyReportField> = {
+            invoiceField: createMock<PolicyReportField>({name: 'Test', type: 'text', target: CONST.REPORT_FIELD_TARGETS.INVOICE}),
+            expenseField: createMock<PolicyReportField>({name: 'Other', type: 'text', target: CONST.REPORT_FIELD_TARGETS.EXPENSE}),
+        };
+
+        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Test')).toBe(true);
+        expect(isReportFieldNameExisting(mixedTargetFieldList, 'Other')).toBe(true);
+    });
 });
 
 describe('WorkspaceReportFieldUtils.isReportFieldImportedFromIntegration', () => {
