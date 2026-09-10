@@ -6,7 +6,6 @@ import type SCREENS from '@src/SCREENS';
 type OnboardingPersonalTrackGoalProps = PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL>;
 
 type BaseOnboardingPersonalTrackGoalProps = OnboardingPersonalTrackGoalProps & {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 };
 

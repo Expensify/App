@@ -14,7 +14,6 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type ParticipantLocalTimeProps = {
-    /** Personal details of the participant */
     participant: PersonalDetails;
 };
 
