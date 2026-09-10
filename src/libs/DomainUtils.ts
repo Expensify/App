@@ -67,6 +67,19 @@ function hasDomainAdminsErrors(domainErrors?: DomainErrors, domain?: OnyxEntry<D
 }
 
 /**
+ * Requesters that have just left the pending list while still carrying an approve or decline error.
+ *
+ * Those errors are keyed by requester accountID with nothing to tell one request from the next, so an error left behind by a request another
+ * admin already handled would land on a brand new row if that account asked for access again. Comparing the two lists, instead of looking for
+ * an error next to a missing requester, is what keeps a failed approve safe: it puts the requester back next to the error it has just set.
+ */
+function getStaleAdminshipRequesterErrorAccountIDs(previousRequesterAccountIDs: number[], requesterAccountIDs: number[], domainErrors: OnyxEntry<DomainErrors>): number[] {
+    const requesterErrors = domainErrors?.adminshipRequesterErrors;
+
+    return previousRequesterAccountIDs.filter((accountID) => !requesterAccountIDs.includes(accountID) && !isEmptyObject(requesterErrors?.[accountID]?.errors));
+}
+
+/**
  * Checks if the given account is a domain admin with pending adminship requests to review.
  */
 function hasPendingDomainAdminRequestsToReview(domain: OnyxEntry<Domain>, currentUserAccountID: number | undefined): boolean {
@@ -151,6 +164,7 @@ export {
     hasDomainAdminsSettingsErrors,
     hasDomainAdminsErrors,
     hasPendingDomainAdminRequestsToReview,
+    getStaleAdminshipRequesterErrorAccountIDs,
     hasDomainMembersErrors,
     hasDomainMembersSettingsErrors,
     hasDomainGroupsErrors,
