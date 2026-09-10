@@ -156,7 +156,8 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             title: selectedFxExpenseAccount ? selectedFxExpenseAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT],
-            shouldHide: shouldHideReimbursedReportsSection(config) || !canConfigureCurrencyConversionFees,
+            // The fee only posts alongside a bill payment, so unlike the rows above this needs the toggle on too.
+            shouldHide: shouldHideReimbursedReportsSection(config) || !config?.syncOptions.syncReimbursedReports || !canConfigureCurrencyConversionFees,
         },
         {
             type: 'divider',
