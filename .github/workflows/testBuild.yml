@@ -35,7 +35,7 @@ on:
         type: boolean
         default: false
       MOBILE_EXPENSIFY_MAIN:
-        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule. Misses the Rock remote cache.
+        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule.
         type: boolean
         default: false
 
