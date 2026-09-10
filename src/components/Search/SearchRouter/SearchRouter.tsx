@@ -10,6 +10,7 @@ import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQu
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -42,7 +43,7 @@ import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
-import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer, searchUserInServer} from '@userActions/Report';
 import {setSearchContext} from '@userActions/Search';
 
 import CONST from '@src/CONST';
@@ -78,16 +79,24 @@ type SearchRouterProps = {
     ref?: React.Ref<View>;
 };
 
+function searchForReportsAndUsersInServer(searchInput: string) {
+    searchInServer(searchInput);
+    searchUserInServer(searchInput);
+}
+
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -218,9 +227,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
                 const option = createOptionFromReport({
                     dateFnsLocale,
+                    convertToDisplayString,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
+                    rules,
                     policy: contextualReportPolicy,
                     sortedActions,
                     conciergeReportID,
@@ -299,6 +310,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            convertToDisplayString,
+            rules,
         ],
     );
 
@@ -532,7 +545,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldShowOfflineMessage
                     wrapperStyle={styles.searchRouterBorder}
                     wrapperFocusedStyle={styles.borderColorFocus}
-                    isSearchingForReports={!!isSearchingForReports}
+                    isSearchingForReports={!!isSearchingForReports || !!isSearchingForUsers}
                     selection={selection}
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
@@ -542,7 +555,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             <DeferredAutocompleteList
                 autocompleteQueryValue={textInputValue.trim() === '' ? '' : debouncedAutocompleteQueryValue}
                 inputQueryValue={textInputValue}
-                handleSearch={searchInServer}
+                handleSearch={searchForReportsAndUsersInServer}
                 searchQueryItems={searchQueryItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}

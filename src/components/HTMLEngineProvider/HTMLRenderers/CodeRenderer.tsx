@@ -11,7 +11,6 @@ import React from 'react';
 import {splitBoxModelStyle} from 'react-native-render-html';
 
 type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
-    /** Key of the element */
     key?: string;
 };
 

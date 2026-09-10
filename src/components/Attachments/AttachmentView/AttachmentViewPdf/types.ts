@@ -6,8 +6,6 @@ import type {AttachmentViewProps} from '..';
 type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isFocused' | 'onToggleKeyboard' | 'isUsedInAttachmentModal'> & {
     encryptedSourceUrl: string;
     onLoadComplete: (path: string) => void;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
     /** Triggered when the PDF's onScaleChanged event is triggered */
@@ -16,7 +14,6 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
     /** Triggered when the PDF fails to load */
     onLoadError?: () => void;
 
-    /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
 
     /** Controlled rotation angle for the PDF */
