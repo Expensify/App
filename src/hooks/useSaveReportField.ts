@@ -20,12 +20,16 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import useReportTransactions from './useReportTransactions';
+import useReportTransactionViolations from './useReportTransactionViolations';
 
 function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    // Both of these are scoped to this report so a transaction or violation change in an unrelated report does not re-render every consumer.
+    const reportTransactions = useReportTransactions(report?.reportID);
+    const [transactionViolations] = useReportTransactionViolations(reportTransactions);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -45,7 +49,7 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         }
 
         const fieldKey = getReportFieldKey(reportField.fieldID);
-        const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', undefined, reportTransactions);
         const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules);
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
 
