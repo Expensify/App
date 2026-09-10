@@ -128,6 +128,19 @@ describe('ReportNotFoundGuard', () => {
         expect(isNotFoundVisible()).toBe(false);
     });
 
+    it('still shows the not-found page for an invalid reportID even when isPendingCreation is set', async () => {
+        // Given a malformed report path that also carries the pending-creation flag
+        mockRouteParams = {reportID: '0', isPendingCreation: 'true'};
+
+        // When the guard renders
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // Then the invalid path wins, since no submit can ever create a report under it
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
     it('renders the report content when the report exists', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});

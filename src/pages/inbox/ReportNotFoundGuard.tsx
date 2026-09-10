@@ -73,7 +73,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         setHasSeenLoadingForCurrentReportID(true);
     }
 
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && !isPendingCreation && (isInvalidReportPath || (!isLoading && hasSeenLoadingForCurrentReportID && !reportExists));
+    const isReportMissingAfterLoad = !isLoading && hasSeenLoadingForCurrentReportID && !reportExists && !isPendingCreation;
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad);
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
