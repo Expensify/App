@@ -2523,13 +2523,21 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
     return lodashMaxBy(filteredReports, (a) => [(a?.reportID && lastVisitTimes?.[a.reportID]) ?? '', a?.lastReadTime ?? '']);
 }
 
+/** Fields of a Report that `findLastAccessedReport` callers consume. */
+type LastAccessedReport = Pick<Report, 'reportID' | 'policyID' | 'chatType'>;
+
+function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | undefined {
+    if (!report?.reportID) {
+        return undefined;
+    }
+    return {reportID: report.reportID, policyID: report.policyID, chatType: report.chatType};
+}
+
 /**
- * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
- * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
- *
- * Callers that need to react to the report data arriving (rather than reading whatever the module-scoped
- * copy happens to hold at call time) can pass their own subscribed collections through `reportNameValuePairs`
- * and `reports`. Both fall back to the module-scoped copies when omitted.
+ * Finds the last accessed report for navigation fallbacks using the module-scoped
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
+ * `reports` let a caller pass its own subscribed collections and fall back to the
+ * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
@@ -2538,17 +2546,14 @@ function findLastAccessedReport(
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
-): OnyxEntry<Report> {
+): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
-        const adminReport = reportsValues.find((report) => {
-            const chatType = getChatType(report);
-            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-        });
+        const adminReport = reportsValues.find((report) => getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
         if (adminReport) {
-            return adminReport;
+            return toLastAccessedReport(adminReport);
         }
     }
 
@@ -2588,11 +2593,11 @@ function findLastAccessedReport(
         const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
-            return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
+            return toLastAccessedReport(lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? ''));
         }
-        return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
+        return toLastAccessedReport(lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? ''));
     }
-    return getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes);
+    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes));
 }
 
 /**
@@ -15000,4 +15005,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     ActionErrorsByTransaction,
+    LastAccessedReport,
 };

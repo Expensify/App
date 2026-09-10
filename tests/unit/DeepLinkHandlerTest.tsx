@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import {openReportFromDeepLink} from '@libs/actions/Link';
 import type * as Link from '@libs/actions/Link';
 import * as Report from '@libs/actions/Report';
 
@@ -152,5 +153,40 @@ describe('DeepLinkHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Report.openReport).not.toHaveBeenCalled();
+    });
+
+    it('passes the latest report name-value pairs to warm deep links', async () => {
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${PUBLIC_ROOM_ID}` as const;
+        const archivedAt = '2024-01-01 00:00:00.000';
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: '',
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {},
+                [ONYXKEYS.BETAS]: [],
+            });
+        });
+        const addEventListenerSpy = jest.spyOn(Linking, 'addEventListener');
+
+        render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(openReportFromDeepLink).mockClear();
+
+        await act(async () => {
+            await Onyx.set(reportNameValuePairsKey, {private_isArchived: archivedAt});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const urlChangeHandler = addEventListenerSpy.mock.calls.find(([eventType]) => eventType === 'url')?.[1];
+        expect(urlChangeHandler).toBeDefined();
+        await act(async () => {
+            urlChangeHandler?.({url: `new-expensify://r/${PUBLIC_ROOM_ID}`});
+        });
+
+        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[8]).toEqual({
+            [reportNameValuePairsKey]: {private_isArchived: archivedAt},
+        });
+        addEventListenerSpy.mockRestore();
     });
 });

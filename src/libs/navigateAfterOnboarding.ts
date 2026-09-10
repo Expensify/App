@@ -16,7 +16,7 @@ import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostS
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import {findLastAccessedReport} from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -62,7 +62,12 @@ function getReportIDAfterOnboarding(
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
     // The user should never go to the self DM or the Concierge chat if a workspace was created during the onboarding flow.
-    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport, conciergeReportID) && !isSelfDM(lastAccessedReport)) {
+    if (
+        lastAccessedReportID &&
+        lastAccessedReport.policyID !== onboardingPolicyID &&
+        lastAccessedReport.reportID !== conciergeReportID &&
+        lastAccessedReport.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM
+    ) {
         return lastAccessedReportID;
     }
 

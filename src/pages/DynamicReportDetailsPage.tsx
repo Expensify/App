@@ -65,6 +65,7 @@ import {
     canLeaveChat,
     canWriteInReport,
     createDraftTransactionAndNavigateToParticipantSelector,
+    findLastAccessedReport,
     getAvailableReportFields,
     getChatRoomSubtitle,
     getIcons,
@@ -215,6 +216,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
 
@@ -394,6 +396,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -403,12 +407,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 introSelected,
                 isSelfTourViewed,
                 betas,
+                lastAccessedReportID,
             );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
     }, [
         isRootGroupChat,
         isPolicyEmployee,
@@ -420,6 +425,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
+        guideAccountIDs,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
@@ -1031,6 +1037,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
+                    lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID,
                 },
             );
             return;
@@ -1088,6 +1095,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        guideAccountIDs,
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,
