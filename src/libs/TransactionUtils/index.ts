@@ -920,6 +920,20 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+        // For transactions with an applied commuter exclusion, `quantity` is the route distance rounded
+        // to 2dp, so it differs from the exact conversion by at most 0.005. A gap larger than this rounding
+        // tolerance means the user manually edited the distance, so we must convert their quantity instead.
+        const ROUNDING_TOLERANCE = 0.01;
+        const isDistanceManuallyEdited =
+            hasCommuterExclusion &&
+            typeof routeDistanceMeters === 'number' &&
+            typeof quantity === 'number' &&
+            !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
+        const shouldUseExactRouteDistance = hasCommuterExclusion && typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -929,7 +943,9 @@ function getUpdatedTransaction({
         // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces(
+                shouldUseExactRouteDistance ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit) : (quantity ?? 0) * conversionFactor,
+            );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -952,7 +968,10 @@ function getUpdatedTransaction({
                         const fallbackConversionFactor =
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
-                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                        const distance = shouldUseExactRouteDistance
+                            ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
+                            : currentQuantity * fallbackConversionFactor;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
                     }
                 }
             }

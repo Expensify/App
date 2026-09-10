@@ -4,7 +4,6 @@ import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Sp
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
-import {parsePendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -67,6 +66,7 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     addPendingNewTransactionIDs: jest.fn(),
     deletePendingNewTransactionIDs: jest.fn(),
+    isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
@@ -793,7 +793,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — no highlight for reverse splits
-            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-merged-tx']).toBeUndefined();
         });
 
         it('skips registration when the expense report will become empty after the split', async () => {
@@ -822,7 +823,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then nothing is registered — the list navigates away before any highlight could render
-            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
+            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
         });
 
         it('does not write pendingNewTransactionIDs into report metadata when splitting from the Search/Spend page', async () => {
@@ -856,7 +859,9 @@ describe('actions/IOU', () => {
             // Then no highlight flags land in REPORT_METADATA. Search navigates back to the Spend page and never mounts
             // the expense report's list, so nothing would consume or clear them - they would instead highlight stale rows
             // the next time the user opened that report from the Inbox.
-            expect(getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID))).toEqual([]);
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-tx-1']).toBeUndefined();
+            expect(pendingNewTransactionIDs?.['new-tx-2']).toBeUndefined();
         });
 
         it('writes pendingNewTransactionIDs into report metadata when splitting from the expense report', async () => {
@@ -888,12 +893,13 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then the flags are written, because this path opens the report and its list consumes and clears them on mount
-            const flaggedTransactionIDs = getFlaggedTransactionIDs(await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID));
-            expect(flaggedTransactionIDs).toEqual(expect.arrayContaining(['new-tx-3', 'new-tx-4']));
+            const pendingNewTransactionIDs = await getPendingNewTransactionIDsFromOnyx(EXPENSE_REPORT_ID);
+            expect(pendingNewTransactionIDs?.['new-tx-3']).toBe(true);
+            expect(pendingNewTransactionIDs?.['new-tx-4']).toBe(true);
 
             // And the transaction that already existed in the report is not flagged - it is not new, so highlighting it
             // would draw attention to a row the user has already seen
-            expect(flaggedTransactionIDs).not.toContain('existing-tx-2');
+            expect(pendingNewTransactionIDs?.['existing-tx-2']).toBeUndefined();
         });
 
         it('does not signal the "Expense added" growl during a reverse split operation', async () => {

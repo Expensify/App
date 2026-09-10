@@ -568,7 +568,6 @@
         "cpuprofile",
         "creditamount",
         "creditcards",
-        "creditedamount",
         "crios",
         "csvexport",
         "csvg",
@@ -582,7 +581,6 @@
         "dgst",
         "deapexer",
         "debitamount",
-        "debitedamount",
         "deburr",
         "deburred",
         "decidium",
@@ -877,6 +875,7 @@
         "passcodes",
         "passplus",
         "passwordless",
+        "packageinstaller",
         "pathspec",
         "paycor",
         "payrollcode",
@@ -989,6 +988,7 @@
         "signingkey",
         "signup",
         "Signup",
+        "sideloaded",
         "sideproject",
         "simctl",
         "showcerts",
@@ -1234,6 +1234,6 @@
         "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": ["@assets/.*", "[A-Za-z0-9+/]{43}="],
     "useGitignore": true
 }

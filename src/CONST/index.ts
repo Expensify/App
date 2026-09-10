@@ -319,7 +319,6 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
-    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -1387,7 +1386,9 @@ const CONST = {
         US: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States',
     },
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
-    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
+
+    // Package name of the Google Play Store app. Android reports it as the installer of every app Play installed.
+    PLAY_STORE_INSTALLER_PACKAGE_NAME: 'com.android.vending',
     FEES_URL: `${EXPENSIFY_URL}/fees`,
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
@@ -2317,6 +2318,10 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
+        SPAN_SEND_MESSAGE_PHASE: {
+            PROPAGATE: 'ManualSendMessagePropagate',
+            POST_COMMIT: 'ManualSendMessagePostCommit',
+        },
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
