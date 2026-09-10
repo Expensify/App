@@ -1679,7 +1679,6 @@ function openReport(params: OpenReportActionParams) {
     }
 
     const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
-    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
@@ -1980,6 +1979,7 @@ function openReport(params: OpenReportActionParams) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
             const isOptimisticAccount = !(personalDetails ?? allPersonalDetails)?.[accountID];
 
             if (!isOptimisticAccount) {
@@ -2611,7 +2611,17 @@ function navigateToAndOpenReport({
 
     if (!shouldRevalidateExistingChat) {
         if (isOnboardingPending) {
-            openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+            openReport({
+                reportID: chat.reportID,
+                introSelected,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                betas,
+                personalDetails,
+                hasReportActions,
+                currentUserAccountID,
+                conciergeChat,
+            });
         }
         navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
         return;
@@ -2639,7 +2649,7 @@ function navigateToAndOpenReport({
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state. Pass hasCompletedGuidedSetupFlow
     // so a pending onboarding OpenReport is enqueued here too (see the create-path assumption note above).
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
@@ -2777,7 +2787,7 @@ function navigateToAndOpenReportWithAccountIDs(
     });
 
     // Re-open existing chats to re-validate server-side access and refresh stale local state.
-    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, currentUserAccountID, conciergeChat});
+    openReport({reportID: chat.reportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, personalDetails, hasReportActions, currentUserAccountID, conciergeChat});
     navigateToReport(chat.reportID, {shouldDismissModal: false});
 }
 
@@ -3876,7 +3886,7 @@ function toggleSubscribeToChildReport({
     hasReportActions,
 }: ToggleSubscribeToChildReportParams) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
+        openReport({reportID: childReportID, introSelected, betas, personalDetails, isSelfTourViewed, hasCompletedGuidedSetupFlow, hasReportActions, currentUserAccountID, conciergeChat});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -4039,13 +4049,21 @@ function updateReportField({
         isTrackIntentUser,
     });
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    const optimisticReportFieldValue = isInvoiceField ? null : reportField;
+    const failureReportFieldValue = isInvoiceField ? null : previousReportField;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: reportField,
+                    [fieldKey]: optimisticReportFieldValue,
                 },
                 nextStep: optimisticNextStep,
                 pendingFields: {
@@ -4063,6 +4081,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: reportField,
+                [reportField.fieldID]: reportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown' && reportField.value) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4073,13 +4102,17 @@ function updateReportField({
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS>> = [
+    const failureData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.RECENTLY_USED_REPORT_FIELDS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 fieldList: {
-                    [fieldKey]: previousReportField,
+                    [fieldKey]: failureReportFieldValue,
                 },
                 nextStep: report.nextStep ?? null,
                 pendingFields: {
@@ -4102,6 +4135,17 @@ function updateReportField({
         },
     ];
 
+    if (isInvoiceField) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: previousReportField,
+                [reportField.fieldID]: previousReportField,
+            },
+        });
+    }
+
     if (reportField.type === 'dropdown') {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4112,7 +4156,7 @@ function updateReportField({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -4136,6 +4180,21 @@ function updateReportField({
             },
         },
     ];
+
+    if (isInvoiceField) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [fieldKey]: {
+                    pendingAction: null,
+                },
+                [reportField.fieldID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+    }
 
     const parameters = {
         reportID,
@@ -4820,11 +4879,11 @@ function navigateToConciergeChatAndDeleteReport(
     );
 }
 
-function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number) {
+function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>, currentUserAccountID: number, optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>) {
     const personalDetailsToRemove: PersonalDetailsList = {};
 
     for (const accountID of Object.keys(report?.participants ?? {}).map(Number)) {
-        if (accountID === currentUserAccountID || !allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+        if (accountID === currentUserAccountID || !optimisticPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
             continue;
         }
         personalDetailsToRemove[accountID] = null;
@@ -4847,6 +4906,7 @@ function clearCreateChatError(
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
+    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -4856,7 +4916,7 @@ function clearCreateChatError(
     }
 
     if (report?.errorFields?.createChat && isOptimisticReport) {
-        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID);
+        cleanUpOptimisticPersonalDetailsForFailedChat(report, currentUserAccountID, optimisticPersonalDetails);
     }
 
     navigateToConciergeChatAndDeleteReport(

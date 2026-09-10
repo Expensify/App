@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
-import MenuItemEmptyField from '@components/MenuItem/presets/MenuItemEmptyField';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -237,8 +237,8 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItem.Root>
                             ) : (
-                                <MenuItemEmptyField
-                                    description={translate('task.assignee')}
+                                <MenuItemField
+                                    name={translate('task.assignee')}
                                     onPress={navigateToAssignee}
                                 />
                             )}
@@ -274,20 +274,12 @@ function DynamicNewTaskPage() {
                                     </MenuItem.Row>
                                 </MenuItemWithLabel>
                             ) : (
-                                <MenuItem.Root
-                                    onPress={navigateToShareDestination ? callFunctionIfActionIsAllowed(navigateToShareDestination) : undefined}
-                                    accessibilityLabel={translate('common.share')}
+                                <MenuItemField
+                                    name={translate('common.share')}
+                                    onPress={navigateToShareDestination}
                                 >
-                                    <MenuItem.Row>
-                                        <MenuItem.Content>
-                                            <MenuItem.DescriptionPlaceholder>{translate('common.share')}</MenuItem.DescriptionPlaceholder>
-                                        </MenuItem.Content>
-                                        <MenuItem.Trailing>
-                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                            {!!navigateToShareDestination && <MenuItem.Chevron />}
-                                        </MenuItem.Trailing>
-                                    </MenuItem.Row>
-                                </MenuItem.Root>
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemField>
                             )}
                         </View>
                     </View>
