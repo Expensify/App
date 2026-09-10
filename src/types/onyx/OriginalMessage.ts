@@ -1475,6 +1475,8 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+    /** Whether the new approver became the final approver, bypassing the remaining approvers in the chain */
+    isFinalApprover?: boolean;
 };
 
 /**

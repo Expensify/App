@@ -1,5 +1,4 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -10,9 +9,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,10 +17,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {approveMoneyRequest, assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
+import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
@@ -37,7 +33,6 @@ import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -92,16 +87,6 @@ function SearchChangeApproverPage() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingBulkChangeApproverPage = true] = useOnyx(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE);
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const delegateAccountID = useDelegateAccountID();
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
         const reports = Object.create(null) as Record<string, Report>;
@@ -179,13 +164,6 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        // Bypassing approvers is an approval action, so it is off limits to delegates who cannot approve. This has to
-        // block before the loop so no report is reassigned, and the selection is kept so the user can pick another action.
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -195,29 +173,6 @@ function SearchChangeApproverPage() {
 
             const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
             assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
-
-            // Taking control only makes the current user the final approver, leaving the report waiting on them, so
-            // approve it as well to actually bypass the remaining approvers.
-            approveMoneyRequest({
-                getCurrencyDecimals,
-                expenseReport: report,
-                expenseReportPolicy: policy,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetails),
-                delegateEmail,
-                delegateAccountID,
-                full: true,
-                shouldPlaySuccessSound: false,
-                isTrackIntentUser,
-                isBypassingApprovers: true,
-            });
         }
 
         // Note: This clears both reports and transactions

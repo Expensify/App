@@ -1,8 +1,6 @@
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeaderModals from '@components/MoneyReportHeaderModals';
-import useConfirmApproval from '@components/MoneyReportHeaderPrimaryAction/useConfirmApproval';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -58,8 +56,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
@@ -68,7 +65,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const hasNavigatedToAddApproverRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
     // The approved animation is part of the report header, which isn't mounted in this RHP, so there is nothing to animate here
-    const confirmApproval = useConfirmApproval(report.reportID, () => {}, true);
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -94,31 +90,10 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        // Bypassing approvers is an approval action, so it is off limits to delegates who cannot approve
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
 
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
-        // Taking control only makes the current user the final approver, leaving the report waiting on them, so approve
-        // it as well to actually bypass the remaining approvers.
-        confirmApproval();
         Navigation.dismissToPreviousRHP();
-    }, [
-        selectedApproverType,
-        report,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        policy,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-        formatPhoneNumber,
-        confirmApproval,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-    ]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
