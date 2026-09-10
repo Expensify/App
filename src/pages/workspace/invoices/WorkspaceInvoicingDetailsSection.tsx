@@ -15,7 +15,6 @@ import ROUTES from '@src/ROUTES';
 import React, {useMemo} from 'react';
 
 type WorkspaceInvoicingDetailsSectionProps = {
-    /** The current policy ID */
     policyID: string;
 
     /** Whether the current user can edit miscellaneous settings. */

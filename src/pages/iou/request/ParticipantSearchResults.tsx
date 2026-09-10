@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -76,10 +77,7 @@ type ParticipantSearchResultsProps = {
     /** The IOU action (create, submit, share, categorize, etc.) */
     action: IOUAction;
 
-    /** Selected participants */
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
-
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
 
     /** Whether this is a per diem expense request */
@@ -91,7 +89,6 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -100,7 +97,6 @@ type ParticipantSearchResultsProps = {
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
-    /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
     /** Setter to toggle textInputAutoFocus from the contact permission flow */
@@ -118,7 +114,6 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
@@ -164,6 +159,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -319,6 +315,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             personalDetails,
             true,
@@ -395,7 +392,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )
@@ -560,6 +557,10 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
+                isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
             ListItem={InviteMemberListItem}

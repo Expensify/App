@@ -700,6 +700,7 @@ function getOptionData({
     translate,
     dateFnsLocale,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     localeCompare,
     isReportArchived,
     lastActionReport,
@@ -728,6 +729,7 @@ function getOptionData({
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report>;
@@ -892,6 +894,7 @@ function getOptionData({
         formatPhoneNumber,
         dateFnsLocale,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);

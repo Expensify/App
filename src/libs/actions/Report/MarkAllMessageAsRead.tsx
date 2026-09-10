@@ -31,7 +31,15 @@ Onyx.connectWithoutView({
 // The archived state is passed in by the caller (read via useOnyx with reportNameValuePairsArchivedSelector) rather
 // than subscribed to here, so this action stays a plain function and callers only re-render when the archived flags
 // actually change.
-function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+/**
+ * Marks every unread report as read. Pass `reportIDs` to limit it to a subset, e.g. only the reports listed under one
+ * Inbox tab; when omitted, every unread report is marked read.
+ */
+function markAllMessagesAsRead(
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>,
+    reportIDs?: string[],
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+) {
     if (isAnonymousUser()) {
         return;
     }
@@ -46,7 +54,8 @@ function markAllMessagesAsRead(reportNameValuePairs: OnyxCollection<ReportNameVa
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
-    for (const report of Object.values(allReports ?? {})) {
+    const reportsToMark = reportIDs ? reportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(allReports ?? {});
+    for (const report of reportsToMark) {
         if (!report) {
             continue;
         }

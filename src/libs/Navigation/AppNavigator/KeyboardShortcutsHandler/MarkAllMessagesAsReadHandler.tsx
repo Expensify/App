@@ -30,7 +30,7 @@ function MarkAllMessagesAsReadHandler() {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(reportNameValuePairsRef.current, reportAttributesDerivedRef.current),
+            () => markAllMessagesAsRead(reportNameValuePairsRef.current, undefined, reportAttributesDerivedRef.current),
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,
             true,
