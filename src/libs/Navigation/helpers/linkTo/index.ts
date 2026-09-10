@@ -26,7 +26,8 @@ import getMinimalAction from './getMinimalAction';
 const defaultLinkToOptions = {
     forceReplace: false,
     shouldSkipInitialSplitNavigatorSidebar: false,
-} satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar'>;
+    skipMatchingFullScreenRoute: false,
+} satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar' | 'skipMatchingFullScreenRoute'>;
 
 /**
  * The split router reads `shouldSkipInitialSidebar` from the innermost screen params. Walk through nested
@@ -184,7 +185,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar} = {...defaultLinkToOptions, ...options};
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options};
 
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
@@ -264,7 +265,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
     // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
-    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!skipMatchingFullScreenRoute && shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the

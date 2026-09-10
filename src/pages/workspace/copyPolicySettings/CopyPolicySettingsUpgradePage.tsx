@@ -45,7 +45,7 @@ function CopyPolicySettingsUpgradePage() {
     const parts = copyPolicySettingsState?.parts ?? [];
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
-    const policiesToUpgrade = getCollectTargetsToUpgrade(targetPolicies, parts);
+    const policiesToUpgrade = getCollectTargetsToUpgrade(targetPolicies, parts, sourcePolicy);
 
     // Don't trust an "all targets are Corporate" reading until both Onyx keys have loaded and every
     // target policy has actually resolved. Otherwise unresolved targets look like `undefined` (not
@@ -54,7 +54,7 @@ function CopyPolicySettingsUpgradePage() {
     const isDataLoaded = !isLoadingOnyxValue(copyPolicySettingsMetadata, policiesMetadata) && areAllTargetPoliciesResolved;
 
     const controlOnlyFeatures = formatList(
-        getControlOnlySelectedParts(targetPolicies, parts)
+        getControlOnlySelectedParts(targetPolicies, parts, sourcePolicy)
             .map((part) => {
                 const labelKey = FEATURE_ROWS.find((row) => row.part === part)?.labelKey;
                 return labelKey ? translate(labelKey) : undefined;
