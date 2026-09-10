@@ -88,7 +88,7 @@ function navigateAfterExpenseCreate({
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
         if (shouldNavigate) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions, transactionID);
         }
         if (shouldAddPendingNewTransactionIDs) {
             addPendingNewTransactionIDs(activeReportID, transactionID);
