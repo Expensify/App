@@ -40,7 +40,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration, isControlPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration} from '@libs/PolicyUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 
@@ -163,8 +163,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const remainingLimitHintTranslationKey = getLimitHintTranslationKey(card?.nameValuePairs?.limitType);
     const remainingLimitHint = remainingLimitHintTranslationKey ? translate(remainingLimitHintTranslationKey, formattedAvailableSpendAmount) : undefined;
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
-    // Card spend rules stay Control-only even though the general Rules feature is now available to Collect too.
-    const canEditSpendRules = canWriteExpensifyCard && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
+    const canEditSpendRules = canWriteExpensifyCard && arePolicyRulesEnabled(policy, policyCategories);
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 

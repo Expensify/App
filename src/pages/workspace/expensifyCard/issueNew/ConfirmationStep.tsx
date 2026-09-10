@@ -20,7 +20,7 @@ import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIs
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {isControlPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -61,8 +61,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const isSuccessful = issueNewCard?.isSuccessful;
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isSpendRuleApplied = !!issueNewCard?.data.spendRuleEnabled;
-    // Card spend rules stay Control-only even though the general Rules feature is now available to Collect too.
-    const areRulesEnabled = isControlPolicy(policy) && isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
+    const areRulesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     const personalDetails = usePersonalDetails();
