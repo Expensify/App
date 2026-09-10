@@ -2558,7 +2558,14 @@ describe('actions/Policy', () => {
                     required: false,
                     tags: {
                         Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
-                        'Roadshow-1': {name: 'Roadshow', enabled: true, 'GL Code': '1111', rules: {parentTagsFilter: '^Engineering$'}},
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Roadshow-1': {
+                            name: 'Roadshow',
+                            enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            'GL Code': '1111',
+                            rules: {parentTagsFilter: '^Engineering$'},
+                        },
                     },
                 },
             };
