@@ -18,9 +18,16 @@ const REPORT_ID = '1';
 const CHILD_TEST_ID = 'report-content';
 const NOT_FOUND_TEST_ID = 'FullPageNotFoundView';
 
+let mockRouteParams: {reportID: string; isPendingCreation?: string} = {reportID: REPORT_ID};
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
-    useRoute: () => ({key: 'report', name: 'Report', params: {reportID: REPORT_ID}}),
+    useRoute: () => ({key: 'report', name: 'Report', params: mockRouteParams}),
+}));
+
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline}),
 }));
 
 // FullPageNotFoundView lazy-loads the ToddBehindCloud illustration; stub it so the blocking view renders synchronously.
@@ -52,6 +59,8 @@ const isNotFoundVisible = () => screen.queryByTestId(NOT_FOUND_TEST_ID) !== null
  */
 describe('ReportNotFoundGuard', () => {
     beforeEach(async () => {
+        mockRouteParams = {reportID: REPORT_ID};
+        mockIsOffline = false;
         await Onyx.clear();
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,
@@ -92,6 +101,31 @@ describe('ReportNotFoundGuard', () => {
 
         expect(isNotFoundVisible()).toBe(true);
         expect(isContentVisible()).toBe(false);
+    });
+
+    it('does NOT show the not-found page offline for a pre-mounted report that is still pending creation (#100785)', async () => {
+        // Given the route carries isPendingCreation and the device is offline, so the actions-loading term is ignored
+        mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
+        mockIsOffline = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+
+        // When the app finishes loading before the optimistic report row exists
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: true,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
+        });
+        renderGuard();
+        await waitForBatchedUpdates();
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the guard keeps rendering the loading content instead of flashing "not here"
+        expect(isContentVisible()).toBe(true);
+        expect(isNotFoundVisible()).toBe(false);
     });
 
     it('renders the report content when the report exists', async () => {
