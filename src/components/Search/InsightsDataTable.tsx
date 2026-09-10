@@ -3,7 +3,6 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -14,7 +13,7 @@ import {View} from 'react-native';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from './SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
-import {getPercentOfTotal} from './buildChartSeries';
+import {formatPercentOfTotal, getPercentOfTotal} from './buildChartSeries';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 
 /** Placeholder rows while loading. Matches the row count the ranking charts typically come back with. */
@@ -45,27 +44,29 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-/** Matches the chart tooltip's rounding, so a group reads the same on hover and in the table. */
-function formatPercent(percent: number) {
-    const rounded = Math.round(percent);
-    return rounded < 1 ? '<1%' : `${rounded}%`;
-}
-
 /**
  * Lists the groups plotted on a chart, one row each, with the numbers the chart's shape doesn't
  * already make obvious: the expense count, the amount, and the group's share of total spend.
  *
- * It renders from the same prepared rows the chart plots, so the two always agree on the values
- * and their order. Hand it to `SearchChartView` through its `renderDetails` prop.
+ * A row reads as two columns of two lines: the group and its expense count on the left, the amount
+ * and its share on the right. It renders from the same prepared rows the chart plots, so the two
+ * always agree on the values and their order. Hand it to `SearchChartView` through `renderDetails`.
  */
 function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsDataTableProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // Only people get an avatar, so the skeleton has to know before any row exists.
+    const shouldShowAvatar = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return (
+            <InsightsDataTableSkeleton
+                fixedNumItems={SKELETON_ROW_COUNT}
+                shouldShowAvatar={shouldShowAvatar}
+            />
+        );
     }
 
     if (rows.length === 0) {
@@ -74,43 +75,49 @@ function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsData
 
     const windowTotal = total ?? rows.reduce((sum, row) => sum + Math.abs(row.item.total ?? 0), 0);
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
-    const shouldShowAvatar = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     return (
         <View style={styles.chartDataTable}>
             {rows.map((row, index) => {
                 const {item, point, color} = row;
                 const percent = getPercentOfTotal(item.total, windowTotal);
-                const details = [
-                    translate('iou.expenseCount', {count: item.count}),
-                    convertToDisplayString(item.total ?? 0, item.currency),
-                    percent === undefined ? undefined : translate('search.percentOfSpend', {percent: formatPercent(percent)}),
-                ]
-                    .filter((detail): detail is string => !!detail)
-                    .join(` ${CONST.DOT_SEPARATOR} `);
+                const isLastRow = index === rows.length - 1;
 
                 return (
                     <View
                         key={item.keyForList}
-                        style={[styles.chartDataTableRow, shouldUseNarrowLayout && styles.chartDataTableRowNarrow, index === rows.length - 1 && styles.chartDataTableRowLast]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, !isLastRow && styles.borderBottom]}
                     >
-                        <View style={styles.chartDataTableGroup}>
-                            {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, {backgroundColor: color}]} />}
-                            {shouldShowAvatar && isMemberGroup(item) && (
-                                <UserAvatar
-                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                    source={item.avatar}
-                                    accountID={item.accountID}
-                                />
-                            )}
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textNormal, styles.flexShrink1]}
-                            >
-                                {point.label}
-                            </Text>
+                        {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, {backgroundColor: color}]} />}
+                        {shouldShowAvatar && isMemberGroup(item) && (
+                            <UserAvatar
+                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                source={item.avatar}
+                                accountID={item.accountID}
+                            />
+                        )}
+                        <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={styles.flexShrink1}
+                                >
+                                    {point.label}
+                                </Text>
+                                <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={styles.mutedNormalTextLabel}
+                                >
+                                    {translate('iou.expenseCount', {count: item.count})}
+                                </Text>
+                                {percent !== undefined && (
+                                    <Text style={styles.mutedNormalTextLabel}>{translate('search.percentOfSpend', {percent: formatPercentOfTotal(percent, preferredLocale)})}</Text>
+                                )}
+                            </View>
                         </View>
-                        <Text style={styles.textLabelSupporting}>{details}</Text>
                     </View>
                 );
             })}

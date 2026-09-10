@@ -1,7 +1,7 @@
 import type {ChartDataPoint} from '@components/Charts/types';
 import {getSliceColorsByDataIndex, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {buildChartSeries, getPercentOfTotal} from '@components/Search/buildChartSeries';
+import {buildChartSeries, formatPercentOfTotal, getPercentOfTotal} from '@components/Search/buildChartSeries';
 import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem} from '@components/Search/types';
 
@@ -119,6 +119,30 @@ describe('getPercentOfTotal', () => {
 
     it('treats a missing value as no share of the total', () => {
         expect(getPercentOfTotal(undefined, 10000)).toBe(0);
+    });
+});
+
+describe('formatPercentOfTotal', () => {
+    it('keeps one decimal place when the share has one', () => {
+        expect(formatPercentOfTotal(40.14, CONST.LOCALES.EN)).toBe('40.1%');
+        expect(formatPercentOfTotal(3.5, CONST.LOCALES.EN)).toBe('3.5%');
+    });
+
+    it('drops the decimal when the share is round, so it does not read as false precision', () => {
+        expect(formatPercentOfTotal(30, CONST.LOCALES.EN)).toBe('30%');
+        expect(formatPercentOfTotal(100, CONST.LOCALES.EN)).toBe('100%');
+    });
+
+    it('reports a share too small to round as "less than", not as zero', () => {
+        expect(formatPercentOfTotal(0.03, CONST.LOCALES.EN)).toBe('<0.1%');
+    });
+
+    it('shows a genuinely zero share as zero', () => {
+        expect(formatPercentOfTotal(0, CONST.LOCALES.EN)).toBe('0%');
+    });
+
+    it('uses the locale decimal separator rather than a hand-built string', () => {
+        expect(formatPercentOfTotal(40.14, CONST.LOCALES.PL)).toBe('40,1%');
     });
 });
 

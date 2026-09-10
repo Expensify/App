@@ -6656,36 +6656,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartDataTable: {
             marginTop: 20,
         },
-        chartDataTableRow: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            columnGap: 12,
-            paddingVertical: 8,
-            borderBottomWidth: 1,
-            borderColor: theme.border,
-        },
-        chartDataTableRowNarrow: {
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-start',
-            rowGap: 2,
-        },
-        chartDataTableRowLast: {
-            borderBottomWidth: 0,
-        },
-        chartDataTableGroup: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            columnGap: 8,
-            flexShrink: 1,
-            flexGrow: 1,
-            flexBasis: 'auto',
-        },
-        chartDataTableSkeletonRow: {
-            paddingVertical: 8,
-        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,

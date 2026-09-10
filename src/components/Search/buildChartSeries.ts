@@ -3,9 +3,11 @@ import {getSliceColorsByDataIndex} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
+import {format} from '@libs/NumberFormatUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 import type {ChartView, GroupedItem, SearchChartDataRow} from './types';
 
@@ -77,4 +79,24 @@ function getPercentOfTotal(value: number | undefined, total: number | undefined)
     return (Math.abs(value ?? 0) / denominator) * 100;
 }
 
-export {buildChartSeries, getPercentOfTotal};
+/** The smallest share we spell out. Anything below it is reported as "less than this". */
+const SMALLEST_REPORTED_PERCENT = 0.1;
+
+/**
+ * Formats a share for display, to at most one decimal place.
+ *
+ * Intl does the rounding, drops a trailing zero (so a round 30 reads "30%", not "30.0%") and places
+ * the locale's own decimal separator, which is why the string is never assembled by hand. A share
+ * too small to survive that rounding is reported as "<0.1%" rather than a misleading "0%".
+ */
+function formatPercentOfTotal(percent: number, locale: Locale | undefined): string {
+    const options: Intl.NumberFormatOptions = {style: 'percent', maximumFractionDigits: 1};
+
+    if (percent > 0 && percent < SMALLEST_REPORTED_PERCENT / 2) {
+        return `<${format(locale, SMALLEST_REPORTED_PERCENT / 100, options)}`;
+    }
+
+    return format(locale, percent / 100, options);
+}
+
+export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal};
