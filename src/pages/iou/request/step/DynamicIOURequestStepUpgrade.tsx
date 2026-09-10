@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,11 +8,13 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateNewReport from '@hooks/useCreateNewReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -71,6 +72,7 @@ function DynamicIOURequestStepUpgrade({
     const activePolicy = useActivePolicy();
     const personalPolicy = usePersonalPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
@@ -81,7 +83,7 @@ function DynamicIOURequestStepUpgrade({
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
-    const [isUpgradeWarningModalOpen, setIsUpgradeWarningModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
@@ -109,6 +111,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -144,7 +147,7 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals, rules);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -171,6 +174,7 @@ function DynamicIOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
+                rules,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -290,6 +294,7 @@ function DynamicIOURequestStepUpgrade({
         delegateAccountID,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
         areAllMatchingItemsSelected,
         currentSearchQueryJSON,
         excludedTransactions,
@@ -304,7 +309,12 @@ function DynamicIOURequestStepUpgrade({
 
     const onUpgrade = () => {
         if (isRestrictedPolicyCreation) {
-            setIsUpgradeWarningModalOpen(true);
+            showConfirmModal({
+                title: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning'),
+                prompt: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
 
@@ -320,8 +330,8 @@ function DynamicIOURequestStepUpgrade({
         const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyOwner: undefined,
+            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,
@@ -342,18 +352,15 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
     };
 
-    const handleConfirmUpgradeWarning = () => {
-        setIsUpgradeWarningModalOpen(false);
-    };
-
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: params.owner,
+            policyOwner: params.owner,
             makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,
@@ -369,6 +376,7 @@ function DynamicIOURequestStepUpgrade({
             betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);
@@ -421,15 +429,6 @@ function DynamicIOURequestStepUpgrade({
                     addBottomSafeAreaPadding={false}
                 />
             )}
-            <ConfirmModal
-                isVisible={isUpgradeWarningModalOpen}
-                shouldShowCancelButton={false}
-                onConfirm={handleConfirmUpgradeWarning}
-                onCancel={handleConfirmUpgradeWarning}
-                title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
-                prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
-                confirmText={translate('common.buttonConfirm')}
-            />
         </ScreenWrapper>
     );
 }

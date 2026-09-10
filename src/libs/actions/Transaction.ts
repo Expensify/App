@@ -77,6 +77,7 @@ import type {
     ReportAction,
     ReportActions,
     ReviewDuplicates,
+    Rule,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -509,6 +510,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    rules: OnyxCollection<Rule>;
     currentTransactionViolations?: Array<{
         transactionID: string;
         violations: TransactionViolations;
@@ -527,6 +529,7 @@ function dismissDuplicateTransactionViolation({
     policy,
     isASAPSubmitBetaEnabled,
     allTransactions,
+    rules,
     currentTransactionViolations = [],
     isTrackIntentUser,
 }: DismissDuplicateTransactionViolationProps) {
@@ -558,6 +561,7 @@ function dismissDuplicateTransactionViolation({
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -853,6 +857,7 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     reports: OnyxCollection<Report>;
+    rules: OnyxCollection<Rule>;
     /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
@@ -877,6 +882,7 @@ function getChangeTransactionsReportOnyxData({
     transactions,
     allTransactionViolation = {},
     reports,
+    rules,
     skippedReportIDs,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
@@ -1943,6 +1949,7 @@ function getChangeTransactionsReportOnyxData({
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
             isTrackIntentUser,
+            rules,
         });
 
         const optimisticPendingFields = {

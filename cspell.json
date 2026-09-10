@@ -763,6 +763,7 @@
         "lastiPhoneLogin",
         "lastname",
         "lefthook",
+        "legendapp",
         "libc",
         "Libc",
         "libc's",
@@ -875,6 +876,7 @@
         "passcodes",
         "passplus",
         "passwordless",
+        "packageinstaller",
         "pathspec",
         "paycor",
         "payrollcode",
@@ -987,6 +989,7 @@
         "signingkey",
         "signup",
         "Signup",
+        "sideloaded",
         "sideproject",
         "simctl",
         "showcerts",
@@ -1048,6 +1051,7 @@
         "tosorted",
         "touchables",
         "tranid",
+        "travelled",
         "trinet",
         "trivago",
         "trustcacerts",
@@ -1232,6 +1236,6 @@
         "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": ["@assets/.*", "[A-Za-z0-9+/]{43}="],
     "useGitignore": true
 }
