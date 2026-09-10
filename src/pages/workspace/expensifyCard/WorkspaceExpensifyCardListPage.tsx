@@ -34,8 +34,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {renameExpensifyCardInline, updateExpensifyCardLimitTypeInline} from '@libs/actions/Policy/InlineEdit';
-import {getCardsByCardholderName, getCardSettings, getExpensifyCardLimitTypeChangeWarningKey, isCurrencySupportedForECards, shouldConfirmExpensifyCardLimitTypeChange} from '@libs/CardUtils';
+import {renameExpensifyCardInline, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline} from '@libs/actions/Policy/InlineEdit';
+import {
+    getCardsByCardholderName,
+    getCardSettings,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    isCurrencySupportedForECards,
+    shouldConfirmExpensifyCardLimitTypeChange,
+} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -170,6 +179,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     pendingAction: card.pendingAction,
                     canEditName: canEditCard,
                     canEditLimitType: canEditCard,
+                    canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
                     onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
                     onChangeLimitType: (newLimitType?: CardLimitType) => {
@@ -199,6 +209,37 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                                 return;
                             }
                             persistLimitType();
+                        });
+                    },
+                    onChangeLimit: (newLimit: string) => {
+                        if (getExpensifyCardLimitError(newLimit)) {
+                            return;
+                        }
+
+                        const nextLimit = Number(newLimit) * 100;
+                        if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
+                            return;
+                        }
+
+                        const persistLimit = () => updateExpensifyCardLimitInline(fundID, card, newLimit);
+
+                        if (getExpensifyCardNewAvailableSpend(card, nextLimit) > 0) {
+                            persistLimit();
+                            return;
+                        }
+
+                        showConfirmModal({
+                            title: translate('workspace.expensifyCard.changeCardLimit'),
+                            prompt: translate(getExpensifyCardLimitChangeWarningKey(card.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
+                            confirmText: translate('workspace.expensifyCard.changeLimit'),
+                            cancelText: translate('common.cancel'),
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                            shouldEnableNewFocusManagement: true,
+                        }).then(({action}) => {
+                            if (action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            persistLimit();
                         });
                     },
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),

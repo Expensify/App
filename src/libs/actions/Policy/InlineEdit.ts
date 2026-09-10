@@ -1,12 +1,19 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
+import {
+    getCompanyCardNameError,
+    getExpensifyCardLimitError,
+    getExpensifyCardNameError,
+    getExpensifyCardNewAvailableSpend,
+    sanitizeCompanyCardName,
+    shouldShowExpensifyCardFixedLimitType,
+} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
 import {getDistanceRateNameError, getDistanceRateValueError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
-import {updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
+import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
@@ -194,6 +201,25 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
     updateExpensifyCardLimitType(workspaceAccountID, card.cardID, newLimitType, undefined, card.nameValuePairs);
 }
 
+/**
+ * Updates an Expensify card limit from an inline table edit. `newLimit` is the dollar
+ * amount as a string. Silently no-ops when the amount is unchanged or fails validation,
+ * matching the Spend inline-edit behavior.
+ */
+function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, newLimit: string): void {
+    if (getExpensifyCardLimitError(newLimit)) {
+        return;
+    }
+
+    const nextLimit = Number(newLimit) * 100;
+    const oldLimit = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+    if (nextLimit === oldLimit) {
+        return;
+    }
+
+    updateExpensifyCardLimit(workspaceAccountID, card.cardID, nextLimit, getExpensifyCardNewAvailableSpend(card, nextLimit), oldLimit, card.availableSpend, card.nameValuePairs?.isVirtual);
+}
+
 export {
     renameCategoryInline,
     renameTagInline,
@@ -203,4 +229,5 @@ export {
     updateDistanceRateValueInline,
     updateMemberRoleInline,
     updateExpensifyCardLimitTypeInline,
+    updateExpensifyCardLimitInline,
 };

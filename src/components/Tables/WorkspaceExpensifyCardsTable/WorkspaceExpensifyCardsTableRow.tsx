@@ -29,6 +29,7 @@ import {View} from 'react-native';
 
 import type {WorkspaceExpensifyCardTableRowData} from '.';
 
+import WorkspaceExpensifyCardLimitCell from './WorkspaceExpensifyCardLimitCell';
 import WorkspaceExpensifyCardLimitTypeCell from './WorkspaceExpensifyCardLimitTypeCell';
 
 type WorkspaceExpensifyCardsTableRowProps = {
@@ -208,13 +209,16 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             shouldUseNarrowTableLayout ? styles.alignItemsEnd : styles.flex1,
                             shouldUseNarrowTableLayout ? styles.justifyContentStart : styles.alignItemsCenter,
                             shouldUseNarrowTableLayout ? undefined : styles.justifyContentEnd,
+                            !shouldUseNarrowTableLayout && styles.editableCellColumn,
                         ]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={formattedLimit}
+                        <WorkspaceExpensifyCardLimitCell
+                            limit={item.limit}
+                            currency={item.currency}
+                            displayText={formattedLimit}
+                            canEdit={!!item.canEditLimit}
+                            onSave={item.onChangeLimit}
                         />
                         {shouldUseNarrowTableLayout && (
                             <Text

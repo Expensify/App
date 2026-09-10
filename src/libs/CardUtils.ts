@@ -566,6 +566,35 @@ function getExpensifyCardLimitTypeChangeWarningKey(
     return 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 }
 
+type ExpensifyCardLimitChangeWarningKey = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
+
+/**
+ * Remaining spend after applying `newLimit` in cents. Current spend is
+ * `unapprovedExpenseLimit - availableSpend`, matching the RHP limit form so inline
+ * table edits use the same formula.
+ */
+function getExpensifyCardNewAvailableSpend(card: Card | undefined, newLimit: number): number {
+    const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+    const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+    return newLimit - currentSpend;
+}
+
+/**
+ * Warning copy when a new limit would leave remaining spend at or below zero.
+ * Matches the RHP limit form so inline edits and the full-page form stay in sync.
+ */
+function getExpensifyCardLimitChangeWarningKey(limitType: CardLimitType | undefined): ExpensifyCardLimitChangeWarningKey {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.expensifyCard.smartLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.expensifyCard.monthlyLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+        default:
+            return 'workspace.expensifyCard.fixedLimitWarning';
+    }
+}
+
 /**
  * Maps an Expensify Card `state` to the translation key for its status label shown in the workspace Expensify Card table.
  * `Pending order` and `Shipped` are physical-only states, so a virtual card in one of those states has no status to show.
@@ -1340,6 +1369,48 @@ function getExpensifyCardNameErrorMessage(translate: LocaleContextProps['transla
         case 'tooLong':
         default:
             return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(name), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
+/** The reason a proposed Expensify card limit is invalid. Callers translate it via `getExpensifyCardLimitErrorMessage`. */
+type ExpensifyCardLimitError = 'required' | 'invalid' | 'notInteger' | 'tooHigh';
+
+/**
+ * Validates an Expensify card limit against the same rules the RHP edit form uses.
+ * `newLimit` is the dollar amount as a string. Returns an error code, or undefined when the limit is valid.
+ */
+function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError | undefined {
+    if (!newLimit) {
+        return 'required';
+    }
+
+    if (Number.isNaN(Number(newLimit))) {
+        return 'invalid';
+    }
+
+    if (!Number.isInteger(Number(newLimit))) {
+        return 'notInteger';
+    }
+
+    if (Number(newLimit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+        return 'tooHigh';
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardLimitError} into a user-facing message. */
+function getExpensifyCardLimitErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardLimitError): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'notInteger':
+            return translate('iou.error.invalidIntegerAmount');
+        case 'tooHigh':
+            return translate('workspace.card.issueNewCard.cardLimitError');
+        case 'invalid':
+        default:
+            return translate('iou.error.invalidAmount');
     }
 }
 
@@ -2300,6 +2371,8 @@ export {
     shouldShowExpensifyCardFixedLimitType,
     shouldConfirmExpensifyCardLimitTypeChange,
     getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    getExpensifyCardLimitChangeWarningKey,
     isExpensifyCard,
     isUkEuExpensifyCard,
     isOfflinePINMarket,
@@ -2349,6 +2422,8 @@ export {
     getCompanyCardNameErrorMessage,
     getExpensifyCardNameError,
     getExpensifyCardNameErrorMessage,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,

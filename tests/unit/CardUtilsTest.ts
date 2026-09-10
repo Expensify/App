@@ -42,7 +42,10 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultCommercialFeedDisplayName,
     getDefaultExpensifyCardLimitType,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitError,
     getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
@@ -2288,6 +2291,44 @@ describe('CardUtils', () => {
 
         it('warns about Monthly when the current type is Smart', () => {
             expect(getExpensifyCardLimitTypeChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.changeCardMonthlyLimitTypeWarning');
+        });
+    });
+
+    describe('getExpensifyCardNewAvailableSpend', () => {
+        it('subtracts current spend from the new limit', () => {
+            const card = createMock<Card>({
+                availableSpend: 4000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 10000,
+                },
+            });
+
+            expect(getExpensifyCardNewAvailableSpend(card, 5000)).toBe(-1000);
+            expect(getExpensifyCardNewAvailableSpend(card, 20000)).toBe(14000);
+        });
+    });
+
+    describe('getExpensifyCardLimitChangeWarningKey', () => {
+        it('returns the warning for the current limit type', () => {
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe('workspace.expensifyCard.smartLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.monthlyLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.fixedLimitWarning');
+            expect(getExpensifyCardLimitChangeWarningKey(undefined)).toBe('workspace.expensifyCard.fixedLimitWarning');
+        });
+    });
+
+    describe('getExpensifyCardLimitError', () => {
+        it('rejects empty, non-numeric, fractional, and oversized limits', () => {
+            expect(getExpensifyCardLimitError('')).toBe('required');
+            expect(getExpensifyCardLimitError('abc')).toBe('invalid');
+            expect(getExpensifyCardLimitError('10.5')).toBe('notInteger');
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE + 1))).toBe('tooHigh');
+        });
+
+        it('accepts integer amounts at or below the max', () => {
+            expect(getExpensifyCardLimitError('0')).toBeUndefined();
+            expect(getExpensifyCardLimitError('1000')).toBeUndefined();
+            expect(getExpensifyCardLimitError(String(CONST.EXPENSIFY_CARD.LIMIT_VALUE))).toBeUndefined();
         });
     });
 

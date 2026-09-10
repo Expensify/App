@@ -51,9 +51,12 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     canEditName?: boolean;
     /** Whether the card limit type can be edited inline from the table */
     canEditLimitType?: boolean;
+    /** Whether the card limit can be edited inline from the table */
+    canEditLimit?: boolean;
     action: () => void;
     onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType | undefined) => void;
+    onChangeLimit?: (newLimit: string) => void;
     onClose: () => void;
 };
 
