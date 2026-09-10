@@ -15,9 +15,11 @@ function useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard}: {po
     const [cardFeeds] = useCardFeeds(policyID);
     const newFeedErrors = newFeed ? cardFeeds?.[newFeed]?.errors : undefined;
     const errorMessage = (isAddingNewCard ? getLatestErrorMessage(addNewCard) : '') || getLatestErrorMessage({errors: newFeedErrors});
-    const hasError = (isAddingNewCard && !isEmptyObject(addNewCard?.errors)) || !isEmptyObject(newFeedErrors);
+    const hasAddNewCardError = isAddingNewCard && !isEmptyObject(addNewCard?.errors);
+    const hasNewFeedError = !isEmptyObject(newFeedErrors);
+    const hasError = hasAddNewCardError || hasNewFeedError;
 
-    return {errorMessage: errorMessage || undefined, hasError};
+    return {errorMessage: errorMessage || undefined, hasError, hasAddNewCardError, hasNewFeedError};
 }
 
 export default useCompanyCardConnectionError;

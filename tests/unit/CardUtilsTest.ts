@@ -1329,7 +1329,7 @@ describe('CardUtils', () => {
                 },
             });
 
-            expect(checkIfNewFeedConnected(cardFeeds, cardFeeds, 'ins_123456')).toEqual({isNewFeedConnected: plaidFeed, newFeed: plaidFeed});
+            expect(checkIfNewFeedConnected(cardFeeds, cardFeeds, 'ins_123456')).toEqual({isNewFeedConnected: plaidFeed, newFeed: undefined});
         });
     });
 

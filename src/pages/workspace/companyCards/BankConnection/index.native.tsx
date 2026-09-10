@@ -72,7 +72,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard: !feed});
+    const {errorMessage, hasError: isNewFeedHasError, hasAddNewCardError, hasNewFeedError} = useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard: !feed});
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
@@ -103,7 +103,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     };
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isNewFeedHasError) {
+        if ((!url && !isPlaid) || hasNewFeedError || (hasAddNewCardError && !isNewFeedConnected)) {
             return;
         }
 
@@ -164,7 +164,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
-        isNewFeedHasError,
+        hasAddNewCardError,
+        hasNewFeedError,
         checkForDuplicateFeed,
     ]);
 

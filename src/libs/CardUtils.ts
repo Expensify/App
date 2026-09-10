@@ -1263,7 +1263,7 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
 
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
-        newFeed: newFeed ?? plaidBankFound,
+        newFeed,
     };
 }
 
