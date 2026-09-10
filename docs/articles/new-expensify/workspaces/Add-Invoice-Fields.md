@@ -57,12 +57,9 @@ For a **List** field, select **List values** to add the options members can choo
 
 Field names must be unique across the whole workspace, and invoice fields and report fields share the same set of names. You can't have an invoice field and a report field with the same name on one workspace.
 
-If you enter a name that's already in use, Expensify blocks the save and shows an error:
+If you enter a name that's already in use, Expensify blocks the save and shows an error telling you a field with that name already exists. The check ignores capitalization, so `Client code` and `client code` count as the same name.
 
-- On an invoice field: **An invoice field with this name already exists**
-- On a report field: **A report field with this name already exists**
-
-The check ignores capitalization, so `Client code` and `client code` count as the same name. To resolve the error, enter a different name or rename the existing field.
+To resolve the error, enter a different name, or rename the field that already uses it. Because the name may belong to a report field rather than an invoice field, check both your invoice fields and your report fields.
 
 Learn how to [enable report fields](/articles/new-expensify/workspaces/Enable-Report-Fields).
 
