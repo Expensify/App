@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -68,7 +69,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
             prompt: translate('editAgentPage.deleteAgentMessage'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {
@@ -129,11 +130,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     errorRowStyles={[styles.mh5, styles.mb2]}
                     onClose={() => clearAgentNameUpdateError(accountID)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.agentName')}
-                        title={personalDetails?.displayName ?? ''}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
+                        value={personalDetails?.displayName}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback

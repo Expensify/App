@@ -68,7 +68,7 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (enabledCategories.some((category) => categoryHasAnyRequireFieldsRule(category))) {
         total.push(translate('workspace.rules.tabs.requireFields'));
     }
-    if (enabledCategories.some((category) => hasExplicitFlagAmount(category.maxExpenseAmount))) {
+    if (enabledCategories.some((category) => hasExplicitFlagAmount(category.maxExpenseAmount) && category.pendingFields?.maxExpenseAmount !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         total.push(translate('workspace.rules.tabs.flagForReview'));
     }
 

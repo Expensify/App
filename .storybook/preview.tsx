@@ -3,6 +3,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import registerMiddlewares from '@libs/Middleware/register';
+
 import colors from '@styles/theme/colors';
 
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -21,6 +23,8 @@ import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import './fonts.css';
+
+registerMiddlewares();
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -42,7 +46,9 @@ const decorators = [
                 SearchContextProvider,
             ]}
         >
-            <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
+            <ScreenWrapperStatusContext.Provider
+                value={{didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
+            >
                 <Story />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>

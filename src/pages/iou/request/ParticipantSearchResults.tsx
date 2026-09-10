@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useContactImport from '@hooks/useContactImport';
 import useContactPermissionModal from '@hooks/useContactPermissionModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,6 +26,7 @@ import useUserToInviteReports from '@hooks/useUserToInviteReports';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -43,11 +45,13 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
@@ -73,10 +77,7 @@ type ParticipantSearchResultsProps = {
     /** The IOU action (create, submit, share, categorize, etc.) */
     action: IOUAction;
 
-    /** Selected participants */
     participants: Participant[] | typeof CONST.EMPTY_ARRAY;
-
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly: boolean;
 
     /** Whether this is a per diem expense request */
@@ -88,7 +89,6 @@ type ParticipantSearchResultsProps = {
     /** Whether the platform is native (iOS/Android) */
     isNative: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -97,14 +97,13 @@ type ParticipantSearchResultsProps = {
     /** Forwarded ref for the SelectionList — used by the parent's useImperativeHandle */
     selectionListRef: Ref<SelectionListWithSectionsHandle | null>;
 
-    /** Whether the text input should auto-focus */
     textInputAutoFocus: boolean;
 
     /** Setter to toggle textInputAutoFocus from the contact permission flow */
     setTextInputAutoFocus: (value: boolean) => void;
 
-    /** Callback to propagate selected participants to the parent flow */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to propagate selected participants to the parent flow. selectedPolicy is the chosen workspace's policy. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Callback to advance the parent flow */
     onFinish: (value?: string, participants?: Participant[]) => void;
@@ -115,7 +114,6 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
@@ -161,6 +159,7 @@ function ParticipantSearchResults({
         action !== CONST.IOU.ACTION.CATEGORIZE;
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {contactPermissionState, contacts, setContactPermissionState} = useContactImport();
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -232,7 +231,10 @@ function ParticipantSearchResults({
             });
         }
 
-        onParticipantsAdded(newParticipants);
+        // Resolve the chosen workspace's policy and pass it up so the confirmation step can reset the rate and category
+        // without subscribing to every policy. allPolicies is already loaded on this screen, so this adds no new subscription.
+        const selectedPolicy = option.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`] : undefined;
+        onParticipantsAdded(newParticipants, selectedPolicy);
 
         if (!option.isSelfDM) {
             onFinish(undefined, newParticipants);
@@ -313,6 +315,7 @@ function ParticipantSearchResults({
             currentUserAccountID,
             allPolicies,
             translate,
+            convertToDisplayString,
             dateFnsLocale,
             personalDetails,
             true,
@@ -322,7 +325,9 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
+            (option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)) && !isTeachersUnitePolicyID(option.policyID),
+        );
         if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
@@ -387,7 +392,7 @@ function ParticipantSearchResults({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteExpenseReportPolicy,
-                              {translate, dateFnsLocale},
+                              {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
                               reportAttributesDerived,
                           )
@@ -552,6 +557,10 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
+                isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
             ListItem={InviteMemberListItem}

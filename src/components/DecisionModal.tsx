@@ -53,7 +53,6 @@ type DecisionModalProps = {
     /** Callback when modal has fully disappeared */
     onModalHide?: () => void;
 
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Whether to handle browser navigation back to close the modal */
@@ -103,8 +102,12 @@ function DecisionModal({
             onModalHide={onModalHide}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <ScrollView contentContainerStyle={styles.p5}>
+            <ScrollView
+                contentContainerStyle={[styles.p5, styles.pb5]}
+                addBottomSafeAreaPadding={isSmallScreenWidth}
+            >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header

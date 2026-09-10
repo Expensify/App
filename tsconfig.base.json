@@ -4,6 +4,10 @@
     "compilerOptions": {
         "isolatedModules": true,
         "strict": true,
+        // Every project under the root solution is type-check only. `expo/tsconfig.base` happens to
+        // set this too, but it is restated here because `tsc --build` rejects `--noEmit` as a command
+        // line flag: the whole typecheck gate now depends on this option coming from a config file.
+        "noEmit": true,
         "incremental": true,
         "paths": {
             "@assets/*": ["./assets/*"],

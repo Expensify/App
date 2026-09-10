@@ -1,14 +1,21 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DisplayNames from '@components/DisplayNames';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import UserPill from '@components/UserPill';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,13 +23,15 @@ import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
+import {isAllowedToComment} from '@libs/ReportUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +43,28 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+/**
+ * The leading avatar of the participant field below. A component of its own so that it renders inside
+ * `MenuItem.Root` and can read the row's interaction state.
+ */
+function TaskFieldAvatar({reportID}: {reportID?: string}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {isHovered, isPressed} = useMenuItemInteraction();
+    const {isInteractive} = useMenuItemConfig();
+
+    const borderColor = isPressed ? theme.buttonHoveredBG : theme.hoverComponentBG;
+
+    return (
+        <ReportActionAvatars
+            singleAvatarContainerStyle={[styles.actionAvatar]}
+            subscriptAvatarBorderColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
+            reportID={reportID}
+            noRightMarginOnSubscriptContainer
+        />
+    );
+}
+
 function DynamicNewTaskPage() {
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
@@ -44,19 +75,14 @@ function DynamicNewTaskPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
     });
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
-        getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
-        false,
-        localeCompare,
-        formatPhoneNumber,
-        translate,
-    );
+    const assigneePersonalDetails = task?.assigneeAccountID ? personalDetails?.[task.assigneeAccountID] : undefined;
     const shareDestination = task?.shareDestination
         ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, reportAttributes, pendingDeleteMemberAccountIDs)
         : undefined;
@@ -76,6 +102,9 @@ function DynamicNewTaskPage() {
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
     const confirmButtonRef = useRef<View>(null);
+
+    const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
+    const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));
 
     useEffect(() => {
         if (!task?.parentReportID) {
@@ -117,6 +146,7 @@ function DynamicNewTaskPage() {
             currentUserEmail: currentUserPersonalDetails.email ?? '',
             currentUserDisplayName: currentUserPersonalDetails.displayName,
             currentUserAvatar: currentUserPersonalDetails.avatar,
+            delegateAccountID,
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
             policyID: parentReport?.policyID,
@@ -185,26 +215,72 @@ function DynamicNewTaskPage() {
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                             />
-                            <MenuItem
-                                label={assignee?.displayName ? translate('task.assignee') : ''}
-                                title={assignee?.displayName ?? ''}
-                                description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                iconAccountID={task?.assigneeAccountID}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path))}
-                                shouldShowRightIcon
-                                titleWithTooltips={assigneeTooltipDetails}
-                            />
-                            <MenuItem
-                                label={shareDestination?.displayName ? translate('common.share') : ''}
-                                title={shareDestination?.displayName ?? ''}
-                                description={shareDestination?.displayName ? shareDestination.subtitle : translate('common.share')}
-                                iconReportID={task?.shareDestination}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path))}
-                                interactive={!task?.parentReportID}
-                                shouldShowRightIcon={!task?.parentReportID}
-                                titleWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
-                                rightLabel={translate('common.required')}
-                            />
+                            {assignee?.displayName ? (
+                                <MenuItem.Root
+                                    accessibilityLabel={`${translate('task.assignee')}, ${assignee.displayName}`}
+                                    onPress={callFunctionIfActionIsAllowed(navigateToAssignee)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Label>{translate('task.assignee')}</MenuItem.Label>
+                                            <UserPill
+                                                avatar={assigneePersonalDetails?.avatar}
+                                                displayName={assignee.displayName}
+                                                accountID={task?.assigneeAccountID}
+                                                email={assigneePersonalDetails?.login}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
+                            ) : (
+                                <MenuItemField
+                                    name={translate('task.assignee')}
+                                    onPress={navigateToAssignee}
+                                />
+                            )}
+                            {shareDestination?.displayName ? (
+                                <MenuItemWithLabel
+                                    label={translate('common.share')}
+                                    onPress={navigateToShareDestination}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <TaskFieldAvatar reportID={task?.shareDestination} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            {shareDestination.shouldUseFullTitleToDisplay || !shareDestination.displayNamesWithTooltips?.length ? (
+                                                <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
+                                            ) : (
+                                                <MenuItem.Title accessibilityLabel={shareDestination.displayName}>
+                                                    <DisplayNames
+                                                        fullTitle={shareDestination.displayName}
+                                                        displayNamesWithTooltips={shareDestination.displayNamesWithTooltips}
+                                                        tooltipEnabled
+                                                        numberOfLines={1}
+                                                    />
+                                                </MenuItem.Title>
+                                            )}
+                                            {!!shareDestination.subtitle && <MenuItem.Description>{shareDestination.subtitle}</MenuItem.Description>}
+                                        </MenuItem.Content>
+                                        {!task?.parentReportID && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemWithLabel>
+                            ) : (
+                                <MenuItemField
+                                    name={translate('common.share')}
+                                    onPress={navigateToShareDestination}
+                                >
+                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                </MenuItemField>
+                            )}
                         </View>
                     </View>
                     <View style={styles.flexShrink0}>

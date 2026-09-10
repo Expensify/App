@@ -24,7 +24,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
@@ -61,7 +60,7 @@ function mapTransactionItemToSelectedEntry({
     parentReport,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
-    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID) : false;
+    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID, item.policy) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
     const isUnreported = isExpenseUnreported(item);
     const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
@@ -168,7 +167,6 @@ type PrepareTransactionsListParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
