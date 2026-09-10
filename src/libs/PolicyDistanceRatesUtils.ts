@@ -26,6 +26,9 @@ type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIM
 /** The reason a proposed distance rate name is invalid. Callers translate it via `getDistanceRateNameErrorMessage`. */
 type DistanceRateNameError = 'required' | 'existing' | 'tooLong';
 
+/** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
+type DistanceRateValueError = 'invalid' | 'tooLow';
+
 /** Normalizes a distance rate name by converting non-breaking spaces and trimming surrounding whitespace. */
 function sanitizeDistanceRateName(name: string): string {
     return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
@@ -69,18 +72,36 @@ function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: D
     }
 }
 
-function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
-    const errors: FormInputErrors<RateValueForm> = {};
-    const parsedRate = replaceAllDigits(values.rate, toLocaleDigit);
+/**
+ * Validates a distance rate amount against the same rules as the RHP edit form (format and > 0).
+ * Returns an error code, or undefined when the value is valid.
+ */
+function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) => string): DistanceRateValueError | undefined {
+    const parsedRate = replaceAllDigits(rate, toLocaleDigit);
     const decimalSeparator = toLocaleDigit('.');
-
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+        return 'invalid';
+    }
+    if (parseFloatAnyLocale(parsedRate) <= 0) {
+        return 'tooLow';
+    }
+
+    return undefined;
+}
+
+function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
+    const errors: FormInputErrors<RateValueForm> = {};
+    const error = getDistanceRateValueError(values.rate, toLocaleDigit);
+
+    if (error === 'invalid') {
         errors.rate = translate('common.error.invalidRateError');
-    } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+    } else if (error === 'tooLow') {
         errors.rate = translate('common.error.lowRateError');
     }
+
     return errors;
 }
 
@@ -331,4 +352,5 @@ export {
     sanitizeDistanceRateName,
     getDistanceRateNameError,
     getDistanceRateNameErrorMessage,
+    getDistanceRateValueError,
 };

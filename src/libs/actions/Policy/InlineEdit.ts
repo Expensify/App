@@ -2,7 +2,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 
 import {getCompanyCardNameError, getExpensifyCardNameError, sanitizeCompanyCardName} from '@libs/CardUtils';
 import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
-import {getDistanceRateNameError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateNameError, getDistanceRateValueError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
 import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
 
@@ -27,7 +27,7 @@ import type {ValueOf} from 'type-fest';
  * Add new items as additional sections below rather than creating a file per item.
  */
 import {renamePolicyCategory} from './Category';
-import {updatePolicyDistanceRateName} from './DistanceRate';
+import {updatePolicyDistanceRateName, updatePolicyDistanceRateValue} from './DistanceRate';
 import {updateWorkspaceMembersRole} from './Member';
 import {renamePolicyTag} from './Tag';
 
@@ -111,6 +111,24 @@ function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate
     updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
 }
 
+/**
+ * Updates a distance rate amount from an inline table edit. Delegates to the canonical rate
+ * action. Silently no-ops when the amount is unchanged or fails validation (matching the Spend
+ * inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ */
+function updateDistanceRateValueInline(policyID: string, customUnit: CustomUnit, rate: Rate, newRate: string, toLocaleDigit: (arg: string) => string): void {
+    if (getDistanceRateValueError(newRate, toLocaleDigit)) {
+        return;
+    }
+
+    const currentRateValue = (parseFloat((rate.rate ?? 0).toString()) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    if (Number(newRate).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES) === currentRateValue) {
+        return;
+    }
+
+    updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(newRate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+}
+
 function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
     switch (role) {
         case CONST.POLICY.ROLE.OWNER:
@@ -140,4 +158,4 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, renameDistanceRateInline, updateMemberRoleInline};
+export {renameCategoryInline, renameTagInline, renameCompanyCardInline, renameExpensifyCardInline, renameDistanceRateInline, updateDistanceRateValueInline, updateMemberRoleInline};

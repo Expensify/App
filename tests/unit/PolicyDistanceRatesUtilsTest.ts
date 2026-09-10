@@ -1,6 +1,7 @@
 import {
     getDistanceExpenseTypeForPolicy,
     getDistanceRateNameError,
+    getDistanceRateValueError,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -248,6 +249,29 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should accept a unique name within the character limit', () => {
             expect(getDistanceRateNameError(existingRateNames, 'New rate')).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateValueError', () => {
+        const toLocaleDigit = (digit: string) => digit;
+
+        it('should return invalid when the rate is empty or not a number', () => {
+            expect(getDistanceRateValueError('', toLocaleDigit)).toBe('invalid');
+            expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe('invalid');
+        });
+
+        it('should return tooLow when the rate is zero or negative', () => {
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe('tooLow');
+            expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe('tooLow');
+        });
+
+        it('should return invalid when the rate has more than four decimal places', () => {
+            expect(getDistanceRateValueError('0.12345', toLocaleDigit)).toBe('invalid');
+        });
+
+        it('should accept a positive rate with up to four decimal places', () => {
+            expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
         });
     });
 
