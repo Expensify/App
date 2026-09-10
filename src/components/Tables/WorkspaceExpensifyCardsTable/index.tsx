@@ -119,12 +119,6 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'name',
             label: translate('workspace.expensifyCard.name'),
             sortable: true,
-            styling: {
-                // Cardholder names and card titles are the longest values in the table, so this column takes the
-                // space freed up by giving Type, Last 4 and Status fixed widths. This flex only applies to the static
-                // fallback layout, since dynamic column widths below resolve to px tracks instead.
-                flex: 2,
-            },
             dynamicSizing: {
                 // The cell stacks the cardholder's name above the card's own title, so whichever renders wider decides
                 // the column's width.
@@ -139,9 +133,12 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'type',
             label: translate('common.type'),
             sortable: true,
-            width: variables.tableTypeColumnWidth,
-            styling: {
-                containerStyles: [styles.mnw0],
+            dynamicSizing: {
+                getContentToMeasure: (item) => [
+                    {text: item.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical'), fontSize: fontScale.text},
+                ],
+                // Type is one of exactly two known labels, so the column always shows them in full.
+                shouldFitContent: true,
             },
         },
         {
@@ -158,15 +155,23 @@ export default function WorkspaceExpensifyCardsTable({
             key: 'lastFour',
             label: translate('workspace.expensifyCard.lastFour'),
             sortable: true,
-            width: variables.tableLastFourColumnWidth,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.lastFourPAN, fontSize: fontScale.text}],
+                // The last 4 digits are always exactly 4 characters, so the column always shows them in full.
+                shouldFitContent: true,
+            },
         },
         {
             key: 'status',
             label: translate('common.status'),
             sortable: true,
-            width: variables.tableCardStatusColumnWidth,
-            styling: {
-                containerStyles: [styles.mnw0],
+            dynamicSizing: {
+                getContentToMeasure: (item) => {
+                    const statusTranslationKey = getTranslationKeyForCardStatus(item.card.state, item.isVirtual);
+                    return statusTranslationKey ? [{text: translate(statusTranslationKey), fontSize: fontScale.text}] : [];
+                },
+                // A status is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
             },
         },
         ...(shouldShowExportAccountColumn
