@@ -69,6 +69,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViolationsSnapshot} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -5343,14 +5344,14 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
 }
 
 /**
- * Returns a parameter-free display label for a submitted violation name.
+ * Returns a parameter-free display label for a violation name.
  * Falls back to the raw identifier when no short-name translation exists.
  */
-function getSubmittedViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
     return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 
-function collectViolationNamesForTransaction(violationNames: Set<string>, violations: Record<string, Array<{name?: string}>> | undefined, transactionID: string) {
+function collectViolationNamesForTransaction(violationNames: Set<string>, violations: ViolationsSnapshot['transactions'] | undefined, transactionID: string) {
     const transactionViolations = violations?.[transactionID];
     if (!transactionViolations?.length) {
         return;
@@ -5378,7 +5379,7 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         return names.join(', ');
     }
 
-    return names.map((name) => getSubmittedViolationDisplayName(name, translate)).join(', ');
+    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
