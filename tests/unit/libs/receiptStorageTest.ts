@@ -1,3 +1,4 @@
+import fileURIToPath from '@libs/fileURIToPath';
 import type ReceiptStorageType from '@libs/ReceiptStorage/types';
 
 const mockExists = jest.fn<Promise<boolean>, [string]>();
@@ -195,6 +196,54 @@ describe('ReceiptStorage', () => {
 
             await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
             expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+        });
+
+        it('waits for a swap that is running rather than putting the backup back over it', async () => {
+            const existing = new Set([RECEIPT_PATH]);
+            let finishSwap: () => void = () => {};
+            const swapReachedItsGap = new Promise<void>((resolve) => {
+                mockMv.mockImplementation((from: string, to: string) => {
+                    existing.delete(from);
+                    existing.add(to);
+                    if (to === `${RECEIPT_PATH}.backup`) {
+                        // The receipt is now missing from its own path, which is the gap a reader can land in.
+                        resolve();
+                        return new Promise<void>((settle) => {
+                            finishSwap = () => {
+                                existing.delete(`${RECEIPT_PATH}.staged`);
+                                existing.add(RECEIPT_PATH);
+                                settle();
+                            };
+                        });
+                    }
+                    return Promise.resolve();
+                });
+            });
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockCheckFileExists.mockImplementation((path?: string) => Promise.resolve(existing.has(fileURIToPath(path ?? ''))));
+
+            const swap = ReceiptStorage.replace('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
+            await swapReachedItsGap;
+
+            const located = ReceiptStorage.locate(RECEIPT_URI);
+            finishSwap();
+            await swap;
+
+            // The swapped-in file is what the reader gets, and the backup was never moved back over it.
+            await expect(located).resolves.toBe(RECEIPT_URI);
+            expect(mockMv).not.toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+        });
+
+        it('treats a receipt that reappeared while the restore was failing as readable', async () => {
+            mockCheckFileExists.mockResolvedValue(false);
+            let hasMoved = false;
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup` || (path === RECEIPT_PATH && hasMoved)));
+            mockMv.mockImplementation(() => {
+                hasMoved = true;
+                return Promise.reject(new Error('file exists'));
+            });
+
+            await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
         });
 
         it('reports a receipt that is gone and has no backup, so the caller can log it as dropped', async () => {

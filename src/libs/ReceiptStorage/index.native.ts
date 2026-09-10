@@ -16,6 +16,9 @@ import type ReceiptStorage from './types';
 const STAGED_SUFFIX = '.staged';
 const BACKUP_SUFFIX = '.backup';
 
+/** Swaps running right now, by target path. A reader that finds a receipt missing waits on these first. */
+const swapsInFlight = new Map<string, Promise<unknown>>();
+
 async function verify(dir: string, name: string): Promise<string> {
     if (!name || !(await RNFS.exists(`${dir}/${name}`))) {
         throw new Error('[ReceiptStorage] file is not in durable storage');
@@ -82,6 +85,14 @@ async function restoreInterruptedSwap(target: string): Promise<boolean> {
         return true;
     }
 
+    // A swap running right now is between its own two renames, so the receipt is missing for a moment
+    // rather than stranded. Moving the backup back here would undo the file that swap is installing.
+    const runningSwap = swapsInFlight.get(target);
+    if (runningSwap) {
+        await runningSwap.catch(() => {});
+        return RNFS.exists(target);
+    }
+
     const backupPath = `${target}${BACKUP_SUFFIX}`;
     if (!(await RNFS.exists(backupPath))) {
         return false;
@@ -91,23 +102,15 @@ async function restoreInterruptedSwap(target: string): Promise<boolean> {
         await RNFS.moveFile(backupPath, target);
     } catch (error) {
         Log.warn('[ReceiptStorage] could not put back a receipt left by an interrupted swap', {error: error instanceof Error ? error.message : String(error)});
-        return false;
+        // Something else may have put the receipt back in the meantime, which is a success, not a failure.
+        return RNFS.exists(target);
     }
 
     Log.info('[ReceiptStorage] put back a receipt left by an interrupted swap');
     return true;
 }
 
-const replace: ReceiptStorage['replace'] = async (durableName, uriOrPath) => {
-    const dir = getReceiptsUploadFolderPath();
-    if (!dir) {
-        throw new Error('[ReceiptStorage] no receipts folder on this platform');
-    }
-
-    const target = `${dir}/${durableName}`;
-    await restoreInterruptedSwap(target);
-    await verify(dir, durableName);
-
+async function swapIntoPlace(dir: string, durableName: string, target: string, uriOrPath: string): Promise<string> {
     // Neither platform can move a file onto one that already exists. NSFileManager refuses and Android's
     // `renameTo` is unreliable, so stage the new bytes beside the receipt, then swap them in with two
     // renames inside the directory. The original keeps a second name until the swap succeeds.
@@ -144,6 +147,28 @@ const replace: ReceiptStorage['replace'] = async (durableName, uriOrPath) => {
     await discardLeftover(backupPath);
 
     return verify(dir, durableName);
+}
+
+const replace: ReceiptStorage['replace'] = async (durableName, uriOrPath) => {
+    const dir = getReceiptsUploadFolderPath();
+    if (!dir) {
+        throw new Error('[ReceiptStorage] no receipts folder on this platform');
+    }
+
+    const target = `${dir}/${durableName}`;
+    await restoreInterruptedSwap(target);
+    await verify(dir, durableName);
+
+    // Registered while it runs so a reader that catches the receipt mid-swap waits for it instead of
+    // treating the gap between the two renames as an interrupted swap.
+    const swap = swapIntoPlace(dir, durableName, target, uriOrPath);
+    swapsInFlight.set(target, swap);
+
+    try {
+        return await swap;
+    } finally {
+        swapsInFlight.delete(target);
+    }
 };
 
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
