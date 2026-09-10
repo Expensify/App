@@ -473,12 +473,13 @@
         // oxlint-migration/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
         // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
         "rulesdir/boolean-conditional-rendering": "off",
-        // OFF, blocked upstream: needs typeChecker.isArrayType to tell arrays from records, so a
-        // syntactic port would fire on every obj[key]. Measured 2026-08-13: unicorn/prefer-at with
-        // checkAllIndexAccess reports 413 findings in src/, 0 of the sampled 104 real. The same rule
-        // at default options covers the x[x.length - N] half and matches ESLint's own copy of it
-        // exactly (2 findings, same 2 lines, whole repo); enabling it on both linters is step 10a of
-        // OXLINT_MIGRATION_STEPS.md, pending the two source fixes it needs.
+        // OFF, superseded: needs typeChecker.isArrayType to tell arrays from records, so a syntactic
+        // port would fire on every obj[key]. Measured 2026-08-13: unicorn/prefer-at with
+        // checkAllIndexAccess reports 413 findings in src/, 0 of the sampled 104 real. What replaces
+        // it is `unicorn/prefer-at` at DEFAULT options, enabled above: that covers the
+        // x[x.length - N] half with no type information at all. Re-measured 2026-09-10 under this
+        // file's own ignorePatterns: 2 findings, the same 2 ESLint's copy of the rule reports.
+        // Plain arr[0] / arr[i] stays uncovered until jsPlugins get types.
         "rulesdir/prefer-at": "off",
         // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
         // this rule needs the type checker, so oxlint runs a type-free rewrite
@@ -517,6 +518,11 @@
         "unicorn/prefer-array-find": "error",
         "unicorn/prefer-set-size": "error",
         "unicorn/prefer-string-replace-all": "error",
+        // ON with no ESLint counterpart, deliberately: it stands in for `rulesdir/prefer-at`, which
+        // cannot be ported because it needs the type checker. Default options only, which restricts
+        // it to the x[x.length - N] family and needs no type information; `checkAllIndexAccess` is
+        // what makes it unusable. See the `rulesdir/prefer-at` comment below.
+        "unicorn/prefer-at": "error",
         "no-delete-var": "error",
         "no-label-var": "error",
         "no-restricted-globals": [
