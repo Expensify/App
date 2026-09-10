@@ -1814,6 +1814,84 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
+        it('keeps an amount entered on one receipt when traversing away and back (multi-scan)', async () => {
+            // Given two scanned drafts confirmed together, on a surface that exposes the scan fields
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '1',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '2',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const of = translateLocal('common.of');
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+
+            // The Scan confirmation opens in compact mode, so the fields have to be revealed first
+            async function revealFields() {
+                fireEvent.press(screen.getByText(translateLocal('common.showMore')));
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            // When an amount is entered on the first receipt, leaving its merchant and date blank
+            await revealFields();
+            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '43');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43');
+
+            // And confirming raises the required errors, which hold the fields open from here on
+            fireEvent.press(screen.getByText(translateLocal('iou.createExpenses', 2)));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
+
+            // And the user traverses to the second receipt and back, with the fields never collapsing in between
+            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(nextButton);
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+
+            // Then coming back shows the amount that was entered, reseeded from the transaction rather than left blank
+            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(prevButton);
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
+        });
+
         it('switches the displayed transaction when pressing the Next and Previous buttons', async () => {
             // Given two scanned draft transactions, so the confirmation renders in its multi-transaction mode
             await act(async () => {

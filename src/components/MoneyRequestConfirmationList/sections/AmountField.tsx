@@ -312,6 +312,7 @@ function AmountField({
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2]}>
                     <NumberWithSymbolForm
+                        key={transactionID}
                         ref={amountInputRef}
                         displayAsTextInput
                         autoFocus={false}
