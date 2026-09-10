@@ -3,6 +3,7 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
+import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
@@ -105,7 +106,7 @@ function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayo
             <View style={[styles.appContentHeader, styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
-            <ReportActionsSkeletonView />
+            <ReportActionsSkeletonCover />
         </View>
     );
 }
@@ -217,7 +218,11 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     }
 
     if (shouldShowEmptyActionsSkeleton) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
+        return (
+            <ReportActionsSkeletonCover>
+                <ReportActionsSkeletonView shouldAnimate={false} />
+            </ReportActionsSkeletonCover>
+        );
     }
 
     if (!report) {
@@ -228,7 +233,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
-                <ReportActionsSkeletonView />
+                <ReportActionsSkeletonCover />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );

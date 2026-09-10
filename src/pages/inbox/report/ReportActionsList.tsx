@@ -1,6 +1,7 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import ReportActionsSkeletonCover from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -449,7 +450,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
-        return <ReportActionsSkeletonView />;
+        return <ReportActionsSkeletonCover />;
     }
 
     return (
