@@ -203,12 +203,35 @@ type SettingsNavigatorParamList = {
         bankAccountID: string;
         subPage: string;
         action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
+        bankAccountID: string;
+        subPage: string;
+        action?: 'edit';
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
+        bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
+        bankAccountID: string;
+        bankCountry?: string;
+        bankCurrency?: string;
     };
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
@@ -1361,6 +1384,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {

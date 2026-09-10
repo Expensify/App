@@ -65,6 +65,8 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
+            [ONYXKEYS.RECENT_SEARCHES]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
@@ -90,6 +92,7 @@ export default function () {
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
+            ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
         ],
     });
 

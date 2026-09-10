@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';

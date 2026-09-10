@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -159,6 +159,7 @@ function DynamicIOURequestStepDistanceManual({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isManualDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     // to make sure the correct distance amount and unit will be shown we use distance unit

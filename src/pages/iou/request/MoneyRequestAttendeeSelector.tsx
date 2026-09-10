@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -241,6 +241,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
                 onConfirm: confirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}

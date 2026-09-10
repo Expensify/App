@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderTitle from '@components/HeaderTitle';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';

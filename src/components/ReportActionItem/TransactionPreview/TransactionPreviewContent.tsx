@@ -1,5 +1,5 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';

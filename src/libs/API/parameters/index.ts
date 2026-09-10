@@ -27,6 +27,7 @@ export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMerge
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as ConnectPolicyToDualEntryParams} from './ConnectPolicyToDualEntryParams';
+export type {default as ConnectPolicyToCampfireParams} from './ConnectPolicyToCampfireParams';
 export type {default as ConnectPolicyToBusinessCentralParams} from './ConnectPolicyToBusinessCentralParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
@@ -77,6 +78,8 @@ export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateD
 export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
 export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} from './UpdateDualEntryTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
+export type {default as SyncPolicyToCampfireParams} from './SyncPolicyToCampfireParams';
+export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSubsidiaryParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
