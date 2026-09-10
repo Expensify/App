@@ -9,7 +9,6 @@ import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 
 import variables from '@styles/variables';
 
-import {useMappingHelper} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -53,7 +52,6 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {getMappingKey} = useMappingHelper();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size ?? images.length, images.length);
@@ -84,7 +82,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                    const key = getMappingKey(image ?? '', index);
+                    const key = `${image ?? ''}:${index}`;
                     return (
                         <ImageBehaviorContextProvider
                             key={key}

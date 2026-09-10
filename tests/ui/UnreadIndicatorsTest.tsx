@@ -115,12 +115,22 @@ function navigateToSidebar(): Promise<void> {
     return waitForBatchedUpdates();
 }
 
-async function navigateToSidebarOptionWithoutAct(index: number): Promise<void> {
+async function navigateToSidebarOptionWithoutViewportLayout(index: number): Promise<void> {
     const optionRow = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex()).at(index);
     if (!optionRow) {
         return;
     }
     fireEvent(optionRow, 'press');
+    await waitForBatchedUpdates();
+}
+
+async function navigateToSidebarOptionWithoutAct(index: number): Promise<void> {
+    await navigateToSidebarOptionWithoutViewportLayout(index);
+
+    // React Native reports the viewport layout automatically, but View.onLayout does not fire in Jest.
+    fireEvent(screen.getByTestId('report-actions-list-viewport'), 'onLayout', {
+        nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 500}},
+    });
     await waitForBatchedUpdates();
 }
 
@@ -837,7 +847,8 @@ describe('Unread Indicators', () => {
             },
         });
 
-        await navigateToSidebarOptionWithoutAct(0);
+        // The self-DM cannot open its report while offline, so it never mounts a report-actions viewport.
+        await navigateToSidebarOptionWithoutViewportLayout(0);
 
         const fakeTransaction = {
             ...createRandomTransaction(1),

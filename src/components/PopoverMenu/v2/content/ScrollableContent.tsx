@@ -36,7 +36,7 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
         const childCount = React.Children.count(children);
         if (childCount > VIRTUALIZATION_RECOMMENDED_THRESHOLD) {
             Log.warn(
-                `<PopoverMenu.ScrollableContent> received ${childCount} children — <ScrollableContent> renders all rows synchronously and will jank on lower-end devices for unbounded counts. Consider a virtualized list (FlashList) wrapper.`,
+                `<PopoverMenu.ScrollableContent> received ${childCount} children — <ScrollableContent> renders all rows synchronously and will jank on lower-end devices for unbounded counts. Consider a virtualized list (LegendList) wrapper.`,
             );
         }
     }

@@ -9,7 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React, {useRef} from 'react';
 
@@ -67,7 +67,7 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
         return results.length > 0;
     };
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainGroupRowData>) => (
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<DomainGroupRowData>) => (
         <DomainGroupsTableRow
             item={item}
             rowIndex={index}

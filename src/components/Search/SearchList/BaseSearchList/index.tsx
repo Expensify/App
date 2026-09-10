@@ -16,37 +16,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isModalActiveSelector} from '@src/selectors/Modal';
 
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 
+import {AnimatedLegendList} from '@legendapp/list/reanimated';
 import {useIsFocused} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import type BaseSearchListProps from './types';
-
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
-
-type CellRendererComponentProps = ViewProps & {
-    ref?: React.Ref<View>;
-    style?: StyleProp<ViewStyle>;
-};
-
-function CellRendererComponent({children, ref, style, ...props}: CellRendererComponentProps) {
-    const styles = useThemeStyles();
-
-    return (
-        <View
-            ref={ref}
-            {...props}
-            // Keep the FlashList cell itself tracking the animated search pane width.
-            style={[style, styles.w100]}
-        >
-            {children}
-        </View>
-    );
-}
 
 function BaseSearchList({
     data,
@@ -71,8 +48,9 @@ function BaseSearchList({
     stickyHeaderConfig,
     getItemType,
     disabledIndexes,
-    overrideItemLayout,
+    getFixedItemSize,
 }: BaseSearchListProps) {
+    const styles = useThemeStyles();
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
@@ -94,9 +72,6 @@ function BaseSearchList({
         isActive: isFocused && !isModalVisible,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
-        },
-        onArrowUpDownCallback: () => {
-            ref?.current?.announceProgrammaticScroll();
         },
         setHasKeyBeenPressed,
         isFocused,
@@ -126,7 +101,7 @@ function BaseSearchList({
 
     const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
         const isItemFocused = focusedIndex === index;
-        return renderItem(item, index, isItemFocused, getOnFocus(index));
+        return <View style={styles.w100}>{renderItem(item, index, isItemFocused, getOnFocus(index))}</View>;
     };
 
     const selectFocusedOption = useCallback(
@@ -171,12 +146,12 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        () => [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy, renderItem],
+        [focusedIndex, columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy, renderItem],
     );
 
     return (
-        <AnimatedFlashListComponent
+        <AnimatedLegendList
             data={data}
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
@@ -189,15 +164,13 @@ function BaseSearchList({
             ListFooterComponent={ListFooterComponent}
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
-            CellRendererComponent={CellRendererComponent}
-            removeClippedSubviews
             drawDistance={250}
             contentContainerStyle={contentContainerStyle}
-            maintainVisibleContentPosition={{disabled: true}}
+            maintainVisibleContentPosition={false}
             stickyHeaderIndices={stickyHeaderIndices}
             stickyHeaderConfig={stickyHeaderConfig}
             getItemType={getItemType}
-            overrideItemLayout={overrideItemLayout}
+            getFixedItemSize={getFixedItemSize}
         />
     );
 }

@@ -8,7 +8,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import type Navigation from '@libs/Navigation/Navigation';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -98,7 +98,7 @@ const mockData: TestItem[] = [
 
 const mockColumns: Array<TableColumn<TestColumnKey>> = [{key: 'name', label: 'Name', sortable: false}];
 
-const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+const renderItem = ({item, index}: LegendListRenderItemProps<TestItem>) => (
     <Table.Row
         interactive
         rowIndex={index}

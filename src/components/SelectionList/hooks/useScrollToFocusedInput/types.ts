@@ -1,6 +1,6 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
@@ -15,7 +15,7 @@ type UseScrollToFocusedInputResult = {
     scrollInputIntoView: (input: MeasurableInput) => void;
 };
 
-type UseScrollToFocusedInput = (listRef: RefObject<Pick<FlashListRef<unknown>, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
+type UseScrollToFocusedInput = (listRef: RefObject<Pick<LegendListRef, 'scrollToOffset'> | null>, isKeyboardShown: boolean) => UseScrollToFocusedInputResult;
 
 // eslint-disable-next-line import/prefer-default-export
 export type {UseScrollToFocusedInput};

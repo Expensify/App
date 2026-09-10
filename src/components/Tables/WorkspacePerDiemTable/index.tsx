@@ -12,7 +12,7 @@ import variables from '@styles/variables';
 
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -105,7 +105,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
         return matchingItems.length > 0;
     };
 
-    const renderItem = ({item, index}: ListRenderItemInfo<PerDiemTableRowData>) => (
+    const renderItem = ({item, index}: LegendListRenderItemProps<PerDiemTableRowData>) => (
         <WorkspacePerDiemTableRow
             item={item}
             rowIndex={index}

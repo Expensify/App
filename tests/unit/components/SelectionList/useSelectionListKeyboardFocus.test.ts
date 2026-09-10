@@ -35,7 +35,6 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
     const scrollToIndex = jest.fn();
     const debouncedScrollToIndex = jest.fn();
     const setShouldDisableHoverStyle = jest.fn();
-    const announceProgrammaticScroll = jest.fn();
 
     const {result} = renderHook(() =>
         useSelectionListKeyboardFocus({
@@ -48,13 +47,12 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
             shouldDebounceScrolling: false,
             scrollToIndex,
             debouncedScrollToIndex,
-            announceProgrammaticScroll,
             setShouldDisableHoverStyle,
             ...overrides,
         }),
     );
 
-    return {result, scrollToIndex, debouncedScrollToIndex, setShouldDisableHoverStyle, announceProgrammaticScroll};
+    return {result, scrollToIndex, debouncedScrollToIndex, setShouldDisableHoverStyle};
 }
 
 describe('useSelectionListKeyboardFocus', () => {
@@ -101,11 +99,10 @@ describe('useSelectionListKeyboardFocus', () => {
     });
 
     describe('onArrowUpDownCallback', () => {
-        it('disables hover styling and announces a programmatic scroll', () => {
-            const {setShouldDisableHoverStyle, announceProgrammaticScroll} = renderKeyboardFocus();
+        it('disables hover styling during a programmatic scroll', () => {
+            const {setShouldDisableHoverStyle} = renderKeyboardFocus();
             capturedConfig.onArrowUpDownCallback?.();
             expect(setShouldDisableHoverStyle).toHaveBeenCalledWith(true);
-            expect(announceProgrammaticScroll).toHaveBeenCalledTimes(1);
         });
     });
 

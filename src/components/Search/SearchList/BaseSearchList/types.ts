@@ -4,12 +4,12 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 
 import type {CardList, Transaction} from '@src/types/onyx';
 
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {LegendListProps, LegendListRef} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 
 type BaseSearchListProps = Pick<
-    FlashListProps<SearchListItem>,
+    LegendListProps<SearchListItem>,
     | 'onScroll'
     | 'contentContainerStyle'
     | 'onEndReached'
@@ -21,7 +21,7 @@ type BaseSearchListProps = Pick<
     | 'onLayout'
     | 'stickyHeaderIndices'
     | 'stickyHeaderConfig'
-    | 'overrideItemLayout'
+    | 'getFixedItemSize'
 > & {
     data: SearchListItem[];
     renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
@@ -37,7 +37,7 @@ type BaseSearchListProps = Pick<
     /** The callback, which is run when a row is pressed */
     onSelectRow: (item: SearchListItem) => void;
 
-    ref: RefObject<FlashListRef<SearchListItem> | null>;
+    ref: RefObject<LegendListRef | null>;
     scrollToIndex?: (index: number, animated?: boolean) => void;
 
     /** Precomputed attendee-tracking boolean (derived from policy-for-moving-expenses) */
@@ -46,8 +46,8 @@ type BaseSearchListProps = Pick<
     /** Non-personal and workspace cards for triggering re-render via extraData */
     nonPersonalAndWorkspaceCards?: CardList;
 
-    /** Function to determine item type for FlashList recycling */
-    getItemType?: (item: SearchListItem, index: number) => string | number | undefined;
+    /** Function to determine item type for LegendList recycling */
+    getItemType?: LegendListProps<SearchListItem>['getItemType'];
 
     /** Indexes to skip during keyboard arrow navigation */
     disabledIndexes?: readonly number[];

@@ -12,7 +12,7 @@ import variables from '@styles/variables';
 
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React, {useEffect, useRef} from 'react';
 
@@ -131,7 +131,7 @@ export default function DomainMembersTable({
         return results.length > 0;
     };
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<DomainMemberRowData>) => (
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<DomainMemberRowData>) => (
         <DomainMembersTableRow
             item={item}
             rowIndex={index}

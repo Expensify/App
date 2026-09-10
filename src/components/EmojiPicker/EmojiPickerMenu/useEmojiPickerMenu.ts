@@ -8,19 +8,19 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
+import type {EmojiPickerList} from '@libs/EmojiUtils';
 import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useRef<FlashListRef<EmojiPickerListItem>>(null);
+    const emojiListRef = useRef<LegendListRef>(null);
     const [frequentlyUsedEmojis] = useOnyx(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 
     const allEmojis = useMemo(() => mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis)), [frequentlyUsedEmojis]);

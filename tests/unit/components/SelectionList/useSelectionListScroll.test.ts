@@ -4,12 +4,12 @@ import useSelectionListScroll from '@components/SelectionList/hooks/useSelection
 
 import Log from '@libs/Log';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
 
 type MockItem = {keyForList: string};
 
-function createListRef(scrollToIndex: jest.Mock | null): RefObject<Pick<FlashListRef<MockItem>, 'scrollToIndex'> | null> {
+function createListRef(scrollToIndex: jest.Mock | null): RefObject<Pick<LegendListRef, 'scrollToIndex'> | null> {
     if (scrollToIndex === null) {
         return {current: null};
     }
@@ -66,7 +66,7 @@ describe('useSelectionListScroll', () => {
         expect(() => result.current.scrollToIndex(0)).not.toThrow();
     });
 
-    it('logs a warning when FlashList throws, without rethrowing', () => {
+    it('logs a warning when scrolling throws, without rethrowing', () => {
         const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
         const scrollToIndex = jest.fn(() => {
             throw new Error('layout not ready');
@@ -77,6 +77,19 @@ describe('useSelectionListScroll', () => {
         expect(() => result.current.scrollToIndex(0)).not.toThrow();
         expect(warnSpy).toHaveBeenCalledTimes(1);
 
+        warnSpy.mockRestore();
+    });
+
+    it('logs a rejected LegendList scroll without leaving an unhandled rejection', async () => {
+        const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        const error = new Error('layout changed during scrolling');
+        const listRef = createListRef(jest.fn().mockRejectedValue(error));
+        const {result} = renderHook(() => useSelectionListScroll(listRef, data));
+
+        result.current.scrollToIndex(0);
+        await Promise.resolve();
+
+        expect(warnSpy).toHaveBeenCalledWith('SelectionList: error scrolling to index', {error});
         warnSpy.mockRestore();
     });
 

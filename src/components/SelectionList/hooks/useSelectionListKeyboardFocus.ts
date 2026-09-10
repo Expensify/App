@@ -18,7 +18,6 @@ type UseSelectionListKeyboardFocusParams = {
     shouldDebounceScrolling: boolean;
     scrollToIndex: ScrollToIndex;
     debouncedScrollToIndex: ScrollToIndex;
-    announceProgrammaticScroll: () => void;
     setShouldDisableHoverStyle: (shouldDisableHoverStyle: boolean) => void;
 };
 
@@ -40,7 +39,6 @@ function useSelectionListKeyboardFocus({
     shouldDebounceScrolling,
     scrollToIndex,
     debouncedScrollToIndex,
-    announceProgrammaticScroll,
     setShouldDisableHoverStyle,
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
@@ -82,7 +80,6 @@ function useSelectionListKeyboardFocus({
         isFocused,
         onArrowUpDownCallback: () => {
             setShouldDisableHoverStyle(true);
-            announceProgrammaticScroll();
         },
     });
 

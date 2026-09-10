@@ -19,7 +19,7 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {ReactElement} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -215,7 +215,7 @@ export default function WorkspaceExpensifyCardsTable({
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceExpensifyCardTableRowData> = (item, searchValue) => filterCardsByPersonalDetails(item.card, searchValue, personalDetails);
 
-    const renderCardItem = ({item, index}: ListRenderItemInfo<WorkspaceExpensifyCardTableRowData>) => (
+    const renderCardItem = ({item, index}: LegendListRenderItemProps<WorkspaceExpensifyCardTableRowData>) => (
         <WorkspaceExpensifyCardsTableRow
             item={item}
             rowIndex={index}
