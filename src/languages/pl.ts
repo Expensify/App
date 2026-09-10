@@ -5339,6 +5339,11 @@ ${amount} dla ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Przydziały',
                 },
             },
+            fxExpenseAccount: 'Konto opłaty za przewalutowanie',
+            fxExpenseAccountDescription:
+                'Gdy twoja firma pokryje koszt przewalutowania przy płatności dokonanej za granicą, dodamy ten koszt do faktury do zapłaty jako pozycję zaksięgowaną na to konto.',
+            noExpenseAccountsFound: 'Nie znaleziono żadnych kont',
+            noExpenseAccountsFoundDescription: 'Po dodaniu kont księgi głównej w Certinia, zsynchronizuj ponownie to połączenie.',
         },
         netsuite: {
             subsidiary: 'Spółka zależna',

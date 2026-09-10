@@ -5311,6 +5311,11 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Taken',
                 },
             },
+            fxExpenseAccount: 'Rekening voor valutaconversiekosten',
+            fxExpenseAccountDescription:
+                'Wanneer je bedrijf de kosten voor valutaomrekening dekt bij een betaling in het buitenland, voegen we die kosten toe aan de Te Betalen Factuur als een regel die aan deze rekening is toegewezen.',
+            noExpenseAccountsFound: 'Geen accounts gevonden',
+            noExpenseAccountsFoundDescription: 'Synchroniseer de koppeling opnieuw nadat grootboekrekeningen zijn toegevoegd in Certinia.',
         },
         netsuite: {
             subsidiary: 'Dochteronderneming',

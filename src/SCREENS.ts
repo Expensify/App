@@ -676,6 +676,7 @@ const SCREENS = {
             CERTINIA_EXPORT_DATE: 'Policy_Accounting_Certinia_Export_Date',
             CERTINIA_DEFAULT_VENDOR: 'Policy_Accounting_Certinia_Default_Vendor',
             CERTINIA_ADVANCED: 'Policy_Accounting_Certinia_Advanced',
+            CERTINIA_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_Certinia_Fx_Expense_Account',
             CERTINIA_TAGS_MAPPING: 'Policy_Accounting_Certinia_Tags_Mapping',
             CERTINIA_REPORT_EXPORT_STATUS: 'Policy_Accounting_Certinia_Report_Export_Status',
             CERTINIA_COMPANY_SELECTOR: 'Policy_Accounting_Certinia_Company_Selector',
