@@ -92,7 +92,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'Gear', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus', 'DownArrow']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
