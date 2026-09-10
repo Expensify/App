@@ -286,21 +286,14 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     const isCategoryRule = isCategoryRuleDraft(form, editCategoryTaxRuleFor);
     // Deleting means writing the workspace default rate back, so without one there is nothing to write.
     const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
-    // Writing the workspace default rate deletes the rule, so choosing it on a NEW rule means "no rule": ignore it
-    // rather than let a save delete, which also covers a merchant draft carrying it in before a category condition is
-    // added. A saved rule is different. The rate it holds can become the workspace default later, and it is still the
-    // rate that rule applies, so it has to keep showing rather than reading as unset.
+    // A draft carrying the workspace default rate means "no rule", since saving it would delete the rule.
     const isDraftTaxTheWorkspaceDefault = isCategoryRule && !isEditingCategoryTaxRule && form?.tax === policy?.taxRates?.defaultExternalID;
     const categoryTaxID = isDraftTaxTheWorkspaceDefault ? undefined : form?.tax;
-    // Showing such a saved rule is safe, but writing it is not. `setPolicyCategoryTaxes` writes the rate through the
-    // same command `deletePolicyCategoryTaxes` uses to clear a rule, so a save carrying the workspace default deletes
-    // the rule the admin came to keep.
+    // Safe to show a saved rule holding the default rate, but not to write it: that write is what deletes the rule.
     const isSavedTaxTheWorkspaceDefault = isCategoryRule && isEditingCategoryTaxRule && !!form?.tax && form.tax === policy?.taxRates?.defaultExternalID;
     // Editing is single-select, so a move has exactly one destination.
     const movedToCategory = editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor) ? categoriesToMatch.at(0) : undefined;
-    // A move is the one change that still needs writing while the rate is the default, and the command can't express
-    // it: setting the destination category to the default would clear that one too. Everything else is a no-op the
-    // save path below skips, so the admin is only stopped when there is really nothing that can be written.
+    // A move still needs a write the command can't express while the rate is the default, so that's the one case blocked.
     const isCategoryTaxRuleMoveBlocked = isSavedTaxTheWorkspaceDefault && !!movedToCategory;
     const showCategoryRulesApplyGoingForwardExplainer = () => {
         showConfirmModal({
@@ -321,8 +314,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
     // One rule per category is saved, so the condition row lists every category the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
-    // Only a rate the workspace still has: a rule keeps the ID of one that left, and printing that at the admin says
-    // nothing, so the row reads as unset and they can pick a rate that exists.
+    // Blank rather than the raw ID once the rate is gone from the workspace.
     const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
     const taxDisplayName = (isTaxRateOnPolicy(policy, taxRateID) ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
 
@@ -388,17 +380,14 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
             if (!hasCategoryCondition || !categoryTaxID) {
                 return;
             }
-            // The rule already holds this rate, and writing it would clear it, so there is nothing to save. Leaving
-            // rather than writing keeps the rule as it stands, which is what the admin asked for by saving it
-            // unchanged. A move is stopped earlier, by the error message, since that one does need a write.
+            // Nothing to write for an unchanged save; a move is blocked earlier by the error message instead.
             if (isSavedTaxTheWorkspaceDefault) {
                 setIsClosing(true);
                 Navigation.goBack();
                 return;
             }
             setIsClosing(true);
-            // A move clears the old category and sets the new one as a pair, sharing one rollback so a failed move
-            // can't drop both rules.
+            // A move clears the old category and sets the new one as a pair, sharing one rollback.
             if (editCategoryTaxRuleFor && movedToCategory) {
                 movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
             } else {

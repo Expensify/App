@@ -424,12 +424,6 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 }
                                 shouldParseHelperText
                             />
-                            {/*
-                             * A category's tax default is a rule under the revamp, set from Rules > Expense defaults,
-                             * so it is deliberately not offered here. The two pickers also disagreed on what they
-                             * could offer: this one listed the workspace default rate, which the rule editor leaves
-                             * out because saving that rate is what deletes the rule.
-                             */}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
