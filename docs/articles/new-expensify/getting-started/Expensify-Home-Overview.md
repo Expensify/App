@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time, Discover, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -36,7 +36,6 @@ Home includes:
 - **Spend over time** and other insights (when applicable)
 - **Getting started** (when applicable)
 - **Discover**
-- **Announcements**
 - **Your spend** (when applicable)
 
 Each section provides context so you know where to go next.
@@ -122,14 +121,6 @@ The **Discover** section helps you get familiar with things you can do in Expens
 This section includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
 
 Once you’ve watched the demo, the **Discover** section is automatically hidden from Home.
-
----
-
-## How the Announcements section works on Home
-
-The **Announcements** section shows recent Expensify product updates.
-
-This section helps you stay informed about what’s new or recently changed in New Expensify. 
 
 ---
 
