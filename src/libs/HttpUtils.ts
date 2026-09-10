@@ -220,6 +220,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
+            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+                throw new HttpsError({
+                    message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+                    title: 'Issue connecting to Expensify site',
+                    requestID: response.requestID,
+                });
+            }
+
             if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
                 const {phpCommandName, authWriteCommands} = response.data;
                 const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
