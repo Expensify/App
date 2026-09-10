@@ -4,6 +4,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRestrictionTypeToggle';
@@ -40,13 +41,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
-    /* The policy that the card will be issued under */
+    /** The ID of the policy that the card will be issued under */
     policyID: string;
 
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Array of step names */
     stepNames: readonly string[];
 };
 
@@ -292,12 +290,11 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                 />
 
                                 {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title={existingSpendRuleTitle}
-                                        description={translate('workspace.card.chooseRule')}
+                                    <MenuItemField
+                                        name={translate('workspace.card.chooseRule')}
                                         onPress={handleChooseSpendRule}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                                        value={existingSpendRuleTitle}
                                     />
                                 )}
 
