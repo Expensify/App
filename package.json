@@ -60,7 +60,6 @@
     "oxlint-locale-compare-port": "python3 oxlint-migration/checkLocaleComparePort.py",
     "oxlint-rule-tester": "python3 oxlint-migration/rule-tester/compareRuleTester.py",
     "oxlint-jsx-uses-port": "python3 oxlint-migration/checkJsxUsesPort.py",
-    "oxlint-onyx-bypass": "node oxlint-migration/checkOnyxBypassPort.mjs",
     "oxlint-react-compiler-rust": "node oxlint-migration/checkReactCompilerRust.mjs",
     "oxlint-sidecar-coverage": "python3 oxlint-migration/checkSidecarCoverage.py",
     "oxlint-config-drift": "python3 oxlint-migration/checkConfigDrift.py",

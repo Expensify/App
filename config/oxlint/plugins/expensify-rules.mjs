@@ -3,7 +3,6 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-import withBypassReporting from '../onyxConnectBypass.mjs';
 import {create as preferLocaleCompareCreate, meta as preferLocaleCompareMeta} from '../preferLocaleCompareFromContext.mjs';
 import {withFullGating} from '../reactCompilerGate.mjs';
 
@@ -35,7 +34,6 @@ const plugin = {
         // ESLint's copy calls getParserServices at create() time, which throws in a jsPlugin, so a
         // type-free rewrite stands in for it.
         'prefer-locale-compare-from-context': {create: preferLocaleCompareCreate, meta: preferLocaleCompareMeta},
-        'no-onyx-connect-bypass': withBypassReporting(rules['no-onyx-connect']),
     },
 };
 
