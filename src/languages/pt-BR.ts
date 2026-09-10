@@ -1849,9 +1849,9 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Excluir categoria',
         },
         tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `taxa atualizada para ${rate} para o novo espaço de trabalho - ${policyName}`,
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `taxa atualizada para ${rate} para o novo workspace - ${policyName}`,
         conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `taxa atualizada para ${rate} para o novo workspace do relatório - ${policyName}`,
+            `taxa atualizada para ${rate} para o novo espaço de trabalho do relatório - ${policyName}`,
     },
     transactionMerge: {
         listPage: {

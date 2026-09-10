@@ -1854,7 +1854,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
             confirmText: 'Label verwijderen',
         },
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `tarief bijgewerkt naar ${rate} voor de nieuwe werkruimte - ${policyName}`,
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `tarief bijgewerkt naar ${rate} voor de nieuwe workspace - ${policyName}`,
         conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
             `tarief bijgewerkt naar ${rate} voor de nieuwe rapportwerkruimte - ${policyName}`,
     },

@@ -1858,9 +1858,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita le etichette nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’etichetta da questa spesa.',
             confirmText: 'Elimina tag',
         },
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `tariffa aggiornata a ${rate} per il nuovo spazio di lavoro - ${policyName}`,
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `tariffa aggiornata a ${rate} per il nuovo workspace - ${policyName}`,
         conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `tariffa aggiornata a ${rate} per il nuovo workspace del report - ${policyName}`,
+            `tariffa aggiornata a ${rate} per il nuovo spazio di lavoro della nota spese - ${policyName}`,
     },
     transactionMerge: {
         listPage: {

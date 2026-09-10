@@ -1855,7 +1855,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `se actualizó la tasa a ${rate} para el nuevo espacio de trabajo - ${policyName}`,
         conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `tasa actualizada a ${rate} para el nuevo espacio de trabajo del informe: ${policyName}`,
+            `tasa actualizada a ${rate} para el nuevo espacio de trabajo del informe - ${policyName}`,
     },
     transactionMerge: {
         listPage: {

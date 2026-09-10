@@ -1889,9 +1889,9 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
             confirmText: 'Usuń znacznik',
         },
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `stawka zaktualizowana na ${rate} dla nowego workspace – ${policyName}`,
+        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `stawka zaktualizowana do ${rate} dla nowego workspace’u – ${policyName}`,
         conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `stawka została zaktualizowana do ${rate} dla nowej przestrzeni roboczej raportu – ${policyName}`,
+            `stawka zaktualizowana do ${rate} dla nowej przestrzeni roboczej raportu – ${policyName}`,
     },
     transactionMerge: {
         listPage: {
