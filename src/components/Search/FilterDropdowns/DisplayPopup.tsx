@@ -95,7 +95,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         title={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
-                        value={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                     />
                 )}
                 {!!groupBy && (
@@ -113,7 +112,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
-                        value={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                     />
                 )}
                 {isExpenseType && (
