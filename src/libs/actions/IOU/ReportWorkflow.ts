@@ -17,7 +17,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     canMemberWrite,
@@ -42,7 +41,6 @@ import {
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReimbursableTotal,
@@ -286,7 +284,7 @@ function canIOUBePaid(
         !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
-        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
     );
 }
 
@@ -1341,13 +1339,15 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const approvalChain = getApprovalChain(policy, expenseReport, submitterLogin);
-    const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
-    const managerID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : submitReportManagerAccountID;
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const apiManagerAccountID = trimmedManagerEmail ? resolvedManagerAccountIDFromEmail : submitReportManagerAccountID;
+    const managerID = apiManagerAccountID ?? expenseReport.managerID;
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
@@ -1640,8 +1640,12 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(apiManagerAccountID !== undefined
+            ? {
+                  managerAccountID: apiManagerAccountID,
+              }
+            : {}),
         ...(trimmedManagerEmail
             ? {
                   managerEmail: trimmedManagerEmail,
@@ -1787,7 +1791,6 @@ type AddReportApproverOptions = {
     /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Whether the report currently has violations. */
     hasViolations: boolean;
 
     /** Whether ASAP Submit beta behavior is enabled. */

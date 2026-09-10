@@ -18,6 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -55,8 +56,10 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
+    GuideAccountIDsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -136,6 +139,7 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -229,6 +233,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -239,6 +244,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DatabaseSizeMeasurement,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -301,6 +307,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyConnectionName,
@@ -427,6 +434,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

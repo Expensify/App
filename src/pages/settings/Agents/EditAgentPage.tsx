@@ -67,7 +67,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
             prompt: translate('editAgentPage.deleteAgentMessage'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
         if (result.action !== ModalActions.CONFIRM) {

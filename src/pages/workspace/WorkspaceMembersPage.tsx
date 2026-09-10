@@ -14,7 +14,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
+import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -44,7 +44,8 @@ import {
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, showMergeHRManualSyncLimitModalIfReached} from '@libs/HRUtils';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import {showMergeManualSyncLimitModalIfReached} from '@libs/merge/MergeUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -277,7 +278,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
@@ -455,7 +456,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
-    useHRSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+    useHRSyncResultsPage(connectionSyncProgress, isFocused);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {
@@ -470,7 +471,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowHRSyncLink = canEditWorkspaceSettings && !!connectedHRProvider;
     const isMergeHRSyncInProgress =
         connectedHRProvider?.connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR &&
-        policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE_HR.SYNC_STATUS.SYNCING;
+        policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]?.lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.SYNCING;
     const isHRSyncInProgress =
         shouldShowHRSyncLink &&
         (isMergeHRSyncInProgress || (connectionSyncProgress?.connectionName === connectedHRProvider?.connectionName && isConnectionInProgress(connectionSyncProgress, policy)));
@@ -704,7 +705,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
 
-                    if (showMergeHRManualSyncLimitModalIfReached(policy, hrProvider.connectionName, translate, showConfirmModal)) {
+                    if (showMergeManualSyncLimitModalIfReached(policy, hrProvider.connectionName, translate, showConfirmModal)) {
                         return;
                     }
 
