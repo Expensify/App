@@ -253,14 +253,17 @@ function WorkspaceCompanyCardsTable({
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
-            dynamicSizing: {
-                // A fixed width here would reserve the Assign button's space even on rows that only render the arrow.
-                getContentToMeasure: (item) =>
-                    canAnyCardBeAssigned && !item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : [],
-                shouldFitContent: true,
-                // Only add the button's padding and gap when some row can actually show it.
-                extraWidth: canAnyCardBeAssigned ? styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight : variables.iconSizeNormal,
-            },
+            // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
+            // content while at least one row can render the button.
+            ...(canAnyCardBeAssigned
+                ? {
+                      dynamicSizing: {
+                          getContentToMeasure: (item) => (!item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : []),
+                          shouldFitContent: true,
+                          extraWidth: styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight,
+                      },
+                  }
+                : {width: variables.tableCaretColumnWidth}),
         },
     ];
 
