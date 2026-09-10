@@ -374,19 +374,6 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 }
                                 shouldParseHelperText
                             />
-                            {!!policy?.tax?.trackingEnabled && (
-                                <MenuItemField
-                                    name={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                    onPress={
-                                        canWriteCategories
-                                            ? () => {
-                                                  navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
-                                              }
-                                            : undefined
-                                    }
-                                    value={defaultTaxRateText}
-                                />
-                            )}
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (

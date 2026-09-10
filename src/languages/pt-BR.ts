@@ -8019,6 +8019,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
                 categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
                 categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'A alíquota de imposto selecionada agora é o padrão do seu workspace, então esta regra não é mais válida. Escolha uma alíquota de imposto diferente.',
+                addTaxRateFirstTitle: 'Adicione uma alíquota de imposto primeiro',
+                addTaxRateFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Adicione uma taxa diferente da padrão do seu espaço de trabalho para usá-las.',
+                createRuleFromExpenseAction: 'Criar regra',
+                createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
             },
             categoryRules: {
                 title: 'Regras de categoria',
