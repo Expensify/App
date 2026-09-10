@@ -121,7 +121,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         }
 
         if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
-            setDraftMerchantRule(draft);
+            setDraftMerchantRule({...draft, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
             Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
             return;
         }
@@ -268,7 +268,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                     <RulesNewPromptForm
                         onSubmit={describeRule}
                         onBuildManually={() => setShouldShowRuleTypes(true)}
-                        onCreateAgentRule={isCustomAgentBetaEnabled && canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
+                        onCreateAgentRule={canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
                         isLoading={!!generationID}
                     />
                 ) : (
