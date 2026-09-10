@@ -48,7 +48,8 @@ LEDGER = {
     'react/jsx-no-duplicate-props': (ACCEPTED, 'ESLint passes {ignoreCase: true}; oxlint\'s native port accepts no options at all and fails the config with "this rule does not accept configuration options", so the option cannot be mirrored. 0 findings on either tool today'),
     'react/jsx-no-undef': (ACCEPTED, 'same: ESLint passes {allowGlobals: true}, oxlint\'s port accepts no options. 0 findings on either tool today'),
     'import/no-cycle': (ACCEPTED, 'ESLint passes {maxDepth: "\u221e"}; oxlint rejects a string there ("invalid type: string, expected u32") and its default already behaves the same way on this repo, measured 748 = 748 over src with the option omitted and with maxDepth at u32::MAX. Enabled on both, and oxlint is the only one that reports: 534 real cycles against ESLint\'s 0'),
-    'rulesdir/prefer-at': (ACCEPTED, 'needs typeChecker.isArrayType to tell arrays from records, which a jsPlugin cannot reach. Step 10a proposes unicorn/prefer-at on both linters instead'),
+    'rulesdir/prefer-at': (ACCEPTED, 'needs typeChecker.isArrayType to tell arrays from records, which a jsPlugin cannot reach. unicorn/prefer-at at default options is enabled instead, and covers the type-free half'),
+    'unicorn/prefer-at': (ACCEPTED, 'oxlint-only on purpose: the type-free stand-in for rulesdir/prefer-at, which cannot be ported. Default options only, so it covers the x[x.length - N] family and not plain arr[i]. Measured 2026-09-10: 2 findings, the same 2 lines ESLint\'s own copy of the rule reports'),
     'rulesdir/boolean-conditional-rendering': (ACCEPTED, 'needs the type of the && left operand, and no syntactic stand-in exists'),
     '@typescript-eslint/no-deprecated': (ACCEPTED, 'off for the 83 files in the write-site override. tsgolint reports writes to deprecated properties that typescript-eslint misses (typescript-eslint#10643), and no option separates reads from writes'),
     'no-invalid-this': (ACCEPTED, 'oxlint\'s plugin bridge throws on sourceCode.getJSDocComment, so the rule cannot run there. TS files are largely covered by noImplicitThis'),
@@ -56,6 +57,24 @@ LEDGER = {
     'react-hooks/config': (ACCEPTED, 'not a compiler-category rule and not ported. Left behind when the rh/ sidecar was deleted'),
     'react-hooks/gating': (ACCEPTED, 'same'),
     'react-hooks/component-hook-factories': (ACCEPTED, 'ships as a deprecated stub upstream: create() returns {}, so it cannot report on either tool'),
+    # Found 2026-09-10, the first run after the probe set widened from 8 representative files to every
+    # rule-carrying block. None of these was visible before, because no representative file was a
+    # story file, an `.github/actions` source, a `src/types/onyx` type or a `.d.ts`.
+    'no-unreachable-loop': (ACCEPTED, 'off for **/*.d.ts on the oxlint side only. ESLint\'s code-path analyzer, which this rule needs, crashes on a `declare module` with no body when fed through oxlint\'s AST bridge (TypeError at CodePathAnalyzer.enterNode). Declaration files contain no loops, so nothing is lost'),
+    'storybook/await-interactions': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/context-in-play-function': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/default-exports': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/hierarchy-separator': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/no-redundant-story-name': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/no-renderer-packages': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/no-uninstalled-addons': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/prefer-pascal-case': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/story-exports': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/use-storybook-expect': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'storybook/use-storybook-testing-library': (OPEN, 'eslint-plugin-storybook is registered through FlatCompat (plugin:storybook/recommended, config/eslint/eslint.config.mjs:252) and .oxlintrc.json has no storybook plugin at all. 11 rules over 36 story files, unmigrated. The plugin is a plain ESLint plugin already in node_modules, so hosted-rules.mjs can host it the same way it hosts eslint-plugin-react'),
+    'react-hooks/rules-of-hooks': (OPEN, 'the same storybook preset sets it to `off` for **/*.stories.* and **/*.story.*; oxlint enables it everywhere. Oxlint is the stricter of the two here. Mirror the scope, or decide the preset is wrong'),
+    'jsdoc/require-jsdoc': (OPEN, 'ESLint enforces it over src/types/onyx/**/*.ts with contexts: [TSInterfaceDeclaration, TSTypeAliasDeclaration] (config/eslint/eslint.config.mjs:473), so every Onyx type carries a comment. Absent from .oxlintrc.json. The jsdoc plugin is already hosted for hosted/no-types, so this is one line plus a fixture'),
+    'no-restricted-globals': (OPEN, 'not a severity difference, a different option set in the same scope. For .github/actions/**/*.ts and .github/libs/**/*.ts, ESLint bans module/__dirname/__filename because those sources are bundled as real ESM and a CJS idiom builds fine and then throws a ReferenceError in CI (config/eslint/eslint.config.mjs:588-613). Oxlint applies the airbnb browser list there instead and loses all three bans'),
     'prefer-const': (OPEN, 'oxlint passes {ignoreReadBeforeAssign: true}; the default is false (eslint/lib/rules/prefer-const.js:343-348). oxlint is the more lenient of the two'),
     'no-redeclare': (OPEN, 'oxlint passes {builtinGlobals: false}; the default is true (eslint/lib/rules/no-redeclare.js:23). oxlint is the more lenient of the two'),
     'prefer-promise-reject-errors': (OPEN, 'oxlint passes {allowEmptyReject: true}; the default is false (eslint/lib/rules/prefer-promise-reject-errors.js:20). oxlint is the more lenient of the two'),
@@ -110,13 +129,38 @@ def compare(resolved):
                 kind, detail = 'severity', f'ESLint {severity(es)}, oxlint {severity(ox)}'
             elif options(es) != options(ox) and severity(es) != 'off':
                 kind, detail = 'options', f'ESLint {json.dumps(es)} vs oxlint {json.dumps(ox)}'
+            entry = findings.setdefault(rule_id, [None, None, [], []])
             if kind is None:
+                entry[3].append(path)
                 continue
-            if rule_id in findings:
-                findings[rule_id][2].append(path)
-            else:
-                findings[rule_id] = (kind, detail, [path])
-    return findings
+            entry[0] = entry[0] or kind
+            entry[1] = entry[1] or detail
+            entry[2].append(path)
+    # A rule that differs on some probed files and agrees on others is a SCOPE mismatch: both configs
+    # enable it, they just do not enable it over the same files. That is the one shape a findings
+    # comparison can never see, because a rule switched off for a file reports nothing there and
+    # nothing is what parity looks like.
+    for rule_id, entry in list(findings.items()):
+        if entry[0] is None:
+            del findings[rule_id]
+            continue
+        if entry[3]:
+            entry[1] = f'{entry[1]} (differs on {len(entry[2])} of {len(entry[2]) + len(entry[3])} probed files)'
+            entry[0] = 'scope'
+    return {rid: tuple(entry) for rid, entry in findings.items()}
+
+
+def probe_files():
+    """Two files per rule-carrying block in either config, plus the blocks nothing matched.
+
+    Delegated to resolveConfigs.mjs because the ESLint side's `files` entries can be predicate
+    functions (that is what FlatCompat emits), which only the resolver can evaluate.
+    """
+    out = subprocess.run(
+        ['node', os.path.join(HERE, 'resolveConfigs.mjs'), '--probe-files'],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    )
+    return json.loads(out.stdout)
 
 
 def main():
@@ -125,10 +169,14 @@ def main():
     parser.add_argument('--files', nargs='*', help='files to resolve (default: the representative set)')
     args = parser.parse_args()
 
-    files = args.files or REPRESENTATIVE_FILES
+    if args.files:
+        files, unmatched = args.files, []
+    else:
+        probes = probe_files()
+        files, unmatched = sorted(set(probes['files']) | set(REPRESENTATIVE_FILES)), probes['unmatched']
     missing = [f for f in files if not os.path.exists(os.path.join(ROOT, f))]
     if missing:
-        sys.exit('representative file(s) missing, so the override(s) they stand for are unchecked:\n  ' + '\n  '.join(missing))
+        sys.exit('probe file(s) missing, so the override(s) they stand for are unchecked:\n  ' + '\n  '.join(missing))
     findings = compare(resolve(files))
 
     unlisted = {rid: v for rid, v in findings.items() if rid not in LEDGER}
@@ -145,14 +193,14 @@ def main():
 
     if by_status[OPEN]:
         print('\nOPEN, each needs an owner:')
-        for rule_id, (kind, detail, paths) in sorted(by_status[OPEN]):
+        for rule_id, (kind, detail, paths, _same) in sorted(by_status[OPEN]):
             print(f'  {rule_id} ({kind}, {len(paths)} file(s))')
             print(f'      {detail}')
             print(f'      {LEDGER[rule_id][1]}')
 
     if unlisted:
         print(f'\n{len(unlisted)} rule(s) differ and are not in LEDGER. This is what a config bump looks like:')
-        for rule_id, (kind, detail, paths) in sorted(unlisted.items()):
+        for rule_id, (kind, detail, paths, _same) in sorted(unlisted.items()):
             print(f'  {rule_id} ({kind}, {len(paths)} file(s)): {detail}')
 
     if stale:
@@ -161,12 +209,17 @@ def main():
             print(f'  {rule_id}')
 
     if args.json:
-        payload = {rid: {'kind': k, 'detail': d, 'files': p, 'status': LEDGER.get(rid, (None, None))[0], 'reason': LEDGER.get(rid, (None, None))[1]} for rid, (k, d, p) in findings.items()}
+        payload = {rid: {'kind': k, 'detail': d, 'differsOn': p, 'agreesOn': q, 'status': LEDGER.get(rid, (None, None))[0], 'reason': LEDGER.get(rid, (None, None))[1]} for rid, (k, d, p, q) in findings.items()}
         with open(args.json, 'w') as handle:
             json.dump(payload, handle, indent=1, sort_keys=True)
             handle.write('\n')
 
-    if unlisted or stale:
+    if unmatched:
+        print(f'\n{len(unmatched)} config block(s) carry rules but match no file in the repo, so every rule they set is dead:')
+        for block in unmatched:
+            print(f'  {block["linter"]} overrides[{block["index"]}] files={json.dumps(block["files"])}')
+
+    if unlisted or stale or unmatched:
         sys.exit(1)
     print('\nNo unlisted drift. Every difference between the two configs is written down.')
 

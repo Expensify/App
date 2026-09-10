@@ -49,6 +49,14 @@ PORT_PLAN = {
                  'The rule id is dead: eslint-seatbelt is gone from package.json and no seatbelt rule appears in the '
                  'resolved ESLint config. Kept as the record of how the blocker went away',
     },
+    'react-hooks/component-hook-factories': {
+        'mechanism': 'cannot report on either tool - a deprecated stub upstream',
+        'effort': 'none', 'proven': True,
+        'notes': 'eslint-plugin-react-hooks ships it as a stub whose create() returns {}, and ESLint lists it under '
+                 'usedDeprecatedRules. Neither tool can produce a finding, so there is nothing to port. It had a '
+                 'checkConfigDrift LEDGER entry but no PORT_PLAN one, which is why the coverage check printed it as '
+                 'an UNEXPLAINED gap',
+    },
     'progress/activate': {
         'mechanism': 'drop - oxlint prints its own progress',
         'effort': 'none', 'proven': False,
@@ -73,17 +81,18 @@ PORT_PLAN = {
                  'fixture configs; production supplies none, so the rule cannot fire',
     },
     'no-invalid-this': {
-        'mechanism': 'blocked - oxlint\'s bridge throws on sourceCode.getJSDocComment',
-        'effort': 'blocked', 'proven': False,
-        'notes': 'measured: hosting it errors on 36 files (dist/lint.js:5765 is a bare throw, reached '
-                 'via astUtils.hasJSDocThisTag), plus 2 more from the code-path analyzer it needs on '
-                 '.d.ts files whose `declare module` has no body (same bug as obstacle #5). TS files are '
-                 'largely covered anyway by noImplicitThis from tsconfig strict, so the exposure is '
-                 'the plain .js/.mjs files',
+        'mechanism': 'decided - skipped; oxlint\'s bridge throws on sourceCode.getJSDocComment',
+        'effort': 'skipped', 'proven': True,
+        'notes': 'DECIDED skip, 2026-09-10. Re-measured under this config\'s ignorePatterns on oxlint 1.82.0: '
+                 'hosting it produces 51 JS-plugin errors and 0 findings. 49 are the bare throw at '
+                 'dist/lint.js:5784, reached via astUtils.hasJSDocThisTag; 2 are the code-path analyzer on '
+                 '.d.ts files whose `declare module` has no body. ESLint reports 0 today too, and TS/TSX are '
+                 'covered by noImplicitThis (tsconfig.base.json:6 sets strict), so the residual is 46 '
+                 'non-ignored .js/.mjs/.cjs files, 19 containing a `this` token, all build tooling and loaders',
     },
     'rulesdir/prefer-at': {
-        'mechanism': 'blocked - needs typeChecker.isArrayType to tell arrays from records',
-        'effort': 'blocked, partial', 'proven': False,
+        'mechanism': 'superseded - unicorn/prefer-at at default options covers the type-free half',
+        'effort': 'superseded, partial', 'proven': True,
         'notes': 'a syntactic port would fire on every obj[key]: measured 2026-08-13, oxlint\'s '
                  'unicorn/prefer-at with checkAllIndexAccess reports 413 findings in src/ and ESLint\'s '
                  'type-aware rule confirms 0 of the sampled 104 as real array reads. But the same rule '

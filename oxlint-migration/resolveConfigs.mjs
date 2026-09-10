@@ -1,10 +1,19 @@
 // Resolve both linters' configs for the same files, from authored values.
 //
 //     node oxlint-migration/resolveConfigs.mjs <file> [<file> ...]
+//     node oxlint-migration/resolveConfigs.mjs --probe-files
+//
+// `--probe-files` prints the smallest file set that reaches every rule-carrying block in either
+// config, at most two files per block. It exists because a per-rule comparison over a hand-picked
+// sample can only see the scopes the sample happens to land in: the 83-file
+// `typescript/no-deprecated` override hid five real findings for weeks precisely because no
+// representative file was one of the 83. Membership is decided by the same `blockApplies` predicate
+// the resolver uses, so a file is a probe for a block if and only if the resolver would apply it.
 //
 // Not `eslint --print-config`: that fills in each rule's schema defaults, so `import/order` comes back
 // carrying options nothing in any config authored, and every rule with defaults reads as drift.
 import minimatchPackage from 'minimatch';
+import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -91,12 +100,72 @@ function parseJsonc(source) {
 const eslintBlocks = (await import(path.join(ROOT, 'config/eslint/eslint.config.mjs'))).default;
 
 const oxlintConfig = parseJsonc(fs.readFileSync(path.join(ROOT, '.oxlintrc.json'), 'utf8'));
-const oxlintBlocks = [{rules: oxlintConfig.rules ?? {}}, ...(oxlintConfig.overrides ?? []).map((override) => ({files: override.files, rules: override.rules ?? {}}))];
+// `excludeFiles` maps onto ESLint's `ignores`, so `blockApplies` handles both shapes with one
+// predicate. Dropping it would make an override look wider than it is: `src/styles/**` minus two
+// files is not `src/styles/**`.
+const oxlintBlocks = [
+    {rules: oxlintConfig.rules ?? {}},
+    ...(oxlintConfig.overrides ?? []).map((override) => ({files: override.files, ignores: override.excludeFiles, rules: override.rules ?? {}})),
+];
 
-const out = {};
-for (const arg of process.argv.slice(2)) {
-    const absolute = path.resolve(ROOT, arg);
-    const paths = {absolute, relative: path.relative(ROOT, absolute)};
-    out[paths.relative] = {eslint: resolve(paths, eslintBlocks), oxlint: resolve(paths, oxlintBlocks)};
+const PROBES_PER_BLOCK = 2;
+
+function trackedFiles() {
+    return execFileSync('git', ['ls-files'], {cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28})
+        .split('\n')
+        .filter(Boolean)
+        .filter((relative) => /\.(js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(relative));
 }
-console.log(JSON.stringify(out));
+
+/**
+ * Two files per rule-carrying block, and the blocks nothing matched.
+ *
+ * An unmatched block is itself drift rather than a harmless leftover: a `files` glob that no file in
+ * the repo satisfies means the override is dead, and every rule it sets reads as if it were never
+ * written. That is why they are returned instead of skipped.
+ */
+function probeFiles() {
+    const pool = trackedFiles().map((relative) => ({absolute: path.join(ROOT, relative), relative}));
+    const picked = new Set();
+    const unmatched = [];
+    for (const [linter, blocks] of [
+        ['eslint', eslintBlocks],
+        ['oxlint', oxlintBlocks],
+    ]) {
+        blocks.forEach((block, index) => {
+            if (!block?.rules || Object.keys(block.rules).length === 0) {
+                return;
+            }
+            const matches = [];
+            for (const paths of pool) {
+                if (blockApplies(paths, block)) {
+                    matches.push(paths.relative);
+                    if (matches.length === PROBES_PER_BLOCK) {
+                        break;
+                    }
+                }
+            }
+            if (matches.length === 0) {
+                unmatched.push({linter, index, files: block.files ?? null});
+                return;
+            }
+            for (const relative of matches) {
+                picked.add(relative);
+            }
+        });
+    }
+    return {files: [...picked].sort(), unmatched};
+}
+
+const args = process.argv.slice(2);
+if (args.includes('--probe-files')) {
+    console.log(JSON.stringify(probeFiles()));
+} else {
+    const out = {};
+    for (const arg of args) {
+        const absolute = path.resolve(ROOT, arg);
+        const paths = {absolute, relative: path.relative(ROOT, absolute)};
+        out[paths.relative] = {eslint: resolve(paths, eslintBlocks), oxlint: resolve(paths, oxlintBlocks)};
+    }
+    console.log(JSON.stringify(out));
+}
