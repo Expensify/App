@@ -1,4 +1,3 @@
-import Button from '@components/ButtonComposed';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -33,6 +32,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -241,30 +241,25 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     };
 
     const deleteRule = () => {
-        if (!canWriteSpendRules) {
-            return;
-        }
-
         if (!existingRule) {
-            return;
+            return false;
         }
 
-        showConfirmModal({
-            title: translate('workspace.rules.spendRules.deleteRule'),
-            prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
-            clearDraftSpendRule();
-            Navigation.goBack();
-        });
+        deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
+        clearDraftSpendRule();
+        return true;
     };
+
+    const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const canDeleteRule = canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted;
+
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+        canDelete: canDeleteRule,
+        onDelete: deleteRule,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
+        titleKey: 'workspace.rules.spendRules.deleteRule',
+        promptKey: 'workspace.rules.spendRules.deleteRuleConfirmation',
+    });
 
     const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
         if (!canWriteSpendRules) {
@@ -421,11 +416,11 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
         <>
             <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                 <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.spendRules.restrictCardSpendSubtitle')}</Text>
-                <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
+                <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.spendRules.ifAnyCardMatches')}</Text>
             </View>
             {cardsMenuItem}
             <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
+            <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.spendRules.thenDoThisAtPointOfSale')}</Text>
             {currenciesMenuItem}
             {maxAmountMenuItem}
             <View style={[styles.ph5, styles.pv3]}>
@@ -456,7 +451,10 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.spendRules.restrictCardSpendTitle')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.spendRules.restrictCardSpendTitle')}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{revampFormContent}</ScrollView>
                 {canWriteSpendRules && (
                     <FormAlertWithSubmitButton
@@ -470,18 +468,6 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit
-                        footerContent={
-                            isEditingRule ? (
-                                <Button
-                                    size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={deleteRule}
-                                    style={[styles.mb4]}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                >
-                                    <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
-                                </Button>
-                            ) : undefined
-                        }
                     />
                 )}
             </ScreenWrapper>

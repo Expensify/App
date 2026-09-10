@@ -6,6 +6,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +36,7 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isCollect = isCollectPolicy(policy);
     const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
     const upgradeBackTo = ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID);
@@ -70,7 +72,7 @@ function RulesBillableDefaultPage({
             return;
         }
 
-        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
+        setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
@@ -117,7 +119,7 @@ function RulesBillableDefaultPage({
                     wrapperStyle={[styles.mh5, styles.mv4]}
                     isActive={isBillableTrackingEnabled}
                     pendingAction={getBillableExpensesPendingAction(policy)}
-                    onToggle={() => toggleBillableExpenses(policy)}
+                    onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
                 />
                 {isBillableTrackingEnabled && (
                     <SelectionList

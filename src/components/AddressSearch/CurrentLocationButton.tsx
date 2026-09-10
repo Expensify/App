@@ -24,7 +24,7 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
     return (
         <PressableWithFeedback
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
-            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState(true), true)}
+            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: true}), true)}
             onPress={() => onPress?.()}
             accessibilityLabel={translate('location.useCurrent')}
             disabled={isDisabled}

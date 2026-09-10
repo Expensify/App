@@ -14,7 +14,10 @@ const localFileCreate: LocalFileCreate = (fileName, textContent, appendTimestamp
     const {fileExtension} = splitExtensionFromFileName(fileName);
     const fileNameWithExtension = fileExtension ? fileName : `${fileName}.txt`;
     const newFileName = appendTimestamp ? appendTimeToFileName(fileNameWithExtension) : fileNameWithExtension;
-    const dir = RNFetchBlob.fs.dirs.DocumentDir;
+    // These files are temporary hand-offs to a share/copy flow that deletes them afterwards,
+    // so they belong in the cache directory, which is never exposed to the user (unlike
+    // Documents, which the iOS Files app shows when file sharing is enabled)
+    const dir = RNFetchBlob.fs.dirs.CacheDir;
     const path = `${dir}/${newFileName}`;
 
     return RNFetchBlob.fs.writeFile(path, textContent, 'utf8').then(() => RNFetchBlob.fs.stat(path).then(({size}) => ({path, newFileName, size})));

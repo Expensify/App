@@ -21,13 +21,11 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Inner button variant */
     variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
 
-    /** The icon to display */
     icon: IconAsset;
 
     /** The fill color for the icon */
@@ -36,7 +34,6 @@ type FloatingPillButtonProps = {
     /** The label text to display */
     label: string;
 
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 
@@ -74,7 +71,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
     hasNewMessages: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */
@@ -90,7 +86,7 @@ type FloatingMessageCounterProps = {
     onActionBadgePress?: () => void;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
@@ -103,7 +99,7 @@ function FloatingMessageCounter({
     actionBadge,
     actionBadgeBrickRoadStatus,
     onActionBadgePress,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const theme = useTheme();
@@ -139,7 +135,7 @@ function FloatingMessageCounter({
         transform: [{translateY: translateY.get()}],
     }));
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <Animated.View

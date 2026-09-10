@@ -17,10 +17,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ChronosOOOListActionsProps = {
-    /** The ID of the report */
     reportID: string | undefined;
-
-    /** All the data of the action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
 };
 
@@ -52,11 +49,15 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale))
+                                    ? translate('chronos.oooEventSummaryFullDay', {
+                                          summary: event.summary,
+                                          count: event.lengthInDays,
+                                          date: DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
+                                      })
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(start, dateFnsLocale)} - ${DateUtils.formatToLocalTime(end, dateFnsLocale)}`,
+                                          `${DateUtils.formatToLocalTime(translate, start)} - ${DateUtils.formatToLocalTime(translate, end)}`,
                                           DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
                                       )}
                             </Text>

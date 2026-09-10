@@ -7,7 +7,6 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,10 +14,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 
-import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import useAgentPromptInputStyles from './useAgentPromptInputStyles';
 
 type AddAgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM;
 
@@ -30,8 +31,6 @@ type AddAgentRuleWriteTabProps = {
 function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
-    const shouldUseExpandedRevampFormLayout = !shouldUseScrollableLayout;
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
@@ -54,9 +53,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         return errors;
     };
 
-    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
-        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
-        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
+    const inputWrapperStyles = useAgentPromptInputStyles();
 
     return (
         <FormProvider
@@ -66,8 +63,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             onSubmit={onSave}
             submitButtonText={translate('workspace.rules.agentRules.createRule')}
             style={[styles.flex1, styles.ph5]}
-            shouldUseScrollView={shouldUseScrollableLayout}
-            submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+            submitFlexEnabled={false}
+            shouldUseScrollView={false}
             enabledWhenOffline
             shouldHideFixErrorsAlert
             shouldValidateOnChange
@@ -88,9 +85,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         multiline
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine
-                        containerStyles={[styles.flex1]}
+                        containerStyles={[styles.h100]}
                         touchableInputWrapperStyle={[styles.flex1]}
-                        textInputContainerStyles={[styles.flex1]}
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>

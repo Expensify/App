@@ -8,6 +8,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 type Workflow = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -91,6 +92,7 @@ beforeAll(() => {
     // copied onto the stub rather than asserted away.
     GithubUtils.initOctokitWithToken('fake_token');
     const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;
+    GithubUtils.octokit.actions = materializeOctokitNamespace(GithubUtils.octokit.actions);
     jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(listWorkflowRuns, {endpoint, defaults}));
 });
 

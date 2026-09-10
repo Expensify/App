@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -29,13 +29,8 @@ import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
-    /** The workspace data */
     item: WorkspaceRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
@@ -194,10 +189,9 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
                                 {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                             >
-                                <Avatar
+                                <UserAvatar
                                     source={item.ownerAvatar}
-                                    avatarID={item.ownerAccountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                    accountID={item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID}
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 />
                                 <WorkspacesListRowDisplayName

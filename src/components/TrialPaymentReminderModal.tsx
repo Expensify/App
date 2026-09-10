@@ -9,13 +9,12 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
 
 type TrialPaymentReminderModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** The variant of the modal to display */
@@ -27,10 +26,7 @@ type TrialPaymentReminderModalProps = {
     /** Countdown time for 'countdown' variant */
     countdownTime?: CountdownTime;
 
-    /** Called when user presses Close */
     onClose: () => void;
-
-    /** Called when user presses Add payment card */
     onAddPaymentCard: () => void;
 };
 
@@ -78,19 +74,21 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                 <Text style={[styles.textSupporting]}>{translate('trialPaymentReminder.subtitle')}</Text>
 
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
                     onPress={onAddPaymentCard}
-                    pressOnEnter
-                    text={translate('trialPaymentReminder.addPaymentCardButton')}
-                    large
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('trialPaymentReminder.addPaymentCardButton')}</Button.Text>
+                </Button>
                 <Button
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3]}
                     onPress={onClose}
-                    text={translate('trialPaymentReminder.closeButton')}
-                    large
-                />
+                >
+                    <Button.Text>{translate('trialPaymentReminder.closeButton')}</Button.Text>
+                </Button>
             </View>
         </Modal>
     );

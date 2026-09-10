@@ -81,7 +81,6 @@ function buildPolicy(): Policy {
         owner: USER_EMAIL,
         outputCurrency: 'USD',
         approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-        isPolicyExpenseChatEnabled: true,
         areWorkflowsEnabled: true,
         areRulesEnabled: true,
         pendingAction: null,

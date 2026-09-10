@@ -127,7 +127,6 @@ const expensePolicy: Policy = {
     role: CONST.POLICY.ROLE.ADMIN,
     owner: currentUserEmail,
     outputCurrency: CONST.CURRENCY.USD,
-    isPolicyExpenseChatEnabled: true,
 };
 
 const renderMoneyRequestView = () =>
@@ -179,7 +178,6 @@ const setupTestData = async () => {
             name: 'Test Policy',
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
             reportID: expenseReportID,

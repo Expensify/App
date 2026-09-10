@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidSSNFullNine} from '@libs/ValidationUtils';
 
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 
@@ -26,7 +27,8 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
     const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
-    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
+    // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
+    const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4]);
     const shouldShowSSNRowError = shouldAskForFullSSN && values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4].length < CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN;
 
     const summaryItems = [
