@@ -175,7 +175,7 @@ function openPersonalBankAccountSetupView({
 function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft, internationalDraft, isUserValidated = true}: OpenWalletPersonalBankAccountSetupProps) {
     const hasPersonalProgress = !!personalDraft?.setupType;
     const hasInternationalProgress = !!internationalDraft?.bankCountry;
-    const shouldResume = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && (hasPersonalProgress || hasInternationalProgress);
+    const shouldResume = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !personalBankAccount.shouldShowSuccess && (hasPersonalProgress || hasInternationalProgress);
 
     if (!shouldResume) {
         Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
@@ -1620,7 +1620,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         inputs: JSON.stringify(inputData),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1641,6 +1641,11 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
                     errors: null,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                value: null,
             },
         ],
         failureData: [
