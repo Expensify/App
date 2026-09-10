@@ -113,7 +113,6 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                     name: 'Test Policy',
                     owner: currentUserEmail,
                     outputCurrency: CONST.CURRENCY.USD,
-                    isPolicyExpenseChatEnabled: true,
                     ...policy,
                 })}
                 shouldShowAnimatedBackground={false}
@@ -173,7 +172,6 @@ describe('MoneyRequestView edit fields', () => {
                 name: 'Test Policy',
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
                 reportID: expenseReportID,
@@ -843,6 +841,7 @@ describe('MoneyRequestView edit fields', () => {
         });
 
         it('does not show the commuter exclusion on a self-DM expense that carries the fields', async () => {
+            const customUnitRateID = 'self-dm-distance-rate';
             const threadReport = {
                 ...LHNTestUtils.getFakeReport(),
                 parentReportID: selfDMReportID,
@@ -873,7 +872,34 @@ describe('MoneyRequestView edit fields', () => {
                         },
                     },
                 });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...distanceTransactionUpdate, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {
+                                [customUnitRateID]: {
+                                    customUnitRateID,
+                                    currency: CONST.CURRENCY.USD,
+                                    rate: 67,
+                                },
+                            },
+                        },
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    ...distanceTransactionUpdate,
+                    amount: 201,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    comment: {
+                        ...distanceTransactionUpdate.comment,
+                        customUnit: {
+                            ...distanceTransactionUpdate.comment.customUnit,
+                            customUnitRateID,
+                        },
+                    },
+                });
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -891,6 +917,7 @@ describe('MoneyRequestView edit fields', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
             expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
         });

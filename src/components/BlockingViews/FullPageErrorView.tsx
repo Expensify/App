@@ -14,10 +14,7 @@ import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageErrorViewProps = {
-    /** TestID for test */
     testID?: string;
-
-    /** Child elements */
     children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "error page" view */
@@ -29,7 +26,6 @@ type FullPageErrorViewProps = {
     /** The subtitle text to be displayed */
     subtitle?: string;
 
-    /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
 
     /** The style of the subtitle message */

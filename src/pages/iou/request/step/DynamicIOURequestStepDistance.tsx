@@ -5,6 +5,8 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -62,6 +64,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -81,7 +84,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type DynamicIOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
@@ -109,6 +111,7 @@ function DynamicIOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
@@ -125,6 +128,7 @@ function DynamicIOURequestStepDistance({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -362,6 +366,11 @@ function DynamicIOURequestStepDistance({
         return stop;
     }, []);
 
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -386,6 +395,8 @@ function DynamicIOURequestStepDistance({
         introSelected,
         betas,
         conciergeChat,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         transactionWasSavedRef: transactionWasSaved,
     });
 
@@ -525,6 +536,9 @@ function DynamicIOURequestStepDistance({
     );
 
     const submitWaypoints = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         // If there is any error or loading state, don't let user go to next page.
         if (duplicateWaypointsError || atLeastTwoDifferentWaypointsError || hasRouteError || isLoadingRoute || (!isEditing && isLoading)) {
             setShouldShowAtLeastTwoDifferentWaypointsError(true);
@@ -598,6 +612,7 @@ function DynamicIOURequestStepDistance({
                     reportPolicyTags,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
@@ -613,6 +628,8 @@ function DynamicIOURequestStepDistance({
         suppressDiscardPrompt();
         navigateToNextStep();
     }, [
+        allTransactionViolations,
+        blockDistanceRequestIfNeeded,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
@@ -650,6 +667,9 @@ function DynamicIOURequestStepDistance({
     ]);
 
     const submitManualDistance = useCallback(() => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
         isManuallyEditing.current = false;
 
         // For a map-based distance edit, require valid waypoints even when saving from the Manual tab.
@@ -736,6 +756,7 @@ function DynamicIOURequestStepDistance({
             reportPolicyTags,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
         });
@@ -745,6 +766,8 @@ function DynamicIOURequestStepDistance({
         removeBackupTransaction(transaction?.transactionID);
         navigateBackAfterSave();
     }, [
+        allTransactionViolations,
+        blockDistanceRequestIfNeeded,
         transactionBackup,
         getHasSelectedRouteChanged,
         duplicateWaypointsError,

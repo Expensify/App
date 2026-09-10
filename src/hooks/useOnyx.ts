@@ -11,9 +11,9 @@ import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseO
 
 import {use} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
-type OriginalUseOnyx = typeof originalUseOnyx;
+type UseOnyxWithoutSnapshots = typeof useOnyxWithoutSnapshots;
 
 const COLLECTION_VALUES = Object.values(ONYXKEYS.COLLECTION);
 const getDataByPath = (data: SearchResults['data'], path: string) => {
@@ -74,7 +74,7 @@ function resolveSnapshotAwareResult<TKey extends OnyxKey, TReturnValue>(
 /**
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
-const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>) => {
+const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>) => {
     OnyxSubscriptionCounter.bump(key, 'hookRuns');
 
     const isSnapshotCompatibleKey = !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
@@ -110,7 +110,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector: countedSelector};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
-    const originalResult = originalUseOnyx(snapshotKey, onyxOptions);
+    const originalResult = useOnyxWithoutSnapshots(snapshotKey, onyxOptions);
 
     // Extract the specific key data from snapshot if in search mode
     const result = resolveSnapshotAwareResult<TKey, TReturnValue>(shouldUseSnapshot, !!selector, originalResult, key);

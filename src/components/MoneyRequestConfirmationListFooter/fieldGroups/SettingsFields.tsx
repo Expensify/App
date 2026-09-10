@@ -13,10 +13,7 @@ type SettingsFieldsProps = {
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
-    /** Whether the billable toggle should be displayed */
     shouldShowBillable: boolean;
-
-    /** Whether the reimbursable toggle should be displayed */
     shouldShowReimbursable: boolean;
 
     /** Toggle callbacks for billable/reimbursable */

@@ -50,6 +50,8 @@ const oldRoutes: Record<string, string> = {
     '/r/*/duplicates/review/billable': '/r/$1/billable/$1',
     '/r/*/duplicates/review': '/r/$1/duplicates/review/$1',
     '/r/*/duplicates/confirm': '/r/$1/confirm/$1',
+    '/r/*/trip/*/*/*': '/r/$1/trip-details/$1/$2/$3/$4',
+    '/r/*/trip/*': '/r/$1/trip-summary/$1/$2',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
@@ -77,7 +79,6 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/connections/quickbooks-online/advanced/autosync': '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
     '/travel/upgrade': '/travel/travel-upgrade',
     '/travel/upgrade/workspace/confirmation': '/travel/travel-upgrade/workspace-confirmation',
-    '/travel/verify-account': '/travel/travel-verify-account',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account': '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account-select': '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account-select',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account/account-select':
