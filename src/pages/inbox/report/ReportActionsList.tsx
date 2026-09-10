@@ -95,14 +95,19 @@ const REPORT_ACTION_COMMENT_SIZE = {
     EXTRA_LONG: 'extra-long',
 } as const;
 
+// Character-count boundaries used to bucket comments so LegendList can recycle similarly sized items.
+const REPORT_ACTION_COMMENT_SHORT_MAX_LENGTH = 80;
+const REPORT_ACTION_COMMENT_MEDIUM_MAX_LENGTH = 320;
+const REPORT_ACTION_COMMENT_LONG_MAX_LENGTH = 1200;
+
 function getReportActionCommentSize(messageLength: number): string {
-    if (messageLength <= 80) {
+    if (messageLength <= REPORT_ACTION_COMMENT_SHORT_MAX_LENGTH) {
         return REPORT_ACTION_COMMENT_SIZE.SHORT;
     }
-    if (messageLength <= 320) {
+    if (messageLength <= REPORT_ACTION_COMMENT_MEDIUM_MAX_LENGTH) {
         return REPORT_ACTION_COMMENT_SIZE.MEDIUM;
     }
-    if (messageLength <= 1200) {
+    if (messageLength <= REPORT_ACTION_COMMENT_LONG_MAX_LENGTH) {
         return REPORT_ACTION_COMMENT_SIZE.LONG;
     }
     return REPORT_ACTION_COMMENT_SIZE.EXTRA_LONG;
@@ -600,6 +605,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyboardShouldPersistTaps="handled"
                     onLayout={recordTimeToMeasureItemLayout}
                     onScroll={trackScrollPositionAndThreshold}
+                    onStartReached={loadOlderChatsOnStartReached}
+                    onStartReachedThreshold={PAGINATION_THRESHOLD}
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}

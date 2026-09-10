@@ -19,6 +19,9 @@ type ReportActionPosition = {
 
 const ReportActionIndexContext = createContext<ReportActionPosition>({index: 0, isNewest: false});
 
+/** Lets shared list implementations provide their own reliable way to reach the newest action. */
+const ReportActionScrollToNewestContext = createContext<(() => void) | undefined>(undefined);
+
 /**
  * Uses LegendList's recycling-aware state in the main report list and behaves like useState in shared, non-recycled lists.
  */
@@ -29,5 +32,5 @@ function useReportActionItemState<State>(initialState: State | (() => State)): [
     return isRecycling ? [...recyclingState] : state;
 }
 
-export {useReportActionItemState};
+export {ReportActionScrollToNewestContext, useReportActionItemState};
 export default ReportActionIndexContext;

@@ -156,4 +156,19 @@ describe('useEditMessage', () => {
 
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
+
+    it('uses the list-specific bottom scroll after deleting the newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+    });
 });

@@ -188,6 +188,7 @@ type MockLegendListProps = {
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
     onLoad?: () => void;
+    onStartReachedThreshold?: number;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
@@ -549,21 +550,21 @@ describe('ReportActionsList (body)', () => {
             getItemType?.({
                 ...comment,
                 reportActionID: 'medium-comment',
-                message: [{type: 'COMMENT', html: 'Medium comment', text: 'a'.repeat(200)}],
+                message: [{type: 'COMMENT', html: 'Medium comment', text: 'a'.repeat(320)}],
             }),
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-medium`);
         expect(
             getItemType?.({
                 ...comment,
                 reportActionID: 'long-comment',
-                message: [{type: 'COMMENT', html: 'Long comment', text: 'a'.repeat(600)}],
+                message: [{type: 'COMMENT', html: 'Long comment', text: 'a'.repeat(1200)}],
             }),
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-long`);
         expect(
             getItemType?.({
                 ...comment,
                 reportActionID: 'extra-long-comment',
-                message: [{type: 'COMMENT', html: 'Extra long comment', text: 'a'.repeat(1500)}],
+                message: [{type: 'COMMENT', html: 'Extra long comment', text: 'a'.repeat(1201)}],
             }),
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-extra-long`);
         expect(
@@ -582,7 +583,7 @@ describe('ReportActionsList (body)', () => {
         ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
     });
 
-    it('continues loading older pages from scroll events when LegendList does not report reaching the start', () => {
+    it('loads older pages when LegendList reaches the start and deduplicates the scroll fallback', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockUsePaginatedReportActions.mockReturnValue({
             ...defaultPaginatedReportActionsResult,
@@ -601,12 +602,12 @@ describe('ReportActionsList (body)', () => {
         });
 
         act(() => {
-            listProps?.onScroll?.(createScrollEvent(0));
+            listProps?.onStartReached?.();
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+        expect(listProps?.onStartReachedThreshold).toBe(0.75);
 
         act(() => {
-            listProps?.onStartReached?.();
             listProps?.onScroll?.(createScrollEvent(0));
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
