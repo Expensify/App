@@ -45,9 +45,8 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
 
         const fieldKey = getReportFieldKey(reportField.fieldID);
         const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-        const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(
-            ([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy),
-        );
+        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy);
+        const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
 
         updateReportField({
             report: {...report, reportID: report.reportID},

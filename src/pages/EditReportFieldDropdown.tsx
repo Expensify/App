@@ -32,9 +32,24 @@ type EditReportFieldDropdownPageProps = {
 
     /** Whether the "Recent" section is shown above the full option list */
     shouldShowRecentlyUsedOptions?: boolean;
+
+    /** Whether the selected value is lifted to the top of the list. Callers with a short list leave it in place, so the order doesn't change as the value does. */
+    shouldPinSelectedOption?: boolean;
+
+    /** Whether the "Recent" and "All" section titles are rendered */
+    shouldShowSectionTitles?: boolean;
 };
 
-function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions, shouldShowTextInput = true, shouldShowRecentlyUsedOptions = true}: EditReportFieldDropdownPageProps) {
+function EditReportFieldDropdown({
+    onSubmit,
+    fieldKey,
+    fieldValue,
+    fieldOptions,
+    shouldShowTextInput = true,
+    shouldShowRecentlyUsedOptions = true,
+    shouldPinSelectedOption = true,
+    shouldShowSectionTitles = true,
+}: EditReportFieldDropdownPageProps) {
     const styles = useThemeStyles();
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -62,6 +77,8 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions, 
         options: validFieldOptions,
         recentlyUsedOptions,
         translate,
+        shouldPinSelectedOption,
+        shouldShowSectionTitles,
     });
 
     const policyReportFieldData = sections.at(0)?.data ?? [];

@@ -144,7 +144,9 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     <View
                         key={rowKey}
                         testID="reportFieldsRow"
-                        style={[styles.flexRow, styles.gap3]}
+                        // Each cell sizes to its own content and hugs the top of the row, so a field showing an error
+                        // message grows downwards instead of stretching the cells beside it and shifting their inputs.
+                        style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
                     >
                         {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, pendingAction))}
                         {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}

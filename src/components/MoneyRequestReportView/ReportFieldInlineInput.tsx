@@ -61,6 +61,11 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const [previousValue, setPreviousValue] = useState(value);
     const [validationError, setValidationError] = useState('');
 
+    // A field violation such as "Field is required" is derived from the value being empty, so it is already true when
+    // the report opens. Holding it back until the user has left the field keeps a report full of empty fields from
+    // opening as a wall of red.
+    const [hasBeenBlurred, setHasBeenBlurred] = useState(false);
+
     // Width of the input, measured so the dropdown matches the field it is anchored to rather than the default 334px.
     const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
 
@@ -75,11 +80,13 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         setDraftValue(value);
         setValidationError('');
         setLastSavedValue(value);
+        setHasBeenBlurred(false);
     }
 
     const label = Str.UCFirst(reportField.name);
     const isRequired = !reportField.deletable;
     const isReadOnly = isDisabled || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    const violationError = hasBeenBlurred ? errorText : undefined;
 
     const saveDraftValue = () => {
         const valueToSave = StringUtils.lineBreaksToSpaces(draftValue);
@@ -126,8 +133,14 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 label={label}
                 accessibilityLabel={label}
                 value={value}
-                errorText={errorText}
-                onInputChange={(selectedDate) => onSaveValue(selectedDate)}
+                errorText={violationError}
+                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                onInputChange={(selectedDate) => saveSelectedOption(selectedDate)}
+                onBlur={() => setHasBeenBlurred(true)}
+                // The grid puts its own gap between the fields, so the default vertical margin would push a date
+                // input below the plain text inputs sharing its row.
+                wrapperStyle={styles.mv0}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
             />
@@ -140,7 +153,11 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         // A short list is quicker to scan than to search, so the search input is dropped and its height is not reserved.
         const shouldShowSearchInput = enabledOptions.length >= CONST.REPORT_FIELD_LIST_SEARCH_THRESHOLD;
 
-        // FilterPopupButton calls this as a plain function during its own render, so it must not use hooks — everything
+        // A short list is easier to read in a stable alphabetical order than one that moves the current value to the
+        // top, so only a long list is worth reordering to save scrolling.
+        const shouldPinSelectedOption = enabledOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+        // FilterPopupButton calls this as a plain function during its own render, so it must not use hooks. Everything
         // it needs is read from this component's scope.
         const renderOptionsPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay}) => (
             <View
@@ -162,8 +179,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     fieldOptions={enabledOptions}
                     shouldShowTextInput={shouldShowSearchInput}
                     // The popover is small and opens right under the field, so a "Recent" section on top of the full
-                    // list is more noise than help.
+                    // list is more noise than help, and a section title above a single list of values says nothing.
                     shouldShowRecentlyUsedOptions={false}
+                    shouldShowSectionTitles={false}
+                    shouldPinSelectedOption={shouldPinSelectedOption}
                     onSubmit={(form) => {
                         closeOverlay();
                         saveSelectedOption(form[fieldKey] ?? '');
@@ -188,11 +207,12 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                             role={CONST.ROLE.COMBOBOX}
                             accessibilityState={{expanded: isExpanded}}
                             value={value}
-                            errorText={errorText}
+                            errorText={violationError}
                             inputStyle={styles.pointerEventsNone}
                             icon={icons.DownArrow}
                             iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDown]}
                             onPress={onPress}
+                            onBlur={() => setHasBeenBlurred(true)}
                             onSubmitEditing={onPress}
                             disableKeyboard
                         />
@@ -209,10 +229,13 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             value={isReadOnly ? value : draftValue}
-            errorText={validationError || errorText}
+            errorText={validationError || violationError}
             disabled={isReadOnly}
             onChangeText={setDraftValue}
-            onBlur={saveDraftValue}
+            onBlur={() => {
+                setHasBeenBlurred(true);
+                saveDraftValue();
+            }}
             onSubmitEditing={saveDraftValue}
         />
     );

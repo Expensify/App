@@ -9,6 +9,7 @@ import {updateReportField} from '@libs/actions/Report';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -86,6 +87,14 @@ const buildTextField = (index: number): OnyxTypes.PolicyReportField => ({
     isTax: false,
 });
 
+// An empty value is what `getFieldViolation` turns into a "<name> is required" violation.
+const buildEmptyField = (): OnyxTypes.PolicyReportField => ({
+    ...buildTextField(1),
+    name: 'EmptyField',
+    fieldID: 'emptyField',
+    value: '',
+});
+
 const buildListField = (): OnyxTypes.PolicyReportField => ({
     ...buildTextField(1),
     name: 'ListField',
@@ -157,9 +166,12 @@ const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.Pol
 };
 
 describe('MoneyRequestViewReportFields', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
         initOnyxDerivedValues();
+        // Field violation copy comes from `translateLocal`, not the mocked `useLocalize`, so the locale has to be real.
+        IntlStore.load('en');
+        await waitForBatchedUpdatesWithAct();
     });
 
     beforeEach(async () => {
@@ -221,6 +233,23 @@ describe('MoneyRequestViewReportFields', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(updateReportField).not.toHaveBeenCalled();
+    });
+
+    it('keeps the fields of a row aligned at the top so an error grows the row downwards', async () => {
+        await renderReportFields(3);
+
+        expect(screen.getAllByTestId('reportFieldsRow').at(0)).toHaveStyle({alignItems: 'flex-start'});
+    });
+
+    it('holds back a field violation until the field has been left', async () => {
+        await renderReportFields(1, [buildEmptyField()]);
+
+        expect(screen.queryByText('EmptyField is required')).toBeNull();
+
+        fireEvent(screen.getByLabelText('EmptyField'), 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('EmptyField is required')).toBeOnTheScreen();
     });
 
     it('renders a list field as a collapsed combobox rather than a row that opens a page', async () => {
