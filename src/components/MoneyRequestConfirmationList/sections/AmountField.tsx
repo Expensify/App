@@ -65,8 +65,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isNewManualExpenseFlowEnabled, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onAmountChange, onNegativeChange} =
-        useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onAmountChange, onNegativeChange} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
