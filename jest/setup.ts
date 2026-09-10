@@ -57,6 +57,7 @@ jest.mock('@legendapp/list/react-native', () => {
                 maintainVisibleContentPosition: _maintainVisibleContentPosition,
                 onEndReached,
                 onEndReachedThreshold = 0.5,
+                onLoad,
                 onScroll,
                 onStartReached,
                 onStartReachedThreshold = 0.5,
@@ -66,6 +67,14 @@ jest.mock('@legendapp/list/react-native', () => {
             },
             ref,
         ) => {
+            const onLoadRef = ReactActual.useRef(onLoad);
+            const listMetricsRef = ReactActual.useRef<{contentLength: number; scroll: number; scrollLength: number} | undefined>(undefined);
+            onLoadRef.current = onLoad;
+
+            ReactActual.useEffect(() => {
+                onLoadRef.current?.({elapsedTimeInMs: 0});
+            }, []);
+
             ReactActual.useImperativeHandle(
                 ref,
                 () => ({
@@ -75,7 +84,13 @@ jest.mock('@legendapp/list/react-native', () => {
                     getNativeScrollRef: () => null,
                     getScrollableNode: () => null,
                     getScrollResponder: () => null,
-                    getState: () => ({data: data ?? []}),
+                    getState: () => ({
+                        data: data ?? [],
+                        elementAtIndex: () => undefined,
+                        endBuffered: (data?.length ?? 0) - 1,
+                        startBuffered: 0,
+                        ...listMetricsRef.current,
+                    }),
                     reportContentInset: jest.fn(),
                     scrollIndexIntoView: jest.fn(() => Promise.resolve()),
                     scrollItemIntoView: jest.fn(() => Promise.resolve()),
@@ -91,14 +106,18 @@ jest.mock('@legendapp/list/react-native', () => {
             );
 
             const handleScroll: NonNullable<ScrollViewProps['onScroll']> = (event) => {
-                onScroll?.(event);
-
                 const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
                 const isHorizontal = scrollViewProps.horizontal === true;
                 const offset = isHorizontal ? contentOffset.x : contentOffset.y;
                 const contentLength = isHorizontal ? contentSize.width : contentSize.height;
                 const visibleLength = isHorizontal ? layoutMeasurement.width : layoutMeasurement.height;
                 const distanceFromEnd = contentLength - visibleLength - offset;
+                listMetricsRef.current = {
+                    contentLength,
+                    scroll: offset,
+                    scrollLength: visibleLength,
+                };
+                onScroll?.(event);
 
                 if (distanceFromEnd <= visibleLength * (onEndReachedThreshold ?? 0.5)) {
                     onEndReached?.({distanceFromEnd});
