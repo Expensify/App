@@ -50,6 +50,9 @@ type FormulaContext = {
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
 
+/** Modifier that formats an amount without its currency symbol, e.g. {report:total:nosymbol} */
+const NO_CURRENCY_SYMBOL = 'NOSYMBOL';
+
 const FORMULA_PART_TYPES = {
     REPORT: 'report',
     FIELD: 'field',
@@ -369,12 +372,19 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 }
 
 /**
+ * Whether a display-currency modifier is neither `nosymbol` nor a usable currency code.
+ */
+function isInvalidCurrencyModifier(displayCurrency: string | undefined): boolean {
+    const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
+    return !!trimmedDisplayCurrency && trimmedDisplayCurrency !== NO_CURRENCY_SYMBOL && !isValidCurrencyCode(trimmedDisplayCurrency);
+}
+
+/**
  * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
  */
 function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
     // Check the modifier first so a bad one falls back to the raw token even before any amount exists.
-    const trimmedFormat = format?.trim().toUpperCase();
-    if (trimmedFormat && trimmedFormat !== 'NOSYMBOL' && !isValidCurrencyCode(trimmedFormat)) {
+    if (isInvalidCurrencyModifier(format)) {
         return part.definition;
     }
 
@@ -628,7 +638,7 @@ function formatAmount(
         const trimmedCurrency = currency?.trim().toUpperCase();
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
-            if (trimmedDisplayCurrency === 'NOSYMBOL') {
+            if (trimmedDisplayCurrency === NO_CURRENCY_SYMBOL) {
                 return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
             }
 
@@ -640,7 +650,7 @@ function formatAmount(
             }
 
             // Return empty string for an unrecognized display currency so the placeholder is preserved upstream.
-            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+            if (isInvalidCurrencyModifier(trimmedDisplayCurrency)) {
                 return '';
             }
 
