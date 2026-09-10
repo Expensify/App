@@ -103,8 +103,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
-        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
-        return isNewRule || hasNoMerchantRestrictions;
+        if (isNewRule) {
+            return !spendRuleForm?.categories?.length && !spendRuleForm?.merchantNames?.length;
+        }
+        return !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
     });
 
     useEffect(() => () => clearDraftSpendRule(), []);
