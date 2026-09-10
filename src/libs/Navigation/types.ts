@@ -1517,6 +1517,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
         policyID: string;
+        fundID?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: {
         policyID: string;

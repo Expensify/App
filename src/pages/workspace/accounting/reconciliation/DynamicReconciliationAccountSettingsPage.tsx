@@ -18,6 +18,7 @@ import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconcil
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import {getTravelSettlementAccount} from '@libs/TravelBillingUtils';
+import {appendParam} from '@libs/Url';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -169,7 +170,7 @@ function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountLi
             description={translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}
             html={translate(
                 'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                `${environmentURL}${buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
+                `${environmentURL}${appendParam(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path), 'fundID', defaultFundID.toString())}`,
                 settlementAccountEnding,
             )}
             selectedBankAccountID={reconciliationBankAccountID}
