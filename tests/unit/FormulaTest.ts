@@ -593,6 +593,34 @@ describe('CustomFormula', () => {
 
             expect(compute('{report:debitedAmount:UNKNOWN}', reimbursementContext)).toBe('{report:debitedAmount:UNKNOWN}');
         });
+
+        test('should keep the token for an unrecognized display currency modifier even when the report has not been reimbursed yet', () => {
+            expect(compute('Debited: {report:debitedAmount:GARBAGE}', reimbursementContext)).toBe('Debited: {report:debitedAmount:GARBAGE}');
+            expect(computeWithMetadata('{report:debitedAmount:GARBAGE}', reimbursementContext).hasUnresolvedTokens).toBe(true);
+        });
+
+        test('should keep the token for a malformed source currency', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'US';
+
+            expect(compute('{report:debitedAmount}', reimbursementContext)).toBe('{report:debitedAmount}');
+        });
+
+        test('should format debited and credited amounts in different currencies in the same formula', () => {
+            reimbursementContext.report.debitedAmount = 8250;
+            reimbursementContext.report.debitedCurrency = 'USD';
+            reimbursementContext.report.creditedAmount = 11000;
+            reimbursementContext.report.creditedCurrency = 'GBP';
+
+            expect(compute('Debited {report:debitedAmount} / Credited {report:creditedAmount}', reimbursementContext)).toBe('Debited $82.50 / Credited £110.00');
+        });
+
+        test('should not mark the formula as having unresolved tokens when the report has not been reimbursed yet', () => {
+            const {value, hasUnresolvedTokens} = computeWithMetadata('Debited {report:debitedAmount}', reimbursementContext);
+
+            expect(value).toBe('Debited ');
+            expect(hasUnresolvedTokens).toBe(false);
+        });
     });
 
     describe('Function Modifiers', () => {

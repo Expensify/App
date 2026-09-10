@@ -281,7 +281,7 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
- * Empty is the value until a cross-border reimbursement exists, matching backend.
+ * Check if a formula part is a reimbursement-amount part (report:debitedAmount or report:creditedAmount)
  */
 function isReimbursementAmountPart(part: FormulaPart): boolean {
     const field = part.fieldPath.at(0)?.toLowerCase();
@@ -372,11 +372,17 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
  * Format a cross-border reimbursement amount (debited or credited), or empty if it hasn't happened yet.
  */
 function formatReimbursementAmount(amount: number | undefined, currency: string | undefined, format: string | undefined, part: FormulaPart, context: FormulaContext): string {
+    // Check the modifier first so a bad one falls back to the raw token even before any amount exists.
+    const trimmedFormat = format?.trim().toUpperCase();
+    if (trimmedFormat && trimmedFormat !== 'NOSYMBOL' && !isValidCurrencyCode(trimmedFormat)) {
+        return part.definition;
+    }
+
     if (!amount || !currency) {
         return '';
     }
-    // formatAmount can return '' (not just null) for an unrecognized display currency modifier, which must
-    // fall back to the raw definition too so an invalid modifier doesn't look like a resolved empty amount.
+
+    // Only a malformed source currency reaches '' here now, since the modifier is already validated above.
     const formattedAmount = formatAmount(amount, currency, format, context.getCurrencyDecimals);
     return formattedAmount === null || formattedAmount === '' ? part.definition : formattedAmount;
 }
