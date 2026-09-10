@@ -753,13 +753,17 @@ describe('OnyxUpdateManager', () => {
     });
 
     it('should fetch the missing updates when an apply fails, even with no visible gap', async () => {
+        // Given an update with no gap before it, so nothing would trigger a fetch on its own
         const update: OnyxUpdatesFromServer<never> = {...OnyxUpdateMockUtils.createUpdate(2), previousUpdateID: 0};
-        OnyxUpdates.apply.mockImplementationOnce(() => Promise.reject(new Error('apply failed')));
-
         App.getMissingOnyxUpdates.mockImplementationOnce(() => Promise.resolve({jsonCode: 200, onyxData: []}));
 
+        // And its apply fails
+        OnyxUpdates.apply.mockImplementationOnce(() => Promise.reject(new Error('apply failed')));
+
+        // When it is applied
         await applyOnyxUpdatesReliably(update, {shouldRunSync: true});
 
+        // Then the failure itself triggers the fetch, instead of waiting for a later gap check
         expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
     });
 
