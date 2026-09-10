@@ -11,10 +11,6 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
 /**
  * Returns the data for displaying payer and receiver (`from` and `to`) values for given ids and amount.
  * In IOU transactions we can deduce who is the payer and receiver based on sign (positive/negative) of the amount.
- *
- * Lives in its own module rather than in `TransactionPreviewUtils` so that callers needing only this can avoid
- * importing the whole preview utility module, which reaches into the report and action layers and closes import
- * cycles.
  */
 function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
     let fromID = ownerAccountID;
