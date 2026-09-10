@@ -71,10 +71,26 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.
-3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
+3. Click **Add bank account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
 
 Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
+
+---
+
+## What the payment account status badge shows in Workflows
+
+Once a bank account is connected, the payment account row under **Payments** shows a status badge so you can tell whether the account is ready to pay expenses:
+
+- **Active** — the account is verified and ready to use.
+- **Incomplete** — setup was never finished. The message **Finish adding bank account** appears below the row with a **Finish** button that reopens setup.
+- **Pending** — Expensify is waiting for you to confirm test transactions. The message **Please confirm test transactions** appears with a **Confirm** button.
+- **Verifying** — Expensify is reviewing your documentation.
+- **Locked** — the account was locked. The message **This account requires attention** appears with an **Unlock** button.
+
+You must be a Workspace Admin or a Payments Admin to open the payment account row and act on these messages.
+
+[Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 ---
 

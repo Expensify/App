@@ -25,6 +25,10 @@ Anyone with a personal credit card connected to their Expensify account can mana
 2. Under **Cards**:
    - Personal cards will appear in the **Personal** section. 
    - You'll see the card name, bank icon, and last 4 digits.
+   - Each card shows a status badge — **Active** when it is importing transactions, or **Inactive** when the connection is broken.
+   - Each card also shows when it last imported transactions, for example **Synced 2 hours ago**, or **Never synced** if it has not imported any yet. Cards imported from a spreadsheet do not show a sync time.
+
+[Learn what each card connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 If you have both company and personal cards, you'll see them separated into **Company cards** and **Personal cards** sections.
 
@@ -83,6 +87,7 @@ When a personal card connection breaks, you'll see:
 - A notification in the **Time Sensitive** section on **Home**.
 - A red dot indicator on **Wallet** in the navigation tabs. 
 - A red dot indicator on the card in **Wallet** leading to the error.
+- An **Inactive** badge on the card in **Wallet**, with the message **Please fix this connection** and a **Fix** button below the card row. If your bank requires you to log in again, the message reads **Your bank connection needs to be re-authenticated** instead.
 
 These reminders appear while the connection has recently broken. If a personal card has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on **Wallet** in the navigation tabs stop showing. The card still appears in **Wallet** with its red dot, and you can select it and choose **Fix card** to restore the connection at any time.
 
