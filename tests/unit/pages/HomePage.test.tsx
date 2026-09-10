@@ -26,7 +26,7 @@ jest.mock('@hooks/useDocumentTitle', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},
-        homePageContentContainer: {},
+        homePageContentContainer: () => ({}),
         homePageMainLayout: () => ({}),
         homePageLeftColumn: {},
         homePageRightColumn: {},

@@ -4148,7 +4148,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: variables.sectionMargin,
+            marginHorizontal: variables.pageGutterWide,
         },
 
         widgetContainer: {
@@ -4249,13 +4249,6 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5582,7 +5575,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            maxWidth: variables.workspaceSectionMaxWidth + variables.pageGutterWide * 2,
         },
 
         workspaceSectionMobile: {
@@ -7264,8 +7257,8 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginHorizontal: shouldUseNarrowLayout ? variables.cardPaddingNarrow : variables.cardPaddingWide,
+                marginTop: shouldUseNarrowLayout ? variables.cardPaddingNarrow : variables.cardPaddingWide,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7302,6 +7295,24 @@ const plainStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
         },
+
+        cardPadding: (shouldUseNarrowLayout: boolean) => ({padding: shouldUseNarrowLayout ? variables.cardPaddingNarrow : variables.cardPaddingWide}) satisfies ViewStyle,
+
+        cardPaddingHorizontal: (shouldUseNarrowLayout: boolean) => ({paddingHorizontal: shouldUseNarrowLayout ? variables.cardPaddingNarrow : variables.cardPaddingWide}) satisfies ViewStyle,
+
+        cardEdgeToEdge: (shouldUseNarrowLayout: boolean) => ({marginHorizontal: -(shouldUseNarrowLayout ? variables.cardPaddingNarrow : variables.cardPaddingWide)}) satisfies ViewStyle,
+
+        pageGutter: (shouldUseNarrowLayout: boolean) => ({paddingHorizontal: shouldUseNarrowLayout ? variables.pageGutterNarrow : variables.pageGutterWide}) satisfies ViewStyle,
+
+        pageGutterMargin: (shouldUseNarrowLayout: boolean) => ({marginHorizontal: shouldUseNarrowLayout ? variables.pageGutterNarrow : variables.pageGutterWide}) satisfies ViewStyle,
+
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexGrow: 1,
+                paddingTop: 0,
+                paddingHorizontal: shouldUseNarrowLayout ? variables.pageGutterNarrow : variables.pageGutterWide,
+                paddingBottom: 20,
+            }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({

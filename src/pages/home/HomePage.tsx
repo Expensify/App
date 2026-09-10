@@ -65,7 +65,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={styles.homePageContentContainer(shouldUseNarrowLayout)}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
