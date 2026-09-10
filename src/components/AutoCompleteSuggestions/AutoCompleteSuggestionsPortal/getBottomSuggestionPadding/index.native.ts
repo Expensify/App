@@ -1,6 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getBottomSuggestionPadding(isMenuAbove: boolean): number {
-    return 6;
+    return isMenuAbove ? 30 : 0;
 }
 
 export default getBottomSuggestionPadding;
