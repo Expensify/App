@@ -85,7 +85,7 @@ describe('ReceiptStorage', () => {
         });
     });
 
-    describe('replace', () => {
+    describe('overwrite', () => {
         const RECEIPT = 'CAM-1.jpg';
         const STILL = '/var/mobile/tmp/still.jpg';
 
@@ -95,7 +95,7 @@ describe('ReceiptStorage', () => {
         it('swaps the bytes and hands back the same durable name, so every consumer of the receipt follows along', async () => {
             mockExists.mockImplementation(onlyTheReceiptExists);
 
-            const name = await ReceiptStorage.replace(RECEIPT, `file://${STILL}`);
+            const name = await ReceiptStorage.overwrite(RECEIPT, `file://${STILL}`);
 
             expect(name).toBe(RECEIPT);
             expect(mockMv.mock.calls).toEqual([
@@ -108,7 +108,7 @@ describe('ReceiptStorage', () => {
         it('drops the file it moved aside once the swap went through, so a capture leaves one receipt behind', async () => {
             mockExists.mockImplementation((path: string) => Promise.resolve(path === `${FOLDER}/${RECEIPT}` || path === `${FOLDER}/${RECEIPT}.backup`));
 
-            await ReceiptStorage.replace(RECEIPT, STILL);
+            await ReceiptStorage.overwrite(RECEIPT, STILL);
 
             expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`);
         });
@@ -125,7 +125,7 @@ describe('ReceiptStorage', () => {
                 return Promise.resolve();
             });
 
-            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow('no space left on device');
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow('no space left on device');
 
             expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
             expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
@@ -143,7 +143,7 @@ describe('ReceiptStorage', () => {
                 return Promise.resolve();
             });
 
-            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow(`it is left at ${FOLDER}/${RECEIPT}.backup`);
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow(`it is left at ${FOLDER}/${RECEIPT}.backup`);
 
             // Freeing the staged copy gives a full disk room for the restore, so it happens even when the
             // restore then fails.
@@ -154,7 +154,7 @@ describe('ReceiptStorage', () => {
             mockExists.mockImplementation(onlyTheReceiptExists);
             mockUnlink.mockRejectedValue(new Error('permission denied'));
 
-            await expect(ReceiptStorage.replace(RECEIPT, STILL)).resolves.toBe(RECEIPT);
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).resolves.toBe(RECEIPT);
         });
 
         it('restores a receipt stranded under the backup name by a swap the app died in the middle of', async () => {
@@ -166,7 +166,7 @@ describe('ReceiptStorage', () => {
                 return Promise.resolve();
             });
 
-            await expect(ReceiptStorage.replace(RECEIPT, STILL)).resolves.toBe(RECEIPT);
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).resolves.toBe(RECEIPT);
 
             // The stranded copy is the only one left, so it goes back before any cleanup can delete it.
             expect(mockMv).toHaveBeenNthCalledWith(1, `${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
@@ -176,7 +176,7 @@ describe('ReceiptStorage', () => {
         it('rejects without touching anything when the receipt is not in durable storage', async () => {
             mockExists.mockResolvedValue(false);
 
-            await expect(ReceiptStorage.replace(RECEIPT, STILL)).rejects.toThrow('not in durable storage');
+            await expect(ReceiptStorage.overwrite(RECEIPT, STILL)).rejects.toThrow('not in durable storage');
             expect(mockMv).not.toHaveBeenCalled();
         });
     });
@@ -196,6 +196,43 @@ describe('ReceiptStorage', () => {
 
             await expect(ReceiptStorage.locate(RECEIPT_URI)).resolves.toBe(RECEIPT_URI);
             expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+        });
+
+        it('waits for a swap that is running before reading a receipt that is still there', async () => {
+            const existing = new Set([RECEIPT_PATH]);
+            let finishSwap: () => void = () => {};
+            const swapStarted = new Promise<void>((resolve) => {
+                mockMv.mockImplementation((from: string, to: string) => {
+                    existing.delete(from);
+                    existing.add(to);
+                    if (to === `${RECEIPT_PATH}.staged`) {
+                        resolve();
+                        return new Promise<void>((settle) => {
+                            finishSwap = settle;
+                        });
+                    }
+                    return Promise.resolve();
+                });
+            });
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockCheckFileExists.mockImplementation((path?: string) => Promise.resolve(existing.has(fileURIToPath(path ?? ''))));
+
+            const swap = ReceiptStorage.overwrite('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
+            await swapStarted;
+
+            let hasLocated = false;
+            const located = ReceiptStorage.locate(RECEIPT_URI).then((uri) => {
+                hasLocated = true;
+                return uri;
+            });
+            await Promise.resolve();
+
+            // The receipt is on disk the whole time, but reading it now would ship the file being replaced.
+            expect(hasLocated).toBe(false);
+
+            finishSwap();
+            await swap;
+            await expect(located).resolves.toBe(RECEIPT_URI);
         });
 
         it('waits for a swap that is running rather than putting the backup back over it', async () => {
@@ -222,7 +259,7 @@ describe('ReceiptStorage', () => {
             mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
             mockCheckFileExists.mockImplementation((path?: string) => Promise.resolve(existing.has(fileURIToPath(path ?? ''))));
 
-            const swap = ReceiptStorage.replace('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
+            const swap = ReceiptStorage.overwrite('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
             await swapReachedItsGap;
 
             const located = ReceiptStorage.locate(RECEIPT_URI);

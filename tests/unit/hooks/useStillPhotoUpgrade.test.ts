@@ -6,11 +6,18 @@ import type {Camera, PhotoFile} from 'react-native-vision-camera';
 
 const mockReplace = jest.fn<Promise<string>, [string, string]>();
 const mockDiscard = jest.fn<Promise<void>, [string]>();
+const mockStartUpgrade = jest.fn<void, [string]>();
+const mockFinishUpgrade = jest.fn<void, [string]>();
+
+jest.mock('@libs/ReceiptStorage/receiptUpgrades', () => ({
+    start: (name: string) => mockStartUpgrade(name),
+    finish: (name: string) => mockFinishUpgrade(name),
+}));
 
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
-        replace: (durableName: string, path: string) => mockReplace(durableName, path),
+        overwrite: (durableName: string, path: string) => mockReplace(durableName, path),
         discard: (path: string) => mockDiscard(path),
     },
 }));
@@ -104,6 +111,8 @@ describe('useStillPhotoUpgrade', () => {
         expect(mockRotate).toHaveBeenCalledWith(STILL_PATH);
         expect(mockReplace).toHaveBeenCalledWith(DURABLE_NAME, UPRIGHT_PATH);
         expect(mockDiscard).toHaveBeenCalledWith(STILL_PATH);
+        // The upload waits on this hold, so it has to be let go once the receipt is upgraded.
+        expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
     });
 
     it('swaps the still as captured when it needs no rotation, leaving nothing to clean up', async () => {
@@ -140,6 +149,7 @@ describe('useStillPhotoUpgrade', () => {
 
         expect(result.current.hasPendingStillCapture).toBe(false);
         expect(mockReplace).not.toHaveBeenCalled();
+        expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
 
         // A still that turns up after the deadline has no consumer, so it must not stay on disk.
         await landStill();
@@ -162,6 +172,8 @@ describe('useStillPhotoUpgrade', () => {
         expect(result.current.hasPendingStillCapture).toBe(false);
         expect(mockReplace).not.toHaveBeenCalled();
         expect(mockDiscard).not.toHaveBeenCalled();
+        // A capture that failed must not leave the upload waiting on it.
+        expect(mockFinishUpgrade).toHaveBeenCalledWith(DURABLE_NAME);
     });
 
     it('deletes the still when the receipt it was meant for never arrived', async () => {

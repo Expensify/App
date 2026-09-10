@@ -9,15 +9,29 @@ import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
+import {waitFor as waitForPendingUpgrade} from './receiptUpgrades';
+
 // A durable name is the bare filename inside the receipts folder. Never store a full path: iOS moves
 // the app data container on most upgrades, so an absolute path stored before the upgrade names a
 // directory the device no longer has, even though iOS carried the file itself across.
 
+/** How long a reader waits for an upgrade before taking the file as it stands, so a stall cannot hold an upload open. */
+const UPGRADE_WAIT_TIMEOUT_MS = 10000;
+
 const STAGED_SUFFIX = '.staged';
 const BACKUP_SUFFIX = '.backup';
 
-/** Swaps running right now, by target path. A reader that finds a receipt missing waits on these first. */
+/** Swaps running right now, by target path. A reader of one of those paths waits on these first. */
 const swapsInFlight = new Map<string, Promise<unknown>>();
+
+/**
+ * Waits for a swap that owns this path, if one is running. Its outcome is not the caller's business:
+ * `overwrite` reports its own failures and leaves the receipt in place either way, so the caller checks the
+ * file for itself once the swap is done.
+ */
+async function waitForRunningSwap(target: string) {
+    await swapsInFlight.get(target)?.catch(() => {});
+}
 
 async function verify(dir: string, name: string): Promise<string> {
     if (!name || !(await RNFS.exists(`${dir}/${name}`))) {
@@ -87,9 +101,8 @@ async function restoreInterruptedSwap(target: string): Promise<boolean> {
 
     // A swap running right now is between its own two renames, so the receipt is missing for a moment
     // rather than stranded. Moving the backup back here would undo the file that swap is installing.
-    const runningSwap = swapsInFlight.get(target);
-    if (runningSwap) {
-        await runningSwap.catch(() => {});
+    if (swapsInFlight.has(target)) {
+        await waitForRunningSwap(target);
         return RNFS.exists(target);
     }
 
@@ -149,7 +162,7 @@ async function swapIntoPlace(dir: string, durableName: string, target: string, u
     return verify(dir, durableName);
 }
 
-const replace: ReceiptStorage['replace'] = async (durableName, uriOrPath) => {
+const overwrite: ReceiptStorage['overwrite'] = async (durableName, uriOrPath) => {
     const dir = getReceiptsUploadFolderPath();
     if (!dir) {
         throw new Error('[ReceiptStorage] no receipts folder on this platform');
@@ -204,6 +217,14 @@ const locate: ReceiptStorage['locate'] = async (source) => {
         return undefined;
     }
 
+    // A swap in flight is about to change these bytes, and on a busy thread it can take seconds, so read
+    // the receipt after it finishes rather than shipping the file it is replacing.
+    if (isLocalFile(uri)) {
+        const target = fileURIToPath(uri);
+        await waitForPendingUpgrade(target.split('/').pop() ?? '', UPGRADE_WAIT_TIMEOUT_MS);
+        await waitForRunningSwap(target);
+    }
+
     if (await checkFileExists(uri)) {
         return uri;
     }
@@ -217,6 +238,6 @@ const locate: ReceiptStorage['locate'] = async (source) => {
     return uri;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, replace, discard, locate, toLocalUri, resolve};
+const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, toLocalUri, resolve};
 
 export default receiptStorage;

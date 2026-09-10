@@ -8,6 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {waitFor as waitForReceiptUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -40,6 +41,12 @@ type ScanEditReceiptProps = {
  * ScanEditReceipt — replace an existing receipt and navigate back.
  * Simplest variant: no multi-scan, no participants, no confirmation page.
  */
+/**
+ * How long this screen waits for the better photo before replacing the receipt with what it has. Short,
+ * because someone is watching a loader while it runs.
+ */
+const RECEIPT_UPGRADE_WAIT_MS = 1500;
+
 function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
@@ -69,15 +76,21 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
-            replaceReceipt({
-                transaction,
-                file: file as File,
-                source,
-                transactionPolicy: policy,
-                transactionPolicyCategories: policyCategories,
-                transactionPolicyTagList: policyTagList,
-                transactionViolations,
-                transactionReport,
+
+            // `replaceReceipt` sends the file object itself rather than a receipt source, so this upload
+            // never reaches `ReceiptStorage.locate` and cannot wait there. Hold the request back until the
+            // full-resolution photo has landed, while the screen goes back straight away.
+            waitForReceiptUpgrade(file.name ?? '', RECEIPT_UPGRADE_WAIT_MS).then(() => {
+                replaceReceipt({
+                    transaction,
+                    file: file as File,
+                    source,
+                    transactionPolicy: policy,
+                    transactionPolicyCategories: policyCategories,
+                    transactionPolicyTagList: policyTagList,
+                    transactionViolations,
+                    transactionReport,
+                });
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
@@ -107,9 +120,6 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
-                // While editing, the capture is uploaded through `replaceReceipt` right away, so the
-                // upload can read the receipt file while a higher-resolution one is being swapped in.
-                canUpgradeReceiptQuality={!isEditing}
             />
         </StepScreenDragAndDropWrapper>
     );

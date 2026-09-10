@@ -45,7 +45,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -175,7 +175,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         // `takeSnapshot` saves a screen-sized screenshot of the preview, so on that path a full-resolution
         // `takePhoto` runs alongside it and replaces the receipt file once it lands. Nothing below awaits it.
-        const shouldUpgradeToStill = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        const shouldUpgradeToStill = !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
 
         // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
         // reads the most recent video frame, which a photo capture can interrupt.

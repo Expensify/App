@@ -1,5 +1,14 @@
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
+/*
+ * A receipt is identified by its durable name for as long as it exists, and a better capture replaces the
+ * bytes behind that name rather than arriving as a second file. The alternative, pointing the receipt at a
+ * new file, was tried and abandoned: the upload reads the source off the in-memory receipt object and the
+ * replace-receipt screen never goes through the code that builds it, so there is no single place to update
+ * the pointer. Overwriting in place reaches every reader without touching any of them, at the cost of the
+ * coordination in `receiptUpgrades` and the staged swap below.
+ */
+
 /** Owns the receipts folder. The only code that writes a file there, names one, or resolves one. */
 type ReceiptStorage = {
     /** Moves a file into the receipts folder and returns its durable name. Rejects when the file did not land. */
@@ -10,7 +19,7 @@ type ReceiptStorage = {
      * upload and replace-receipt all read the new file. Rejects if the receipt is not in durable storage or
      * the swap fails, leaving the original in place.
      */
-    replace: (durableName: string, uriOrPath: string) => Promise<string>;
+    overwrite: (durableName: string, uriOrPath: string) => Promise<string>;
 
     /** Deletes a temporary file the app is done with. Resolves even when the file is already gone. */
     discard: (uriOrPath: string) => Promise<void>;

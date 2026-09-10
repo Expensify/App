@@ -4,7 +4,7 @@ import type ReceiptStorage from './types';
 const receiptStorage: ReceiptStorage = {
     adopt: (uriOrPath) => Promise.resolve(uriOrPath),
     // Web captures through a canvas at full resolution, so there is nothing to swap or clean up.
-    replace: (durableName) => Promise.resolve(durableName),
+    overwrite: (durableName) => Promise.resolve(durableName),
     discard: () => Promise.resolve(),
     locate: (source) => Promise.resolve(typeof source === 'string' ? source : undefined),
     toLocalUri: (durableName) => durableName,

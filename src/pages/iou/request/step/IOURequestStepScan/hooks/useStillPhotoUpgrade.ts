@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
+import {finish as finishUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
 
 import rotateStillToUpright from '@pages/iou/request/step/IOURequestStepScan/utils/rotateStillToUpright';
 
@@ -134,6 +135,10 @@ function useStillPhotoUpgrade() {
         }
         pendingStillRef.current = undefined;
 
+        // Anything that reads or shows this receipt can now wait for the better file, or refresh once it
+        // arrives, instead of taking the snapshot it is about to replace.
+        startUpgrade(durableName);
+
         pending.promise
             .then((photo) => {
                 if (!photo) {
@@ -141,7 +146,7 @@ function useStillPhotoUpgrade() {
                 }
 
                 return rotateStillToUpright(photo.path).then((uprightPath) =>
-                    ReceiptStorage.replace(durableName, uprightPath ?? photo.path).then(() => {
+                    ReceiptStorage.overwrite(durableName, uprightPath ?? photo.path).then(() => {
                         Log.info('[StillPhotoUpgrade] receipt upgraded to the full-resolution still', false, {
                             width: photo.width,
                             height: photo.height,
@@ -151,7 +156,7 @@ function useStillPhotoUpgrade() {
                         if (!uprightPath) {
                             return;
                         }
-                        // `replace` moved the rotated copy, so the original is left behind, and its cleanup
+                        // `overwrite` moved the rotated copy, so the original is left behind, and its cleanup
                         // must not fail an upgrade that already went through.
                         discardStill(photo.path);
                     }),
@@ -161,7 +166,8 @@ function useStillPhotoUpgrade() {
                 Log.warn('[StillPhotoUpgrade] keeping the snapshot, upgrade failed', {error: error instanceof Error ? error.message : String(error)});
                 pending.isDiscarded = true;
                 discardWhenItLands(pending);
-            });
+            })
+            .finally(() => finishUpgrade(durableName));
     };
 
     const discardPendingStill = () => {
