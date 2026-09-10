@@ -1,8 +1,8 @@
-import Button from '@components/ButtonComposed/Button';
-import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
-import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
-import type {ButtonTextProps} from '@components/ButtonComposed/primitives/ButtonText';
-import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
+import Button from '@components/Button/Button';
+import ButtonIcon from '@components/Button/primitives/ButtonIcon';
+import ButtonKeyboardShortcut from '@components/Button/primitives/ButtonKeyboardShortcut';
+import type {ButtonTextProps} from '@components/Button/primitives/ButtonText';
+import ButtonText from '@components/Button/primitives/ButtonText';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -38,9 +38,9 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
 /**
  * LinkButton – composable link-style button.
  *
- * Drop-in replacement for `<Button link>` from the legacy `@components/Button`.
- * Built on top of the new `ButtonComposed` `Button`, but `Button` no longer
- * exposes a `'link'` variant — all link-specific behavior lives here:
+ * Drop-in replacement for the old `<Button link>` variant from the pre-composition Button.
+ * Built on top of the composed `Button`, which no longer exposes a `'link'`
+ * variant — all link-specific behavior lives here:
  *   - Transparent background applied as an invariant (callers cannot override
  *     it via `innerStyles`).
  *   - Default hover background neutralized via `hoverStyles={styles.bgTransparent}`,
@@ -90,4 +90,3 @@ const LinkButton = Object.assign(LinkButtonComponent, {
 });
 
 export default LinkButton;
-export type {LinkButtonProps};

@@ -60,6 +60,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
@@ -91,7 +92,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const isVisible =
         (quickAction?.action && quickActionReport
-            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)
+            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, rules, isRestrictedToPreferredPolicy)
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
