@@ -17,7 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
-import type {PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -3076,6 +3076,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'No leído',
         markAllAsRead: 'Marcar todo como leído',
         markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+        markAllTodosAsReadConfirmationPrompt: '¿Seguro que quieres marcar como leídos todos los chats pendientes?',
     },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
@@ -6877,7 +6878,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
-            connectionName: (connectionName) => {
+            connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -6891,6 +6892,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -6963,14 +6966,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importación de clases';
+                            return 'Importar clases';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importando ubicaciones';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Procesando datos importados';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Sincronizar informes reembolsados y pagos de facturas';
+                            return 'Sincronización de informes reembolsados y pagos de facturas';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importando códigos de impuestos';
                         case 'quickbooksOnlineCheckConnection':
@@ -6993,7 +6996,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importando política de guardado';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Sincronizando datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
+                            return 'Todavía se están sincronizando los datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
                         case 'quickbooksOnlineSyncTitle':
                             return `Sincronizando datos de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7003,7 +7006,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Actualizando categorías';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Actualizar clientes/proyectos';
+                            return 'Actualización de clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Actualizando la lista de personas';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
@@ -7011,7 +7014,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'jobDone':
                             return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando el plan de cuentas';
+                            return 'Sincronizando plan de cuentas';
                         case 'xeroSyncImportCategories':
                             return 'Sincronizando categorías';
                         case 'xeroSyncImportCustomers':
@@ -7019,7 +7022,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y comprobantes de Xero como pagados';
+                            return 'Marcar facturas y cobros de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
@@ -7031,11 +7034,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'xeroSyncTitle':
                             return 'Sincronizando datos de Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Iniciando conexión a NetSuite';
+                            return 'Iniciando la conexión con NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
-                            return 'Obteniendo datos desde NetSuite';
+                            return 'Recuperando datos de NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Importando impuestos';
                         case 'netSuiteSyncImportItems':
@@ -7057,18 +7060,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y recibos de NetSuite como pagados';
+                            return 'Marcar las facturas y los recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Importar listas personalizadas';
+                            return 'Importación de listas personalizadas';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Importar listas personalizadas';
+                            return 'Importación de listas personalizadas';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importando filiales';
+                            return 'Importación de subsidiarias';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'intacctCheckConnection':
                             return 'Comprobando la conexión con Sage Intacct';
                         case 'intacctImportDimensions':
@@ -7084,13 +7087,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'financialForceSyncTags':
                             return 'Importando etiquetas';
                         case 'financialForceSyncVendors':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'financialForceSyncContacts':
                             return 'Importando contactos';
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importación de usuarios';
+                            return 'Importando usuarios';
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
@@ -7098,7 +7101,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'rilletSyncTitle':
                             return 'Sincronizando datos de Rillet';
                         case 'rilletSyncConnection':
-                            return 'Iniciando conexión con Rillet';
+                            return 'Inicializando la conexión con Rillet';
                         case 'rilletSyncImportData':
                             return 'Cargando datos';
                         case 'dualEntrySyncTitle':
@@ -7112,6 +7115,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Sincronizando liquidaciones de tarjetas';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
+                        case 'campfireSyncTitle':
+                            return 'Sincronizando datos de Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Iniciando conexión con Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Cargando datos';
+                        case 'campfireSyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'campfireSyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'campfireSyncTravelSettlements':
                             return 'Sincronizando liquidaciones de viaje';
                         default: {
                             return `Falta la traducción para la etapa: ${stage}`;
@@ -7155,6 +7170,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
+            campfire: 'Campfire',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -7652,6 +7668,12 @@ ${reportName}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + DualEntry. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de DualEntry para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con DualEntry solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Campfire. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Campfire para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Campfire solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -8426,6 +8448,16 @@ ${reportName}`,
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
             subtitle: 'Exige que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restrinjan la creación de espacios de trabajo y más.',
+        },
+        campfire: {
+            campfireSetup: 'Configuración de Campfire',
+            enterCredentials: 'Introduce tu clave de API de Campfire',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en Campfire</li><li>Ve a Configuración -> Claves de API</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en Campfire de la que te gustaría importar datos.',
+            noSubsidiariesFound: 'No se han encontrado filiales',
+            noSubsidiariesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
         },
     },
     getAssistancePage: {
