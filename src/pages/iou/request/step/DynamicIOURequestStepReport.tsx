@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {
+    isDistanceRequest as isDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isPerDiemRequest,
@@ -230,6 +231,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             transactionIDs={transaction ? [transaction.transactionID] : []}
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
             transactionPolicyID={targetExpensePolicyID}
