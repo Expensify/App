@@ -99,6 +99,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import InsightsDataTable from './InsightsDataTable';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -1198,6 +1199,15 @@ function Search({
                                 groupBy={validGroupBy}
                                 data={sortedData}
                                 isLoading={shouldShowLoadingState}
+                                renderDetails={(rows) => (
+                                    <InsightsDataTable
+                                        rows={rows}
+                                        view={view}
+                                        groupBy={validGroupBy}
+                                        isLoading={shouldShowLoadingState}
+                                        total={searchResults?.search?.total}
+                                    />
+                                )}
                             />
                         </SearchChartWrapper>
                     </View>

@@ -6,15 +6,15 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
-import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
+import {buildChartSeries} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
@@ -33,6 +33,12 @@ type SearchChartViewProps = {
     data: GroupedItem[];
 
     isLoading?: boolean;
+
+    /**
+     * Renders the details of the plotted groups below the chart, from the same prepared rows the
+     * chart itself plots. Left out, the chart renders on its own as it always has.
+     */
+    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
 };
 
 /**
@@ -48,16 +54,24 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetails}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
 
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const handleItemPress = (filterQuery: string) => {
+    // Prepared once here so the chart and the details below it plot and list the very same rows.
+    const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals});
+
+    const handleItemPress = (index: number) => {
+        const item = rows.at(index)?.item;
+        if (!item) {
+            return;
+        }
+
         const currentQueryString = buildSearchQueryString(queryJSON);
-        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${getFilterQuery(item)}`);
 
         if (!parsedQueryJSON) {
             Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
@@ -85,16 +99,17 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (
-        <ChartComponent
-            data={data}
-            getLabel={(item) => StringUtils.normalize(getLabel(item))}
-            getShortLabel={getShortLabel}
-            getFilterQuery={getFilterQuery}
-            onItemPress={handleItemPress}
-            isLoading={isLoading}
-            unit={unit}
-            unitPosition={unitPosition}
-        />
+        <>
+            <ChartComponent
+                data={rows.map((row) => row.point)}
+                onItemPress={handleItemPress}
+                isLoading={isLoading}
+                unit={unit}
+                unitPosition={unitPosition}
+                shouldShowLegend={!renderDetails}
+            />
+            {renderDetails?.(rows)}
+        </>
     );
 }
 

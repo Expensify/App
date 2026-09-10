@@ -1,4 +1,4 @@
-import type {UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -441,21 +441,29 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
+/**
+ * One plotted group: the point handed to the chart, plus the source row its details are rendered from.
+ *
+ * `SearchChartView` prepares these once and shares them between the chart and whatever renders
+ * alongside it, so the two can never disagree about the values or their order.
+ */
+type SearchChartDataRow = {
+    /** The point plotted on the chart */
+    point: ChartDataPoint;
+
+    /** The grouped search result the point was built from */
+    item: GroupedItem;
+
+    /** Palette color the chart assigns this group, for views that color groups individually */
+    color?: string;
+};
+
 type SearchChartProps = {
-    /** Grouped transaction data from search results */
-    data: GroupedItem[];
+    /** The points to plot, prepared by `SearchChartView` */
+    data: ChartDataPoint[];
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
-
-    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
-    getShortLabel?: (item: GroupedItem) => string | undefined;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a chart item is pressed - receives the filter query to apply */
-    onItemPress?: (filterQuery: string) => void;
+    /** Callback when a chart item is pressed - receives the index of the pressed point */
+    onItemPress?: (index: number) => void;
 
     isLoading?: boolean;
 
@@ -464,6 +472,9 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
+
+    /** Whether the chart draws its own legend. Off when the details table already lists the groups. */
+    shouldShowLegend?: boolean;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -531,6 +542,7 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
+    SearchChartDataRow,
     SearchChartProps,
     SearchFilterCommonProps,
 };
