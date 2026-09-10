@@ -263,7 +263,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
                 continue;
             }
 
-            deleteMerchantRule(ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
+            deleteMerchantRule(policyID, ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
         }
 
         if (selectedCategoryNames.length > 0) {

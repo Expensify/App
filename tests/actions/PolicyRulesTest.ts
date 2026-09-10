@@ -534,7 +534,7 @@ describe('actions/PolicyRules', () => {
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
-            deleteMerchantRule(ruleID, rule);
+            deleteMerchantRule(fakePolicy.id, ruleID, rule);
             await waitForBatchedUpdates();
 
             expect((await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);

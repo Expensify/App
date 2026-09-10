@@ -434,7 +434,7 @@ function MerchantRulePageBase({policyID, ruleID, editCategoryTaxRuleFor, titleKe
         if (editCategoryTaxRuleFor) {
             deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
         } else if (ruleID) {
-            deleteMerchantRule(ruleID, existingRule);
+            deleteMerchantRule(policy.id, ruleID, existingRule);
         }
         return true;
     };
