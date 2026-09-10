@@ -10,11 +10,21 @@ const useMetro = process.env.BUNDLER === 'metro';
 const isPublicAccess = !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY;
 
 // `rock run:ios` / `run:android` boot the dev server with every configured platform, so Re.Pack
-// spins up one rspack compiler per platform and both bundles fight for CPU. Re.Pack reads the
-// platform list off the CLI config, so narrow it to the platform actually being run.
-// Plain `rock start` keeps every platform. Use `npx rock start --platform ios` to narrow it.
-const runCommand = process.argv.find((arg) => arg === 'run:ios' || arg === 'run:android');
-const repackConfig = runCommand ? {platforms: {[runCommand.split(':')[1]]: {}}} : {};
+// spins up one rspack compiler per platform and both bundles fight for CPU. Re.Pack's start command
+// honours `--platform`, so inject it for the platform actually being run. The plugin's own config
+// argument cannot do this: `@rock-js/plugin-repack` returns `start: startDevServer` unbound, so its
+// `pluginConfig` never reaches the dev server.
+// Plain `rock start` is untouched and keeps every platform. Use `npx rock start --platform ios` to
+// narrow that manually.
+const runPlatform = process.argv.find((arg) => arg === 'run:ios' || arg === 'run:android')?.split(':')[1];
+
+const bundlerRepack = (api) => {
+    const plugin = pluginRepack()(api);
+    if (!runPlatform) {
+        return plugin;
+    }
+    return {...plugin, start: (options) => plugin.start({...options, args: {...options.args, platform: runPlatform}})};
+};
 
 // The dSYM mode changes what a build produces, so it belongs in the fingerprint below. Everything that
 // reads this variable compares it to '1', while the fingerprint hashes the raw string - collapse every
@@ -31,7 +41,7 @@ export default {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         publicAccess: isPublicAccess,
     }),
-    bundler: useMetro ? pluginMetro() : pluginRepack(repackConfig),
+    bundler: useMetro ? pluginMetro() : bundlerRepack,
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
