@@ -176,6 +176,7 @@ function DynamicIOURequestStepTag({
                 parentReport,
                 iouReportOwnerLogin,
                 tag: updatedTag,
+                tagListIndex,
                 policy,
                 policyTagList: policyTags,
                 policyRecentlyUsedTags,
