@@ -5526,7 +5526,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
