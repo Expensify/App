@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 
-import updateUnread from './updateUnread';
+import updateUnread, {setUnreadUpdateCallback} from './updateUnread';
 
 let allReports: OnyxCollection<Report> = {};
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
@@ -133,6 +133,8 @@ const triggerUnreadUpdate = debounce(() => {
         unreadReports.map((report) => report?.reportID).filter((reportID): reportID is string => !!reportID),
     );
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+
+setUnreadUpdateCallback(triggerUnreadUpdate);
 
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({

@@ -2,7 +2,7 @@ import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import Pusher from '@libs/Pusher';
 import type EventType from '@libs/Pusher/EventType';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
-import updateUnread, {setPageTitle} from '@libs/UnreadIndicatorUpdater/updateUnread';
+import updateUnread, {setPageTitle, setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -37,6 +37,31 @@ const beforeResponse = '2026-09-08 11:00:00.000';
 const responseCreated = '2026-09-08 12:00:00.000';
 const partialReadTime = '2026-09-08 12:00:01.000';
 const finalReadTime = '2026-09-08 12:01:00.000';
+const originalBroadcastChannel = globalThis.BroadcastChannel;
+const requestChannels: MockRequestChannel[] = [];
+
+class MockRequestChannel {
+    name: string;
+
+    postMessage = jest.fn();
+
+    close = jest.fn();
+
+    listener?: (event: MessageEvent) => void;
+
+    constructor(name: string) {
+        this.name = name;
+        requestChannels.push(this);
+    }
+
+    addEventListener(_type: string, listener: (event: MessageEvent) => void) {
+        this.listener = listener;
+    }
+
+    receive(data: unknown) {
+        this.listener?.(new MessageEvent('message', {data}));
+    }
+}
 
 function favicon() {
     return document.getElementById('favicon')?.getAttribute('href');
@@ -79,6 +104,7 @@ async function saveResponse(id = reportID, actionID = responseID, created = resp
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`, {
         [actionID]: {reportActionID: actionID, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, pendingAction: null, created},
     });
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id, lastVisibleActionCreated: created});
 }
 
 async function markRead(lastReadTime = finalReadTime, id = reportID) {
@@ -88,6 +114,8 @@ async function markRead(lastReadTime = finalReadTime, id = reportID) {
 describe('Concierge response favicon', () => {
     beforeEach(async () => {
         await Onyx.clear();
+        requestChannels.length = 0;
+        Object.defineProperty(globalThis, 'BroadcastChannel', {value: MockRequestChannel, configurable: true, writable: true});
         await Onyx.set(ONYXKEYS.SESSION, {accountID});
         await markRead(beforeResponse);
         await waitForBatchedUpdates();
@@ -104,6 +132,7 @@ describe('Concierge response favicon', () => {
         document.head.innerHTML = '<link id="favicon" rel="icon">';
         setPageTitle('Inbox');
         updateUnread(0);
+        setUnreadUpdateCallback(jest.fn());
     });
 
     afterEach(async () => {
@@ -111,6 +140,7 @@ describe('Concierge response favicon', () => {
         await waitForBatchedUpdates();
         jest.useRealTimers();
         jest.restoreAllMocks();
+        Object.defineProperty(globalThis, 'BroadcastChannel', {value: originalBroadcastChannel, configurable: true, writable: true});
     });
 
     it('preserves ordinary unread counts while thinking and prioritizes Concierge once streaming starts', async () => {
@@ -127,28 +157,6 @@ describe('Concierge response favicon', () => {
         window.dispatchEvent(new PopStateEvent('popstate'));
         expect(document.title).toContain('(2) Settings');
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-    });
-
-    it('keeps a background reply highlighted until read, without reviving it through late events or marking it unread again', async () => {
-        updateUnread(1, [reportID]);
-        await start();
-        emit({}, true);
-        emit({status: 'completed', sequence: 2}, true);
-        await saveQuestion();
-        jest.advanceTimersByTime(300000);
-        window.dispatchEvent(new Event('focus'));
-        document.dispatchEvent(new Event('visibilitychange'));
-        window.dispatchEvent(new PopStateEvent('popstate'));
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        await markRead();
-        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
-        updateUnread(0);
-        await saveResponse();
-        emit({status: 'completed', sequence: 3});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        await markRead(beforeResponse);
-        updateUnread(1, [reportID]);
-        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
     });
 
     it.each(['draft completion', 'the durable reply'])('honors an existing read when %s arrives first', async (completion) => {
@@ -190,7 +198,74 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
-    it('keeps the later requested reply highlighted until its own timestamp becomes read', async () => {
+    it.each(['before', 'after'])('keeps the icon through completion when the report update arrives %s the terminal event', async (order) => {
+        const requestUnreadUpdate = jest.fn();
+        setUnreadUpdateCallback(requestUnreadUpdate);
+        await start();
+        emit({}, true);
+        if (order === 'before') {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisibleActionCreated: responseCreated});
+        }
+        emit({status: 'completed', sequence: 2}, true);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        if (order === 'after') {
+            // An unrelated unread calculation can still contain the report state from before the reply.
+            updateUnread(0);
+            expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisibleActionCreated: responseCreated});
+        }
+        expect(requestUnreadUpdate).toHaveBeenCalled();
+        setPageTitle('Settings');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        updateUnread(1, [reportID]);
+        jest.advanceTimersByTime(300000);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        // A fresh snapshot still applies ordinary unread eligibility, including muted and hidden reports.
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('tracks a question from another tab and clears its reply through shared read state', async () => {
+        const channel = requestChannels.at(-1);
+        channel?.postMessage.mockClear();
+        channel?.receive({type: 'request', parameters: {accountID, reportID, questionReportActionID: questionID, responseReportActionID: responseID}});
+        await new Promise<void>((resolve) => {
+            setImmediate(resolve);
+        });
+        expect(channel?.postMessage).not.toHaveBeenCalled();
+        emit();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await saveResponse();
+        updateUnread(1, [reportID]);
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await markRead();
+        updateUnread(0);
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        channel?.receive({type: 'sync'});
+        expect(channel?.postMessage).not.toHaveBeenCalled();
+    });
+
+    it('shares active request IDs with existing and newly opened tabs only for the same account', async () => {
+        await start();
+        const channel = requestChannels.at(-1);
+        const message = {type: 'request', parameters: {accountID, reportID, questionReportActionID: questionID, responseReportActionID: responseID}};
+        expect(channel?.name).toBe(`conciergeResponses_${accountID}`);
+        expect(channel?.postMessage).toHaveBeenCalledWith(message);
+        channel?.postMessage.mockClear();
+        channel?.receive({type: 'sync'});
+        expect(channel?.postMessage).toHaveBeenCalledWith(message);
+        emit();
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 20});
+        expect(channel?.close).toHaveBeenCalled();
+        expect(requestChannels.at(-1)?.name).toBe('conciergeResponses_20');
+        requestChannels.at(-1)?.receive(message);
+        emit();
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+    });
+
+    it('clears each requested reply when read and does not revive it through late events or marking it unread again', async () => {
         updateUnread(1, [reportID]);
         await start();
         await start({responseReportActionID: '201', questionReportActionID: '101'});
@@ -202,6 +277,12 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
         updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        await saveResponse();
+        emit({status: 'completed', sequence: 3});
+        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        await markRead(beforeResponse);
+        updateUnread(1, [reportID]);
+        expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
     });
 
     it.each([
@@ -223,16 +304,20 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
-    it('ignores unrelated actors, unsolicited replies and stale events, but clears a failed response', async () => {
+    it('isolates failed requests and ignores unrelated or stale response events', async () => {
         await start();
-        emit({actorAccountID: 999});
+        await start({responseReportActionID: '201', questionReportActionID: '101'});
+        emit({reportActionID: '201', actorAccountID: 999});
         emit({reportActionID: 'other'});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        emit({sequence: 5});
-        emit({status: 'failed', sequence: 4});
-        emit({status: 'failed', sequence: 6, streamSessionID: 'old-stream'});
+        emit({reportActionID: '201', sequence: 5});
+        await saveQuestion({errors: {error: 'Unable to send'}});
+        emit();
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({status: 'failed', sequence: 6});
+        emit({reportActionID: '201', status: 'failed', sequence: 4});
+        emit({reportActionID: '201', status: 'failed', sequence: 6, streamSessionID: 'old-stream'});
+        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        emit({reportActionID: '201', status: 'failed', sequence: 6});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 
@@ -249,25 +334,6 @@ describe('Concierge response favicon', () => {
         jest.advanceTimersByTime(1);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
         emit({status: 'updated', sequence: 2});
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-    });
-
-    it('isolates failed questions from other requests and clears remaining attention when the account changes', async () => {
-        await start();
-        await start({responseReportActionID: '201', questionReportActionID: '101'});
-        emit({reportActionID: '201'});
-        await saveQuestion({errors: {error: 'Unable to send'}});
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        emit({reportActionID: '201', status: 'failed', sequence: 2});
-        emit();
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        await start({responseReportActionID: '202', questionReportActionID: '102'});
-        emit({reportActionID: '202'});
-        expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: 20});
-        await waitForBatchedUpdates();
-        expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
-        emit({reportActionID: '202', status: 'updated', sequence: 2});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
 });

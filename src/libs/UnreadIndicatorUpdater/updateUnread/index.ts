@@ -12,6 +12,8 @@ let unreadTotalCount = 0;
 let unreadReportIDs = new Set<string>();
 let hasStreamingConciergeResponse = false;
 let completedConciergeReportIDs: string[] = [];
+let pendingConciergeReportIDs: string[] = [];
+let requestUnreadUpdate: (() => void) | undefined;
 let currentPageTitle = '';
 let shouldShowBranchNameInTitle = false;
 
@@ -35,7 +37,7 @@ function setPageTitle(title: string) {
 }
 
 function shouldShowConciergeFavicon() {
-    return hasStreamingConciergeResponse || completedConciergeReportIDs.some((reportID) => unreadReportIDs.has(reportID));
+    return hasStreamingConciergeResponse || pendingConciergeReportIDs.length > 0 || completedConciergeReportIDs.some((reportID) => unreadReportIDs.has(reportID));
 }
 
 /**
@@ -69,8 +71,13 @@ function updateDocumentTitle() {
 const updateUnread: UpdateUnread = (totalCount, reportIDs = []) => {
     unreadTotalCount = totalCount;
     unreadReportIDs = new Set(reportIDs);
+    pendingConciergeReportIDs = [];
     updateDocumentTitle();
 };
+
+function setUnreadUpdateCallback(callback: () => void) {
+    requestUnreadUpdate = callback;
+}
 
 window.addEventListener('popstate', () => {
     updateDocumentTitle();
@@ -78,8 +85,16 @@ window.addEventListener('popstate', () => {
 
 function setConciergeAttention(isStreaming: boolean, completedReportIDs: string[]) {
     const hadAttention = shouldShowConciergeFavicon();
+    const wasStreaming = hasStreamingConciergeResponse;
     hasStreamingConciergeResponse = isStreaming;
     completedConciergeReportIDs = completedReportIDs;
+    pendingConciergeReportIDs = pendingConciergeReportIDs.filter((reportID) => completedReportIDs.includes(reportID));
+    if (wasStreaming && !isStreaming && completedReportIDs.length > 0) {
+        // Commit the completed state with a fresh ordinary unread snapshot, rather than
+        // briefly clearing the icon against IDs from before the debounced report update.
+        pendingConciergeReportIDs = completedReportIDs;
+        requestUnreadUpdate?.();
+    }
     if (hadAttention === shouldShowConciergeFavicon()) {
         return;
     }
@@ -87,4 +102,4 @@ function setConciergeAttention(isStreaming: boolean, completedReportIDs: string[
 }
 
 export default updateUnread;
-export {setPageTitle, setConciergeAttention};
+export {setPageTitle, setConciergeAttention, setUnreadUpdateCallback};

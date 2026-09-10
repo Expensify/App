@@ -17,11 +17,13 @@ import type {TrackConciergeResponseParams} from './types';
 
 type ConciergeResponseRequest = {
     accountID: number;
+    reportID: string;
     questionReportActionID: string;
     responseReportID: string;
     streamSessionID?: string;
     sequence: number;
     status: 'pending' | 'streaming' | 'ready';
+    hasStartedStreaming?: boolean;
     responseCreated?: string;
     isQuestionPending: boolean;
     subscribedReportIDs: Set<string>;
@@ -32,22 +34,36 @@ type ReportSubscription = {
     responseReportActionIDs: Set<string>;
     actions: OnyxEntry<ReportActions>;
     lastReadTime?: string;
+    lastVisibleActionCreated?: string;
     cleanups: Array<() => void>;
 };
 
 const reportSubscriptions = new Map<string, ReportSubscription>();
 
-// This state belongs to the requesting browser session, not to a mounted chat. Reopening the app
-// falls back to ordinary unread indicators. Ephemeral draft events cannot be recovered from history.
+// Open tabs share request identities, while each tab observes its own live events and read updates.
+// Nothing is persisted: once all tabs close, the app falls back to ordinary unread indicators.
 const requests = new Map<string, ConciergeResponseRequest>();
+
+type RequestMessage = {type: 'sync'} | {type: 'request'; parameters: TrackConciergeResponseParams};
+let requestChannel: BroadcastChannel | undefined;
+let currentAccountID: number | undefined;
 
 // Match the thinking indicator's safety window, renewed by each server streaming event.
 const RESPONSE_TIMEOUT_MS = 120000;
 
+function isAwaitingReportUpdate(request: ConciergeResponseRequest) {
+    return (
+        request.status === 'ready' &&
+        request.hasStartedStreaming &&
+        !!request.responseCreated &&
+        (reportSubscriptions.get(request.responseReportID)?.lastVisibleActionCreated ?? '') < request.responseCreated
+    );
+}
+
 function updateIndicator() {
     const activeRequests = [...requests.values()];
     setConciergeAttention(
-        activeRequests.some((request) => request.status === 'streaming'),
+        activeRequests.some((request) => request.status === 'streaming' || isAwaitingReportUpdate(request)),
         activeRequests.filter((request) => request.status === 'ready').map((request) => request.responseReportID),
     );
 }
@@ -112,6 +128,11 @@ function completeRequest(responseReportActionID: string) {
     }
     request.status = 'ready';
     clearTimeout(request.timer);
+    // The terminal draft can precede the report update that makes the reply unread.
+    // Retain streaming attention through that handoff, with the same stalled-response deadline.
+    if (isAwaitingReportUpdate(request)) {
+        request.timer = setTimeout(() => removeRequest(responseReportActionID), RESPONSE_TIMEOUT_MS);
+    }
     reconcileReadState(responseReportActionID);
     updateIndicator();
 }
@@ -143,8 +164,9 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
         return;
     }
     // A draft with no response content is still thinking, not a visible answer.
-    if (event.bodyMarkdown || event.finalRenderedHTML) {
+    if ((event.bodyMarkdown || event.finalRenderedHTML) && request.status !== 'streaming') {
         request.status = 'streaming';
+        request.hasStartedStreaming = true;
         updateIndicator();
     }
     armTimeout(event.reportActionID);
@@ -155,12 +177,39 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
+        if (session?.accountID === currentAccountID) {
+            return;
+        }
+        currentAccountID = session?.accountID;
+        requestChannel?.close();
+        requestChannel = undefined;
         for (const [id, request] of requests) {
-            if (session?.accountID === request.accountID) {
+            if (currentAccountID === request.accountID) {
                 continue;
             }
             removeRequest(id);
         }
+
+        if (!currentAccountID || typeof BroadcastChannel === 'undefined') {
+            return;
+        }
+        // Share only request IDs, never message content. Account-specific channels prevent requests
+        // from following a user into another account, and peer snapshots support tabs opened later.
+        requestChannel = new BroadcastChannel(`conciergeResponses_${currentAccountID}`);
+        requestChannel.addEventListener('message', ({data}: MessageEvent<RequestMessage>) => {
+            if (data?.type === 'sync') {
+                for (const [responseReportActionID, request] of requests) {
+                    const {accountID, reportID, questionReportActionID} = request;
+                    requestChannel?.postMessage({type: 'request', parameters: {accountID, reportID, questionReportActionID, responseReportActionID}} satisfies RequestMessage);
+                }
+                return;
+            }
+            if (data?.type !== 'request' || data.parameters?.accountID !== currentAccountID) {
+                return;
+            }
+            registerConciergeResponse(data.parameters);
+        });
+        requestChannel.postMessage({type: 'sync'} satisfies RequestMessage);
     },
 });
 
@@ -187,6 +236,9 @@ function handleReportActions(responseReportActionID: string, reportID: string, a
     }
     const response = actions?.[responseReportActionID];
     if (response?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE || response.pendingAction) {
+        return;
+    }
+    if (request.status === 'ready' && request.responseReportID === reportID && request.responseCreated === response.created) {
         return;
     }
     request.isQuestionPending = false;
@@ -241,10 +293,21 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
     const reportConnection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         callback: (report) => {
-            reportSubscription.lastReadTime = report?.lastReadTime ?? '';
+            const lastReadTime = report?.lastReadTime ?? '';
+            const lastVisibleActionCreated = report?.lastVisibleActionCreated;
+            if (reportSubscription.lastReadTime === lastReadTime && reportSubscription.lastVisibleActionCreated === lastVisibleActionCreated) {
+                return;
+            }
+            reportSubscription.lastReadTime = lastReadTime;
+            reportSubscription.lastVisibleActionCreated = lastVisibleActionCreated;
             for (const id of reportSubscription.responseReportActionIDs) {
                 reconcileReadState(id);
+                const trackedRequest = requests.get(id);
+                if (trackedRequest?.status === 'ready' && !isAwaitingReportUpdate(trackedRequest)) {
+                    clearTimeout(trackedRequest.timer);
+                }
             }
+            updateIndicator();
         },
     });
     if (reportSubscriptions.get(reportID) !== reportSubscription) {
@@ -272,13 +335,14 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
     reportSubscription.cleanups.push(() => Onyx.disconnect(connection));
 }
 
-/** Track the reserved reply ID for a question sent from this browser session. */
-function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID}: TrackConciergeResponseParams) {
+/** Register a local or peer request without broadcasting it back to other tabs. */
+function registerConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID}: TrackConciergeResponseParams) {
     if (requests.has(responseReportActionID)) {
         return;
     }
     const request: ConciergeResponseRequest = {
         accountID,
+        reportID,
         questionReportActionID,
         responseReportID: reportID,
         sequence: 0,
@@ -288,6 +352,12 @@ function trackConciergeResponse({accountID, reportID, questionReportActionID, re
     };
     requests.set(responseReportActionID, request);
     subscribeToReport(responseReportActionID, reportID);
+}
+
+/** Track a question in this tab and the other open tabs for the same account. */
+function trackConciergeResponse(parameters: TrackConciergeResponseParams) {
+    registerConciergeResponse(parameters);
+    requestChannel?.postMessage({type: 'request', parameters} satisfies RequestMessage);
 }
 
 export default trackConciergeResponse;
