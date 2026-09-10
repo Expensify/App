@@ -17,9 +17,10 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
