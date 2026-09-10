@@ -44,7 +44,7 @@ const throttledToggle = throttle(
         const openTestToolsModal = () => {
             setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(backToRoute)), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
-        // The test drive modal needs goBack() to clean up its navigation state; close() alone leaves the URL on onboarding/test-drive with the modal gone, and the app unresponsive.
+        // The test drive modal needs goBack() to clean up its navigation state. Calling close() alone leaves the URL on onboarding/test-drive with the modal gone and the app unresponsive.
         if (currentRoute.includes('test-drive')) {
             Navigation.goBack();
             openTestToolsModal();
