@@ -49,7 +49,7 @@ import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/g
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveTabName from './helpers/getActiveTabName';
 import getFocusedReportParams from './helpers/getFocusedReportParams';
-import getPathFromState from './helpers/getPathFromState';
+import getActiveRoute from './helpers/getActiveRoute';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
@@ -246,27 +246,6 @@ function closeSidePanelOnNarrowScreen(route: Route) {
     SidePanelActions.closeSidePanel(true);
 }
 
-/**
- * Returns the current active route.
- */
-function getActiveRoute(): string {
-    if (!navigationRef.isReady()) {
-        return '';
-    }
-
-    const currentRoute = navigationRef.current?.getCurrentRoute();
-    if (!currentRoute?.name) {
-        return '';
-    }
-
-    const routeFromState = getPathFromState(navigationRef.getRootState());
-
-    if (routeFromState) {
-        return routeFromState;
-    }
-
-    return '';
-}
 /**
  * Returns the route of a report opened in RHP.
  */
