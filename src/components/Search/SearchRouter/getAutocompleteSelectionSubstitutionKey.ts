@@ -1,9 +1,7 @@
-import type {SearchAutocompleteResult} from '@components/Search/types';
-
 import {parse as parseSearchQuery} from '@libs/SearchParser/autocompleteParser';
 
 function getAutocompleteSelectionSubstitutionKey(newSearchQuery: string, fieldKey: string, fallbackMapKey: string, fallbackSearchQuery: string): string {
-    const parsed = parseSearchQuery(newSearchQuery) as SearchAutocompleteResult;
+    const parsed = parseSearchQuery(newSearchQuery);
     const sameKeyRanges = parsed.ranges?.filter((range) => range.key === fieldKey) ?? [];
     const lastRange = sameKeyRanges.at(-1);
     const rangeValue = lastRange?.value ?? fallbackSearchQuery;
