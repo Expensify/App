@@ -1220,6 +1220,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: '新しいカードや取引が表示されるまでに少し時間がかかる場合があります。しばらくお待ちください。',
         importMembersRolePermissionWarning: '一部のメンバー権限を割り当てる権限がありません。影響のある新しいメンバーは、メンバーとして招待されました。',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'このワークスペースに存在しないため、ベンダーが1件スキップされました。',
+            other: `このワークスペースに存在しないため、${count} 件のベンダーをスキップしました。`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: 'このワークスペースに存在しないため、1件のサプライヤーをスキップしました。',
+            other: `${count} 件の仕入先は、このワークスペースに存在しないためスキップされました。`,
+        }),
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -7871,6 +7879,8 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
                 categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
                 categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
+                importColumnUpdatedVendor: '仕入先を更新しました',
+                importColumnUpdatedSupplier: '仕入先を更新しました',
             },
             categoryRules: {
                 title: 'カテゴリルール',

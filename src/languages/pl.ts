@@ -1266,6 +1266,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Nowe karty i transakcje mogą potrzebować trochę czasu, aby się pojawić, prosimy o cierpliwość.',
         importMembersRolePermissionWarning: 'Nie masz uprawnień do przypisywania niektórych ról członków. Wszyscy nowi członkowie, których to dotyczy, zostali zaproszeni jako członkowie.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: 'Pominięto 1 kontrahenta, ponieważ nie istnieje w tej przestrzeni roboczej.',
+            other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym obszarze roboczym.`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: 'Pominięto 1 dostawcę, ponieważ nie istnieje w tym obszarze roboczym.',
+            other: `Pominięto ${count} dostawców, ponieważ nie istnieją w tym workspace.`,
+        }),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -7975,6 +7983,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 turnOnTaxesFirstPrompt: 'Reguły kategorii ustawiają domyślną stawkę podatku. Włącz podatki w ustawieniach swojego workspace, aby z nich korzystać.',
                 categoryRulesApplyGoingForwardTitle: 'Reguły kategorii będą stosowane od teraz',
                 categoryRulesApplyGoingForwardPrompt: 'Domyślna stawka podatku będzie stosowana do nowych wydatków w tej kategorii. Istniejące wydatki nie zostaną zmienione.',
+                importColumnUpdatedVendor: 'Zaktualizowano kontrahenta',
+                importColumnUpdatedSupplier: 'Zaktualizowano dostawcę',
             },
             categoryRules: {
                 title: 'Reguły kategorii',

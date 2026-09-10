@@ -1184,6 +1184,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: '新卡片和交易可能需要一些时间才会显示，请耐心等待。',
         importMembersRolePermissionWarning: '您没有权限分配某些成员角色。所有受影响的新成员已按普通成员身份被邀请。',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '有 1 个供应商已被跳过，因为它在此工作区中不存在。',
+            other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: '已跳过 1 个供应商，因为它在此工作区中不存在。',
+            other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
+        }),
     },
     receipt: {
         upload: '上传收据',
@@ -7676,6 +7684,8 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: '类别规则会设置默认税率。请在工作区设置中启用税费以使用此功能。',
                 categoryRulesApplyGoingForwardTitle: '类别规则将从现在起生效',
                 categoryRulesApplyGoingForwardPrompt: '此类别中的新报销将应用默认税率，已存在的报销不会改变。',
+                importColumnUpdatedVendor: '已更新供应商',
+                importColumnUpdatedSupplier: '已更新供应商',
             },
             categoryRules: {
                 title: '类别规则',
