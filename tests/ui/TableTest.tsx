@@ -19,7 +19,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type * as LegendListModule from '@legendapp/list/react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -33,29 +33,31 @@ type TestInstance = ReturnType<typeof screen.getByTestId>;
 type MockViewToken<T> = {
     item: T;
     key: string;
-    index: number | null;
+    index: number;
     isViewable: boolean;
-    timestamp: number;
 };
 
 type MockViewabilityInfo<T> = {
     viewableItems: Array<MockViewToken<T>>;
     changed: Array<MockViewToken<T>>;
+    start: number;
+    end: number;
+    startBuffered: number;
+    endBuffered: number;
 };
 
-type MockFlashListProps<T> = {
+type MockLegendListProps<T> = {
     data?: T[];
-    renderItem?: (info: ListRenderItemInfo<T>) => React.ReactElement | null;
+    extraData?: unknown;
+    renderItem?: (info: LegendListModule.LegendListRenderItemProps<T>) => React.ReactElement | null;
     keyExtractor?: (item: T, index: number) => string;
-    initialScrollIndex?: number | null;
+    initialScrollIndex?: number | {index: number; viewOffset?: number; viewPosition?: number} | null;
     ListHeaderComponent?: React.ComponentType | React.ReactElement | null;
     ListEmptyComponent?: React.ComponentType | React.ReactElement | null;
-    ListEmptyComponentStyle?: React.ComponentProps<typeof View>['style'];
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
     onEndReached?: () => void;
-    onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
     onScroll?: (event: {nativeEvent: {contentOffset: {y: number}}}) => void;
     onStartReached?: () => void;
@@ -68,14 +70,13 @@ type MockFlashListProps<T> = {
     }>;
 };
 
-const mockFlashListScrollToIndex = jest.fn();
-const mockFlashListScrollToItem = jest.fn();
-const mockFlashListScrollToOffset = jest.fn();
-const mockFlashListGetLayout = jest.fn();
-const mockFlashListComputeVisibleIndices = jest.fn();
-const mockFlashListGetFirstVisibleIndex = jest.fn();
-const mockFlashListMount = jest.fn();
-const mockFlashListUnmount = jest.fn();
+const mockLegendListScrollToIndex = jest.fn();
+const mockLegendListScrollIndexIntoView = jest.fn();
+const mockLegendListScrollToItem = jest.fn();
+const mockLegendListScrollToOffset = jest.fn();
+const mockLegendListGetState = jest.fn();
+const mockLegendListMount = jest.fn();
+const mockLegendListUnmount = jest.fn();
 const mockTextInputFocus = jest.fn();
 const mockTextInputBlur = jest.fn();
 const mockTextInputMount = jest.fn();
@@ -83,8 +84,7 @@ const mockTextInputUnmount = jest.fn();
 const mockTextInputNativeFocus = jest.fn();
 const mockTextInputNativeBlur = jest.fn();
 let mockNextTextInputInstanceID = 0;
-let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
-let mockFlashListMeasurementTargetIndexes: number[] = [];
+let mockLegendListProps: Array<MockLegendListProps<unknown>> = [];
 let mockShouldUseNarrowLayout = false;
 
 // Mock navigation
@@ -170,9 +170,10 @@ jest.mock('@userActions/Session', () => ({
     callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
-jest.mock('@shopify/flash-list', () => {
+jest.mock('@legendapp/list/react-native', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
     const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
+    const LegendListActual = jest.requireActual<typeof LegendListModule>('@legendapp/list/react-native');
 
     const renderComponent = (component: React.ComponentType | React.ReactElement | null | undefined) => {
         if (!component) {
@@ -186,92 +187,64 @@ jest.mock('@shopify/flash-list', () => {
         return ReactLocal.createElement(component);
     };
 
-    const FlashList = ReactLocal.forwardRef(
+    const LegendList = ReactLocal.forwardRef(
         (
-            props: MockFlashListProps<unknown>,
+            props: MockLegendListProps<unknown>,
             ref: React.Ref<{
-                scrollToIndex: typeof mockFlashListScrollToIndex;
-                scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
-                getLayout: typeof mockFlashListGetLayout;
-                computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
-                getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
+                scrollToIndex: typeof mockLegendListScrollToIndex;
+                scrollIndexIntoView: typeof mockLegendListScrollIndexIntoView;
+                scrollToItem: typeof mockLegendListScrollToItem;
+                scrollToOffset: typeof mockLegendListScrollToOffset;
+                getState: () => unknown;
             }>,
         ) => {
-            mockFlashListProps.push(props);
+            mockLegendListProps.push(props);
             const data = props.data ?? [];
-            const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
-            const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
             const emptyComponent = renderComponent(props.ListEmptyComponent);
-            const renderedEmptyComponent = props.ListEmptyComponentStyle ? <RNView style={props.ListEmptyComponentStyle}>{emptyComponent}</RNView> : emptyComponent;
 
             ReactLocal.useEffect(() => {
-                mockFlashListMount();
+                mockLegendListMount();
                 return () => {
-                    mockFlashListUnmount();
+                    mockLegendListUnmount();
                 };
             }, []);
             ReactLocal.useImperativeHandle(ref, () => ({
-                scrollToIndex: mockFlashListScrollToIndex,
-                scrollToItem: mockFlashListScrollToItem,
-                scrollToOffset: mockFlashListScrollToOffset,
-                getLayout: mockFlashListGetLayout,
-                computeVisibleIndices: mockFlashListComputeVisibleIndices,
-                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
+                scrollToIndex: mockLegendListScrollToIndex,
+                scrollIndexIntoView: mockLegendListScrollIndexIntoView,
+                scrollToItem: mockLegendListScrollToItem,
+                scrollToOffset: mockLegendListScrollToOffset,
+                getState: () => {
+                    const state: unknown = mockLegendListGetState(data);
+                    return state;
+                },
             }));
 
             return (
-                <RNView testID="flash-list">
+                <RNView testID="legend-list">
                     {renderComponent(props.ListHeaderComponent)}
                     {data.length === 0
-                        ? renderedEmptyComponent
+                        ? emptyComponent
                         : data.map((item, index) => {
                               const key = props.keyExtractor?.(item, index) ?? String(index);
                               return (
                                   <RNView key={key}>
                                       {props.renderItem?.({
+                                          data,
+                                          extraData: undefined,
                                           item,
                                           index,
-                                          target: 'Cell',
-                                      } as ListRenderItemInfo<unknown>)}
+                                          type: undefined,
+                                      })}
                                   </RNView>
                               );
                           })}
-                    {mockFlashListMeasurementTargetIndexes.map((index) => {
-                        const item = data.at(index);
-                        if (item === undefined) {
-                            return null;
-                        }
-
-                        return (
-                            <RNView
-                                key={`measurement-${index}`}
-                                testID={`flash-list-measurement-${index}`}
-                            >
-                                {props.renderItem?.({
-                                    item,
-                                    index,
-                                    target: 'Measurement',
-                                } as ListRenderItemInfo<unknown>)}
-                            </RNView>
-                        );
-                    })}
-                    {stickyHeaderItem !== undefined && stickyHeaderIndex !== undefined && (
-                        <RNView testID="flash-list-sticky-header">
-                            {props.renderItem?.({
-                                item: stickyHeaderItem,
-                                index: stickyHeaderIndex,
-                                target: 'StickyHeader',
-                            } as ListRenderItemInfo<unknown>)}
-                        </RNView>
-                    )}
                     {!!props.ListFooterComponent && <RNView style={props.ListFooterComponentStyle}>{renderComponent(props.ListFooterComponent)}</RNView>}
                 </RNView>
             );
         },
     );
 
-    return {FlashList};
+    return {...LegendListActual, LegendList};
 });
 
 // Mock useLocalize hook
@@ -520,7 +493,7 @@ const mockColumns: Array<TableColumn<TestColumnKey>> = [
 
 // Helper function to create default test props
 function createDefaultProps() {
-    const renderItem = ({item}: ListRenderItemInfo<TestItem>) => (
+    const renderItem = ({item}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
         <View testID={`row-${item.id}`}>
             <Text testID={`name-${item.id}`}>{item.name}</Text>
             <Text testID={`category-${item.id}`}>{item.category}</Text>
@@ -560,27 +533,6 @@ function createDefaultProps() {
     };
 }
 
-function activateStickyHeadersAfterListLoad() {
-    let animationFrameCallback: FrameRequestCallback | undefined;
-    const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-        animationFrameCallback = callback;
-        return 1;
-    });
-
-    act(() => {
-        mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
-    });
-
-    if (!animationFrameCallback) {
-        throw new Error('Expected sticky-header activation to be scheduled after FlashList load');
-    }
-
-    act(() => {
-        animationFrameCallback?.(0);
-    });
-    requestAnimationFrameSpy.mockRestore();
-}
-
 function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
@@ -594,9 +546,39 @@ function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockFlashListProps = [];
-        mockFlashListMeasurementTargetIndexes = [];
+        mockLegendListProps = [];
         mockShouldUseNarrowLayout = false;
+        mockLegendListGetState.mockImplementation((data: unknown[] = []) => ({
+            activeStickyIndex: -1,
+            contentLength: data.length * 40,
+            data,
+            elementAtIndex: (index: number) => `element-${index}`,
+            end: Math.min(2, data.length - 1),
+            endBuffered: Math.min(3, data.length - 1),
+            getAverageItemSizes: () => ({}),
+            indexByKey: (key: string) => {
+                const index = data.findIndex((item) => typeof item === 'object' && item !== null && 'keyForList' in item && item.keyForList === key);
+                return index < 0 ? undefined : index;
+            },
+            isAtEnd: false,
+            isAtStart: true,
+            isEndReached: false,
+            isNearEnd: false,
+            isNearStart: true,
+            isStartReached: true,
+            isWithinMaintainScrollAtEndThreshold: false,
+            listen: () => () => {},
+            listenToPosition: () => () => {},
+            positionAtIndex: (index: number) => index * 40,
+            positionByKey: () => undefined,
+            scroll: 0,
+            scrollLength: 400,
+            scrollVelocity: 0,
+            sizeAtIndex: () => 40,
+            sizes: new Map<string, number>(),
+            start: 0,
+            startBuffered: 0,
+        }));
     });
 
     describe('rendering', () => {
@@ -739,19 +721,15 @@ describe('Table', () => {
             );
 
             expect(Table.Header.type).toBe('header');
-            expect(within(screen.getByTestId('flash-list')).getByTestId('declared-table-header')).toBeTruthy();
+            expect(within(screen.getByTestId('legend-list')).getByTestId('declared-table-header')).toBeTruthy();
             expect(screen.getAllByTestId('table-header-component')).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            activateStickyHeadersAfterListLoad();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should render ListHeader and keep row indexes aligned with data rows', () => {
             const props = createDefaultProps();
-            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            const renderItem = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
                 <View testID={`row-${item.id}`}>
                     <Text testID={`row-index-${item.id}`}>{index}</Text>
                     <Text>{item.name}</Text>
@@ -776,13 +754,13 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getAllByLabelText('Name').length).toBeGreaterThan(0);
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
         });
 
         it('should compose ListHeaderComponent and ListHeader as the persistent list header', () => {
             const props = createDefaultProps();
-            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            const renderItem = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
                 <View testID={`row-${item.id}`}>
                     <Text testID={`row-index-${item.id}`}>{index}</Text>
                     <Text>{item.name}</Text>
@@ -808,13 +786,9 @@ describe('Table', () => {
             expect(screen.getByTestId('table-list-header-component')).toBeTruthy();
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getByTestId('row-index-1').props.children).toBe(0);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            activateStickyHeadersAfterListLoad();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should use ListHeaderComponent alone as page content for the declared table header', () => {
@@ -836,13 +810,9 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('table-list-header-component')).toBeTruthy();
-            expect(within(screen.getByTestId('flash-list')).getByTestId('declared-table-header')).toBeTruthy();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            activateStickyHeadersAfterListLoad();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(within(screen.getByTestId('legend-list')).getByTestId('declared-table-header')).toBeTruthy();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
             const tableHandle = tableRef.current;
             if (!tableHandle) {
                 throw new Error('Expected table ref to be set');
@@ -853,7 +823,7 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 1,
                 animated: false,
             });
@@ -861,7 +831,7 @@ describe('Table', () => {
 
         it('should keep page-header rows in a persistent physical table ancestor', () => {
             const props = createDefaultProps();
-            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            const renderItem = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
                 <Table.Row
                     rowIndex={index}
                     interactive={false}
@@ -908,7 +878,7 @@ describe('Table', () => {
 
         it('should expose only data rows when a page-header table has no active column header', () => {
             const props = createDefaultProps();
-            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            const renderItem = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
                 <Table.Row
                     rowIndex={index}
                     interactive={false}
@@ -950,7 +920,7 @@ describe('Table', () => {
             expect(rows.at(0)?.props['aria-rowindex']).toBe(1);
         });
 
-        it('should expose only the active sticky semantic header', () => {
+        it('should expose one semantic header while LegendList moves it into the sticky position', () => {
             const props = createDefaultProps();
 
             render(
@@ -972,36 +942,16 @@ describe('Table', () => {
                 </Table>,
             );
 
-            const initialHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1 && row.props['aria-hidden'] !== true);
-            expect(initialHeaders).toHaveLength(1);
-
-            activateStickyHeadersAfterListLoad();
-            act(() => {
-                mockFlashListProps.at(-1)?.onChangeStickyIndex?.(0, -1);
-            });
-
             const allHeaders = getHostTableRows().filter((row) => row.props['aria-rowindex'] === 1);
             const accessibleHeaders = allHeaders.filter((row) => row.props['aria-hidden'] !== true);
-            const hiddenHeaders = allHeaders.filter((row) => row.props['aria-hidden'] === true);
             expect(accessibleHeaders).toHaveLength(1);
-            expect(hiddenHeaders).toHaveLength(1);
+            expect(allHeaders).toHaveLength(1);
 
-            const hiddenHeader = hiddenHeaders.at(0);
             const accessibleHeader = accessibleHeaders.at(0);
-            if (!hiddenHeader || !accessibleHeader) {
-                throw new Error('Expected one hidden and one accessible table header');
+            if (!accessibleHeader) {
+                throw new Error('Expected one accessible table header');
             }
             expect(
-                within(hiddenHeader)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
-                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
-            expect(
-                within(hiddenHeader)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
-                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
-            expect(
                 within(accessibleHeader)
                     .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
@@ -1011,12 +961,12 @@ describe('Table', () => {
                     .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
-            expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
+        it('should preserve the focused search input while LegendList rows rerender', () => {
             const props = createDefaultProps();
-            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+            const renderItem = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
                 <Table.Row
                     rowIndex={index}
                     interactive
@@ -1054,64 +1004,24 @@ describe('Table', () => {
                 </Table>
             );
 
-            // The page controls live in FlashList's persistent header. Only the column header and data rows are
-            // virtualized, at indexes 0 and 1 respectively.
-            mockFlashListMeasurementTargetIndexes = [0, 1];
             const {rerender} = render(renderTable());
 
             const table = screen.getByLabelText('Members');
-            const visibleRows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
             expect(within(table).getByTestId('table-header-component')).toBeTruthy();
-            expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(visibleRows.length);
-            expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-
-            const virtualizedHeaderMeasurement = screen.getByTestId('flash-list-measurement-0');
-            expect(within(virtualizedHeaderMeasurement).queryByTestId('table-header-component')).toBeNull();
-            expect(within(virtualizedHeaderMeasurement).queryByTestId('search-input')).toBeNull();
-            expect(within(virtualizedHeaderMeasurement).queryByRole(CONST.ROLE.TABLE)).toBeNull();
-            const measurementHeader = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-0')).at(0);
-            const measurementDataRow = getHostTableRowsWithin(screen.getByTestId('flash-list-measurement-1')).at(0);
-            if (!measurementHeader || !measurementDataRow) {
-                throw new Error('Expected FlashList measurement copies for the header and first data row');
-            }
-            expect(measurementHeader.props['aria-hidden']).toBe(true);
-            expect(measurementHeader.props.id).toBeUndefined();
-            expect(measurementHeader.props.inert).toBe(true);
-            expect(measurementDataRow.props['aria-hidden']).toBe(true);
-            expect(measurementDataRow.props.id).toBeUndefined();
-            expect(measurementDataRow.props.inert).toBe(true);
-            expect(measurementDataRow.props.tabIndex).toBe(-1);
-            expect(measurementDataRow.props.onPress).toBeUndefined();
-            expect(within(screen.getByTestId('flash-list-measurement-1')).UNSAFE_queryAllByProps({tabIndex: 0})).toHaveLength(0);
-            expect(
-                within(measurementHeader)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'Name'})
-                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
-            expect(
-                within(measurementHeader)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'workspace.common.selectAll'})
-                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
-            expect(
-                within(measurementDataRow)
-                    .UNSAFE_getAllByProps({accessibilityLabel: 'common.select'})
-                    .some((node) => node.props.disabled === true && node.props.tabIndex === -1),
-            ).toBe(true);
+            expect(mockLegendListProps.at(-1)?.ListHeaderComponent).toBeDefined();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
             const searchInput = screen.getByTestId('search-input');
             const searchInputNativeID: unknown = searchInput.props.nativeID;
             fireEvent(searchInput, 'focus');
             fireEvent.changeText(searchInput, 'a');
 
-            mockFlashListMeasurementTargetIndexes = [];
             rerender(renderTable());
 
             expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
             expect(screen.getByTestId('search-input').props.value).toBe('a');
-            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
-            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockLegendListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
             expect(mockTextInputUnmount).not.toHaveBeenCalled();
             expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
@@ -1208,7 +1118,7 @@ describe('Table', () => {
             expect(mockTextInputFocus).not.toHaveBeenCalled();
         });
 
-        it('should defer sticky table header activation until a remounted page-header list loads', () => {
+        it('should restore the sticky table header when a page-header list remounts', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
                 <Table<TestItem, TestColumnKey>
@@ -1227,38 +1137,15 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable(props.data));
-            activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
 
             rerender(renderTable([]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListUnmount).toHaveBeenCalledTimes(1);
-
-            let animationFrameCallback: FrameRequestCallback | undefined;
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-                animationFrameCallback = callback;
-                return 1;
-            });
+            expect(screen.queryByTestId('legend-list')).toBeNull();
+            expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
 
             rerender(renderTable(props.data));
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-            expect(animationFrameCallback).toBeUndefined();
-
-            act(() => {
-                mockFlashListProps.at(-1)?.onLoad?.({elapsedTimeInMs: 1});
-            });
-
-            if (!animationFrameCallback) {
-                throw new Error('Expected sticky-header activation to be scheduled after the remounted list loads');
-            }
-
-            act(() => {
-                animationFrameCallback?.(0);
-            });
-            requestAnimationFrameSpy.mockRestore();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should temporarily remove the sticky table header while search has no results', () => {
@@ -1284,47 +1171,29 @@ describe('Table', () => {
                 </Table>,
             );
 
-            activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'xyz123nonexistent');
 
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('legend-list')).toBeTruthy();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.queryByRole(CONST.ROLE.TABLE)).toBeNull();
             expect(screen.queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(0);
             act(() => tableRef.current?.scrollToIndex({index: 0, animated: false}));
-            expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({index: 0, animated: false});
-
-            let animationFrameCallback: FrameRequestCallback | undefined;
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-                animationFrameCallback = callback;
-                return 1;
-            });
+            expect(mockLegendListScrollToIndex).toHaveBeenLastCalledWith({index: 0, animated: false});
 
             fireEvent.changeText(screen.getByTestId('search-input'), '');
 
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-
-            if (!animationFrameCallback) {
-                throw new Error('Expected sticky-header activation to be rescheduled when rows return');
-            }
-
-            act(() => {
-                animationFrameCallback?.(0);
-            });
-            requestAnimationFrameSpy.mockRestore();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
             act(() => tableRef.current?.scrollToIndex({index: 0, animated: false}));
-            expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: false});
+            expect(mockLegendListScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: false});
         });
 
-        it('should defer sticky table header activation again when the list remounts', () => {
+        it('should restore sticky table header activation when the list remounts', () => {
             const props = createDefaultProps();
             const renderTable = (data: TestItem[]) => (
                 <Table<TestItem, TestColumnKey>
@@ -1342,17 +1211,13 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable(props.data));
-            activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
 
             rerender(renderTable([]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.queryByTestId('legend-list')).toBeNull();
 
             rerender(renderTable(props.data));
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should preserve scrollToIndex when rows return after a page-header empty state', () => {
@@ -1376,11 +1241,11 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable([]));
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.queryByTestId('legend-list')).toBeNull();
             expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
 
             rerender(renderTable(props.data));
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('legend-list')).toBeTruthy();
             const scrollToIndex = tableRef.current?.scrollToIndex;
             if (!scrollToIndex) {
                 throw new Error('Expected table ref methods to be restored after rows return');
@@ -1390,13 +1255,13 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 1,
                 animated: false,
             });
         });
 
-        it('should defer sticky table header activation when the declared header returns', () => {
+        it('should restore sticky table header activation when the declared header returns', () => {
             const props = createDefaultProps();
             const renderTable = (shouldShowTableHeader: boolean) => (
                 <Table<TestItem, TestColumnKey>
@@ -1414,31 +1279,13 @@ describe('Table', () => {
             );
 
             const {rerender} = render(renderTable(true));
-            activateStickyHeadersAfterListLoad();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
 
             rerender(renderTable(false));
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            let animationFrameCallback: FrameRequestCallback | undefined;
-            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-                animationFrameCallback = callback;
-                return 1;
-            });
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
 
             rerender(renderTable(true));
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-
-            if (!animationFrameCallback) {
-                throw new Error('Expected sticky-header activation to be rescheduled when sticky mode turns back on');
-            }
-
-            act(() => {
-                animationFrameCallback?.(0);
-            });
-            requestAnimationFrameSpy.mockRestore();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
         it('should keep the declared Table.Header inline without a page header', () => {
@@ -1459,9 +1306,9 @@ describe('Table', () => {
             );
 
             expect(screen.getByTestId('declared-table-header')).toBeTruthy();
-            expect(within(screen.getByTestId('flash-list')).queryByTestId('declared-table-header')).toBeNull();
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length);
+            expect(within(screen.getByTestId('legend-list')).queryByTestId('declared-table-header')).toBeNull();
+            expect(mockLegendListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length);
             const tableHandle = tableRef.current;
             if (!tableHandle) {
                 throw new Error('Expected table ref to be set');
@@ -1472,7 +1319,7 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 0,
                 animated: false,
             });
@@ -1507,14 +1354,15 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 1,
                 animated: false,
             });
         });
 
-        it('should translate index-bearing FlashList props around the synthetic table-header row', () => {
+        it('should translate index-bearing LegendList props around the synthetic table-header row', () => {
             const props = createDefaultProps();
+            const renderItem = jest.fn(props.renderItem);
             const onViewableItemsChanged = jest.fn();
             const pairedOnViewableItemsChanged = jest.fn();
             const overrideItemLayout = jest.fn();
@@ -1523,9 +1371,10 @@ describe('Table', () => {
                 <Table<TestItem, TestColumnKey>
                     data={props.data}
                     columns={props.columns}
-                    renderItem={props.renderItem}
+                    renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
                     initialScrollIndex={2}
+                    extraData="extra"
                     onViewableItemsChanged={onViewableItemsChanged}
                     overrideItemLayout={overrideItemLayout}
                     viewabilityConfigCallbackPairs={[
@@ -1543,22 +1392,27 @@ describe('Table', () => {
                 </Table>,
             );
 
-            const flashListProps = mockFlashListProps.at(-1);
-            const syntheticHeader = flashListProps?.data?.at(0);
-            const firstDataRow = flashListProps?.data?.at(1);
-            if (!flashListProps || !syntheticHeader || !firstDataRow) {
-                throw new Error('Expected synthetic and data rows to be supplied to FlashList');
+            const legendListProps = mockLegendListProps.at(-1);
+            const syntheticHeader = legendListProps?.data?.at(0);
+            const firstDataRow = legendListProps?.data?.at(1);
+            if (!legendListProps || !syntheticHeader || !firstDataRow) {
+                throw new Error('Expected synthetic and data rows to be supplied to LegendList');
             }
 
-            expect(flashListProps.initialScrollIndex).toBe(3);
+            expect(legendListProps.initialScrollIndex).toBe(3);
+            expect(renderItem).toHaveBeenCalledWith(expect.objectContaining({extraData: 'extra', index: 0}));
 
             const layout = {};
-            flashListProps.overrideItemLayout?.(layout, syntheticHeader, 0, 1);
+            legendListProps.overrideItemLayout?.(layout, syntheticHeader, 0, 1);
             expect(overrideItemLayout).not.toHaveBeenCalled();
-            flashListProps.overrideItemLayout?.(layout, firstDataRow, 1, 1, 'extra');
+            legendListProps.overrideItemLayout?.(layout, firstDataRow, 1, 1, legendListProps.extraData);
             expect(overrideItemLayout).toHaveBeenCalledWith(layout, firstDataRow, 0, 1, 'extra');
 
             const viewabilityInfo = {
+                start: 0,
+                end: 1,
+                startBuffered: 0,
+                endBuffered: 2,
                 viewableItems: [
                     {
                         item: syntheticHeader,
@@ -1586,6 +1440,10 @@ describe('Table', () => {
                 ],
             };
             const expectedViewabilityInfo = {
+                start: 0,
+                end: 0,
+                startBuffered: 0,
+                endBuffered: 1,
                 viewableItems: [
                     {
                         item: firstDataRow,
@@ -1606,24 +1464,19 @@ describe('Table', () => {
                 ],
             };
 
-            flashListProps.onViewableItemsChanged?.(viewabilityInfo);
-            flashListProps.viewabilityConfigCallbackPairs?.at(0)?.onViewableItemsChanged?.(viewabilityInfo);
+            legendListProps.onViewableItemsChanged?.(viewabilityInfo);
+            legendListProps.viewabilityConfigCallbackPairs?.at(0)?.onViewableItemsChanged?.(viewabilityInfo);
 
             expect(onViewableItemsChanged).toHaveBeenCalledWith(expectedViewabilityInfo);
             expect(pairedOnViewableItemsChanged).toHaveBeenCalledWith(expectedViewabilityInfo);
         });
 
-        it('should translate index-bearing FlashList ref methods and preserve the scroll promise', () => {
+        it('should translate index-bearing LegendList ref methods and state around the synthetic header', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
             const scrollPromise = Promise.resolve();
-            const rowLayout = {x: 0, y: 100, width: 100, height: 40};
-            mockFlashListScrollToIndex.mockReturnValueOnce(scrollPromise);
-            mockFlashListGetLayout.mockReturnValueOnce(rowLayout);
-            mockFlashListComputeVisibleIndices.mockReturnValue({
-                startIndex: 0,
-                endIndex: 2,
-            });
+            mockLegendListScrollToIndex.mockReturnValueOnce(scrollPromise);
+            mockLegendListScrollIndexIntoView.mockReturnValueOnce(scrollPromise);
 
             render(
                 <Table<TestItem, TestColumnKey>
@@ -1642,27 +1495,26 @@ describe('Table', () => {
             );
 
             expect(tableRef.current?.scrollToIndex({index: 0, animated: false})).toBe(scrollPromise);
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 1,
                 animated: false,
             });
-            expect(tableRef.current?.getLayout(0)).toBe(rowLayout);
-            expect(mockFlashListGetLayout).toHaveBeenCalledWith(1);
-            expect(tableRef.current?.computeVisibleIndices()).toEqual({
-                startIndex: 0,
-                endIndex: 1,
+            expect(tableRef.current?.scrollIndexIntoView({index: 0, animated: false})).toBe(scrollPromise);
+            expect(mockLegendListScrollIndexIntoView).toHaveBeenCalledWith({
+                index: 1,
+                animated: false,
             });
-            expect(tableRef.current?.getFirstVisibleIndex()).toBe(0);
 
-            mockFlashListComputeVisibleIndices.mockReturnValue({
-                startIndex: 0,
-                endIndex: 0,
-            });
-            expect(tableRef.current?.computeVisibleIndices()).toEqual({
-                startIndex: -1,
-                endIndex: -2,
-            });
-            expect(tableRef.current?.getFirstVisibleIndex()).toBe(-1);
+            const state = tableRef.current?.getState();
+            expect(state?.data).toEqual(props.data.map((item) => ({...item, selected: false})));
+            expect(state?.start).toBe(0);
+            expect(state?.end).toBe(1);
+            expect(state?.startBuffered).toBe(0);
+            expect(state?.endBuffered).toBe(2);
+            expect(state?.elementAtIndex(0)).toBe('element-1');
+            expect(state?.positionAtIndex(0)).toBe(40);
+            expect(state?.sizeAtIndex(0)).toBe(40);
+            expect(state?.indexByKey('1')).toBe(0);
         });
 
         it('should forward scrollToIndex without offset when no synthetic rows are present', () => {
@@ -1690,7 +1542,7 @@ describe('Table', () => {
                 scrollToIndex({index: 0, animated: false});
             });
 
-            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+            expect(mockLegendListScrollToIndex).toHaveBeenCalledWith({
                 index: 0,
                 animated: false,
             });
@@ -1718,11 +1570,11 @@ describe('Table', () => {
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getByTestId('empty-state')).toBeTruthy();
             expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            expect(screen.queryByTestId('legend-list')).toBeNull();
+            expect(mockLegendListProps).toHaveLength(0);
         });
 
-        it('should render ListEmptyComponent without mounting FlashList when the declared header renders null', () => {
+        it('should render ListEmptyComponent without mounting LegendList when the declared header renders null', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -1740,8 +1592,8 @@ describe('Table', () => {
             );
 
             expect(screen.getAllByTestId('empty-state')).toHaveLength(1);
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            expect(screen.queryByTestId('legend-list')).toBeNull();
+            expect(mockLegendListProps).toHaveLength(0);
         });
 
         it('should render Table.EmptyState below a page header in the centered standalone layout', () => {
@@ -1766,8 +1618,8 @@ describe('Table', () => {
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
             expect(screen.getByTestId('table-header-component')).toBeTruthy();
             expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
-            expect(mockFlashListProps).toHaveLength(0);
+            expect(screen.queryByTestId('legend-list')).toBeNull();
+            expect(mockLegendListProps).toHaveLength(0);
         });
 
         it('should center a truly empty table when its composed FilterBar renders null', () => {
@@ -1787,7 +1639,7 @@ describe('Table', () => {
             );
 
             expect(screen.queryByTestId('search-input')).toBeNull();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.queryByTestId('legend-list')).toBeNull();
             expect(screen.getByTestId('table-empty-state-scroll-view')).toBeTruthy();
             const emptyStateAncestorStyles: unknown[] = [];
             let emptyStateAncestor = screen.getByTestId('generic-empty-state').parent;
@@ -1841,7 +1693,7 @@ describe('Table', () => {
                     }),
                 ]),
             );
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.queryByTestId('legend-list')).toBeNull();
         });
 
         it('should keep the focused search input mounted when a page-header table changes to no results', () => {
@@ -1876,8 +1728,8 @@ describe('Table', () => {
             const searchInput = screen.getByTestId('search-input');
             const searchInputNativeID: unknown = searchInput.props.nativeID;
             expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
-            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockLegendListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
             expect(mockTextInputUnmount).not.toHaveBeenCalled();
             fireEvent(searchInput, 'focus');
@@ -1886,30 +1738,24 @@ describe('Table', () => {
             expect(mockTextInputFocus).not.toHaveBeenCalled();
             fireEvent.changeText(searchInput, 'no-match-search');
 
-            const flashList = screen.getByTestId('flash-list');
+            const legendList = screen.getByTestId('legend-list');
             expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
-            expect(within(flashList).getByTestId('generic-empty-state')).toBeTruthy();
-            expect(within(flashList).getByTestId('table-header-component')).toBeTruthy();
-            expect(within(flashList).getByTestId('search-input').props.value).toBe('no-match-search');
-            expect(within(flashList).getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
+            expect(within(legendList).getByTestId('generic-empty-state')).toBeTruthy();
+            expect(within(legendList).getByTestId('table-header-component')).toBeTruthy();
+            expect(within(legendList).getByTestId('search-input').props.value).toBe('no-match-search');
+            expect(within(legendList).getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
             expect(tableRef.current?.getActiveSearchString()).toBe('no-match-search');
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.ListEmptyComponentStyle)).toEqual(
-                expect.objectContaining({
-                    flexGrow: 1,
-                    justifyContent: 'center',
-                }),
-            );
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(expect.objectContaining({flexGrow: 1}));
-            expect(mockFlashListProps.at(-1)?.onEndReached).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.onStartReached).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toBeUndefined();
-            expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(0);
+            expect(StyleSheet.flatten(mockLegendListProps.at(-1)?.contentContainerStyle)).toEqual(expect.objectContaining({flexGrow: 1}));
+            expect(mockLegendListProps.at(-1)?.onEndReached).toBeUndefined();
+            expect(mockLegendListProps.at(-1)?.onStartReached).toBeUndefined();
+            expect(mockLegendListProps.at(-1)?.onViewableItemsChanged).toBeUndefined();
+            expect(mockLegendListScrollToOffset).toHaveBeenCalledWith({
                 offset: 0,
                 animated: false,
             });
-            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
-            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockLegendListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
             expect(mockTextInputUnmount).not.toHaveBeenCalled();
             expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
@@ -1919,16 +1765,16 @@ describe('Table', () => {
 
             fireEvent.changeText(searchInput, '');
 
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('legend-list')).toBeTruthy();
             expect(screen.queryByTestId('generic-empty-state')).toBeNull();
             expect(screen.getByTestId('search-input').props.nativeID).toBe(searchInputNativeID);
             expect(tableRef.current?.getActiveSearchString()).toBe('');
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-            expect(mockFlashListProps.at(-1)?.onEndReached).toBe(onEndReached);
-            expect(mockFlashListProps.at(-1)?.onStartReached).toBe(onStartReached);
-            expect(mockFlashListProps.at(-1)?.onViewableItemsChanged).toEqual(expect.any(Function));
-            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
-            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockLegendListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockLegendListProps.at(-1)?.onEndReached).toBe(onEndReached);
+            expect(mockLegendListProps.at(-1)?.onStartReached).toBe(onStartReached);
+            expect(mockLegendListProps.at(-1)?.onViewableItemsChanged).toEqual(expect.any(Function));
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockLegendListUnmount).not.toHaveBeenCalled();
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
             expect(mockTextInputUnmount).not.toHaveBeenCalled();
             expect(mockTextInputNativeFocus).toHaveBeenCalledTimes(1);
@@ -1968,8 +1814,8 @@ describe('Table', () => {
             expect(tableRef.current?.getActiveSearchString()).toBe('');
             expect(mockTextInputUnmount).toHaveBeenCalledTimes(1);
             expect(mockTextInputNativeBlur).toHaveBeenCalledTimes(1);
-            expect(mockFlashListMount).toHaveBeenCalledTimes(1);
-            expect(mockFlashListUnmount).not.toHaveBeenCalled();
+            expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+            expect(mockLegendListUnmount).not.toHaveBeenCalled();
         });
 
         it('should preserve a styled list footer without letting it displace the no-results content', () => {
@@ -2006,22 +1852,22 @@ describe('Table', () => {
             );
 
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
+            expect(mockLegendListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
 
             fireEvent.changeText(screen.getByTestId('search-input'), 'no-match-search');
 
-            const flashList = screen.getByTestId('flash-list');
+            const legendList = screen.getByTestId('legend-list');
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
-            expect(within(flashList).getByTestId('list-footer')).toBeTruthy();
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.contentContainerStyle)).toEqual(
+            expect(within(legendList).getByTestId('list-footer')).toBeTruthy();
+            expect(StyleSheet.flatten(mockLegendListProps.at(-1)?.contentContainerStyle)).toEqual(
                 expect.objectContaining({
                     flexGrow: 1,
                     minHeight: 600,
                     paddingBottom: 12,
                 }),
             );
-            expect(StyleSheet.flatten(mockFlashListProps.at(-1)?.ListFooterComponentStyle)).toEqual(
+            expect(StyleSheet.flatten(mockLegendListProps.at(-1)?.ListFooterComponentStyle)).toEqual(
                 expect.objectContaining({
                     flexGrow: 0,
                     justifyContent: listFooterComponentStyle.justifyContent,
@@ -2044,9 +1890,9 @@ describe('Table', () => {
 
             fireEvent.changeText(screen.getByTestId('search-input'), '');
 
-            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('legend-list')).toBeTruthy();
             expect(screen.getAllByTestId('list-footer')).toHaveLength(1);
-            expect(mockFlashListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
+            expect(mockLegendListProps.at(-1)?.ListFooterComponentStyle).toEqual(listFooterComponentStyle);
         });
 
         it('should render Table.EmptyState as a sibling when no page header is present', () => {
@@ -2066,7 +1912,7 @@ describe('Table', () => {
 
             // Without a page header the body renders nothing and the empty state fills the table area.
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
-            expect(screen.queryByTestId('flash-list')).toBeNull();
+            expect(screen.queryByTestId('legend-list')).toBeNull();
         });
     });
 
@@ -2969,7 +2815,7 @@ describe('Table', () => {
     });
 
     describe('row selection (shift+click)', () => {
-        const renderSelectableRow = ({item, index}: ListRenderItemInfo<TestItem>) => (
+        const renderSelectableRow = ({item, index}: LegendListModule.LegendListRenderItemProps<TestItem>) => (
             <Table.Row
                 interactive
                 rowIndex={index}

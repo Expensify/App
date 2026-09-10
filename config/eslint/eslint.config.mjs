@@ -44,6 +44,18 @@ rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
+        name: '@components/FlatList',
+        message: "Use 'LegendList' from '@legendapp/list/react-native' instead.",
+    },
+    {
+        name: '@components/KeyboardDismissibleFlatList',
+        message: "Use 'LegendList' from '@legendapp/list/react-native' instead.",
+    },
+    {
+        name: '@components/KeyboardDismissibleFlatList/index',
+        message: "Use 'LegendList' from '@legendapp/list/react-native' instead.",
+    },
+    {
         name: '@components/Button',
         importNames: ['default'],
         message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
@@ -65,6 +77,8 @@ const restrictedImportPaths = [
             'Pressable',
             'Text',
             'ScrollView',
+            'FlatList',
+            'FlatListProps',
             'ActivityIndicator',
             'Animated',
             'findNodeHandle',
@@ -77,6 +91,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'FlatList' and 'FlatListProps', please use 'LegendList' and 'LegendListProps' from '@legendapp/list/react-native' instead.",
             "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
             "For 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md.",
@@ -84,8 +99,9 @@ const restrictedImportPaths = [
     },
     {
         name: 'react-native-gesture-handler',
-        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
-        message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
+        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'FlatList', 'FlatListProps'],
+        message:
+            "Use 'LegendList' from '@legendapp/list/react-native' for lists, and 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' for pressable components.",
     },
     {
         name: 'awesome-phonenumber',
@@ -170,6 +186,22 @@ const restrictedImportPaths = [
 ];
 
 const restrictedImportPatterns = [
+    {
+        group: [
+            '@shopify/flash-list',
+            '@shopify/flash-list/**',
+            'react-native-draggable-flatlist',
+            'react-native-draggable-flatlist/**',
+            'react-native/Libraries/Lists/FlatList*',
+            'react-native-web/dist/exports/FlatList',
+            'react-native-web/dist/cjs/exports/FlatList',
+        ],
+        message: "Use 'LegendList' from '@legendapp/list/react-native' for lists or '@components/DraggableList' for draggable lists.",
+    },
+    {
+        group: ['@components/FlatList/FlatList', '@components/FlatList/FlatList/**', '@components/FlashList', '@components/FlashList/**'],
+        message: "Legacy list wrappers have been removed. Use 'LegendList' from '@legendapp/list/react-native' instead.",
+    },
     {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
@@ -392,6 +424,10 @@ const config = defineConfig([
 
                 // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
                 {
+                    selector: 'JSXMemberExpression[property.name=/^(FlatList|FlashList)$/]',
+                    message: "Use 'AnimatedLegendList' from '@legendapp/list/reanimated' for animated lists or 'LegendList' from '@legendapp/list/react-native' for plain lists.",
+                },
+                {
                     selector: 'LabeledStatement',
                     message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
                 },
@@ -402,6 +438,14 @@ const config = defineConfig([
             ],
             'no-restricted-properties': [
                 'error',
+                {
+                    property: 'FlatList',
+                    message: "Use 'AnimatedLegendList' from '@legendapp/list/reanimated' for animated lists or 'LegendList' from '@legendapp/list/react-native' for plain lists.",
+                },
+                {
+                    property: 'FlashList',
+                    message: "Use 'LegendList' from '@legendapp/list/react-native' instead.",
+                },
                 {
                     object: 'Image',
                     property: 'getSize',

@@ -1,6 +1,6 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
@@ -22,7 +22,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
-    /** Declarative content rendered as the FlashList header so it scrolls with the table rows. */
+    /** Declarative content rendered as the LegendList header so it scrolls with the table rows. */
     listHeaderElement?: React.ReactNode;
 
     /** Declarative column-header child relocated into the table list when page content is present. */
@@ -34,8 +34,8 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** No-results element extracted from the table children; rendered by TableBody in its page-header empty layout. */
     noResultsStateElement?: React.ReactElement;
 
-    /** Reference to the underlying FlashList for programmatic control. */
-    listRef: React.RefObject<FlashListRef<DataType> | null>;
+    /** Reference to the underlying LegendList for programmatic control. */
+    listRef: React.RefObject<LegendListRef | null>;
 
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
     listContainerRef: React.RefObject<View | null>;
@@ -46,7 +46,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
     scrollInputIntoView: (input: MeasurableInput) => void;
 
-    /** FlashList props passed through from the Table component. */
+    /** LegendList props passed through from the Table component. */
     listProps: SharedListProps<DataType>;
 
     /** Whether or not selection is enabled for the table */
@@ -95,7 +95,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether search string is not empty. */
     hasSearchString: boolean;
 
-    /** Synthetic row metadata shared by the FlashList data and table ref methods. */
+    /** Synthetic row metadata shared by the LegendList data and table ref methods. */
     tableListMetadata: TableListMetadata;
 
     /** Whether the table has an empty result caused by search or filters. */

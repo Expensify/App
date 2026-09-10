@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -328,7 +328,7 @@ export default function WorkspaceMembersTable({
         value: WORKSPACE_MEMBER_FILTER_VALUES.MEMBERS,
     });
 
-    const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceMemberRowData>) => {
+    const renderTableItem = ({item, index}: LegendListRenderItemProps<WorkspaceMemberRowData>) => {
         return (
             <WorkspaceMembersTableRow
                 item={item}

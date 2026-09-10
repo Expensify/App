@@ -19,7 +19,7 @@ import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {ListRenderItem} from '@shopify/flash-list';
+import type {LegendListProps} from '@legendapp/list/react-native';
 
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -145,8 +145,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      */
-    const renderItem: ListRenderItem<EmojiPickerListItem> = useCallback(
-        ({item, target, index}) => {
+    const renderItem: NonNullable<LegendListProps<EmojiPickerListItem>['renderItem']> = useCallback(
+        ({item, index}) => {
             const code = item.code;
             const types = 'types' in item ? item.types : undefined;
 
@@ -161,7 +161,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         accessible
                         accessibilityRole="header"
                         accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
-                        style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}
+                        style={[styles.emojiHeaderContainer, {width: windowWidth}]}
                         onLayout={() => handleHeaderLayout(index)}
                     >
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>

@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import {FlashList} from '@shopify/flash-list';
+import {LegendList} from '@legendapp/list/react-native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -49,7 +49,8 @@ function TransactionReportCarousel() {
 
     return (
         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
-            <FlashList
+            <LegendList
+                maintainVisibleContentPosition
                 key={carousel.carouselKey}
                 snapToAlignment="start"
                 decelerationRate="fast"
@@ -58,6 +59,7 @@ function TransactionReportCarousel() {
                 ItemSeparatorComponent={carousel.renderSeparator}
                 data={carousel.carouselTransactions}
                 ref={setCarouselRef}
+                extraData={carousel.renderItem}
                 nestedScrollEnabled
                 bounces={false}
                 keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}

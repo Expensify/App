@@ -2,11 +2,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {LegendListRef, ViewToken} from '@legendapp/list/react-native';
 import type {ReactElement, ReactNode} from 'react';
-import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 
+import {LegendList} from '@legendapp/list/react-native';
 import React, {cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, Platform, View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import type {FeatureTrainingActionsValue, FeatureTrainingStateValue} from './context';
 import type {IllustrationProps} from './primitives/Illustration';
@@ -21,7 +23,7 @@ import Illustration from './primitives/Illustration';
 import Page from './primitives/Page';
 import PaginationDots from './primitives/PaginationDots';
 
-const CAROUSEL_VIEWABILITY_CONFIG: ViewabilityConfig = {itemVisiblePercentThreshold: 95};
+const CAROUSEL_VIEWABILITY_CONFIG = {itemVisiblePercentThreshold: 95};
 
 const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start', scrollSnapStop: 'always'} as ViewStyle) : {};
 
@@ -85,7 +87,7 @@ function FeatureTrainingCarousel({
 }: FeatureTrainingCarouselProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
-    const horizontalListRef = useRef<RNFlatList<SplitPage>>(null);
+    const horizontalListRef = useRef<LegendListRef>(null);
     const lastReportedPage = useRef(0);
 
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
@@ -190,6 +192,7 @@ function FeatureTrainingCarousel({
     );
 
     const currentPageBody = pages.at(currentPage)?.body ?? null;
+    const carouselExtraData = useMemo(() => ({currentPage, carouselViewportWidth}), [currentPage, carouselViewportWidth]);
 
     const onWrapperLayout = useCallback(
         (e: LayoutChangeEvent) => {
@@ -240,9 +243,10 @@ function FeatureTrainingCarousel({
                     {carouselViewportWidth > 0 && (
                         <>
                             <View>
-                                <FlatList
+                                <LegendList
                                     ref={horizontalListRef}
                                     data={pages}
+                                    extraData={carouselExtraData}
                                     keyExtractor={(_page, index) => `FeatureTrainingCarousel-page-${index}`}
                                     horizontal
                                     pagingEnabled
@@ -255,7 +259,7 @@ function FeatureTrainingCarousel({
                                     keyboardShouldPersistTaps="handled"
                                     viewabilityConfig={CAROUSEL_VIEWABILITY_CONFIG}
                                     onViewableItemsChanged={onViewableItemsChanged}
-                                    getItemLayout={(_data, index) => ({length: carouselViewportWidth, offset: index * carouselViewportWidth, index})}
+                                    getFixedItemSize={() => carouselViewportWidth}
                                     renderItem={({item, index}) => (
                                         <View style={[{width: carouselViewportWidth}, WEB_CAROUSEL_PAGE_SNAP_STYLE]}>
                                             {item.illustration == null ? null : cloneElement(item.illustration, {isFocused: index === currentPage})}

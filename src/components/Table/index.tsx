@@ -52,7 +52,7 @@ import TableRow from './TableRow';
  * - `Table.Context` - The React context (for advanced usage)
  * - `Table.Header` - Sortable column headers
  * - `Table.ListHeader` - Content that scrolls with the table rows
- * - `Table.Body` - Data rows using FlashList
+ * - `Table.Body` - Data rows using LegendList
  * - `Table.FilterBar` - Search input & filter bar
  * - `Table.Row` - A single row in the table
  * - `Table.EmptyState` - Renders when the table has no rows
@@ -69,7 +69,7 @@ const Table = Object.assign(TableComponent, {
     /** Content that scrolls with the table rows. */
     ListHeader: TableListHeader,
 
-    /** Renders data rows using FlashList. */
+    /** Renders data rows using LegendList. */
     Body: TableBody,
 
     /** Renders a row in the table */

@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
-import type {FlashListRef} from '@shopify/flash-list';
+import type {LegendListRef} from '@legendapp/list/react-native';
 
 import {useRef} from 'react';
 
@@ -65,7 +65,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
-    const listRef = useRef<FlashListRef<SearchListItem>>(null);
+    const listRef = useRef<LegendListRef>(null);
     const prevDataLength = usePrevious(data.length);
     const hasItemsBeingRemoved = !!prevDataLength && prevDataLength > data.length;
 

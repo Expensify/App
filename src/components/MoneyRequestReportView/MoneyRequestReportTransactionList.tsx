@@ -1,7 +1,6 @@
 import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
-import type FlatListRefType from '@components/FlashList/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -63,6 +62,8 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
 
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -104,7 +105,7 @@ type TransactionListItemData = {type: 'section-header'; groupKey: string; group:
 /**
  * Bundle of data + JSX nodes the parent needs to render the unified list around the transaction-list state.
  * Wide on purpose: this is the single integration point between TransactionList's internal state and the parent
- * FlatList that renders both transactions and report actions in one virtualized scroll. Splitting would just smear the
+ * list that renders both transactions and report actions in one virtualized scroll. Splitting would just smear the
  * same locals across multiple call sites without earning an abstraction.
  */
 type MoneyRequestReportTransactionListController = {
@@ -123,7 +124,7 @@ type MoneyRequestReportTransactionListController = {
     /** Chrome rendered below the transaction items (pending placeholder, Add Expense, breakdown, total). Null when there are no transactions. */
     afterListContent: React.ReactElement | null;
 
-    /** True when the rendered table is wider than the viewport; the parent renders it via `ExternalScrollFlashListTable` with its own horizontal scroller. */
+    /** True when the rendered table is wider than the viewport; the parent renders it via `ExternalScrollLegendListTable` with its own horizontal scroller. */
     shouldScrollHorizontally: boolean;
 
     /** Pixel width of the table at full column visibility — passed to the horizontal scroll wrapper as `contentWidth`. */
@@ -138,7 +139,7 @@ const EMPTY_VIOLATIONS: OnyxTypes.TransactionViolations = [];
 /**
  * Looks up violations from the bulk collection and filters them via `getVisibleTransactionViolations`.
  * Returns the stable EMPTY_VIOLATIONS reference for the common no-violations case so the row's prop
- * identity stays stable across FlashList recycles.
+ * identity stays stable across recycled list rows.
  */
 function filterTransactionViolations(
     transaction: TransactionWithOptionalHighlight,
@@ -202,8 +203,8 @@ type MoneyRequestReportTransactionListProps = {
     /** Report action ID the unified list should initially scroll to, when deep-linked. */
     linkedReportActionID: string | undefined;
 
-    /** Ref forwarded to the underlying FlashList. */
-    listRef: FlatListRefType;
+    /** Ref forwarded to the underlying action list. */
+    listRef: ActionListRefType;
 
     /** Reports the unified list's last item index so the parent can jump to the bottom via scrollToIndex. */
     onLastItemIndexChange?: (index: number) => void;
@@ -211,28 +212,28 @@ type MoneyRequestReportTransactionListProps = {
     /** Accessibility label for the unified list. */
     accessibilityLabel: string;
 
-    /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
+    /** Action list onLayout callback (distinct from the empty-state `onLayout` above). */
     onListLayout: () => void;
 
-    /** FlashList onScroll callback. */
+    /** Action list onScroll callback. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
-    /** FlashList onScrollBeginDrag callback. */
+    /** Action list onScrollBeginDrag callback. */
     onScrollBeginDrag: () => void;
 
-    /** FlashList onContentSizeChange callback. */
+    /** Action list onContentSizeChange callback. */
     onContentSizeChange: () => void;
 
-    /** FlashList onViewableItemsChanged callback. */
+    /** Action list onViewableItemsChanged callback. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
-    /** FlashList onEndReached callback. */
+    /** Action list onEndReached callback. */
     onEndReached: () => void;
 
-    /** FlashList onStartReached callback. */
+    /** Action list onStartReached callback. */
     onStartReached: () => void;
 
-    /** FlashList contentContainerStyle. */
+    /** Action list contentContainerStyle. */
     contentContainerStyle: StyleProp<ViewStyle>;
 
     /** Whether the initial report actions are still loading. */

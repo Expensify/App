@@ -14,9 +14,10 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useImperativeHandle, useRef} from 'react';
 
 import type DraggableListProps from './types';
+import type {DraggableListRef} from './types';
 
 import SortableItem from './SortableItem';
 
@@ -42,8 +43,13 @@ function DraggableList<T>({
     disableScroll,
     focusedIndex: controlledFocusedIndex,
     ref,
-}: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
+}: DraggableListProps<T> & {ref?: React.Ref<DraggableListRef>}) {
     const styles = useThemeStyles();
+    const scrollViewRef = useRef<RNScrollView>(null);
+
+    useImperativeHandle(ref, () => ({
+        scrollToEnd: (options) => scrollViewRef.current?.scrollToEnd(options),
+    }));
     const isControlled = controlledFocusedIndex !== undefined;
     const hasKeyboardNav = !isControlled && !!onSelectRow;
     const containerRef = useRef<HTMLDivElement>(null);
@@ -180,7 +186,7 @@ function DraggableList<T>({
 
     return (
         <ScrollView
-            ref={ref}
+            ref={scrollViewRef}
             style={styles.flex1}
             contentContainerStyle={styles.flex1}
         >

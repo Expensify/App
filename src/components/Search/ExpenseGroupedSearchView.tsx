@@ -44,7 +44,7 @@ const isRowSelected = (key: string | undefined, selectedTransactions: SelectedTr
 /**
  * On wide web layouts each group is split into a sticky header row plus a children-container row, so the
  * rendered list differs from the source data. Returns the rendered list plus the sticky-header and
- * children-container indices FlashList needs. On narrow/native layouts the group rows render as-is.
+ * children-container indices LegendList needs. On narrow/native layouts the group rows render as-is.
  */
 function buildSplitGroupData(data: SearchListItem[], shouldSplitGroups: boolean) {
     if (!shouldSplitGroups) {
@@ -202,16 +202,7 @@ function ExpenseGroupedSearchView({
         return 'default';
     };
 
-    const overrideItemLayout = (layout: {size?: number; span?: number}, item: SearchListItem) => {
-        if (!isGroupHeaderItem(item)) {
-            return;
-        }
-        // FlashList requires mutating the layout object passed to overrideItemLayout.
-        // eslint-disable-next-line no-param-reassign -- FlashList overrideItemLayout API
-        layout.size = variables.tableRowHeight;
-    };
-
-    const stickyHeaderConfig = shouldSplit ? {hideRelatedCell: true, useNativeDriver: true, zIndex: 2} : undefined;
+    const getFixedItemSize = (item: SearchListItem) => (isGroupHeaderItem(item) ? variables.tableRowHeight : undefined);
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
@@ -348,9 +339,8 @@ function ExpenseGroupedSearchView({
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
-                stickyHeaderConfig={stickyHeaderConfig}
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
-                overrideItemLayout={shouldSplit ? overrideItemLayout : undefined}
+                getFixedItemSize={shouldSplit ? getFixedItemSize : undefined}
             />
             {modal}
         </SearchListViewLayout>

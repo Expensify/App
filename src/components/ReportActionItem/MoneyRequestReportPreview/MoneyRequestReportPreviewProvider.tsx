@@ -25,7 +25,7 @@ import type {PersonalDetails, Policy, Report, ReportAction, Transaction, Transac
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ListRenderItem} from '@shopify/flash-list';
+import type {LegendListProps} from '@legendapp/list/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -66,7 +66,7 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     lastTransactionViolations: TransactionViolations;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    renderTransactionItem: ListRenderItem<Transaction>;
+    renderTransactionItem: NonNullable<LegendListProps<Transaction>['renderItem']>;
     onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
     onCancelPendingPress?: () => void;
     currentWidth: number;

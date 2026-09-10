@@ -1,26 +1,26 @@
-import FlashList from '@components/FlashList';
-import type FlatListRefType from '@components/FlashList/types';
-
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRef, LegendListRenderItemProps, ViewToken as LegendListViewToken} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import {LegendList} from '@legendapp/list/react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
+import type {ExternalScrollLegendListTableHandle} from './ExternalScrollLegendListTable';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
 
-import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
+import ExternalScrollLegendListTable, {createScrollOffsetStore} from './ExternalScrollLegendListTable';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 
-/** Single virtualized data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
+/** Single virtualized data item rendered by the unified list. Mixes transactions, a footer marker, and report actions in one scroll. */
 type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};
 
 const TRANSACTIONS_FOOTER_ITEM: UnifiedListItem = {type: 'transactions-footer'};
@@ -42,26 +42,6 @@ function unifiedListKeyExtractor(item: UnifiedListItem) {
 
 function unifiedListItemType(item: UnifiedListItem) {
     return item.type === 'report-action' ? item.action.actionName : item.type;
-}
-
-type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
-    ref: FlatListRefType;
-};
-
-/**
- * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
- * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
- * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
- * needed. The scroll manager relies on the FlashList registering into this slot.
- */
-function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
-    return (
-        <FlashList<UnifiedListItem>
-            // thin forwarder; spreading the props (including the ref) is the point
-            {...props}
-        />
-    );
 }
 
 type MoneyRequestReportUnifiedListProps = {
@@ -90,7 +70,7 @@ type MoneyRequestReportUnifiedListProps = {
     newTransactionID?: string;
 
     /** Ref to the underlying list, shared via the ActionList context. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     accessibilityLabel: string;
 
@@ -152,8 +132,8 @@ function MoneyRequestReportUnifiedList({
     listFooterComponent,
 }: MoneyRequestReportUnifiedListProps) {
     // When the table is wider than the viewport it can't share the horizontally-scrolled container with the chat (chat
-    // would drift sideways / jump on web). Instead the FlashList keeps ONLY the report actions virtualized, and the table is
-    // rendered as the list header via ExternalScrollFlashListTable — a nested FlashList in its own single native
+    // would drift sideways / jump on web). Instead the LegendList keeps ONLY the report actions virtualized, and the table is
+    // rendered as the list header via ExternalScrollLegendListTable, a nested LegendList in its own single native
     // horizontal scroller that windows its rows against THIS list's vertical scroll offset. Chat never lives inside a
     // horizontal scroller, so it never moves sideways. Everywhere else the transactions stay virtualized inline with
     // the report actions.
@@ -180,10 +160,10 @@ function MoneyRequestReportUnifiedList({
     const reportActionIndexOffset = shouldInlineTransactions ? controller.transactionListItems.length + 1 : 0;
 
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
-    const viewableItemsRef = useRef<ViewToken[]>([]);
+    const viewableItemsRef = useRef<Array<LegendListViewToken<UnifiedListItem>>>([]);
 
     // Handle to the nested table (horizontal mode) — read for row page positions, never driven to scroll (its scroll is a no-op).
-    const tableRef = useRef<ExternalScrollFlashListTableHandle>(null);
+    const tableRef = useRef<ExternalScrollLegendListTableHandle>(null);
 
     // Viewport height + table offset fed to the nested table so it can window its rows against this list's scroll.
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
@@ -193,7 +173,7 @@ function MoneyRequestReportUnifiedList({
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
 
-    // A subscribe/notify store carries the scroll offset to the nested table FlashList with zero parent re-renders.
+    // A subscribe/notify store carries the scroll offset to the nested table LegendList with zero parent re-renders.
     // Lazy useState initializer (not useRef.current) so it is created exactly once without reading a ref during render.
     const [scrollOffsetStore] = useState(createScrollOffsetStore);
 
@@ -204,7 +184,7 @@ function MoneyRequestReportUnifiedList({
     }, [report.reportID, scrollOffsetStore]);
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        // Always feed the offset store (emitter, not state: the nested FlashList updates its own render stack without
+        // Always feed the offset store (emitter, not state: the nested LegendList updates its own render window without
         // re-rendering the parent). Feed it even in inline mode — the store has no subscribers then, so this is a cheap
         // write — so that if the layout flips to the horizontal table, the nested list windows against the real scroll
         // offset instead of a stale 0.
@@ -218,9 +198,9 @@ function MoneyRequestReportUnifiedList({
     };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
-    // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
+    // raw LegendList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChangedAdjusted = (info: {viewableItems: Array<LegendListViewToken<UnifiedListItem>>; changed: Array<LegendListViewToken<UnifiedListItem>>}) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -233,7 +213,12 @@ function MoneyRequestReportUnifiedList({
         });
     };
 
-    const dispatchRenderItem = ({item, index}: ListRenderItemInfo<UnifiedListItem>) => {
+    const listExtraData = useMemo(
+        () => ({reportActionsExtraData, renderReportAction, renderTransactionListItem: controller.renderTransactionListItem, afterListContent: controller.afterListContent}),
+        [reportActionsExtraData, renderReportAction, controller.renderTransactionListItem, controller.afterListContent],
+    );
+
+    const dispatchRenderItem = ({item, index}: LegendListRenderItemProps<UnifiedListItem>) => {
         switch (item.type) {
             case 'section-header':
             case 'transaction':
@@ -250,7 +235,7 @@ function MoneyRequestReportUnifiedList({
     const linkedActionLocalIndex = linkedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === linkedReportActionID) : -1;
     const initialScrollIndex = linkedActionLocalIndex >= 0 ? linkedActionLocalIndex + reportActionIndexOffset : undefined;
 
-    // FlashList's `initialScrollIndex` is captured once at mount. On a cold deep-link open the linked action is
+    // LegendList's `initialScrollIndex` is captured once at mount. On a cold deep-link open the linked action is
     // often not in `visibleReportActions` yet (it paginates in after mount), so the mount-only hint resolves to
     // undefined and the list never anchors on the linked message. Re-anchor imperatively once the linked action is
     // present. Guarded so it fires exactly once per linked target and never yanks the user after they've scrolled.
@@ -302,7 +287,7 @@ function MoneyRequestReportUnifiedList({
             return () => cancelAnimationFrame(rafId);
         }
 
-        // Horizontal table: the rows live in a nested FlashList whose own scroll is a no-op — only the parent page
+        // Horizontal table: the rows live in a nested LegendList whose own scroll is a no-op. Only the parent page
         // scrolls. Ask the table where the row sits in page space (works for unmounted rows) and scroll the parent there.
         const rafId = requestAnimationFrame(() => {
             scrolledToNewTransactionIDRef.current = newTransactionID;
@@ -326,18 +311,30 @@ function MoneyRequestReportUnifiedList({
         />
     );
 
+    const setListRef = useCallback(
+        (instance: LegendListRef | null) => {
+            const targetListRef = listRef;
+            if (!targetListRef) {
+                return;
+            }
+            targetListRef.current = instance;
+        },
+        [listRef],
+    );
+
     return (
-        <MoneyRequestReportFlashList
-            ref={listRef}
+        <LegendList<UnifiedListItem>
+            ref={setListRef}
             accessibilityLabel={accessibilityLabel}
             testID="money-request-report-actions-list"
             data={data}
-            extraData={reportActionsExtraData}
+            extraData={listExtraData}
             renderItem={dispatchRenderItem}
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
+            maintainVisibleContentPosition
+            recycleItems
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onEndReached={onEndReached}
@@ -353,7 +350,7 @@ function MoneyRequestReportUnifiedList({
                             {reportFieldsHeader}
                             {controller.beforeListContent}
                         </View>
-                        <ExternalScrollFlashListTable<TransactionListItemData>
+                        <ExternalScrollLegendListTable<TransactionListItemData>
                             items={controller.transactionListItems}
                             keyExtractor={unifiedListKeyExtractor}
                             getItemType={unifiedListItemType}

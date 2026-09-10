@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchStaticList from '@components/Search/SearchStaticList';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -10,9 +11,13 @@ import type {SearchResults} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
+import {LegendList as LibraryLegendList} from '@legendapp/list/react-native';
 import React from 'react';
 
+import createMock from '../utils/createMock';
+
 const mockConciergeReportID = jest.fn((): string | undefined => undefined);
+const mockHasDeferredWrite = jest.fn(() => false);
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: jest.fn(() => ({accountID: 999, email: 'me@expensify.com'})),
@@ -67,7 +72,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
+    hasDeferredWrite: () => mockHasDeferredWrite(),
 }));
 jest.mock('@components/TransactionItemRow', () => jest.fn(() => null));
 jest.mock('@components/Skeletons/SearchRowSkeleton', () => jest.fn(() => null));
@@ -76,6 +81,7 @@ jest.mock('@components/StatusBadge', () => jest.fn(() => null));
 // getSections consumes conciergeReportID (via createOption/getReportName) — keep SearchUIUtils real so the
 // threading through SearchStaticList's getSections call is actually executed by this test.
 const getSectionsSpy = jest.spyOn(SearchUIUtils, 'getSections');
+const getSortedSectionsSpy = jest.spyOn(SearchUIUtils, 'getSortedSections');
 
 const EMPTY_SEARCH_RESULTS: SearchResults = {
     search: {
@@ -96,6 +102,7 @@ const EMPTY_SEARCH_RESULTS: SearchResults = {
 describe('SearchStaticList', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockHasDeferredWrite.mockReturnValue(false);
     });
 
     it('renders and threads the conciergeReportID from Onyx into getSections', () => {
@@ -132,5 +139,36 @@ describe('SearchStaticList', () => {
         );
 
         expect(getSectionsSpy).toHaveBeenCalledWith(expect.objectContaining({conciergeReportID: undefined}));
+    });
+
+    it('invalidates mounted rows when the layout changes while the pending footer remains visible', () => {
+        mockHasDeferredWrite.mockReturnValue(true);
+        const queryJSON = buildSearchQueryJSON('type:expense');
+        if (!queryJSON) {
+            throw new Error('failed to build queryJSON');
+        }
+        const item = createMock<TransactionListItemType>({keyForList: 'transaction-1', transactionID: 'transaction-1'});
+        getSectionsSpy.mockReturnValue([[item], 1, false]);
+        getSortedSectionsSpy.mockReturnValue([item]);
+
+        const {rerender} = render(
+            <SearchStaticList
+                searchResults={EMPTY_SEARCH_RESULTS}
+                queryJSON={queryJSON}
+                shouldUseNarrowLayout
+            />,
+        );
+
+        expect(jest.mocked(LibraryLegendList).mock.lastCall?.[0].extraData).toEqual(expect.arrayContaining([true]));
+
+        rerender(
+            <SearchStaticList
+                searchResults={EMPTY_SEARCH_RESULTS}
+                queryJSON={queryJSON}
+                shouldUseNarrowLayout={false}
+            />,
+        );
+
+        expect(jest.mocked(LibraryLegendList).mock.lastCall?.[0].extraData).toEqual(expect.arrayContaining([false]));
     });
 });

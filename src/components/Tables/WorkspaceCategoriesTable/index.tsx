@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -137,7 +137,7 @@ export default function WorkspaceCategoriesTable({
         return results.length > 0;
     };
 
-    const renderCategoryItem = ({item, index}: ListRenderItemInfo<WorkspaceCategoryTableRowData>) => (
+    const renderCategoryItem = ({item, index}: LegendListRenderItemProps<WorkspaceCategoryTableRowData>) => (
         <WorkspaceCategoriesTableRow
             item={item}
             rowIndex={index}

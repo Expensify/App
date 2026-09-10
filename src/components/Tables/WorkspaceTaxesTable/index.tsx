@@ -9,7 +9,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
 import React from 'react';
 
@@ -73,7 +73,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         return results.length > 0;
     };
 
-    const renderTaxItem = ({item, index}: ListRenderItemInfo<WorkspaceTaxTableRowData>) => (
+    const renderTaxItem = ({item, index}: LegendListRenderItemProps<WorkspaceTaxTableRowData>) => (
         <WorkspaceTaxesTableRow
             item={item}
             rowIndex={index}
