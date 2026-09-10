@@ -14,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
+import type {PartialDeep} from 'type-fest';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -120,7 +122,7 @@ jest.mock('@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTa
     return () => <View testID="WorkspaceCompanyCardsTableHeaderButtons" />;
 });
 
-function buildAssignedCard(overrides?: Partial<Card>): Card {
+function buildAssignedCard(overrides?: PartialDeep<Card, {recurseIntoArrays: true}>): Card {
     return createMock<Card>({
         cardID: 555,
         accountID: ACCOUNT_ID,
