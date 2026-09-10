@@ -430,6 +430,20 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/**
+ * Predicts the horizontal plot bounds victory-native will report for a cartesian chart of this width.
+ *
+ * The library sets the x output range to [padding.left + measured y-label width + y labelOffset, width - padding.right]
+ * and takes the plot bounds from the ends of that range. Our y axis carries no font, so the width it measures for its
+ * own labels is zero and only labelOffset applies.
+ */
+function getCartesianPlotBounds(chartWidth: number, chartPaddingLeft: number): {left: number; right: number} {
+    if (chartWidth <= 0) {
+        return {left: 0, right: 0};
+    }
+    return {left: chartPaddingLeft + VictoryTheme.axis.labelGap, right: chartWidth - VictoryTheme.axis.padding.right};
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -476,6 +490,7 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     getYAxisLabelWidth,
 };
 

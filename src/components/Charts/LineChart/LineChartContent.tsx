@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {getCartesianChartHeight, getXAxisLabelSpace, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -26,9 +26,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
+import type {CartesianChartRenderArg, Scale} from 'victory-native';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -54,9 +54,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const [plotAreaWidth, setPlotAreaWidth] = useState(0);
-    const [boundsLeft, setBoundsLeft] = useState(0);
-    const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
     const chartData = data.map((point, index) => ({
@@ -87,8 +84,11 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
 
-    const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
     const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const {left: boundsLeft, right: boundsRight} = getCartesianPlotBounds(chartWidth, chartPaddingLeft);
+    const plotAreaWidth = boundsRight - boundsLeft;
+
+    const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
@@ -135,12 +135,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         labelSkipInterval,
         chartBottom,
     });
-
-    const handleChartBoundsChange = (bounds: ChartBounds) => {
-        setPlotAreaWidth(bounds.right - bounds.left);
-        setBoundsLeft(bounds.left);
-        setBoundsRight(bounds.right);
-    };
 
     const checkIsOverDot = (args: HitTestArgs) => {
         'worklet';
@@ -252,7 +246,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                         padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
                         renderOutside={renderOutside}
                         xAxis={{

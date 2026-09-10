@@ -14,7 +14,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {getCartesianChartHeight, getXAxisLabelSpace, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -54,9 +54,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
-    const [barAreaWidth, setBarAreaWidth] = useState(0);
-    const [boundsLeft, setBoundsLeft] = useState(0);
-    const [boundsRight, setBoundsRight] = useState(0);
     const defaultBarColor = VictoryTheme.colors.default;
 
     const chartData = data.map((point, index) => ({
@@ -75,6 +72,17 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
             onBarPress(dataPoint, index);
         }
     };
+
+    const {formatValue} = useChartLabelFormats({
+        data,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
+    });
+
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
+    const chartPaddingLeft = yAxisLabelWidth + GLYPH_PADDING;
+    const {left: boundsLeft, right: boundsRight} = getCartesianPlotBounds(chartWidth, chartPaddingLeft);
+    const barAreaWidth = boundsRight - boundsLeft;
 
     const domainPadding = (() => {
         if (chartWidth === 0) {
@@ -102,12 +110,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         measurements,
     });
 
-    const {formatValue} = useChartLabelFormats({
-        data,
-        unit: yAxisUnit,
-        unitPosition: yAxisUnitPosition,
-    });
-
     const barWidth = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
@@ -120,16 +122,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
         labelSkipInterval,
         chartBottom,
     });
-
-    const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const domainWidth = bounds.right - bounds.left;
-        const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-        barWidth.set(calculatedBarWidth);
-        yZero.set(0);
-        setBarAreaWidth(domainWidth);
-        setBoundsLeft(bounds.left);
-        setBoundsRight(bounds.right);
-    };
 
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
@@ -158,6 +150,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        barWidth.set(((1 - BAR_INNER_PADDING) * barAreaWidth) / data.length);
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
         setPointPositions(
@@ -232,8 +225,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const chartBoxStyle = [styles.chartContent, {height: chartHeight}];
 
     const chartSize = chartWidth > 0 ? {width: chartWidth, height: chartHeight} : undefined;
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatValue, fontManager, variables.iconSizeExtraSmall, BASE_DOMAIN_PADDING);
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: chartPaddingLeft};
 
     if (isLoading || !fontManager) {
         return (
@@ -257,7 +249,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                         padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
-                        onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
                         renderOutside={renderOutside}
                         xAxis={{
