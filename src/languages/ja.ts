@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '検索',
         reports: 'レポート',
         spend: '支出',
+        insights: 'インサイト',
         find: '検索',
         searchWithThreeDots: '検索…',
         next: '次へ',
@@ -4578,6 +4579,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travel: '出張',
             members: 'メンバー',
             accounting: '会計',
+            mcp: 'MCP',
             receiptPartners: '領収書パートナー',
             rules: 'ルール',
             displayedAs: '表示形式',
@@ -4714,6 +4716,25 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
+        },
+        mcp: {
+            connectors: 'コネクタ',
+            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            connect: '接続',
+            helpPrompt: '接続にお困りですか？',
+            helpLink: 'ガイドをご覧ください。',
+            claude: {
+                title: 'Claude',
+                subtitle: 'Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'Anysphere 提供',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6438,6 +6459,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             connections: {
                 title: '会計',
                 subtitle: '勘定科目表などを同期します。',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
             },
             receiptPartners: {
                 title: '領収書パートナー',
@@ -9365,7 +9390,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
-            has: {submittedViolation: '違反を送信しました'},
+            has: {submittedViolation: '違反を送信しました', approvedViolation: '承認済みの違反'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',

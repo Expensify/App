@@ -8038,6 +8038,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: GROUP_CHAT_NAME,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8089,6 +8090,7 @@ describe('actions/Report', () => {
                 hasCompletedGuidedSetupFlow: false,
                 conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSupportalSession: false,
             });
             await waitForBatchedUpdates();
 
@@ -8118,6 +8120,7 @@ describe('actions/Report', () => {
                 hasCompletedGuidedSetupFlow: true,
                 conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSupportalSession: false,
             });
             await waitForBatchedUpdates();
 
@@ -8154,6 +8157,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: GROUP_CHAT_NAME,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8190,6 +8194,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with isSelfTourViewed=true but onboarding already completed
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: GROUP_CHAT_NAME,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8218,6 +8223,7 @@ describe('actions/Report', () => {
 
             // When create group chat is called with an avatarFile
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: 'Avatar File Group',
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8250,6 +8256,7 @@ describe('actions/Report', () => {
             // When create group chat is called with a participant not in allPersonalDetails (flagged as an optimistic personal detail)
             const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN]).at(0) ?? CONST.DEFAULT_NUMBER_ID;
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: {
                     [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test user account'},
                     [unknownParticipantAccountID]: {
@@ -8306,6 +8313,7 @@ describe('actions/Report', () => {
 
             // When hasCompletedGuidedSetupFlow param is explicitly true, it overrides Onyx
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: GROUP_CHAT_NAME,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8355,6 +8363,7 @@ describe('actions/Report', () => {
 
             // When hasCompletedGuidedSetupFlow param is explicitly false, guided setup should run
             Report.navigateToAndCreateGroupChat({
+                isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
                 reportName: GROUP_CHAT_NAME,
                 currentUserLogin: TEST_USER_LOGIN,
@@ -8479,6 +8488,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8535,6 +8545,7 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with the participant that has an existing chat and onboarding is
             // already complete (so no onboarding OpenReport needs to be enqueued)
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8590,6 +8601,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with onboarding still pending (guided setup not yet completed)
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8638,6 +8650,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8676,6 +8689,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with introSelected
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8707,6 +8721,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport creates a new chat with introSelected and the conciergeChat threaded through
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat,
                 personalDetails: {},
@@ -8744,6 +8759,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with shouldDismissModal=false
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8780,6 +8796,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8818,6 +8835,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8856,6 +8874,7 @@ describe('actions/Report', () => {
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -8895,6 +8914,7 @@ describe('actions/Report', () => {
             const testBetas = [CONST.BETAS.ALL];
 
             Report.navigateToAndOpenReport({
+                isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
                 conciergeChat: undefined,
                 personalDetails: {},
@@ -9062,6 +9082,157 @@ describe('actions/Report', () => {
             const addCommentBody = requestOptions && typeof requestOptions === 'object' && 'body' in requestOptions ? requestOptions.body : undefined;
             const addCommentParams = addCommentBody instanceof FormData ? Object.fromEntries(addCommentBody) : {};
             expect(addCommentParams.reportID).toBe(MOCK_FALLBACK_DM_REPORT_ID);
+        });
+    });
+
+    describe('supportal session chat creation guard', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const PARTICIPANT_LOGIN = 'participant@test.com';
+        const PARTICIPANT_ACCOUNT_ID = 2;
+        const EXISTING_REPORT_ID = '456';
+        const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+        async function signInAsSupportAgent() {
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN, displayName: 'Participant'},
+            });
+            await Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+            await waitForBatchedUpdates();
+        }
+
+        async function createExistingChat(errorFields?: OnyxTypes.Report['errorFields']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_REPORT_ID}`, {
+                reportID: EXISTING_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+                errorFields,
+            });
+            await waitForBatchedUpdates();
+        }
+
+        it('should block navigateToAndOpenReport from creating a new chat and show the permission denied modal', async () => {
+            await signInAsSupportAgent();
+
+            Report.navigateToAndOpenReport({
+                isSupportalSession: true,
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // No chat is created, nothing is navigated to, and the standard blocking modal is triggered instead of the generic create error
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toEqual({command: WRITE_COMMANDS.OPEN_REPORT});
+        });
+
+        it('should still open an existing chat during a supportal session', async () => {
+            await signInAsSupportAgent();
+            await createExistingChat();
+
+            Report.navigateToAndOpenReport({
+                isSupportalSession: true,
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                betas: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_REPORT_ID));
+            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toBeFalsy();
+        });
+
+        it('should not fall back to creating a chat when revalidating an existing chat that turns out to be notFound', async () => {
+            await signInAsSupportAgent();
+            await createExistingChat();
+
+            Report.navigateToAndOpenReport({
+                isSupportalSession: true,
+                userLogins: [PARTICIPANT_LOGIN],
+                conciergeChat: undefined,
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                betas: undefined,
+                shouldRevalidateExistingChat: true,
+            });
+            await waitForBatchedUpdates();
+
+            // The existing chat is revalidated and opened as normal
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_REPORT_ID));
+
+            // When the server later reports the chat as notFound, the fallback create re-enters asynchronously and must be blocked
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_REPORT_ID}`, {errorFields: {notFound: {message: 'stale'}}});
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toEqual({command: WRITE_COMMANDS.OPEN_REPORT});
+        });
+
+        it('should block navigateToAndCreateGroupChat', async () => {
+            await signInAsSupportAgent();
+
+            Report.navigateToAndCreateGroupChat({
+                isSupportalSession: true,
+                participantsPersonalDetails: {
+                    [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN, displayName: 'Test'},
+                    [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN, displayName: 'Participant'},
+                },
+                reportName: 'Group',
+                currentUserLogin: TEST_USER_LOGIN,
+                optimisticReportID: '789',
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: true,
+                conciergeChat: undefined,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toEqual({command: WRITE_COMMANDS.OPEN_REPORT});
+        });
+
+        it('should still open a message thread during a supportal session', async () => {
+            await signInAsSupportAgent();
+            await createExistingChat();
+
+            Report.navigateToAndOpenChildReport(
+                undefined,
+                {reportActionID: '1', created: DateUtils.getDBTime(), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
+                {reportID: EXISTING_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
+                TEST_USER_ACCOUNT_ID,
+                testIntroSelected,
+                undefined,
+                {},
+                false,
+                undefined,
+            );
+            await waitForBatchedUpdates();
+
+            // Threads are not chat creation, so navigating around during a support session must not pop the blocking modal
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            await expect(getOnyxValue(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED)).resolves.toBeFalsy();
         });
     });
 

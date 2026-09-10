@@ -112,6 +112,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
     ]);
 
     const policyName = policy?.name ?? '';

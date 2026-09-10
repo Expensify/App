@@ -33,6 +33,7 @@ const icons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
 };
 
 function buildPolicy(role: Policy['role']): Policy {
@@ -383,6 +384,7 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.accounting',
             'workspace.common.hr',
             'workspace.common.receiptPartners',
+            'workspace.common.mcp',
             'workspace.common.categories',
             'workspace.common.vendors',
             'workspace.common.tags',
@@ -406,6 +408,7 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.POLICY_ACCOUNTING.getRoute(policy.id),
             ROUTES.WORKSPACE_HR.getRoute(policy.id),
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
             ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
@@ -429,6 +432,7 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.ACCOUNTING.ROOT,
             SCREENS.WORKSPACE.HR,
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
             SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,

@@ -12,7 +12,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -83,8 +82,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
@@ -92,7 +89,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RULES_TAB_TYPE}`);
     const lastSelectedTabStr = lastSelectedTab as string | undefined;
     const resolvedTab: RulesTab = lastSelectedTabStr && isRulesTab(lastSelectedTabStr) ? lastSelectedTabStr : RULES_TAB.GENERAL;
-    const activeTab: RulesTab = resolvedTab === RULES_TAB.AGENTS && !isCustomAgentBetaEnabled ? RULES_TAB.GENERAL : resolvedTab;
+    const activeTab = resolvedTab;
     const [selectedRuleKeysByTab, setSelectedRuleKeysByTab] = useState<Partial<Record<TableSelectionTab, string[]>>>({});
 
     const {showConfirmModal} = useConfirmModal();
@@ -239,15 +236,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             title: translate('workspace.rules.tabs.flagForReview'),
             icon: icons.Flag,
         },
-        ...(isCustomAgentBetaEnabled
-            ? [
-                  {
-                      key: RULES_TAB.AGENTS,
-                      title: translate('workspace.rules.tabs.agents'),
-                      icon: icons.Bot,
-                  },
-              ]
-            : []),
+        {
+            key: RULES_TAB.AGENTS,
+            title: translate('workspace.rules.tabs.agents'),
+            icon: icons.Bot,
+        },
     ];
 
     const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
