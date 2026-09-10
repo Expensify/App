@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Suche',
         reports: 'Berichte',
         spend: 'Ausgaben',
+        insights: 'Einblicke',
         find: 'Finden',
         searchWithThreeDots: 'Suchen...',
         next: 'Weiter',
