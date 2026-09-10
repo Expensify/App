@@ -79,6 +79,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Szukaj',
         reports: 'Raporty',
         spend: 'Wydatki',
+        insights: 'Analityka',
         find: 'Znajdź',
         searchWithThreeDots: 'Szukaj...',
         next: 'Dalej',
@@ -468,6 +469,8 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         enableGlobalReimbursements: 'Włącz globalne zwroty',
+        corpayPayModalTitle: 'Zapłać raport',
+        corpayPayModalPrompt: 'Ta osoba zgłaszająca ma konto bankowe inne niż USD. Włącz globalne zwroty, aby zapłacić raport, lub poproś o dodanie konta bankowego w USD.',
         purchaseAmount: 'Kwota zakupu',
         originalAmount: 'Kwota pierwotna',
         frequency: 'Częstotliwość',
@@ -3186,6 +3189,7 @@ ${amount} dla ${merchant} - ${date}`,
         unread: 'Nieprzeczytane',
         markAllAsRead: 'Oznacz wszystkie jako przeczytane',
         markAllAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty jako przeczytane?',
+        markAllTodosAsReadConfirmationPrompt: 'Czy na pewno chcesz oznaczyć wszystkie czaty do zrobienia jako przeczytane?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
@@ -4638,6 +4642,7 @@ ${amount} dla ${merchant} - ${date}`,
             travel: 'Podróże',
             members: 'Członkowie',
             accounting: 'Księgowość',
+            mcp: 'MCP',
             receiptPartners: 'Partnerzy paragonów',
             rules: 'Zasady',
             displayedAs: 'Wyświetlane jako',
@@ -4774,6 +4779,25 @@ ${amount} dla ${merchant} - ${date}`,
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
             description: 'Świetna wiadomość 🎉. Skontaktuj się z nami, jeśli potrzebują pomocy przy konfiguracji.',
+        },
+        mcp: {
+            connectors: 'Konektory',
+            connectorsSubtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
+            connect: 'Połącz',
+            helpPrompt: 'Potrzebujesz pomocy z połączeniem?',
+            helpLink: 'Przeczytaj nasz przewodnik.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'od Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'od Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'od OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6527,6 +6551,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
+            },
             receiptPartners: {
                 title: 'Partnerzy paragonów',
                 subtitle: 'Automatycznie importuj paragony.',
@@ -7043,6 +7071,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7121,7 +7151,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Przetwarzanie zaimportowanych danych';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Synchronizowanie zrefundowanych raportów i płatności rachunków';
+                            return 'Synchronizowanie rozliczonych raportów i płatności rachunków';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importowanie kodów podatkowych';
                         case 'quickbooksOnlineCheckConnection':
@@ -7142,7 +7172,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksDesktopImportDimensions':
                             return 'Importowanie wymiarów';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Importowanie zapisanej polityki';
+                            return 'Importowanie polityki zapisu';
                         case 'quickbooksDesktopWebConnectorReminder':
                             return 'Trwa nadal synchronizowanie danych z QuickBooks... Upewnij się, że Web Connector jest uruchomiony';
                         case 'quickbooksOnlineSyncTitle':
@@ -7160,7 +7190,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Aktualizowanie pól raportu';
                         case 'jobDone':
-                            return 'Oczekiwanie na wczytanie zaimportowanych danych';
+                            return 'Oczekiwanie na załadowanie zaimportowanych danych';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Synchronizowanie planu kont';
                         case 'xeroSyncImportCategories':
@@ -7168,7 +7198,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'xeroSyncImportCustomers':
                             return 'Synchronizowanie klientów';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zwrócone';
                         case 'xeroSyncExpensifyReimbursedReports':
                             return 'Oznaczanie rachunków i faktur Xero jako opłaconych';
                         case 'xeroSyncImportTrackingCategories':
@@ -7202,11 +7232,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'netSuiteSyncReportFields':
                             return 'Importowanie danych jako pola raportu Expensify';
                         case 'netSuiteSyncTags':
-                            return 'Importowanie danych jako tagów Expensify';
+                            return 'Importowanie danych jako tagi Expensify';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Aktualizowanie informacji o połączeniu';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Oznaczanie raportów Expensify jako rozliczonych';
+                            return 'Oznaczanie raportów Expensify jako zwrócone';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Oznaczanie rachunków i faktur w NetSuite jako opłaconych';
                         case 'netSuiteImportVendorsTitle':
@@ -7245,7 +7275,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'financialForceSyncDimensions':
                             return 'Importowanie wymiarów';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Oznaczanie raportów jako zwrócone';
+                            return 'Oznaczanie raportów jako rozliczone';
                         case 'rilletSyncTitle':
                             return 'Synchronizowanie danych Rillet';
                         case 'rilletSyncConnection':
@@ -7263,6 +7293,18 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Synchronizowanie rozliczeń karty';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Synchronizowanie rozliczeń podróży';
+                        case 'campfireSyncTitle':
+                            return 'Synchronizowanie danych Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Inicjowanie połączenia z Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Wczytywanie danych';
+                        case 'campfireSyncPayments':
+                            return 'Synchronizowanie płatności dla dostawców';
+                        case 'campfireSyncCardSettlements':
+                            return 'Synchronizowanie rozliczeń karty';
+                        case 'campfireSyncTravelSettlements':
                             return 'Synchronizowanie rozliczeń podróży';
                         default: {
                             return `Brak tłumaczenia dla etapu: ${stage}`;
@@ -7305,6 +7347,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Aby odblokować, ustaw konto dla swoich eksportów.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Aby odblokować, włącz automatyczną synchronizację.',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
@@ -7608,6 +7651,12 @@ ${reportName}`,
                 description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + DualEntry. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji DualEntry, aby uzyskać lepszą widoczność finansową.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Integracja z DualEntry jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Korzystaj z automatycznej synchronizacji i ogranicz ręczne wprowadzanie danych dzięki integracji Expensify + Campfire. Dopasuj wymiary kategoryzacji wydatków i synchronizację podatków do konfiguracji Campfire, aby uzyskać lepszą widoczność finansową.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracja z Campfire jest dostępna tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka miesięcznie.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Zaawansowane zatwierdzanie',
@@ -8011,6 +8060,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 turnOnTaxesFirstPrompt: 'Reguły kategorii ustawiają domyślną stawkę podatku. Włącz podatki w ustawieniach swojego workspace, aby z nich korzystać.',
                 categoryRulesApplyGoingForwardTitle: 'Reguły kategorii będą stosowane od teraz',
                 categoryRulesApplyGoingForwardPrompt: 'Domyślna stawka podatku będzie stosowana do nowych wydatków w tej kategorii. Istniejące wydatki nie zostaną zmienione.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Wybrana stawka podatku jest teraz domyślną stawką w twoim zespole, więc ta reguła nie jest już prawidłowa. Wybierz inną stawkę podatku.',
+                addTaxRateFirstTitle: 'Najpierw dodaj stawkę podatku',
+                addTaxRateFirstPrompt: 'Reguły kategorii ustawiają domyślną stawkę podatku. Dodaj stawkę podatku inną niż domyślna w twoim obszarze roboczym, żeby z nich korzystać.',
+                createRuleFromExpenseAction: 'Utwórz regułę',
+                createRuleFromExpensePrompt: 'aby zastosować zmiany do wszystkich wydatków spełniających twoje kryteria.',
             },
             categoryRules: {
                 title: 'Reguły kategorii',
@@ -8532,6 +8587,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',
             subtitle: 'Wymagaj od członków swojej domeny logowania jednokrotnym logowaniem (SSO), ograniczaj tworzenie przestrzeni roboczych i nie tylko.',
+        },
+        campfire: {
+            campfireSetup: 'Konfiguracja Campfire',
+            enterCredentials: 'Wpisz swój klucz API Campfire',
+            howToFindAPIKey:
+                '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Campfire</li><li>Przejdź do Ustawienia -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
+            subsidiary: 'Spółka zależna',
+            subsidiarySelectDescription: 'Wybierz spółkę zależną w Campfire, z której chcesz zaimportować dane.',
+            noSubsidiariesFound: 'Nie znaleziono żadnych spółek zależnych',
+            noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
         },
     },
     getAssistancePage: {
@@ -9437,7 +9502,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
-            has: {submittedViolation: 'Zgłoszone naruszenie'},
+            has: {submittedViolation: 'Zgłoszone naruszenie', approvedViolation: 'Zatwierdzone naruszenie'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Wyślij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
@@ -9531,7 +9596,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             unapprovedCard: 'Rozliczenia narosłe na kartach',
             statements: 'Wyciągi z karty',
             reconciliation: 'Uzgadnianie bankowe',
-            insights: 'Wnioski',
+            insights: 'Analityka',
             topSpenders: 'Najwięksi wydający',
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
