@@ -27,7 +27,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -2562,7 +2562,7 @@ describe('actions/Policy', () => {
                     },
                 },
             };
-            const engineeringRoadshowTag = {
+            const engineeringRoadshowTag: PolicyTag = {
                 name: 'Roadshow',
                 enabled: true,
                 rules: {parentTagsFilter: '^Engineering$'},
