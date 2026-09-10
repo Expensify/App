@@ -566,7 +566,7 @@ describe('actions/Domain', () => {
             }),
         );
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, true);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -952,7 +952,7 @@ describe('actions/Domain', () => {
             [optimisticAccountID]: {accountID: optimisticAccountID, login: email, isOptimisticPersonalDetail: true},
         });
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, '', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, true);
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, '', true);
 
         await TestHelper.getOnyxData({
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -971,7 +971,7 @@ describe('actions/Domain', () => {
             [accountID]: {accountID, login: email},
         });
 
-        clearDomainMemberError(domainAccountID, accountID, email, '', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        clearDomainMemberError(domainAccountID, accountID, email, '');
 
         await TestHelper.getOnyxData({
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

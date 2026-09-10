@@ -1,5 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import {useTableContext} from '@components/Table/TableContext';
