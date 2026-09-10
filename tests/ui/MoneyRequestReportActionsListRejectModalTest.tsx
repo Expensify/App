@@ -10,6 +10,7 @@ import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
+import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +58,7 @@ jest.mock('@hooks/useInFlightRequests', () => ({
     useIsReportLoadPending: jest.fn(),
 }));
 jest.mock('@hooks/useNetwork', () => jest.fn());
+jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
@@ -129,6 +131,7 @@ jest.mock('@components/ButtonWithDropdownMenu', () => {
 const mockOriginalRejectOnSelected = jest.fn();
 const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
 const mockUseNetwork = jest.mocked(useNetwork);
+const mockUseUnreadMarker = jest.mocked(useUnreadMarker);
 jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
@@ -285,6 +288,29 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // Modal should now be visible
         expect(screen.getByTestId('HoldOrRejectEducationalModal')).toBeTruthy();
         expect(mockOriginalRejectOnSelected).not.toHaveBeenCalled();
+    });
+
+    it('passes read state to the unread marker', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
+                    ...mockReport,
+                    lastActorAccountID: FAKE_ACCOUNT_ID,
+                    lastMessageText: 'expense',
+                    lastReadTime: mockReport.lastVisibleActionCreated,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isReportUnread: false}));
     });
 
     it('should NOT show reject educational modal when explanation HAS been dismissed', async () => {
