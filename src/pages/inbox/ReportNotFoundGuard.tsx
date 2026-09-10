@@ -14,6 +14,7 @@ import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 
 import type {ReactNode} from 'react';
@@ -55,8 +56,9 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
     // A pre-mounted destination for a report the submit has not created yet: offline drops the actions-loading
-    // term above, so the guard would otherwise flash not-found until the optimistic report row lands.
-    const isPendingCreation = routeParams?.isPendingCreation === 'true';
+    // term above, so the guard would otherwise flash not-found until the optimistic report row lands. Only
+    // SCREENS.REPORT sets and clears this flag, so ignore it on the RHP report screen where it could never expire.
+    const isPendingCreation = route.name === SCREENS.REPORT && routeParams?.isPendingCreation === 'true';
 
     // `isLoadingInitialReportActions` lives in a memory-only key that is not reset between navigations.
     // Returning to a previously visited report (e.g. via direct URL) can leave a stale `false` here, so we
@@ -89,10 +91,12 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             isOptimisticDelete,
             userLeavingStatus,
             reportIDFromPath: routeParams?.reportID,
+            isPendingCreation,
             deleteTransactionNavigateBackUrl,
         });
     }, [
         shouldShowNotFoundPage,
+        isPendingCreation,
         isLoadingApp,
         isLoadingReportData,
         isOffline,

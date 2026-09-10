@@ -175,6 +175,9 @@ function removeBufferRouteOnly() {
  *
  * Defaults to true (assume dismissible) when the state can't be read, so the buffer never gets
  * silently skipped on uncertain data.
+ *
+ * The Share modal is a flat stack, so the nested probe below only sees a depth when a focused Share screen
+ * renders its own navigator. A pre-insert from a Share screen with inner tabs would then skip the buffer.
  */
 function canNativeSwipeDismissRHP(): boolean {
     const rootState = navigationRef.getRootState();
