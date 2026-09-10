@@ -179,10 +179,10 @@ function renderImportedMerchantRulesPage() {
     );
 }
 
-async function seedOnyx(isOffline: boolean, spreadsheet: ImportedSpreadsheet = buildSpreadsheet()) {
+async function seedOnyx(isOffline: boolean, spreadsheet: ImportedSpreadsheet = buildSpreadsheet(), policy: Policy = buildRulesEnabledControlPolicy()) {
     await act(async () => {
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildRulesEnabledControlPolicy());
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin')});
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
@@ -480,6 +480,26 @@ describe('ImportedMerchantRulesPage', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
                 await waitForBatchedUpdatesWithAct();
             });
+
+            renderImportedMerchantRulesPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(IMPORT_BUTTON_TEXT)).toBeDisabled();
+        });
+
+        it('disables the Import button online while the active integration vendor list is still being fetched', async () => {
+            // A QBO-connected policy whose connections-fetched flag is deliberately left unset, simulating the
+            // window before a deep-linked/cache-cleared load has hydrated policy.connections.
+            const policy: Policy = {
+                ...buildRulesEnabledControlPolicy(),
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: 'USD'}]},
+                    },
+                }),
+            };
+            await seedOnyx(false, buildSpreadsheet(), policy);
 
             renderImportedMerchantRulesPage();
             await waitForBatchedUpdatesWithAct();
