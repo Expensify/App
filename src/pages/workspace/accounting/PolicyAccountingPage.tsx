@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleSection from '@components/CollapsibleSection';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -558,7 +559,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
-                            <Button
+                            <ButtonDisabledWhenOffline
                                 onPress={() => {
                                     if (!canWriteAccounting) {
                                         showReadOnlyModal();
@@ -570,7 +571,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                 size={CONST.BUTTON_SIZE.SMALL}
-                                isDisabled={isOffline}
                                 ref={(ref) => {
                                     if (!popoverAnchorRefs?.current) {
                                         return;
@@ -581,7 +581,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             >
                                 <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                            </Button>
+                            </ButtonDisabledWhenOffline>
                         ),
                     };
                 })
@@ -748,7 +748,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         accountingIntegrationOptions,
         isConnectedToIntuitEnterpriseSuite,
         shouldUseNarrowLayout,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
@@ -803,7 +802,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ...iconProps,
                     title: integrationData?.title,
                     rightComponent: (
-                        <Button
+                        <ButtonDisabledWhenOffline
                             onPress={() => {
                                 if (!canWriteAccounting) {
                                     showReadOnlyModal();
@@ -820,7 +819,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             innerStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             hoverStyles={!canWriteAccounting ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                             size={CONST.BUTTON_SIZE.SMALL}
-                            isDisabled={isOffline}
                             ref={(r) => {
                                 if (!popoverAnchorRefs?.current) {
                                     return;
@@ -831,7 +829,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         >
                             <Button.Text>{translate('workspace.accounting.setup')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     ),
                     interactive: false,
                     // On native iOS, `accessible={true}` collapses the row and all its descendants into a single accessibility element,
@@ -861,7 +859,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         styles.buttonOpacityDisabled,
         styles.buttonDisabled,
         styles.sectionMenuItemTopDescription,
-        isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
         accountingIcons,

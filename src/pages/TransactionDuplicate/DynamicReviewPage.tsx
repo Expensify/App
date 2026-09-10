@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -71,6 +71,7 @@ function DynamicReviewPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const originalTransactionIDsListRef = useRef<string[] | null>(null);
 
@@ -205,6 +206,7 @@ function DynamicReviewPage() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            rules,
             currentTransactionViolations,
             isTrackIntentUser,
         });

@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {BaseListItemProps, ListItem} from '@components/SelectionList/ListItem/types';
@@ -80,7 +79,7 @@ function ListItemPressable<TItem extends ListItem>({
     shouldDisableHoverStyle,
     accessible,
     accessibilityLabel,
-    accessibilityRole = getButtonRole(true),
+    accessibilityRole = CONST.ROLE.BUTTON,
     shouldUseOptionRole,
     isSelected,
     shouldShowTooltip,
