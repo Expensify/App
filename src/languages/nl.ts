@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Zoeken',
         reports: 'Rapporten',
         spend: 'Uitgaven',
+        insights: 'Inzichten',
         find: 'Zoeken',
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
@@ -464,6 +465,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
+        corpayPayModalTitle: 'Rapport betalen',
+        corpayPayModalPrompt:
+            'Deze indiener heeft een bankrekening die niet in USD is. Schakel wereldwijde terugbetalingen in om het rapport te betalen, of vraag hen een USD-bankrekening toe te voegen.',
         purchaseAmount: 'Aankoopsbedrag',
         originalAmount: 'Oorspronkelijk bedrag',
         frequency: 'Frequentie',
@@ -1666,11 +1670,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
         confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Keur alleen conforme uitgaven goed, of keur het hele rapport goed.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave is in de wacht gezet. Wil je toch goedkeuren?',
-            other: 'Deze declaraties staan in de wacht. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
@@ -2299,6 +2300,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            betaOverrides: 'Bèta-overrides',
+            betaOverridesDescription:
+                "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Een bèta houdt een override alleen zolang die afwijkt van de bèta's van je account, dus door hem terug te zetten wordt de override verwijderd. 'Alle overrides resetten' herstelt de waarden van je account. Sommige bèta's worden ook door de backend bepaald en kunnen dus alsnog mislukken op verzoekniveau.",
+            resetAllOverrides: 'Alle overrides resetten',
+            overridden: 'Overschreven',
             qaAuth: 'QA-authenticatie (Cloudflare)',
             qaAuthRunProbe: 'Probe uitvoeren',
             qaAuthSession: 'QA-authsessie',
@@ -3163,6 +3169,7 @@ ${amount} voor ${merchant} - ${date}`,
         unread: 'Ongelezen',
         markAllAsRead: 'Alles als gelezen markeren',
         markAllAsReadConfirmationPrompt: 'Weet je zeker dat je alle chats als gelezen wilt markeren?',
+        markAllTodosAsReadConfirmationPrompt: 'Weet je zeker dat je alle openstaande chats als gelezen wilt markeren?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -3340,6 +3347,7 @@ ${amount} voor ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4602,6 +4610,7 @@ ${amount} voor ${merchant} - ${date}`,
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
             reports: 'Rapporten',
             reportFields: 'Rapportvelden',
+            invoiceFields: 'Factuurvelden',
             reportTitle: 'Rapporttitel',
             reportField: 'Rapportveld',
             taxes: 'Belastingen',
@@ -4611,6 +4620,7 @@ ${amount} voor ${merchant} - ${date}`,
             travel: 'Reizen',
             members: 'Leden',
             accounting: 'Boekhouding',
+            mcp: 'MCP',
             receiptPartners: 'Bonpartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
@@ -4748,6 +4758,25 @@ ${amount} voor ${merchant} - ${date}`,
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
+        },
+        mcp: {
+            connectors: 'Connectoren',
+            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
+            connect: 'Verbinden',
+            helpPrompt: 'Hulp nodig bij het verbinden?',
+            helpLink: 'Lees onze handleiding.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'van Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'van Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'van OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6345,6 +6374,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                                 'We konden voor sommige leden van je werkruimte geen toegang instellen tot Geconsolideerde Reisfacturering. Probeer het later opnieuw of neem contact op met Concierge voor ondersteuning.',
                             sendInvoiceNowCta: 'Verzend factuur nu',
                         },
+                        setUpNewFeed: 'Nieuwe reiskoppeling instellen',
+                        feedSelectorIntro:
+                            'Je organisatie heeft al een Consolidated Travel Billing-feed ingesteld. Selecteer die om de reiskosten van deze workspace op dezelfde maandelijkse factuur te houden.',
                     },
                     disableModal: {
                         title: 'Samengevoegde reiskostenfacturatie uitschakelen?',
@@ -6501,6 +6533,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Boekhouding',
                 subtitle: 'Synchroniseer je grootboekrekeningschema en meer.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
+            },
             receiptPartners: {
                 title: 'Bonpartners',
                 subtitle: 'Automatisch bonnetjes importeren.',
@@ -6600,6 +6636,29 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             unsupportedFormulaValueError: (value: string) => `Formuleveld ${value} niet herkend`,
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
+        },
+        invoiceFields: {
+            subtitle: 'Factuurvelden kunnen handig zijn als je extra informatie wilt toevoegen.',
+            importedFromAccountingSoftware: 'De onderstaande factuurvelden zijn geïmporteerd uit je',
+            disableInvoiceFields: 'Factuurvelden uitschakelen',
+            disableInvoiceFieldsConfirmation: 'Weet je het zeker? Factuurvelden worden uitgeschakeld op facturen.',
+            delete: 'Factuurveld verwijderen',
+            deleteConfirmation: 'Weet je zeker dat je dit factuurveld wilt verwijderen?',
+            findInvoiceField: 'Factuurveld zoeken',
+            nameInputSubtitle: 'Kies een naam voor het factuurveld.',
+            typeInputSubtitle: 'Kies welk type factuurveld je wilt gebruiken.',
+            initialValueInputSubtitle: 'Voer een beginwaarde in om in het factuurveld weer te geven.',
+            listValuesInputSubtitle: 'Deze waarden verschijnen in de vervolgkeuzelijst van je factuurveld. Ingeschakelde waarden kunnen door leden worden geselecteerd.',
+            listInputSubtitle: 'Deze waarden verschijnen in je factuurveldenlijst. Ingeschakelde waarden kunnen door leden worden geselecteerd.',
+            emptyInvoiceFieldsValues: {
+                title: 'Nog geen lijstwaarden',
+                subtitle: 'Voeg aangepaste waarden toe om op facturen te tonen.',
+            },
+            existingInvoiceFieldNameError: 'Er bestaat al een factuurveld met deze naam',
+            invoiceFieldNameRequiredError: 'Voer een naam voor een factuurveld in',
+            invoiceFieldTypeRequiredError: 'Kies een veldtype voor de factuur',
+            invoiceFieldInitialValueRequiredError: 'Kies een beginwaarde voor een factuurveld',
+            addField: 'Veld toevoegen',
         },
         vendors: {
             emptyTitle: 'Nog geen leveranciers',
@@ -6994,6 +7053,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7072,7 +7133,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Geïmporteerde gegevens verwerken';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Gerapporteerde terugbetalingen en rekeningbetalingen synchroniseren';
+                            return 'Bezig met synchroniseren van vergoede rapporten en rekeningbetalingen';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Belastingcodes importeren';
                         case 'quickbooksOnlineCheckConnection':
@@ -7089,13 +7150,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'quickbooksDesktopImportTitle':
                             return 'Titel importeren';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Bezig met importeren van goedkeuringscertificaat';
+                            return 'Certificaat voor goedkeuring importeren';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Dimensies importeren';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Bezig met importeren van spaarbeleid';
+                            return 'Beleid voor opslaan importeren';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Data wordt nog steeds met QuickBooks gesynchroniseerd... Zorg ervoor dat de Web Connector actief is';
+                            return 'Gegevens worden nog steeds gesynchroniseerd met QuickBooks... Zorg ervoor dat de Web Connector actief is';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-gegevens synchroniseren`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7119,15 +7180,15 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'xeroSyncImportCustomers':
                             return 'Klanten synchroniseren';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Expensify-rapporten markeren als vergoed';
+                            return 'Expensify-rapporten als vergoed markeren';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Xero-facturen en -rekeningen als betaald markeren';
+                            return 'Xero-rekeningen en -facturen als betaald markeren';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Trackingcategorieën synchroniseren';
                         case 'xeroSyncImportBankAccounts':
                             return 'Bankrekeningen synchroniseren';
                         case 'xeroSyncImportTaxRates':
-                            return 'Belastingtarieven synchroniseren';
+                            return 'Belastingspercentages synchroniseren';
                         case 'xeroCheckConnection':
                             return 'Xero-verbinding controleren';
                         case 'xeroSyncTitle':
@@ -7143,21 +7204,21 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportItems':
                             return 'Items importeren';
                         case 'netSuiteSyncData':
-                            return 'Gegevens importeren in Expensify';
+                            return 'Gegevens in Expensify importeren';
                         case 'netSuiteSyncAccounts':
                             return 'Accounts synchroniseren';
                         case 'netSuiteSyncCurrencies':
-                            return "Valuta's synchroniseren";
+                            return 'Valuta’s synchroniseren';
                         case 'netSuiteSyncCategories':
                             return 'Categorieën synchroniseren';
                         case 'netSuiteSyncReportFields':
                             return 'Gegevens importeren als Expensify-rapportvelden';
                         case 'netSuiteSyncTags':
-                            return 'Gegevens importeren als Expensify-tags';
+                            return 'Data importeren als Expensify-tags';
                         case 'netSuiteSyncUpdateConnectionData':
-                            return 'Verbindingsinformatie bijwerken';
+                            return 'Verbindingsgegevens bijwerken';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
-                            return 'Expensify-rapporten markeren als vergoed';
+                            return 'Expensify-rapporten als vergoed markeren';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-facturen en -rekeningen als betaald markeren';
                         case 'netSuiteImportVendorsTitle':
@@ -7167,12 +7228,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'netSuiteSyncImportCustomLists':
                             return 'Aangepaste lijsten importeren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Subondernemingen importeren';
+                            return 'Dochterondernemingen importeren';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Leveranciers importeren';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct-verbinding controleren';
+                            return 'Verbinding met Sage Intacct controleren';
                         case 'intacctImportDimensions':
                             return 'Sage Intacct-dimensies importeren';
                         case 'intacctImportTitle':
@@ -7196,7 +7257,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'financialForceSyncDimensions':
                             return 'Dimensies importeren';
                         case 'financialForceMarkAsReimbursed':
-                            return 'Rapporten als terugbetaald markeren';
+                            return 'Rapporten als vergoed markeren';
                         case 'rilletSyncTitle':
                             return 'Rillet-gegevens synchroniseren';
                         case 'rilletSyncConnection':
@@ -7214,7 +7275,19 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Kaartafrekeningen synchroniseren';
                         case 'dualEntrySyncTravelSettlements':
-                            return 'Reisafrekeningen synchroniseren';
+                            return 'Reisverrekeningen synchroniseren';
+                        case 'campfireSyncTitle':
+                            return 'Campfire-gegevens synchroniseren';
+                        case 'campfireSyncConnection':
+                            return 'Verbinding met Campfire initialiseren';
+                        case 'campfireSyncImportData':
+                            return 'Gegevens laden';
+                        case 'campfireSyncPayments':
+                            return 'Leveranciersbetalingen synchroniseren';
+                        case 'campfireSyncCardSettlements':
+                            return 'Kaartafrekeningen synchroniseren';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Reisverrekeningen synchroniseren';
                         default: {
                             return `Vertaling ontbreekt voor fase: ${stage}`;
                         }
@@ -7257,6 +7330,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             syncTravelInvoicingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Om dit te ontgrendelen, stel je een rekening in voor je exporten.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Schakel automatisch synchroniseren in om dit te ontgrendelen.',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
@@ -7514,6 +7588,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Rapportvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Factuurvelden',
+                description: `Met factuurvelden kun je extra gegevens op factuurniveau toevoegen aan facturen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Factuurvelden zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + NetSuite-integratie. Krijg diepgaande realtime financiële inzichten met ondersteuning voor native en aangepaste segmenten, inclusief project- en klanttoewijzing.`,
@@ -7555,6 +7635,12 @@ ${reportName}`,
                 description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + DualEntry-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je DualEntry-configuratie voor helderder financieel inzicht.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Onze DualEntry-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Profiteer van automatische synchronisatie en verminder handmatige invoer met de Expensify + Campfire-integratie. Stem uitgavendimensies en belastingsynchronisatie af op je Campfire-configuratie voor helderder financieel inzicht.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Onze Campfire-integratie is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Geavanceerde goedkeuringen',
@@ -7918,6 +8004,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 importColumnUpdatedCategory: 'Bijgewerkte categorie',
                 importColumnUpdatedTag: 'Bijgewerkte tag',
                 importColumnUpdatedDescription: 'Bijgewerkte omschrijving',
+                importColumnUpdatedVendor: 'Leverancier bijgewerkt',
+                importColumnUpdatedSupplier: 'Leverancier bijgewerkt',
                 expensesWith: 'Voor declaraties met:',
                 expensesExactlyMatching: 'Voor onkosten die exact overeenkomen met:',
                 applyUpdates: 'Pas deze updates toe:',
@@ -7957,8 +8045,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
                 categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
                 categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
-                importColumnUpdatedVendor: 'Leverancier bijgewerkt',
-                importColumnUpdatedSupplier: 'Leverancier bijgewerkt',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Het geselecteerde belastingtarief is nu de standaard voor je werkruimte, waardoor deze regel niet meer geldig is. Kies een ander belastingtarief.',
+                addTaxRateFirstTitle: 'Voeg eerst een belastingtarief toe',
+                addTaxRateFirstPrompt: 'Categorielimieten stellen een standaardbelastingtarief in. Voeg een ander belastingtarief toe dan de standaard van je werkruimte om ze te gebruiken.',
+                createRuleFromExpenseAction: 'Maak een regel',
+                createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -8482,6 +8574,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
+        campfire: {
+            campfireSetup: 'Campfire-configuratie',
+            enterCredentials: 'Voer je Campfire API-sleutel in',
+            howToFindAPIKey:
+                '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Campfire</li><li>Ga naar Instellingen -> API-sleutels</li><li>Maak een API-sleutel aan</li><li>Plak de API-sleutel hieronder</li></ol>',
+            subsidiary: 'Dochteronderneming',
+            subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
+            noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
+            noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+        },
     },
     getAssistancePage: {
         title: 'Hulp krijgen',
@@ -9448,6 +9550,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         exportedTo: 'Geëxporteerd naar',
         exportAll: {
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
+            allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
             selectAllOnThisPage: 'Selecteer alles op deze pagina',
         },
         errors: {
@@ -9572,6 +9675,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `geëxporteerd naar ${translatedLabel}`;
@@ -10807,6 +10911,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         multipleTaxExport: 'Canadese export met meerdere belastingen',
+        reconciliationAllExpenses: 'Afstemming - Alle uitgaven',
         exportInProgress: 'Export bezig',
         conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
         currentView: 'Huidige weergave',
@@ -10838,6 +10943,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         notVerified: 'Niet geverifieerd',
         retry: 'Opnieuw proberen',
         requestSent: 'Aanvraag verzonden',
+        requestAccessError: 'We konden je aanvraag niet verzenden. Probeer het opnieuw.',
         verifyDomain: {
             title: 'Domein verifiëren',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10898,12 +11004,12 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             setMetadataGenericError: 'Kon SAML-metadata niet instellen',
         },
         accessRestricted: {
-            title: 'Toegang beperkt',
-            subtitle: (domainName: string) => `Verifieer jezelf als bevoegde bedrijfsbeheerder voor <strong>${domainName}</strong> als je beheer nodig hebt over:`,
-            companyCardManagement: 'Beheer van bedrijfskaarten',
-            accountCreationAndDeletion: 'Account aanmaken en verwijderen',
-            workspaceCreation: 'Werkruimte aanmaken',
-            samlSSO: 'SAML-SSO',
+            headerTitle: 'Toegang beperkt',
+            title: 'Verificatie vereist',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Verifieer jezelf als bevoegde bedrijfsbeheerder voor <strong>${domainName}</strong> of vraag toegang aan bij bestaande beheerders.</centered-text></muted-text>`,
+            requestAdminAccess: 'Beheerderstoegang aanvragen',
+            verifyYourself: 'Verifieer jezelf',
         },
         addDomain: {
             title: 'Domein toevoegen',
@@ -10917,7 +11023,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             title: 'Domein al ingesteld. Toegang aanvragen?',
             description: 'Iemand heeft dit domein al ingesteld in Expensify. Wil je beheerderstoegang aanvragen?',
             requestAccess: 'Beheerderstoegang aanvragen',
-            requestAccessError: 'We konden je aanvraag niet verzenden. Probeer het opnieuw.',
         },
         domainAdded: {
             title: 'Domein toegevoegd',
