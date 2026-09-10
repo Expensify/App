@@ -54,11 +54,13 @@ function useReconciliationCardFeeds(policyID: string | undefined): {candidates: 
         [allFeeds, domains, policyID, workspaceAccountID],
     );
 
-    // Default to this workspace's own feed whenever it is one of the candidates.
-    // Fall back to defaultFundID for a workspace that has no feed of its own.
-    const ownFeedFundID = candidates.some((entry) => entry.fundID === workspaceAccountID) ? workspaceAccountID : undefined;
+    // Resolve the default from the candidates only. useDefaultFundID prioritises the last-selected-feed NVP, which the
+    // Expensify Card pages set and which can name a feed this page rejects, so returning it unchecked would let the
+    // toggle act on a feed whose export policy is not this workspace's to claim.
+    const findCandidate = (fundID: number) => candidates.find((entry) => entry.fundID === fundID);
+    const resolvedFundID = findCandidate(workspaceAccountID) ?? findCandidate(defaultFundID) ?? candidates.at(0);
 
-    return {candidates, defaultFundID: ownFeedFundID ?? defaultFundID};
+    return {candidates, defaultFundID: resolvedFundID?.fundID ?? CONST.DEFAULT_NUMBER_ID};
 }
 
 export default useReconciliationCardFeeds;

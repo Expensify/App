@@ -273,6 +273,33 @@ describe('useReconciliationCardFeeds', () => {
             expect(defaultFundID()).toBe(domainFundID);
         });
 
+        it('ignores the card pages default when it names a feed this workspace cannot claim', () => {
+            // useDefaultFundID prioritises the last-selected-feed NVP, which the Expensify Card pages can point at
+            // another workspace's feed. Toggling reconciliation on that feed would be unauthorized.
+            mockDefaultFundIDFromCardPages = otherWorkspaceAccountID;
+            mockCollections({
+                cardSettings: {
+                    [cardSettingsKey(otherWorkspaceAccountID)]: configuredCardSettings(),
+                    [cardSettingsKey(domainFundID)]: configuredCardSettings({preferredPolicy: currentPolicyID}),
+                },
+                policies: {...adminPolicyWithAccount(currentPolicyID, workspaceAccountID), ...adminPolicyWithAccount(otherPolicyID, otherWorkspaceAccountID)},
+                domains: domainWithAdmin(domainFundID),
+            });
+
+            expect(defaultFundID()).toBe(domainFundID);
+        });
+
+        it('falls back to a fund with no feed at all when nothing is claimable', () => {
+            mockDefaultFundIDFromCardPages = otherWorkspaceAccountID;
+            mockCollections({
+                cardSettings: {[cardSettingsKey(otherWorkspaceAccountID)]: configuredCardSettings()},
+                policies: {...adminPolicyWithAccount(currentPolicyID, workspaceAccountID), ...adminPolicyWithAccount(otherPolicyID, otherWorkspaceAccountID)},
+            });
+
+            expect(candidateFundIDs()).toEqual([]);
+            expect(defaultFundID()).toBe(CONST.DEFAULT_NUMBER_ID);
+        });
+
         it('falls back to the card pages default when the own feed is pending delete', () => {
             mockDefaultFundIDFromCardPages = domainFundID;
             mockCollections({
