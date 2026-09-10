@@ -1051,7 +1051,6 @@ function addActions({
             reportID,
             questionReportActionID: resolvedReportActionID,
             responseReportActionID: parameters.optimisticConciergeReportActionID,
-            responseReportID: conciergeThreadReportID,
         });
     }
 

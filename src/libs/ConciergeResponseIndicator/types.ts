@@ -3,7 +3,6 @@ type TrackConciergeResponseParams = {
     reportID: string;
     questionReportActionID: string;
     responseReportActionID: string;
-    responseReportID?: string;
 };
 
 type TrackConciergeResponse = (parameters: TrackConciergeResponseParams) => void;

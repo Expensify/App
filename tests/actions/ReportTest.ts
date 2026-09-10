@@ -295,13 +295,17 @@ describe('actions/Report', () => {
         });
         const parameters = apiWriteSpy.mock.calls.at(-1)?.[1];
         if (shouldTrack) {
-            expect(parameters).toEqual(expect.objectContaining({optimisticConciergeReportActionID: expect.any(String)}));
-            expect(trackConciergeResponse).toHaveBeenCalledWith(
+            const trackedRequest = jest.mocked(trackConciergeResponse).mock.calls.at(-1)?.[0];
+            expect(trackedRequest).toEqual({
+                accountID: 10,
+                reportID,
+                responseReportActionID: expect.any(String),
+                questionReportActionID: expect.any(String),
+            });
+            expect(parameters).toEqual(
                 expect.objectContaining({
-                    accountID: 10,
-                    reportID,
-                    responseReportActionID: expect.any(String),
-                    questionReportActionID: expect.any(String),
+                    optimisticConciergeReportActionID: trackedRequest?.responseReportActionID,
+                    reportActionID: trackedRequest?.questionReportActionID,
                 }),
             );
         } else {

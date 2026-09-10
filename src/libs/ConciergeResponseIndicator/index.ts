@@ -68,7 +68,6 @@ function releaseReportSubscriptions(responseReportActionID: string, request: Con
             cleanup();
         }
     }
-    request.subscribedReportIDs.clear();
 }
 
 function removeRequest(responseReportActionID: string) {
@@ -84,19 +83,13 @@ function removeRequest(responseReportActionID: string) {
 
 function armTimeout(responseReportActionID: string) {
     const request = requests.get(responseReportActionID);
-    if (!request || request.status === 'ready') {
+    // Offline questions can stay queued indefinitely. Start the deadline only after the server
+    // saves the question or starts its reply, and retain completed replies until they are read.
+    if (!request || request.isQuestionPending || request.status === 'ready') {
         return;
     }
     clearTimeout(request.timer);
-    request.timer = setTimeout(() => {
-        // Offline sends can remain queued indefinitely. Start the response deadline when the
-        // question is saved, rather than expiring a request before it ever reaches Concierge.
-        if (request.isQuestionPending) {
-            armTimeout(responseReportActionID);
-            return;
-        }
-        removeRequest(responseReportActionID);
-    }, RESPONSE_TIMEOUT_MS);
+    request.timer = setTimeout(() => removeRequest(responseReportActionID), RESPONSE_TIMEOUT_MS);
 }
 
 /** Use the same read timestamp as ordinary report actions, including reads before completion. */
@@ -150,13 +143,11 @@ function handleDraftEvent(event: ConciergeDraftEvent) {
         return;
     }
     // A draft with no response content is still thinking, not a visible answer.
-    if (!event.bodyMarkdown && !event.finalRenderedHTML) {
-        armTimeout(event.reportActionID);
-        return;
+    if (event.bodyMarkdown || event.finalRenderedHTML) {
+        request.status = 'streaming';
+        updateIndicator();
     }
-    request.status = 'streaming';
     armTimeout(event.reportActionID);
-    updateIndicator();
 }
 
 // This imperative tracker owns browser subscriptions outside React. Session changes must release
@@ -282,14 +273,14 @@ function subscribeToReport(responseReportActionID: string, reportID: string) {
 }
 
 /** Track the reserved reply ID for a question sent from this browser session. */
-function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID, responseReportID = reportID}: TrackConciergeResponseParams) {
+function trackConciergeResponse({accountID, reportID, questionReportActionID, responseReportActionID}: TrackConciergeResponseParams) {
     if (requests.has(responseReportActionID)) {
         return;
     }
     const request: ConciergeResponseRequest = {
         accountID,
         questionReportActionID,
-        responseReportID,
+        responseReportID: reportID,
         sequence: 0,
         status: 'pending',
         isQuestionPending: true,
@@ -297,8 +288,6 @@ function trackConciergeResponse({accountID, reportID, questionReportActionID, re
     };
     requests.set(responseReportActionID, request);
     subscribeToReport(responseReportActionID, reportID);
-    armTimeout(responseReportActionID);
-    updateIndicator();
 }
 
 export default trackConciergeResponse;
