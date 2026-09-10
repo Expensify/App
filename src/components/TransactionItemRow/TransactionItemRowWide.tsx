@@ -16,6 +16,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,7 +27,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
-import {getSubmittedViolationsForTransaction} from '@libs/SearchUIUtils';
+import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
@@ -49,6 +50,10 @@ import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDat
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -71,6 +76,10 @@ type TransactionItemRowWideProps = Omit<
 > &
     TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
+
+function searchHasFilterSelector(form: OnyxEntry<SearchAdvancedFiltersForm>) {
+    return form?.has;
+}
 
 function TransactionItemRowWide({
     transactionItem,
@@ -142,6 +151,7 @@ function TransactionItemRowWide({
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const [hasFilterValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: searchHasFilterSelector});
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -217,7 +227,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getSubmittedViolationsForTransaction(reportActions, transactionItem.transactionID, translate)} />
+                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
