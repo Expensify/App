@@ -5286,10 +5286,10 @@ describe('actions/Report', () => {
             global.fetch = TestHelper.createGlobalFetchMock();
             const REPORT_ID = 'dm2';
             const optimisticAccountID = generateAccountID('new@user.com');
-            const optimisticPersonalDetails = {
+            const optimisticPersonalDetails: OnyxTypes.PersonalDetailsList = {
                 [optimisticAccountID]: {accountID: optimisticAccountID, login: 'new@user.com', isOptimisticPersonalDetail: true},
             };
-            const dmReport = {
+            const dmReport: OnyxTypes.Report = {
                 reportID: REPORT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID: CONST.POLICY.ID_FAKE,

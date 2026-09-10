@@ -2935,33 +2935,21 @@ function isOneOnOneChat(report: OnyxEntry<Report>, currentUserAccountID?: number
  * resolve a stale/optimistic reportID to the real chat (returned as preexistingReportID) instead of
  * failing with "Report not found". Returns an empty list for any report that is not a 1:1 DM.
  *
- * Only the login is returned. The other participant may still be an invited user whose accountID was
- * generated locally (see generateAccountID) and does not exist on the server yet, and sending that ID
- * in accountIDList makes OpenReport fail with "Email not found". The server resolves a DM from the
- * emailList alone, the same way navigateToAndOpenReport creates one.
+ * Only the login is returned, never the accountID. The other participant may be an invited user whose
+ * accountID was generated locally (see generateAccountID) and does not exist on the server yet, and sending
+ * that ID in accountIDList makes OpenReport fail with "Email not found". This cannot be gated on
+ * isOptimisticPersonalDetail because not every flow sets it (sendMoney writes the recipient's optimistic
+ * detail without it). The login alone is enough for the server to resolve a 1:1 DM, the same way
+ * navigateToAndOpenReport creates one, so a real accountID adds nothing here.
  */
-function getOneOnOneChatParticipants(
-    report: OnyxEntry<Report>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    currentUserAccountID: number | undefined,
-): Array<{login: string; accountID?: number}> {
+function getOneOnOneChatParticipants(report: OnyxEntry<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, currentUserAccountID: number | undefined): Array<{login: string}> {
     if (!currentUserAccountID || !isOneOnOneChat(report, currentUserAccountID)) {
         return [];
     }
     return Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID)
-        .map((accountID) => {
-            const personalDetail = personalDetails?.[accountID];
-            // An invited user's accountID is generated locally (see generateAccountID) and does not exist on
-            // the server yet, so sending it in accountIDList makes OpenReport fail with "Email not found".
-            // A real accountID is still sent so the server can resolve the DM unambiguously when the cached
-            // login is stale or is a secondary login.
-            return {
-                login: personalDetail?.login ?? '',
-                ...(personalDetail?.isOptimisticPersonalDetail ? {} : {accountID}),
-            };
-        })
+        .map((accountID) => ({login: personalDetails?.[accountID]?.login ?? ''}))
         .filter((participant) => !!participant.login);
 }
 
