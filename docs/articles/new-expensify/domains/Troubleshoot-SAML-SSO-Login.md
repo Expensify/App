@@ -1,7 +1,7 @@
 ---
 title: Troubleshoot SAML SSO login
 description: Learn how to quickly diagnose and resolve issues with SAML SSO login in New Expensify, including lockouts, expired certificates, and identity provider errors.
-keywords: [New Expensify, SAML SSO, SSO login failed, Require SAML login, domain locked out, expired certificate, identity provider, IdP, metadata, troubleshooting]
+keywords: [New Expensify, SAML SSO, SSO login failed, Require SAML login, domain locked out, expired certificate, identity provider, IdP, metadata, troubleshooting, session expired, signed out while working, re-authentication]
 ---
 
 If you're having trouble logging in with SAML Single Sign-On (SSO) in New Expensify, this guide will help you identify the issue, understand what’s causing it, and get access restored quickly.
@@ -87,6 +87,22 @@ This appears when **Require SAML login** is enabled, but SAML isn’t fully conf
 
 ---
 
+# Why SAML SSO sign-in restarts while you are working
+
+On a domain with **Require SAML login** enabled, your session expires from time to time. When it does, New Expensify sends you back through your Identity Provider (IdP) and signs you back in. This is expected security behavior, not a login failure, and it can happen in the middle of a work session.
+
+Here is what you see:
+
+- The screen returns to the sign-in page for a moment.
+- Your IdP signs you back in, usually without you entering anything.
+- You return to the page you were on, with the filters you had applied still in place.
+
+If you sign out yourself and then sign back in, you start on the **Home** tab instead of the page you were last viewing.
+
+If you go offline during the re-authentication, nothing happens until your connection returns. Once you are back online, the sign-in runs and returns you to the same page.
+
+---
+
 # How to contact Expensify if you're locked out
 
 If you can't sign in due to a SAML issue, email **concierge@expensify.com** from an address that matches your verified domain.
@@ -108,6 +124,10 @@ No. SAML settings apply to the entire domain. If **Require SAML login** is enabl
 ## Can I test a new SAML setup without locking members out?
 
 Yes. You can disable **Require SAML login** while testing or updating your SAML settings. This allows members to log in with email/password if needed. Once you're confident the new metadata works, re-enable SAML enforcement.
+
+## Do I lose my place when SAML SSO signs me back in?
+
+No. You return to the page you were viewing, with your filters still applied. Only a manual sign out sends you back to the **Home** tab the next time you sign in.
 
 ## How can I confirm my SAML setup is correct?
 
