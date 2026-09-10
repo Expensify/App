@@ -74,7 +74,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                shouldDisplayAccountButton={!shouldUseNarrowLayout}
+                shouldDisplayAccountButton
                 shouldUseHeadlineHeader
             />
             <ScrollView style={styles.pt3}>

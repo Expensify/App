@@ -110,7 +110,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
                 onBackButtonPress={Navigation.goBack}
                 shouldShowLink={false}
                 shouldDisplaySearchRouter
-                shouldDisplayAccountButton={!shouldUseNarrowLayout}
+                shouldDisplayAccountButton
             >
                 {children}
             </FullPageNotFoundView>
@@ -175,7 +175,7 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
             onBackButtonPress={Navigation.goBack}
             shouldShowLink={false}
             shouldDisplaySearchRouter
-            shouldDisplayAccountButton={!shouldUseNarrowLayout}
+            shouldDisplayAccountButton
         >
             {children}
         </FullPageNotFoundView>

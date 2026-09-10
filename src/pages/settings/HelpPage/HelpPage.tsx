@@ -216,7 +216,7 @@ function HelpPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                shouldDisplayAccountButton={!shouldUseNarrowLayout}
+                shouldDisplayAccountButton
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>

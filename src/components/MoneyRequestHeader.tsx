@@ -176,7 +176,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress, shouldDi
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
-                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP && !shouldUseNarrowLayout}
+                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP}
                 onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}

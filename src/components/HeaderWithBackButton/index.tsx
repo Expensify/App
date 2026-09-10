@@ -17,6 +17,7 @@ import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -103,6 +104,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
@@ -338,7 +340,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
-                {shouldDisplayAccountButton && <AccountAvatarButton />}
+                {shouldDisplayAccountButton && !shouldUseNarrowLayout && <AccountAvatarButton />}
             </View>
         </View>
     );

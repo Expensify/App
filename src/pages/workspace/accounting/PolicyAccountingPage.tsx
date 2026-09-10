@@ -903,7 +903,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
-                    shouldDisplayAccountButton={!shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView

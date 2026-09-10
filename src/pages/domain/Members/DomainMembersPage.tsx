@@ -304,7 +304,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         shouldShowBackButton={shouldUseNarrowLayout}
                         shouldUseHeadlineHeader
                         shouldDisplayHelpButton
-                        shouldDisplayAccountButton={!shouldUseNarrowLayout}
+                        shouldDisplayAccountButton
                     />
                     <ScrollView
                         keyboardShouldPersistTaps="handled"

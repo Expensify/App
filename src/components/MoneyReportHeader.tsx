@@ -129,7 +129,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
-                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP && !shouldUseNarrowLayout}
+                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
