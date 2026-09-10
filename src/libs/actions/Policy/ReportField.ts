@@ -240,15 +240,17 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyReportIDs ?? []).map((reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        ...(policyReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
                 },
-            },
-        })),
+            }),
+        ),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
@@ -264,15 +266,17 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyReportIDs ?? []).map((reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: null,
+        ...(policyReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
                 },
-            },
-        })),
+            }),
+        ),
     ];
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT> = {
