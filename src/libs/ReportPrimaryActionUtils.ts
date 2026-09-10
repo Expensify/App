@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -84,6 +84,7 @@ type GetReportPrimaryActionParams = {
     isChatReportArchived: boolean;
     invoiceReceiverPolicy?: Policy;
     ownerLogin: string | undefined;
+    rules: OnyxCollection<Rule>;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 };
@@ -103,13 +104,13 @@ type IsPrimaryPayActionParams = {
     canNonPayerAdminPay?: boolean;
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
     if (isChatReportArchived) {
         return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const canAddTransaction = canAddTransactionUtil(report);
+    const canAddTransaction = canAddTransactionUtil(report, rules);
 
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
@@ -119,6 +120,7 @@ function isSubmitAction(
     reportTransactions: Transaction[],
     reportMetadata: OnyxEntry<ReportMetadata>,
     ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
     policy?: Policy,
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
@@ -150,7 +152,7 @@ function isSubmitAction(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
 
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
@@ -158,7 +160,11 @@ function isSubmitAction(
 
     // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const isWorkflowApprover =
-        !isReportSubmitter && currentUserAccountID !== undefined && !!ownerLogin && !isSubmitAndClose(policy) && currentUserAccountID === getManagerAccountID(policy, ownerLogin);
+        !isReportSubmitter &&
+        currentUserAccountID !== undefined &&
+        !!ownerLogin &&
+        !isSubmitAndClose(policy) &&
+        currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
@@ -464,6 +470,7 @@ function getAllExpensesToHoldIfApplicable(
     reportTransactions: Transaction[],
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
 ) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
@@ -477,7 +484,7 @@ function getAllExpensesToHoldIfApplicable(
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
-        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID).canUnholdRequest;
+        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules).canUnholdRequest;
     });
 }
 
@@ -497,6 +504,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         chatReport,
         invoiceReceiverPolicy,
         ownerLogin,
+        rules,
         isOffline,
     } = params;
 
@@ -523,7 +531,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             invoiceReceiverPolicy,
             reportActions,
         }) && allExpensesHeld;
-    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -547,7 +555,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (
         isCurrentUserSubmitter(report, currentUserAccountID) &&
-        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, violations, currentUserLogin, currentUserAccountID) &&
+        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, rules, policy, violations, currentUserLogin, currentUserAccountID) &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;

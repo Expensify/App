@@ -363,6 +363,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.NETWORK,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -823,10 +824,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                if (value === undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: value ?? {},
+                    value,
                 } as OnyxUpdate<keyof typeof newDotOnyxValues>);
             }
 
@@ -1674,6 +1679,11 @@ function AddWorkEmail(workEmail: string) {
         if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
             return;
+        }
+
+        // When the work email is a domain-controlled login for an existing account, surface a specific subtitle in the blocking screen instead of the generic one.
+        if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });

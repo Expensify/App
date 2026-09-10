@@ -693,6 +693,7 @@ function createExpenseByType({
     dateFnsLocale,
     participantsPolicyTags,
     policyTags,
+    rules,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -710,6 +711,7 @@ function createExpenseByType({
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -749,6 +751,7 @@ function createExpenseByType({
                 recentWaypoints,
                 formatPhoneNumber,
                 participantsPolicyTags,
+                rules,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -766,6 +769,7 @@ function createExpenseByType({
                 isTrackIntentUser,
                 formatPhoneNumber,
                 policyTags,
+                rules,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -808,6 +812,7 @@ type DuplicateExpenseTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function duplicateExpenseTransaction({
@@ -842,6 +847,7 @@ function duplicateExpenseTransaction({
     participantsPolicyTags,
     conciergeChat,
     targetPolicyTags,
+    rules,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -880,6 +886,7 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
+        rules,
         existingTransaction: {
             iouRequestType: duplicateRequestType,
             amount: 0,
@@ -930,6 +937,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             conciergeChat,
@@ -940,6 +948,7 @@ function duplicateExpenseTransaction({
             currentUserLocalCurrency,
             delegateAccountID,
             reportActionsList: undefined,
+            rules,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -967,6 +976,7 @@ function duplicateExpenseTransaction({
         formatPhoneNumber,
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
+        rules,
     });
 }
 
@@ -998,6 +1008,7 @@ type DuplicateReportParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function duplicateReport({
@@ -1028,6 +1039,7 @@ function duplicateReport({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1042,6 +1054,7 @@ function duplicateReport({
         betas,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
         false,
         undefined,
         {
@@ -1118,6 +1131,7 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
+            rules,
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1155,6 +1169,7 @@ function duplicateReport({
             formatPhoneNumber,
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1194,6 +1209,7 @@ type BulkDuplicateExpensesParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function bulkDuplicateExpenses({
@@ -1223,6 +1239,7 @@ function bulkDuplicateExpenses({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1279,7 +1296,7 @@ function bulkDuplicateExpenses({
         // reads transactions from Onyx, which hasn't been updated yet for
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
-        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport))) {
+        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
             optimisticIOUReport = undefined;
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
@@ -1328,6 +1345,7 @@ function bulkDuplicateExpenses({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1369,6 +1387,7 @@ type BulkDuplicateReportsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 async function bulkDuplicateReports({
@@ -1398,6 +1417,7 @@ async function bulkDuplicateReports({
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1500,6 +1520,7 @@ async function bulkDuplicateReports({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         hasDuplicatedReport = true;

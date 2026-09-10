@@ -102,6 +102,7 @@ import {mergeAdditionalPayOnyxData} from './PayMoneyRequest';
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
@@ -124,6 +125,7 @@ type ApproveMoneyRequestFunctionParams = {
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
@@ -459,6 +461,7 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -515,7 +518,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
@@ -525,6 +528,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         : buildOptimisticNextStep({
               report: expenseReport,
               policy: expenseReportPolicy,
+              rules,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -765,6 +769,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            rules,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -850,6 +855,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!expenseReport) {
         return;
@@ -863,6 +869,7 @@ function reopenReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1012,6 +1019,7 @@ function retractReport(
     isASAPSubmitBetaEnabled: boolean,
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!expenseReport) {
         return;
@@ -1025,6 +1033,7 @@ function retractReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1166,6 +1175,7 @@ function unapproveExpenseReport(
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1183,6 +1193,7 @@ function unapproveExpenseReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1307,6 +1318,7 @@ function unapproveExpenseReport(
 function submitReport({
     expenseReport,
     policy,
+    rules,
     currentUserAccountIDParam,
     currentUserEmailParam,
     hasViolations,
@@ -1339,7 +1351,7 @@ function submitReport({
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin, rules);
 
     // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.
@@ -1380,6 +1392,7 @@ function submitReport({
               report: expenseReport,
               predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
               policy,
+              rules,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -1608,6 +1621,7 @@ function submitReport({
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            rules,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -1686,6 +1700,7 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     isTrackIntentUser: boolean | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
 
@@ -1695,6 +1710,7 @@ function assignReportToMe(
         shouldFixViolations: false,
         isUnapprove: true,
         policy,
+        rules,
         currentUserAccountIDParam: accountID,
         currentUserEmailParam: email,
         hasViolations,
@@ -1788,6 +1804,9 @@ type AddReportApproverOptions = {
     /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
+    /** Approval-workflow rules for the policy. */
+    rules: OnyxCollection<OnyxTypes.Rule>;
+
     /** Whether the report currently has violations. */
     hasViolations: boolean;
 
@@ -1808,6 +1827,7 @@ function addReportApprover({
     accountID,
     email,
     policy,
+    rules,
     hasViolations,
     isASAPSubmitBetaEnabled,
     isTrackIntentUser,
@@ -1821,6 +1841,7 @@ function addReportApprover({
         shouldFixViolations: false,
         isUnapprove: true,
         policy,
+        rules,
         currentUserAccountIDParam: accountID,
         currentUserEmailParam: email,
         hasViolations,
