@@ -263,6 +263,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     ) : (
                         <BulkActionBar
                             selectedCount={selectedBulkActionsCount}
+                            customText={shouldShowAllMatchingItemsSelected ? selectionButtonText : undefined}
                             isSelectedCountLoading={isAllMatchingItemsCountLoading}
                             options={headerButtonsOptions}
                             menuHeaderText={bulkActionsMenuHeaderText}

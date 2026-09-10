@@ -53,6 +53,7 @@ type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>
 
 function BulkActionBarContent<TValueType>({
     selectedCount,
+    customText,
     isSelectedCountLoading,
     options,
     noticeText,
@@ -120,10 +121,13 @@ function BulkActionBarContent<TValueType>({
                 {isSelectedCountLoading ? (
                     <ActivityIndicator color={theme.spinner} />
                 ) : (
-                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{translate('workspace.common.selected', {count: selectedCount})}</Text>
+                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{customText ?? translate('workspace.common.selected', {count: selectedCount})}</Text>
                 )}
             </View>
             {!!noticeText && <Text style={[styles.textLabel, styles.colorMuted]}>{noticeText}</Text>}
+            {/* The "More" menu carries this heading itself. Without one, these buttons are the hoisted options it
+                would otherwise label, so the heading has to stand alone here instead. */}
+            {!hasMoreMenu && !!menuHeaderText && <Text style={[styles.textLabel, styles.colorMuted]}>{menuHeaderText}</Text>}
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -197,6 +201,7 @@ function BulkActionBarContent<TValueType>({
  */
 function BulkActionBar<TValueType>({
     selectedCount,
+    customText,
     isSelectedCountLoading,
     options: allOptions,
     menuHeaderText,
@@ -293,6 +298,7 @@ function BulkActionBar<TValueType>({
                 <ThemeStylesProvider>
                     <BulkActionBarContent
                         selectedCount={selectedCount}
+                        customText={customText}
                         isSelectedCountLoading={isSelectedCountLoading}
                         options={options}
                         noticeText={noticeText}

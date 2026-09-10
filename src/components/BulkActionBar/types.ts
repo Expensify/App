@@ -5,8 +5,15 @@ import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
 type BulkActionBarProps<TValueType> = {
-    /** How many rows the selection covers. Rendered as the bar's leading "N selected" label. */
+    /** How many rows the selection covers. Rendered as the bar's leading "N selected" label, unless `customText` overrides it. */
     selectedCount: number;
+
+    /**
+     * Replaces the "N selected" label outright, for a selection `selectedCount` cannot describe on its own, such as
+     * "All matching items selected" when the true total is still unknown. Mirrors `ButtonWithDropdownMenu`'s prop of
+     * the same name, which callers already compute this text for.
+     */
+    customText?: string;
 
     /**
      * The actions the selection supports, in priority order. The first `CONST.BULK_ACTION_BAR.MAX_INLINE_ACTIONS` are
