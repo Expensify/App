@@ -7,7 +7,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {sortAlphabetically} from './OptionsListUtils';
+import sortAlphabetically from './sortAlphabetically';
 
 function getNormalizedString(value?: string): string | undefined {
     const normalizedValue = value?.trim();

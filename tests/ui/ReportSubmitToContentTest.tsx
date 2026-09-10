@@ -88,7 +88,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({dismissToPreviousRHP: jest.fn()
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: jest.fn((value: string) => value),
     getUserToInviteOption: jest.fn(() => null),
-    sortAlphabetically: jest.fn((items: unknown[]) => items),
 }));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getKnownAccountIDByLogin: jest.fn(() => undefined),
