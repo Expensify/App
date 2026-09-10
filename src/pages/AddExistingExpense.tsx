@@ -1,20 +1,14 @@
 import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
-import Text from '@components/Text';
+import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import Table from '@components/Table';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +23,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getEligibleTransactionsToAdd, getMerchant, isUnreportedTransaction} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCreated, getCurrency, getDescription, getEligibleTransactionsToAdd, getMerchant, isUnreportedTransaction} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -45,15 +39,18 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import UnreportedExpenseListItem from './UnreportedExpenseListItem';
+import AddExistingExpenseTableRow from './AddExistingExpenseTableRow';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
-type ExpenseStatus = typeof CONST.SEARCH.STATUS.EXPENSE.UNREPORTED | typeof CONST.SEARCH.STATUS.EXPENSE.DRAFTS;
+type ExpenseTableColumnKey = 'date' | 'amount';
+type ExpenseTableFilterKey = 'status';
+type UnreportedExpenseTableRowData = Transaction & TableData;
 
 function AddExistingExpense({route}: AddExistingExpensePageType) {
     const {convertToDisplayString} = useCurrencyListActions();
@@ -63,8 +60,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
-    const [selectedStatuses, setSelectedStatuses] = useState<Array<MultiSelectItem<ExpenseStatus>>>([]);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`);
@@ -82,10 +77,11 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [allOpenReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: openExpenseReportIDsSelector});
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
+    const styles = useThemeStyles();
 
     const transactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) =>
-            getEligibleTransactionsToAdd({transactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
+        (allTransactions: OnyxCollection<Transaction>) =>
+            getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
         [report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
     );
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
@@ -102,19 +98,63 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
         fetchUnreportedExpenses(0);
     }, []);
 
-    const styles = useThemeStyles();
-    const selectionListRef = useRef<SelectionListHandle<Transaction & ListItem>>(null);
+    const unreportedExpenses: UnreportedExpenseTableRowData[] = createUnreportedExpenses(transactions).map((item) => ({
+        ...item,
+        disabled: item.isDisabled,
+    }));
 
-    const shouldShowTextInput = useMemo(() => {
-        return transactions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    }, [transactions.length]);
+    const footerContent = (
+        <AddExistingExpenseFooter
+            selectedIds={selectedIds}
+            report={report}
+            reportToConfirm={reportToConfirm}
+            policy={policy}
+            policyCategories={policyCategories}
+            errorMessage={errorMessage}
+            setErrorMessage={setErrorMessage}
+        />
+    );
 
-    const filteredTransactions = useMemo(() => {
-        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
-            return transactions;
+    const onRowSelectionChange = (selectedRowKeys: string[]) => {
+        setSelectedIds(new Set(selectedRowKeys));
+        if (errorMessage) {
+            setErrorMessage('');
+        }
+    };
+
+    const columns: Array<TableColumn<ExpenseTableColumnKey>> = [
+        {key: 'date', label: translate('common.date'), sortable: true},
+        {key: 'amount', label: translate('iou.amount'), sortable: true},
+    ];
+
+    const filters: FilterConfig<ExpenseTableFilterKey> = {
+        status: {
+            label: translate('common.status'),
+            filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+            options: [
+                {label: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+                {label: translate('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+            ],
+        },
+    };
+
+    const isItemInFilter: IsItemInFilterCallback<UnreportedExpenseTableRowData> = (item, values) => {
+        if (values.length === 0) {
+            return true;
         }
 
-        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
+        const includesUnreported = values.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+        const includesDrafts = values.includes(CONST.SEARCH.STATUS.EXPENSE.DRAFTS);
+        const isUnreported = isUnreportedTransaction(item);
+
+        if (includesUnreported && isUnreported) {
+            return true;
+        }
+        return includesDrafts && !isUnreported;
+    };
+
+    const isItemInSearch: IsItemInSearchCallback<UnreportedExpenseTableRowData> = (item, searchValue) => {
+        const results = tokenizedSearch([item], searchValue, (transaction) => {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
@@ -138,171 +178,33 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
 
             return searchableFields;
         });
-    }, [convertToDisplayString, debouncedSearchValue, shouldShowTextInput, transactions]);
 
-    const selectedStatusValues = useMemo(() => selectedStatuses.map((s) => s.value), [selectedStatuses]);
-
-    const statusFilteredTransactions = useMemo(() => {
-        if (selectedStatusValues.length === 0) {
-            return filteredTransactions;
-        }
-
-        const includesUnreported = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
-        const includesDrafts = selectedStatusValues.includes(CONST.SEARCH.STATUS.EXPENSE.DRAFTS);
-
-        return filteredTransactions.filter((item) => {
-            const isUnreported = isUnreportedTransaction(item);
-            if (includesUnreported && isUnreported) {
-                return true;
-            }
-            if (includesDrafts && !isUnreported) {
-                return true;
-            }
-            return false;
-        });
-    }, [filteredTransactions, selectedStatusValues]);
-
-    const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenses(statusFilteredTransactions).map((item) => ({
-            ...item,
-            isSelected: selectedIds.has(item.transactionID),
-        }));
-    }, [statusFilteredTransactions, selectedIds]);
-
-    const footerContent = useMemo(
-        () => (
-            <AddExistingExpenseFooter
-                selectedIds={selectedIds}
-                report={report}
-                reportToConfirm={reportToConfirm}
-                policy={policy}
-                policyCategories={policyCategories}
-                errorMessage={errorMessage}
-                setErrorMessage={setErrorMessage}
-            />
-        ),
-        [selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage],
-    );
-
-    const headerMessage = useMemo(() => {
-        if ((debouncedSearchValue.trim() || selectedStatusValues.length > 0) && unreportedExpenses?.length === 0) {
-            return translate('common.noResultsFound');
-        }
-        return '';
-    }, [debouncedSearchValue, unreportedExpenses?.length, translate, selectedStatusValues.length]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
-            onChangeText: setSearchValue,
-        }),
-        [searchValue, shouldShowTextInput, translate, setSearchValue],
-    );
-
-    const onSelectRow = useCallback(
-        (item: {transactionID: string}) => {
-            setSelectedIds((prevIds) => {
-                const newIds = new Set(prevIds);
-                if (newIds.has(item.transactionID)) {
-                    newIds.delete(item.transactionID);
-                } else {
-                    newIds.add(item.transactionID);
-                    if (errorMessage) {
-                        setErrorMessage('');
-                    }
-                }
-                return newIds;
-            });
-        },
-        [errorMessage],
-    );
-
-    const onSelectAll = () => {
-        setSelectedIds((prevSelectedIDs) => {
-            const availableUnreportedExpenses = unreportedExpenses.filter(({isDisabled}) => !isDisabled);
-            if (availableUnreportedExpenses.some(({transactionID}) => prevSelectedIDs.has(transactionID))) {
-                return new Set();
-            }
-            if (errorMessage) {
-                setErrorMessage('');
-            }
-            return new Set(availableUnreportedExpenses.map(({transactionID}) => transactionID));
-        });
+        return results.length > 0;
     };
 
-    const statusItems: Array<MultiSelectItem<ExpenseStatus>> = useMemo(
-        () => [
-            {text: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-            {text: translate('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-        ],
-        [translate],
-    );
+    const compareItems: CompareItemsCallback<UnreportedExpenseTableRowData, ExpenseTableColumnKey> = (item1, item2, activeSorting) => {
+        const orderMultiplier = activeSorting.order === 'desc' ? -1 : 1;
 
-    const statusPopoverComponent = useCallback(
-        (props: {closeOverlay: () => void}) => (
-            <MultiSelectPopup
-                label={translate('common.status')}
-                items={statusItems}
-                value={selectedStatuses}
-                closeOverlay={props.closeOverlay}
-                onChange={setSelectedStatuses}
-            />
-        ),
-        [translate, statusItems, selectedStatuses],
-    );
-
-    const customListHeader = useMemo(
-        () => (
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <PressableWithFeedback
-                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
-                    onPress={onSelectAll}
-                    accessibilityLabel={translate('accessibilityHints.selectAllItems')}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
-                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                >
-                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                </PressableWithFeedback>
-                <DropdownButton
-                    label={translate('common.status')}
-                    value={selectedStatuses.map((s) => s.text)}
-                    PopoverComponent={statusPopoverComponent}
-                />
-            </View>
-        ),
-        [
-            styles.flex1,
-            styles.flexRow,
-            styles.alignItemsCenter,
-            styles.justifyContentBetween,
-            styles.userSelectNone,
-            styles.textStrong,
-            styles.ph3,
-            onSelectAll,
-            translate,
-            selectedStatuses,
-            statusPopoverComponent,
-        ],
-    );
-
-    const listFooterContent = useMemo(() => {
-        if (shouldShowUnreportedTransactionsSkeletons) {
-            return <UnreportedExpensesSkeleton fixedNumberOfItems={3} />;
+        if (activeSorting.columnKey === 'amount') {
+            return (getAmount(item1) - getAmount(item2)) * orderMultiplier;
         }
-        if (headerMessage) {
-            return (
-                <View style={[styles.ph5, styles.pt3]}>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
-                </View>
-            );
-        }
-        return undefined;
-    }, [shouldShowUnreportedTransactionsSkeletons, headerMessage, styles.ph5, styles.pt3, styles.textLabel, styles.colorMuted]);
 
-    const hasSearchTerm = debouncedSearchValue.trim().length > 0;
-    const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
+        // Default: sort by the expense date, matching how Spend > Expenses orders rows by default.
+        const created1 = new Date(getCreated(item1)).getTime();
+        const created2 = new Date(getCreated(item2)).getTime();
+        return (created1 - created2) * orderMultiplier;
+    };
+
+    const renderItem = ({item, index}: ListRenderItemInfo<UnreportedExpenseTableRowData>) => (
+        <AddExistingExpenseTableRow
+            item={item}
+            rowIndex={index}
+        />
+    );
+
+    const paginationFooterContent = shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined;
+
+    const isShowingEmptyState = transactions.length === 0;
 
     if (isShowingEmptyState && isLoadingUnreportedTransactions) {
         return (
@@ -384,27 +286,40 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 title={translate('iou.addExistingExpense')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <SelectionList<Transaction & ListItem>
-                data={unreportedExpenses}
-                ref={selectionListRef}
-                onSelectRow={onSelectRow}
-                onSelectAll={onSelectAll}
-                customListHeader={customListHeader}
-                style={{listHeaderWrapperStyle: styles.ph8}}
-                textInputOptions={textInputOptions}
-                shouldShowTextInput={shouldShowTextInput}
-                shouldShowListEmptyContent={false}
-                canSelectMultiple
-                ListItem={UnreportedExpenseListItem}
-                onEndReached={fetchMoreUnreportedTransactions}
-                onEndReachedThreshold={0.75}
-                addBottomSafeAreaPadding
-                listFooterContent={listFooterContent}
-                footerContent={footerContent}
-                disableMaintainingScrollPosition
-            />
+            <View style={styles.flex1}>
+                <Table<UnreportedExpenseTableRowData, ExpenseTableColumnKey, ExpenseTableFilterKey>
+                    data={unreportedExpenses}
+                    title={translate('common.expenses')}
+                    columns={columns}
+                    selectionEnabled
+                    shouldEnableSelectionInNarrowPaneModal
+                    selectedKeys={[...selectedIds]}
+                    onRowSelectionChange={onRowSelectionChange}
+                    initialSortColumn="date"
+                    initialSortOrder="desc"
+                    compareItems={compareItems}
+                    filters={filters}
+                    isItemInFilter={isItemInFilter}
+                    isItemInSearch={isItemInSearch}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.keyForList}
+                    onEndReached={fetchMoreUnreportedTransactions}
+                    onEndReachedThreshold={0.75}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    ListFooterComponent={paginationFooterContent}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label={translate('iou.findExpense')} />
+                    </Table.ListHeader>
+                    <Table.NoResultsState />
+                    <Table.Header />
+                    <Table.Body />
+                </Table>
+            </View>
+            {footerContent}
         </ScreenWrapper>
     );
 }
 
 export default AddExistingExpense;
+export type {UnreportedExpenseTableRowData};
