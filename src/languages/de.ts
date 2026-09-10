@@ -10900,6 +10900,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
         hasFilterNegation: '<tooltip>Suchen Sie nach Ausgaben ohne Belege mit <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Wir haben den Kurs basierend auf Ihrem Reisedatum aktualisiert.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Greifen Sie auf Ihr Konto und Ihre persönlichen Einstellungen zu.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

@@ -10921,6 +10921,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Accédez à votre compte et à vos paramètres personnels.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

@@ -10820,6 +10820,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
         hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
