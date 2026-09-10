@@ -100,15 +100,13 @@ function DynamicSageIntacctDefaultVendorPage() {
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
-            if (canClear && isAlreadySelected) {
+            if (isAlreadySelected) {
                 return;
             }
-            if (!isAlreadySelected) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
-            }
+            updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack, canClear],
+        [defaultVendor, policyID, settingName, goBack],
     );
 
     const listEmptyContent = useMemo(
