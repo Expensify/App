@@ -18,8 +18,8 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import Permissions from '@libs/Permissions';
 // eslint-disable-next-line no-restricted-imports -- TravelDot booking requires a paid workspace, matching the existing FAB behavior.
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
