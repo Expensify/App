@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -181,6 +182,9 @@ function WorkspaceCompanyCardsTable({
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedCardKeys.length > 0 || isSelectionModeEnabled;
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
         {
@@ -213,19 +217,26 @@ function WorkspaceCompanyCardsTable({
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+                  const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  const cardID = assignedCard?.cardID;
+                  const customCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? '');
+                  const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
 
                   return {
                       cardName,
-                      keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                      keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                       encryptedCardNumber,
-                      customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
-                      isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      customCardName,
+                      isCardDeleted,
+                      disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
                       cardholder,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
+                      canEditName,
+                      onRenameName: (newName: string) =>
+                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName as NonNullable<typeof bankName>, customCardName),
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
               })

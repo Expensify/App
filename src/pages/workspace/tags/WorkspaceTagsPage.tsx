@@ -33,6 +33,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renameTagInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearPolicyTagErrors,
     deletePolicyTags,
@@ -348,6 +349,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.reduce<WorkspaceTagTableRowData[]>((acc, policyTagList) => {
@@ -378,6 +383,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     showEnabledSwitch: false,
                     // Required is configured from Rules once the revamp is on.
                     showRequiredSwitch: !hasDependentTags && !isRulesRevampEnabled,
+                    // Inline renaming targets single-level tags only; tag lists are renamed from their settings page.
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
                     onClose: () => {},
@@ -421,8 +427,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,
+                canEditName: canWriteTags && !isSelectionModeActive,
                 action: () => navigateToTagSettings(tag.name),
                 onToggleEnabled: (enabled: boolean) => handleTagEnabledToggle(enabled, tag),
+                onRenameName: (newName: string) => renameTagInline(policyData, tag.name, newName),
                 onClose: () => clearPolicyTagErrors({policyID, tagName: tag.name, tagListIndex: 0, policyTags}),
             });
 
@@ -430,6 +438,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }, []);
     }, [
         canWriteTags,
+        isSelectionModeActive,
+        policyData,
         handleTagEnabledToggle,
         handleTagListRequiredToggle,
         hasDependentTags,

@@ -12,10 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDefaultCardName} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {getDefaultCardName, getExpensifyCardNameError, getExpensifyCardNameErrorMessage} from '@libs/CardUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 
@@ -54,13 +52,13 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
-        if (values.cardTitle) {
-            const {isValid, byteLength} = isValidInputLength(values.cardTitle, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> = {};
+        const error = getExpensifyCardNameError(values.cardTitle);
+
+        if (error) {
+            errors[INPUT_IDS.CARD_TITLE] = getExpensifyCardNameErrorMessage(translate, error, values.cardTitle);
         }
+
         return errors;
     };
 

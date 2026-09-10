@@ -30,6 +30,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
@@ -57,6 +58,7 @@ import {
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
+    canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
@@ -64,9 +66,12 @@ import {
     isDeletedPolicyEmployee,
     isExpensifyTeam,
     isGroupPolicy,
+    // Member role bulk actions are Collect/Control only; Submit has no assignable roles.
+    // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is a billing/paid-only check for member role assignment
     isPaidGroupPolicy,
     isPolicyApprover,
     isSubmitPolicy,
+    PAYER_ROLES,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -326,6 +331,27 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [route.params.policyID],
     );
 
+    const changeMemberRole = useCallback(
+        (login: string, accountID: number, currentRole: string | undefined, newRole: string | undefined) => {
+            if (!newRole || newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+                return;
+            }
+
+            // A reimburser must stay a valid payer, so reject any role that cannot pay.
+            if (getReimburserEmail(policy) === login && !canRolePay(newRole)) {
+                return;
+            }
+
+            if (newRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+                showRuleBotGuardModal('changeRole', policyID);
+                return;
+            }
+
+            updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
+        },
+        [currentUserLogin, policy, policyID, showRuleBotGuardModal],
+    );
+
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
@@ -376,8 +402,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
+    const workspaceReimburserEmail = getReimburserEmail(policy);
+    // Role assignment is a Collect/Control capability. Submit locks every member to Editor.
+    const canAssignMemberRole = isGroupPolicy(policy) && !isSubmitWorkspace;
+
     const data: WorkspaceMemberRowData[] = useMemo(() => {
         const ownerDisplayRole = isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.OWNER;
+        const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
+
         return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
             const role = policy?.owner === details.login ? ownerDisplayRole : policyEmployee.role;
@@ -385,6 +420,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const isOwner = policy?.owner === login;
+            const isCurrentUser = accountID === session?.accountID;
+            const isReimburser = !!workspaceReimburserEmail && workspaceReimburserEmail === login;
+            const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+            const canEditRole =
+                canAssignMemberRole &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                !isOwner &&
+                !isCurrentUser &&
+                !details.isOptimisticPersonalDetail &&
+                canMemberAssignRole(policy, currentUserLogin ?? '', policyEmployee.role) &&
+                (!isReimburser || canReimburserChangeRole);
 
             return {
                 keyForList: login,
@@ -406,6 +454,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 errors: getLatestErrorMessageField(policyEmployee),
                 pendingAction: policyEmployee.pendingAction,
                 disabled: isPendingDeleteOrError,
+                canEditRole,
+                onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
                 action: () => openMemberDetails(accountID, login),
@@ -416,9 +466,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         filteredMembers,
         canEditWorkspaceSettings,
         canWriteMembers,
+        canAssignMemberRole,
         currentUserLogin,
         policy,
         isSubmitWorkspace,
+        isSelectionModeActive,
+        workspaceReimburserEmail,
         formatPhoneNumber,
         translate,
         session?.accountID,
@@ -427,6 +480,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
+        changeMemberRole,
     ]);
 
     useEffect(() => {

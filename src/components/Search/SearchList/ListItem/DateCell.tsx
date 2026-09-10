@@ -1,7 +1,7 @@
 import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

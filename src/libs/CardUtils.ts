@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {CardLimitType, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -504,6 +504,94 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.singleUse';
         default:
             return 'workspace.card.issueNewCard.smartLimit';
+    }
+}
+
+/**
+ * Switching from Monthly or Fixed to Smart, or from Smart or Fixed to Monthly, can start
+ * declining new spend when unapproved spend is already at the limit.
+ */
+const EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS: Array<[CardLimitType, CardLimitType]> = [
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART],
+    [CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY],
+];
+
+/**
+ * Whether Fixed should be offered when editing an Expensify card's limit type.
+ * Hidden when a monthly or Smart card has already spent its full unapproved limit.
+ */
+function shouldShowExpensifyCardFixedLimitType(card?: Card): boolean {
+    if (!card?.totalSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return true;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType;
+    if (currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) {
+        return true;
+    }
+
+    return Math.abs(card.totalSpend) < card.nameValuePairs.unapprovedExpenseLimit;
+}
+
+/**
+ * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
+ */
+function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType): boolean {
+    if (!card?.unapprovedSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const unapprovedSpend = Math.abs(card.unapprovedSpend);
+    if (unapprovedSpend < card.nameValuePairs.unapprovedExpenseLimit) {
+        return false;
+    }
+
+    const currentLimitType = card.nameValuePairs.limitType;
+    return EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS.some(([fromLimitType, toLimitType]) => currentLimitType === fromLimitType && newLimitType === toLimitType);
+}
+
+/**
+ * Warning copy for a limit-type change that would start declining transactions.
+ * Monthly and Fixed warn about switching to Smart; every other current type warns about Monthly.
+ */
+function getExpensifyCardLimitTypeChangeWarningKey(
+    currentLimitType: CardLimitType | undefined,
+): 'workspace.expensifyCard.changeCardSmartLimitTypeWarning' | 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning' {
+    if (currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY || currentLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED) {
+        return 'workspace.expensifyCard.changeCardSmartLimitTypeWarning';
+    }
+
+    return 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
+}
+
+type ExpensifyCardLimitChangeWarningKey = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
+
+/**
+ * Remaining spend after applying `newLimit` in cents. Current spend is
+ * `unapprovedExpenseLimit - availableSpend`, matching the RHP limit form so inline
+ * table edits use the same formula.
+ */
+function getExpensifyCardNewAvailableSpend(card: Card | undefined, newLimit: number): number {
+    const currentLimit = card?.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+    const currentSpend = currentLimit - (card?.availableSpend ?? 0);
+    return newLimit - currentSpend;
+}
+
+/**
+ * Warning copy when a new limit would leave remaining spend at or below zero.
+ * Matches the RHP limit form so inline edits and the full-page form stay in sync.
+ */
+function getExpensifyCardLimitChangeWarningKey(limitType: CardLimitType | undefined): ExpensifyCardLimitChangeWarningKey {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.expensifyCard.smartLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.expensifyCard.monthlyLimitWarning';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+        default:
+            return 'workspace.expensifyCard.fixedLimitWarning';
     }
 }
 
@@ -1212,6 +1300,118 @@ function getDefaultCardName(cardholder?: string) {
         return '';
     }
     return `${cardholder}'s card`;
+}
+
+/** The reason a proposed company card name is invalid. Callers translate it via `getCompanyCardNameErrorMessage`. */
+type CompanyCardNameError = 'required' | 'tooLong';
+
+/** Normalizes a company card name by converting non-breaking spaces and trimming surrounding whitespace. */
+function sanitizeCompanyCardName(name: string): string {
+    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
+}
+
+/**
+ * Validates a company card name against every rule (required, length). This is the single source of
+ * truth shared by the RHP edit form, the assign-card name step, and inline table editing. Returns an
+ * error code, or undefined when the name is valid.
+ */
+function getCompanyCardNameError(newName: string): CompanyCardNameError | undefined {
+    const sanitized = sanitizeCompanyCardName(newName);
+
+    if (!sanitized) {
+        return 'required';
+    }
+
+    if (StringUtils.getUTF8ByteLength(sanitized) > CONST.STANDARD_LENGTH_LIMIT) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CompanyCardNameError} into a user-facing message for the given name. */
+function getCompanyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CompanyCardNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(sanitizeCompanyCardName(name)), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
+/** The reason a proposed Expensify card name is invalid. Callers translate it via `getExpensifyCardNameErrorMessage`. */
+type ExpensifyCardNameError = 'required' | 'tooLong';
+
+/**
+ * Validates an Expensify card name against the same rules the RHP edit form and issue-new name
+ * step used before inline editing: required if the value is empty after stripping invisible
+ * characters, then UTF-8 length of the raw (unsanitized) value. Returns an error code, or
+ * undefined when the name is valid.
+ */
+function getExpensifyCardNameError(newName: string): ExpensifyCardNameError | undefined {
+    if (!newName || StringUtils.isEmptyString(newName)) {
+        return 'required';
+    }
+
+    if (StringUtils.getUTF8ByteLength(newName) > CONST.STANDARD_LENGTH_LIMIT) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardNameError} into a user-facing message for the given name. */
+function getExpensifyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(name), CONST.STANDARD_LENGTH_LIMIT);
+    }
+}
+
+/** The reason a proposed Expensify card limit is invalid. Callers translate it via `getExpensifyCardLimitErrorMessage`. */
+type ExpensifyCardLimitError = 'required' | 'invalid' | 'notInteger' | 'tooHigh';
+
+/**
+ * Validates an Expensify card limit against the same rules the RHP edit form uses.
+ * `newLimit` is the dollar amount as a string. Returns an error code, or undefined when the limit is valid.
+ */
+function getExpensifyCardLimitError(newLimit: string): ExpensifyCardLimitError | undefined {
+    if (!newLimit) {
+        return 'required';
+    }
+
+    if (Number.isNaN(Number(newLimit))) {
+        return 'invalid';
+    }
+
+    if (!Number.isInteger(Number(newLimit))) {
+        return 'notInteger';
+    }
+
+    if (Number(newLimit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+        return 'tooHigh';
+    }
+
+    return undefined;
+}
+
+/** Translates an {@link ExpensifyCardLimitError} into a user-facing message. */
+function getExpensifyCardLimitErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardLimitError): string {
+    switch (error) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'notInteger':
+            return translate('iou.error.invalidIntegerAmount');
+        case 'tooHigh':
+            return translate('workspace.card.issueNewCard.cardLimitError');
+        case 'invalid':
+        default:
+            return translate('iou.error.invalidAmount');
+    }
 }
 
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
@@ -2168,6 +2368,11 @@ export {
     getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
+    shouldShowExpensifyCardFixedLimitType,
+    shouldConfirmExpensifyCardLimitTypeChange,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    getExpensifyCardLimitChangeWarningKey,
     isExpensifyCard,
     isUkEuExpensifyCard,
     isOfflinePINMarket,
@@ -2212,6 +2417,13 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    sanitizeCompanyCardName,
+    getCompanyCardNameError,
+    getCompanyCardNameErrorMessage,
+    getExpensifyCardNameError,
+    getExpensifyCardNameErrorMessage,
+    getExpensifyCardLimitError,
+    getExpensifyCardLimitErrorMessage,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
@@ -2294,4 +2506,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CompanyCardNameError, ExpensifyCardNameError};

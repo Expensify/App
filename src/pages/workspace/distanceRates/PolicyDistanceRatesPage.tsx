@@ -33,6 +33,7 @@ import {
     openPolicyDistanceRatesPage,
     setPolicyDistanceRatesEnabled,
 } from '@libs/actions/Policy/DistanceRate';
+import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,7 +66,7 @@ function PolicyDistanceRatesPage({
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.distanceRates');
@@ -152,6 +153,10 @@ function PolicyDistanceRatesPage({
     }, [setSelectedDistanceRates]);
 
     useCleanupSelectedOptions(clearTableSelection);
+
+    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
+    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
+    const isSelectionModeActive = selectedDistanceRates.length > 0 || isMobileSelectionModeEnabled;
 
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>
@@ -314,18 +319,35 @@ function PolicyDistanceRatesPage({
                     formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
                     pendingAction: resolvedPendingAction ?? undefined,
                     errors: rate.errors ?? undefined,
+                    canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
+                    canEditRate: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
                     action: () => openRateDetailsByID(rate.customUnitRateID),
                     dismissError: () => dismissErrorByID(rate.customUnitRateID),
                     onToggleEnabled: (value: boolean) => updateDistanceRateEnabled(value, rate.customUnitRateID),
+                    onRenameName: (newName: string) => {
+                        if (!customUnit) {
+                            return;
+                        }
+                        renameDistanceRateInline(policyID, customUnit, rate, newName);
+                    },
+                    onChangeRate: (newRate: string) => {
+                        if (!customUnit) {
+                            return;
+                        }
+                        updateDistanceRateValueInline(policyID, customUnit, rate, newRate, toLocaleDigit);
+                    },
                 };
             }),
         [
             customUnitRates,
             unitTranslation,
-            customUnit?.pendingFields?.attributes,
+            customUnit,
             policy?.pendingAction,
             canWriteDistanceRates,
             canDisableOrDeleteRate,
+            isSelectionModeActive,
+            policyID,
+            toLocaleDigit,
             openRateDetailsByID,
             dismissErrorByID,
             updateDistanceRateEnabled,

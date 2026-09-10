@@ -1,8 +1,8 @@
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
+import type {EditableProps} from '@components/EditableCell';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';

@@ -162,6 +162,58 @@ function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
+/** The reason a proposed category name is invalid. Callers translate it via `getCategoryNameErrorMessage`. */
+type CategoryNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
+
+/** Normalizes a category name by converting non-breaking spaces and trimming surrounding whitespace. */
+function sanitizeCategoryName(name: string): string {
+    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
+}
+
+/**
+ * Validates a category name against every rule (required, unique, reserved, length). This is the single
+ * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
+ * `currentName` when editing so renaming a category to its own name isn't flagged as a duplicate.
+ * Returns an error code, or undefined when the name is valid.
+ */
+function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
+    const sanitized = sanitizeCategoryName(newName);
+
+    if (!sanitized) {
+        return 'required';
+    }
+
+    if (policyCategories?.[sanitized] && sanitized !== currentName) {
+        return 'existing';
+    }
+
+    if (sanitized === CONST.INVALID_CATEGORY_NAME || sanitized === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
+        return 'invalid';
+    }
+
+    // Spread to count Unicode code points rather than UTF-16 code units.
+    if ([...sanitized].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+        return 'tooLong';
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CategoryNameError} into a user-facing message for the given name. */
+function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'], error: CategoryNameError, name: string): string {
+    switch (error) {
+        case 'required':
+            return translate('workspace.categories.categoryRequiredError');
+        case 'existing':
+            return translate('workspace.categories.existingCategoryError');
+        case 'invalid':
+            return translate('workspace.categories.invalidCategoryName');
+        case 'tooLong':
+        default:
+            return translate('common.error.characterLimitExceedCounter', [...sanitizeCategoryName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+    }
+}
+
 /**
  * Splits a category name on the colon separator, removes empty middle segments,
  * and merges a trailing empty segment into the previous part (preserving trailing colons).
@@ -264,4 +316,9 @@ export {
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
     hasAnyCategoryRules,
+    sanitizeCategoryName,
+    getCategoryNameError,
+    getCategoryNameErrorMessage,
 };
+
+export type {CategoryNameError};

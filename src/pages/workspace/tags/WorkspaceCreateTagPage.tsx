@@ -13,11 +13,10 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -52,18 +51,11 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-        const tagName = escapeTagName(values.tagName.trim());
         const {tags} = getTagList(policyTagLists, 0);
+        const error = getTagNameError(tags, values.tagName);
 
-        if (!isRequiredFulfilled(tagName)) {
-            errors.tagName = translate('workspace.tags.tagRequiredError');
-        } else if (tagName === '0') {
-            errors.tagName = translate('workspace.tags.invalidTagNameError');
-        } else if (tags?.[tagName]) {
-            errors.tagName = translate('workspace.tags.existingTagError');
-        } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
         }
 
         return errors;

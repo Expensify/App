@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPerDiemNameError, getPerDiemNameErrorMessage, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -48,20 +49,17 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+        const nameError = getPerDiemNameError(values.subrate);
 
-        const subrateTrimmed = values.subrate.trim();
-
-        if (!subrateTrimmed) {
-            errors.subrate = translate('common.error.fieldRequired');
-        } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
-            errors.subrate = translate('common.error.characterLimitExceedCounter', subrateTrimmed.length, CONST.MAX_LENGTH_256);
+        if (nameError) {
+            errors.subrate = getPerDiemNameErrorMessage(translate, nameError, values.subrate);
         }
 
         return errors;
     };
 
     const editSubrate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-        const newSubrate = values.subrate.trim();
+        const newSubrate = sanitizePerDiemName(values.subrate);
         if (newSubrate !== selectedSubrate?.name) {
             editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
         }

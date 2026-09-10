@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDistanceRateNameError, getDistanceRateNameErrorMessage, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -46,15 +47,11 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM> = {};
-            const newRateName = values.rateName.trim();
+            const existingRateNames = Object.values(customUnit?.rates ?? {}).map((existingRate) => existingRate.name ?? '');
+            const nameError = getDistanceRateNameError(existingRateNames, values.rateName, currentRateName);
 
-            if (!newRateName) {
-                errors.rateName = translate('workspace.distanceRates.errors.rateNameRequired');
-            } else if (Object.values(customUnit?.rates ?? {}).some((r) => r.name === newRateName) && currentRateName !== newRateName) {
-                errors.rateName = translate('workspace.distanceRates.errors.existingRateName');
-            } else if ([...newRateName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.rateName = translate('common.error.characterLimitExceedCounter', [...newRateName].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
+            if (nameError) {
+                errors.rateName = getDistanceRateNameErrorMessage(translate, nameError, values.rateName);
             }
 
             return errors;
@@ -67,11 +64,12 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
             if (!customUnit || !rate) {
                 return;
             }
-            if (currentRateName === values.rateName) {
+            const sanitized = sanitizeDistanceRateName(values.rateName);
+            if (currentRateName === sanitized) {
                 Navigation.goBack();
                 return;
             }
-            updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: values.rateName}]);
+            updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
             Keyboard.dismiss();
             Navigation.goBack();
         },

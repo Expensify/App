@@ -11,10 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {getCompanyCardNameError, getCompanyCardNameErrorMessage} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -53,13 +52,13 @@ function CardNameStep({route}: CardNameStepProps) {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
-        if (values.name) {
-            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> = {};
+        const error = getCompanyCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCompanyCardNameErrorMessage(translate, error, values.name);
         }
+
         return errors;
     };
 

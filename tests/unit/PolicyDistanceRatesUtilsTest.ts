@@ -1,11 +1,14 @@
 import {
     getDistanceExpenseTypeForPolicy,
+    getDistanceRateNameError,
+    getDistanceRateValueError,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    sanitizeDistanceRateName,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -219,6 +222,62 @@ describe('PolicyDistanceRatesUtils', () => {
 
         it('should pass through an unset preference', () => {
             expect(getDistanceExpenseTypeForPolicy(buildPolicy({requireMapOrGPS: true}), undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateNameError', () => {
+        const existingRateNames = ['IRS', 'Custom rate'];
+
+        it('should return required when the name is empty or only whitespace', () => {
+            expect(getDistanceRateNameError(existingRateNames, '')).toBe('required');
+            expect(getDistanceRateNameError(existingRateNames, '   ')).toBe('required');
+        });
+
+        it('should return existing when the name matches another rate', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS')).toBe('existing');
+            expect(getDistanceRateNameError(existingRateNames, ' Custom rate ')).toBe('existing');
+        });
+
+        it('should not flag a rate as a duplicate of its own name', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'IRS', 'IRS')).toBeUndefined();
+        });
+
+        it('should return tooLong when the name exceeds the character limit', () => {
+            const tooLongName = 'a'.repeat(CONST.TAX_RATES.NAME_MAX_LENGTH + 1);
+            expect(getDistanceRateNameError(existingRateNames, tooLongName)).toBe('tooLong');
+        });
+
+        it('should accept a unique name within the character limit', () => {
+            expect(getDistanceRateNameError(existingRateNames, 'New rate')).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateValueError', () => {
+        const toLocaleDigit = (digit: string) => digit;
+
+        it('should return invalid when the rate is empty or not a number', () => {
+            expect(getDistanceRateValueError('', toLocaleDigit)).toBe('invalid');
+            expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe('invalid');
+        });
+
+        it('should return tooLow when the rate is zero or negative', () => {
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe('tooLow');
+            expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe('tooLow');
+        });
+
+        it('should return invalid when the rate has more than four decimal places', () => {
+            expect(getDistanceRateValueError('0.12345', toLocaleDigit)).toBe('invalid');
+        });
+
+        it('should accept a positive rate with up to four decimal places', () => {
+            expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
+        });
+    });
+
+    describe('sanitizeDistanceRateName', () => {
+        it('should convert non-breaking spaces and trim surrounding whitespace', () => {
+            expect(sanitizeDistanceRateName(`\u00A0Custom rate\u00A0`)).toBe('Custom rate');
         });
     });
 });
