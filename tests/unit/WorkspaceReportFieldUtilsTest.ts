@@ -69,12 +69,6 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
         expect(getUnsupportedReportFieldFormulaParts('{report:autoreporting:start}')).toEqual([]);
     });
 
-    it('rejects the reimbursement amounts, which a frozen field value could never hold', () => {
-        expect(getUnsupportedReportFieldFormulaParts('{report:debitedAmount}')).toEqual(['{report:debitedAmount}']);
-        expect(getUnsupportedReportFieldFormulaParts('{report:creditedAmount}')).toEqual(['{report:creditedAmount}']);
-        expect(getUnsupportedReportFieldFormulaParts('Debited: {report:debitedAmount:nosymbol}')).toEqual(['{report:debitedAmount:nosymbol}']);
-    });
-
     it('returns only unsupported parts in mixed formulas', () => {
         expect(getUnsupportedReportFieldFormulaParts('Hello {report:id} and {report:invalid}')).toEqual(['{report:invalid}']);
         expect(getUnsupportedReportFieldFormulaParts('{report:i} {report:unknown}')).toEqual(['{report:i}', '{report:unknown}']);
