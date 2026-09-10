@@ -23,7 +23,12 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
+import {
+    isDistanceRequest as isDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
+    isUnreportedManagedCardTransaction,
+} from '@libs/TransactionUtils';
 
 import {createNewReport} from '@userActions/Report';
 
@@ -227,6 +232,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             transactionIDs={transactionIDs}
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
+            isDistanceRequest={transactions.some(isDistanceRequestUtil)}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}

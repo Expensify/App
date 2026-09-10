@@ -14,16 +14,12 @@ import Image from './Image';
 import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
-    /** Any additional styles to apply */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
     /** Invoked on mount and layout changes */
