@@ -3385,7 +3385,7 @@ function canDeleteMoneyRequestReport(
     // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
-        return true;
+        return reportTransactions.every((t) => canDeleteCardTransactionByLiabilityType(t));
     }
 
     if (isInvoiceReport(report)) {
