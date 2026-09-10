@@ -147,7 +147,7 @@ type DisplayableExpensifyCards = {
     cards: Card[];
 
     /** Every cardID that a shown card stands for, keyed by the shown cardID. A combo card lists both halves of the duo. */
-    cardIDsByCardID: Record<number, number[]>;
+    cardIDsByShownCardID: Record<number, number[]>;
 };
 
 const feedNamesMapping = {
@@ -1978,7 +1978,7 @@ function isTravelCardTransaction(feedCountry: string | undefined, card: Card | u
  */
 function getDisplayableExpensifyCards(cardList: CardList | undefined): DisplayableExpensifyCards {
     if (!hasDisplayableAssignedCards(cardList)) {
-        return {cards: [], cardIDsByCardID: {}};
+        return {cards: [], cardIDsByShownCardID: {}};
     }
 
     const activeCards = filterAllInactiveCards(cardList);
@@ -1995,7 +1995,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Displayab
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
     const cards: Card[] = [];
-    const cardIDsByCardID: Record<number, number[]> = {};
+    const cardIDsByShownCardID: Record<number, number[]> = {};
     const shownCardIDByDomain = new Map<string, number>();
 
     for (const card of sortedCards) {
@@ -2005,7 +2005,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Displayab
         // Always show non-combo cards (admin-issued virtual or cards without domain)
         if (!isComboCard) {
             cards.push(card);
-            cardIDsByCardID[card.cardID] = [card.cardID];
+            cardIDsByShownCardID[card.cardID] = [card.cardID];
             continue;
         }
 
@@ -2015,16 +2015,16 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Displayab
         // The hidden half of the duo still spends against the same limit, so record its cardID under the
         // shown card. Callers that query transactions need both IDs to see the duo's full spend.
         if (shownCardID !== undefined) {
-            cardIDsByCardID[shownCardID].push(card.cardID);
+            cardIDsByShownCardID[shownCardID].push(card.cardID);
             continue;
         }
 
         shownCardIDByDomain.set(card.domainName, card.cardID);
         cards.push(card);
-        cardIDsByCardID[card.cardID] = [card.cardID];
+        cardIDsByShownCardID[card.cardID] = [card.cardID];
     }
 
-    return {cards, cardIDsByCardID};
+    return {cards, cardIDsByShownCardID};
 }
 
 /**

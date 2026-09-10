@@ -2816,8 +2816,8 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
-            expect(cardIDsByCardID).toEqual({18468850: [18468850, 18468851]});
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850, 18468851]});
         });
 
         it('should map a card that is not part of a combo duo to itself only', () => {
@@ -2856,8 +2856,8 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
-            expect(cardIDsByCardID).toEqual({18468850: [18468850], 18468852: [18468852]});
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850], 18468852: [18468852]});
         });
 
         it('maps a combo card to both halves regardless of the order the card list lists them in', () => {
@@ -2895,10 +2895,10 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cards, cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
+            const {cards, cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
             expect(cards).toHaveLength(1);
             expect(cards.at(0)?.cardID).toBe(18468850);
-            expect(cardIDsByCardID).toEqual({18468850: [18468850, 18468851]});
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850, 18468851]});
         });
 
         it('leaves a filtered-out half of the duo out of the mapping', () => {
@@ -2936,8 +2936,8 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
-            expect(cardIDsByCardID).toEqual({18468850: [18468850]});
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850]});
         });
 
         it('keeps the duos of two domains apart', () => {
@@ -3007,9 +3007,9 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cards, cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
+            const {cards, cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
             expect(cards).toHaveLength(2);
-            expect(cardIDsByCardID).toEqual({1: [1, 2], 3: [3, 4]});
+            expect(cardIDsByShownCardID).toEqual({1: [1, 2], 3: [3, 4]});
         });
 
         it('maps a card without a domainName to itself only', () => {
@@ -3031,8 +3031,8 @@ describe('CardUtils', () => {
                     },
                 },
             });
-            const {cardIDsByCardID} = getDisplayableExpensifyCards(cardList);
-            expect(cardIDsByCardID).toEqual({18468850: [18468850]});
+            const {cardIDsByShownCardID} = getDisplayableExpensifyCards(cardList);
+            expect(cardIDsByShownCardID).toEqual({18468850: [18468850]});
         });
 
         it('should show admin-issued virtual cards separately', () => {

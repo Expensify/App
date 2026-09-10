@@ -98,7 +98,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@libs/CardUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/CardUtils'),
-    getDisplayableExpensifyCards: jest.fn(() => ({cards: [], cardIDsByCardID: {}})),
+    getDisplayableExpensifyCards: jest.fn(() => ({cards: [], cardIDsByShownCardID: {}})),
     getDisplayableThirdPartyCards: jest.fn(() => []),
 }));
 
@@ -255,7 +255,7 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
 function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string; comboCardIDs?: number[]}>): DisplayableExpensifyCards {
     return {
         cards: cards.map(({cardID, lastFourPAN}) => createMock<Card>({cardID, lastFourPAN})),
-        cardIDsByCardID: cards.reduce<Record<number, number[]>>((acc, {cardID, comboCardIDs}) => {
+        cardIDsByShownCardID: cards.reduce<Record<number, number[]>>((acc, {cardID, comboCardIDs}) => {
             acc[cardID] = comboCardIDs ?? [cardID];
             return acc;
         }, {}),
@@ -290,7 +290,7 @@ beforeEach(() => {
 
     mockedUseNetwork.mockReturnValue(networkState(false));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
-    mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByCardID: {}});
+    mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
     mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
     mockedIsPaidGroupPolicy.mockReturnValue(false);
 
@@ -399,7 +399,7 @@ describe('useYourSpendData — paymentRowState', () => {
 
 describe('useYourSpendData — cardRows', () => {
     it('returns an empty array when there are no displayable cards', () => {
-        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByCardID: {}});
+        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toEqual([]);
     });
@@ -620,7 +620,7 @@ describe('useYourSpendData — search dispatch', () => {
     it('fires no card search when the account has no displayable cards', () => {
         // Given an account with no displayable cards and no paid group workspace
         mockedIsPaidGroupPolicy.mockReturnValue(false);
-        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByCardID: {}});
+        mockedGetDisplayableExpensifyCards.mockReturnValue({cards: [], cardIDsByShownCardID: {}});
         mockedGetDisplayableThirdPartyCards.mockReturnValue([]);
 
         // When Home renders focused and online

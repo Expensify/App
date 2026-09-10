@@ -79,7 +79,7 @@ jest.mock('@libs/CardUtils', () => {
             ];
 
             // Neither stub card is half of a combo duo, so each one stands only for itself.
-            return {cards, cardIDsByCardID: Object.fromEntries(cards.map(({cardID}) => [cardID, [cardID]]))};
+            return {cards, cardIDsByShownCardID: Object.fromEntries(cards.map(({cardID}) => [cardID, [cardID]]))};
         }),
         getDisplayableThirdPartyCards: jest.fn(() => []),
         getCardDescription: jest.fn(() => 'Card description'),
