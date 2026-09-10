@@ -505,7 +505,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.mh4]}>
+            {/*
+                Wide layout: the input keeps only its left margin so the search bar runs to the popover's right edge.
+                The results list below owns its own right gutter (`ph2` plus the space the scrollbar sits in), so the
+                gutter does not need to be re-added here.
+            */}
+            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.ml4]}>
                 <SearchInputSelectionWrapper
                     value={textInputValue}
                     isFullWidth={shouldUseNarrowLayout}
