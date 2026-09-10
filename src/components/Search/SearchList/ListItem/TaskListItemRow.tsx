@@ -1,6 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import TextWithTooltip from '@components/TextWithTooltip';

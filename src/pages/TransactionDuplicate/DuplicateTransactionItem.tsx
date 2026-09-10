@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -23,6 +22,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -46,6 +46,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
         const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
@@ -74,6 +75,8 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
         const transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             betas,
@@ -99,7 +102,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 onPress={handlePreviewPress}
                 accessibilityLabel={transaction.comment?.comment ?? ''}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 hoverStyle={styles.hoveredComponentBG}
                 style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}

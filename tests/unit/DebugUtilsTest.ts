@@ -394,6 +394,50 @@ describe('DebugUtils', () => {
         });
     });
 
+    describe('validateStringRecord', () => {
+        it('does not throw SyntaxError when value is "undefined"', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('undefined');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a string representation of an empty object', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{}');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a valid string representation of a string-to-string record', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":"CostCenterB","1":"IndicationZ"}');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when value is just a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('a');
+            }).toThrow();
+        });
+
+        it('throws SyntaxError when value is a string representation of an array', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('["a"]');
+            }).toThrow();
+        });
+
+        it('does not throw SyntaxError when value is "null" (treated as an empty value)', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('null');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when a value in the record is not a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":1}');
+            }).toThrow();
+        });
+    });
+
     describe('validateObject', () => {
         describe('value is undefined', () => {
             it('does not throw SyntaxError', () => {
