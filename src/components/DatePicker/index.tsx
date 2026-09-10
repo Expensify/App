@@ -222,7 +222,8 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    // The icon and the clear button share the right-hand slot, so the icon only gives way to a clear button that will actually render.
+                    icon={selectedDate && !shouldHideClearButton ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
