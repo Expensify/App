@@ -31,7 +31,6 @@ type SearchListViewLayoutProps = {
     /** The bottom safe-area padding style applied when the keyboard is hidden. */
     safeAreaPaddingBottomStyle: StyleProp<ViewStyle>;
 
-    /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
 
     /** The list and any header/modal blocks, composed by the view (e.g. SelectionTopBar, BaseSearchList, long-press menu). */

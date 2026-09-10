@@ -11,24 +11,14 @@ import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import React from 'react';
 
 type ReportFieldItemType = {
-    /** The value */
     value: PolicyReportFieldType;
-
-    /** The display text */
     text: string;
-
-    /** The key for list */
     keyForList: string;
-
-    /** Whether the value is selected */
     isSelected: boolean;
 };
 
 type ReportFieldTypePickerProps = {
-    /** Currently selected report field type */
     defaultValue?: PolicyReportFieldType;
-
-    /** Function to call when the user selects a report field type */
     onOptionSelected: (reportField: ReportFieldItemType) => void;
 };
 

@@ -119,6 +119,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.
@@ -193,6 +194,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
@@ -226,6 +228,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         translate,
         formatPhoneNumber,
         bankAccountList,
+        rules,
         validGroupBy,
         exportReportActions,
         currentSearchKey,
@@ -273,6 +276,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
                 bankAccountList,
+                rules,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
@@ -298,6 +302,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         accountID,
         email,
         bankAccountList,
+        rules,
         translate,
         localeCompare,
         formatPhoneNumber,
