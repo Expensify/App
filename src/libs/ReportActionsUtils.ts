@@ -3429,10 +3429,8 @@ function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate
         return getReportActionText(action);
     }
 
-    // The raw unit is the untranslatable 'mi' / 'km' key, so it is mapped to a translated label the same way getWorkspaceCustomUnitRateAddedMessage does.
-    const unitLabel = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
-    const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unitLabel}`;
+    const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unit}`;
 
     if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
         return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName});
