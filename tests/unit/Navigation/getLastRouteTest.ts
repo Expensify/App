@@ -28,6 +28,11 @@ const createRootState = (routes: Route[]) => createState('root', 'stack', routes
 const createTabState = (key: string, routes: Route[], index?: number) => createState(key, 'tab', routes, index);
 const createNavigatorState = (key: string, routes: Route[]) => createState(key, 'stack', routes);
 
+// getLastRoute only considers a nested navigator route that carries its own state, i.e. one that has already been rendered.
+// The inner route uses the searched screen on purpose, to show that the preserved state - not the inner one - is what gets returned.
+const createNavigatorRouteWithState = (navigator: string, key: string, screen: string) =>
+    createRoute(navigator, key, createNavigatorState(`${key}-inner`, [createRoute(screen, `${key}-inner-route`)]));
+
 describe('getLastRoute', () => {
     beforeEach(() => {
         clearPreservedNavigatorStates();
@@ -74,7 +79,7 @@ describe('getLastRoute', () => {
             const tabRoute = createRoute(
                 NAVIGATORS.TAB_NAVIGATOR,
                 'tab-1',
-                createTabState('tab-1-state', [createRoute(SCREENS.HOME, 'home'), createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1')]),
+                createTabState('tab-1-state', [createRoute(SCREENS.HOME, 'home'), createNavigatorRouteWithState(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1', SCREENS.SEARCH.ROOT)]),
             );
             setPreservedNavigatorState('search-1', createNavigatorState('search-1-state', [createRoute(SCREENS.SEARCH.ROOT, 'search-root-1')]));
 
@@ -88,10 +93,7 @@ describe('getLastRoute', () => {
                 'tab-1',
                 createTabState(
                     'tab-1-state',
-                    [
-                        createRoute(SCREENS.HOME, 'home-1'),
-                        createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1', createNavigatorState('search-1-inner', [createRoute(SCREENS.SEARCH.ROOT, 'inner-search-root')])),
-                    ],
+                    [createRoute(SCREENS.HOME, 'home-1'), createNavigatorRouteWithState(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1', SCREENS.SEARCH.ROOT)],
                     0,
                 ),
             );
@@ -102,21 +104,24 @@ describe('getLastRoute', () => {
             expect(getLastRoute(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT)).toEqual({key: 'search-root-1', name: SCREENS.SEARCH.ROOT});
         });
 
-        it('falls back to the last tab navigator when no nested navigator has its own state', () => {
+        it('returns undefined when no nested navigator has its own state, even if a preserved state exists', () => {
             const firstTab = createRoute(NAVIGATORS.TAB_NAVIGATOR, 'tab-1', createTabState('tab-1-state', [createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1')]));
             const lastTab = createRoute(NAVIGATORS.TAB_NAVIGATOR, 'tab-2', createTabState('tab-2-state', [createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-2')]));
             const rootState = createRootState([firstTab, lastTab]);
             setPreservedNavigatorState('search-1', createNavigatorState('search-1-state', [createRoute(SCREENS.SEARCH.ROOT, 'search-root-1')]));
             setPreservedNavigatorState('search-2', createNavigatorState('search-2-state', [createRoute(SCREENS.SEARCH.ROOT, 'search-root-2')]));
 
-            expect(getLastRoute(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT)).toEqual({key: 'search-root-2', name: SCREENS.SEARCH.ROOT});
+            expect(getLastRoute(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT)).toBeUndefined();
         });
 
         it('uses the last matching navigator inside the tab state', () => {
             const tabRoute = createRoute(
                 NAVIGATORS.TAB_NAVIGATOR,
                 'tab-1',
-                createTabState('tab-1-state', [createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1'), createRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-2')]),
+                createTabState('tab-1-state', [
+                    createNavigatorRouteWithState(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-1', SCREENS.SEARCH.ROOT),
+                    createNavigatorRouteWithState(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, 'search-2', SCREENS.SEARCH.ROOT),
+                ]),
             );
             setPreservedNavigatorState('search-1', createNavigatorState('search-1-state', [createRoute(SCREENS.SEARCH.ROOT, 'search-root-1')]));
             setPreservedNavigatorState('search-2', createNavigatorState('search-2-state', [createRoute(SCREENS.SEARCH.ROOT, 'search-root-2')]));
