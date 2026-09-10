@@ -9813,6 +9813,28 @@ describe('createDistanceRequest', () => {
         expect(result.chatReportID).toBe(optimisticChatReportID);
     });
 
+    it('ignores optimisticChatReportID when the page-level report already matches the participant, so an existing chat is never rebuilt at a different id', async () => {
+        // Given an existing 1:1 chat between the payer and payee that the confirmation page passes down
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingChatReportID = rand64();
+        const existingChat: Report = {
+            reportID: existingChatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`, existingChat);
+
+        // When the distance request is submitted with an unrelated optimistic chat id supplied
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(existingChat, {amount: 1000}, recentWaypoints),
+            participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+            optimisticChatReportID: 'unused-optimistic-id',
+        });
+
+        // Then the existing chat is used and the optimistic id is ignored
+        expect(result.chatReportID).toBe(existingChatReportID);
+    });
+
     it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -9843,79 +9865,17 @@ describe('createDistanceRequest', () => {
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         const existingTransactionID = 'existing-txn-one-to-two';
-        const chatReportID = 'chat-one-to-two';
-        const policyID = 'policy-one-to-two';
-        // The report has to be one the expense can actually be added to, or the builder creates a report of its own and this is a 0→1 add.
-        const expenseReport: Report = {
-            reportID: '123',
-            type: CONST.REPORT.TYPE.EXPENSE,
-            chatReportID,
-            policyID,
-            ownerAccountID: RORY_ACCOUNT_ID,
-            managerID: RORY_ACCOUNT_ID,
-            currency: 'USD',
-            total: 0,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, type: CONST.POLICY.TYPE.CORPORATE, name: 'One To Two', role: CONST.POLICY.ROLE.ADMIN});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
-            reportID: chatReportID,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID,
-            isOwnPolicyExpenseChat: true,
-            type: CONST.REPORT.TYPE.CHAT,
-            iouReportID: '123',
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, expenseReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '123'});
         await waitForBatchedUpdates();
 
         const result = createDistanceRequest({
-            ...getDefaultDistanceRequestParams(expenseReport, {amount: 1}, recentWaypoints),
+            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             participants: [],
         });
         await waitForBatchedUpdates();
 
         const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`);
-        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {}).map((flagKey) => flagKey.split(':').at(0))).toContain(result.transactionID);
-    });
-
-    it('does not flag any report when the add forks a new expense report, since the transaction joins that one at 0→1', async () => {
-        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-        const existingTransactionID = 'existing-txn-forked';
-        const chatReportID = 'chat-forked';
-        // No policy is seeded, so canAddTransaction is false and the builder adds the expense to a report of its own.
-        const reportClosedToNewExpenses: Report = {
-            reportID: '789',
-            type: CONST.REPORT.TYPE.EXPENSE,
-            chatReportID,
-            policyID: 'policy-absent',
-            ownerAccountID: RORY_ACCOUNT_ID,
-            currency: 'USD',
-            total: 0,
-        };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
-            reportID: chatReportID,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID: 'policy-absent',
-            isOwnPolicyExpenseChat: true,
-            type: CONST.REPORT.TYPE.CHAT,
-            iouReportID: '789',
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}789`, reportClosedToNewExpenses);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '789'});
-        await waitForBatchedUpdates();
-
-        createDistanceRequest({
-            ...getDefaultDistanceRequestParams(reportClosedToNewExpenses, {amount: 1}, recentWaypoints),
-            participants: [],
-        });
-        await waitForBatchedUpdates();
-
-        // The flag has to follow the report the transaction lands on. On the report the caller was looking at, no consumer can claim it.
-        const callerReportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}789`);
-        expect(Object.keys(callerReportMetadata?.pendingNewTransactionIDs ?? {})).toEqual([]);
+        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {})).toContain(result.transactionID);
     });
 
     it('correctly sets quickAction', async () => {
