@@ -11,6 +11,7 @@ import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/cr
 
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import type {NavigationState} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
@@ -175,7 +176,7 @@ describe('useScreenBoundDynamicRoute', () => {
         // Until the container carries a newly mounted navigator, getActiveRoute renders its screen as the suffix alone.
         const getActiveRoute = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`);
         jest.spyOn(appNavigationRef, 'isReady').mockReturnValue(true);
-        const withoutScreen = {key: 'root', index: 0, routeNames: ['Other'], routes: [{key: 'Other-1', name: 'Other'}], type: 'stack', stale: false} as const;
+        const withoutScreen: NavigationState = {key: 'root', index: 0, routeNames: ['Other'], routes: [{key: 'Other-1', name: 'Other'}], type: 'stack', stale: false};
         const getRootState = jest.spyOn(appNavigationRef, 'getRootState').mockReturnValue(withoutScreen);
         let onState: (() => void) | undefined;
         jest.spyOn(appNavigationRef, 'addListener').mockImplementation((_event, callback) => {
