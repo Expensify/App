@@ -46,7 +46,7 @@ import {notePersonalDetailsWrite} from './renderTimings';
 const SHADOW_KEY = ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW;
 
 /** Set to `false` to go back to measuring write cost, which requires an unseeded mirror. See the note above. */
-const SHOULD_SEED_MIRROR_FOR_READS = true;
+const SHOULD_SEED_MIRROR_FOR_READS = false;
 
 /**
  * The real `personalDetailsList` subscriber mix, from an audit of its 261 read sites. Re-run the audit
