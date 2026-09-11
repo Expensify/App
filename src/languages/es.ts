@@ -8074,7 +8074,7 @@ ${reportName}`,
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
                     expenseSubtitle:
-                        'Marca los importes de los gastos por categoría. Esta regla anula la regla general del espacio de trabajo sobre el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
+                        'Marca importes de gastos por categoría. Esta regla sustituye la regla general del espacio de trabajo para el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
                     daily: 'Total por categoría',
                     dailySubtitle: 'Marcar el gasto total por día por categoría en cada informe de gastos.',
                 },

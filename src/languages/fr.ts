@@ -8098,7 +8098,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:
-                        'Signaler les montants des dépenses par catégorie. Cette règle remplace la règle générale de l’espace de travail concernant le montant maximal d’une dépense.',
+                        'Signaler les montants de dépense par catégorie. Cette règle remplace la règle générale de l’espace de travail pour le montant maximal de dépense. Les réservations de plusieurs jours sont évaluées selon la moyenne par nuit.',
                     daily: 'Total par catégorie',
                     dailySubtitle: 'Signaler le montant quotidien total par catégorie pour chaque note de frais.',
                 },

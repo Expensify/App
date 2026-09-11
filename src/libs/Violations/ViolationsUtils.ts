@@ -764,6 +764,9 @@ const ViolationsUtils = {
 
         const overLimitAmount = policy.maxExpenseAmount;
         const categoryOverLimit = policyCategories[categoryName ?? '']?.maxExpenseAmount;
+        const categoryExpenseLimitType = policyCategories[categoryName ?? '']?.expenseLimitType;
+        const isIndividualExpenseLimitType = categoryExpenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE || categoryExpenseLimitType === undefined;
+        const amountForCategoryLimitCheck = isIndividualExpenseLimitType ? amountForLimitCheck : expenseAmount;
         const shouldShowOverLimitViolation =
             canCalculateAmountViolations &&
             !isInvoiceTransaction &&
@@ -777,7 +780,7 @@ const ViolationsUtils = {
         const shouldShowOverTripLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && TransactionUtils.hasReservationList(updatedTransaction) && isSameCurrency && expenseAmount > -updatedTransaction.amount;
         const shouldCategoryShowOverLimitViolation =
-            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && amountForLimitCheck > categoryOverLimit && isControlPolicy;
+            canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && amountForCategoryLimitCheck > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction &&
             policyCategories?.[categoryName ?? '']?.areCommentsRequired &&
@@ -882,7 +885,7 @@ const ViolationsUtils = {
                 data: {
                     amount: shouldCategoryShowOverLimitViolation ? categoryOverLimit : policy.maxExpenseAmount,
                     currency: policy.outputCurrency,
-                    ...(shouldCategoryShowOverLimitViolation && reservationNights > 0 ? {nights: reservationNights} : {}),
+                    ...(shouldCategoryShowOverLimitViolation && isIndividualExpenseLimitType && reservationNights > 0 ? {nights: reservationNights} : {}),
                 },
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 showInReview: true,

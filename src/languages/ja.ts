@@ -10122,7 +10122,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
-        overCategoryLimitPerNight: (formattedLimit: string) => `1泊あたりの料金が、1人あたりのカテゴリ上限 ${formattedLimit} を超えています`,
+        overCategoryLimitPerNight: (formattedLimit: string) => `1人あたりのカテゴリ上限額 ${formattedLimit} を超える宿泊単価`,
         shortName: {
             allTagLevelsRequired: 'すべてのタグが必須です',
             autoReportedRejectedExpense: '経費が却下されました',
