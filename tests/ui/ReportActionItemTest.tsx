@@ -3038,6 +3038,30 @@ describe('ReportActionItem', () => {
             expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
         });
 
+        it('isTripPreview renders trip dates from report name-value-pair tripData', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportDates`, {
+                    reportID: 'tripReportDates',
+                    reportName: 'Paris Trip',
+                    currency: 'USD',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}tripReportDates`, {
+                    tripData: {
+                        tripID: 'trip-1',
+                        startDate: '2026-01-01T12:00:00Z',
+                        endDate: '2026-01-03T12:00:00Z',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportDates'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
+        });
+
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {taskReportID: 'task123'});
             renderItemWithAction(action);

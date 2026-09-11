@@ -51,6 +51,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const handleDuplicateReports = () => {
         bulkDuplicateReports({
@@ -80,6 +81,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             formatPhoneNumber,
             getCurrencyDecimals,
             conciergeChat,
+            rules,
         }).catch((error: unknown) => {
             Log.warn('[useBulkDuplicateReportAction] Failed to duplicate the selected reports', {error});
         });
