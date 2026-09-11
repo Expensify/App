@@ -11797,14 +11797,22 @@ describe('OptionsListUtils', () => {
         const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`]: groupChatReport};
 
         const buildGroupChatOption = (pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>, isSearching = true) => {
-            const optionList = createFilteredOptionList(PERSONAL_DETAILS, reports, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching,
-                pendingDeleteMemberAccountIDsByReportID,
-            });
+            const optionList = createFilteredOptionList(
+                PERSONAL_DETAILS,
+                reports,
+                MOCK_REPORT_ATTRIBUTES_DERIVED,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                allPolicies,
+                {
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching,
+                    pendingDeleteMemberAccountIDsByReportID,
+                },
+                undefined,
+            );
             return optionList.reports.find((option) => option.item.reportID === GROUP_CHAT_REPORT_ID);
         };
 
