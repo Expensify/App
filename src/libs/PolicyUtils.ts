@@ -1156,6 +1156,36 @@ function findPolicyTagAtLevel(levelTags: PolicyTags, tagName: string, parentTagP
     return matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
 }
 
+/**
+ * Finds a policy tag record and its Onyx storage key within a tag list.
+ * Dependent tag lists can hold same-named child tags under different parents (stored under unique
+ * record keys), so a tag only matches by name when its parent filter also matches.
+ */
+function findPolicyTagEntryByParentFilter(tags: PolicyTags | undefined, tagName: string, parentTagsFilter?: string): {tag: ValueOf<PolicyTags>; tagKey: string} | undefined {
+    if (!tags) {
+        return undefined;
+    }
+
+    if (parentTagsFilter) {
+        const match = Object.entries(tags).find(([, tag]) => tag.name === tagName && (tag.rules?.parentTagsFilter ?? tag.parentTagsFilter) === parentTagsFilter);
+        if (match) {
+            return {tag: match[1], tagKey: match[0]};
+        }
+        return undefined;
+    }
+
+    if (tags[tagName]) {
+        return {tag: tags[tagName], tagKey: tagName};
+    }
+
+    const renamedTag = Object.entries(tags).find(([, tag]) => tag.previousTagName === tagName);
+    if (renamedTag) {
+        return {tag: renamedTag[1], tagKey: renamedTag[0]};
+    }
+
+    return undefined;
+}
+
 function isTagInPolicy(tagValue: string, policyTags: OnyxEntry<PolicyTagLists>): boolean {
     if (!policyTags) {
         return false;
@@ -3448,6 +3478,7 @@ export {
     hasTags,
     isTagInPolicy,
     findPolicyTagAtLevel,
+    findPolicyTagEntryByParentFilter,
     matchesParentTagPath,
     hasCustomCategories,
     hasConfiguredRules,

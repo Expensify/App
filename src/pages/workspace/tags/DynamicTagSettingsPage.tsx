@@ -21,12 +21,14 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import appendParentTagsFilter from '@libs/Navigation/helpers/dynamicRoutesUtils/appendParentTagsFilter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     arePolicyRulesEnabled,
+    findPolicyTagEntryByParentFilter,
     getCleanedTagName,
     getTagApproverRule,
     getTagListByOrderWeight,
@@ -76,9 +78,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approverText = usePersonalDetailByLogin(tagApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? tagApprover));
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
-    const currentPolicyTag = hasDependentTags
-        ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
-        : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
+    const currentPolicyTagEntry = findPolicyTagEntryByParentFilter(policyTag.tags, tagName, parentTagsFilter);
+    const currentPolicyTag = currentPolicyTagEntry?.tag;
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 
@@ -117,23 +118,21 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     };
 
     const navigateToEditGlCode = () => {
+        const workspaceGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path, parentTagsFilter);
+        const settingsGlCodeRoute = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName), parentTagsFilter);
+        const settingsGlCodeRouteForCurrentTag = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name), parentTagsFilter);
+
         if (!isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
-                    isQuickSettingsFlow
-                        ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, tagName))
-                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
+                    isQuickSettingsFlow ? createDynamicRoute(settingsGlCodeRoute) : createDynamicRoute(workspaceGlCodeRoute),
                 ),
             );
             return;
         }
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.getRoute(orderWeight, currentPolicyTag.name))
-                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path),
-        );
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsGlCodeRouteForCurrentTag) : createDynamicRoute(workspaceGlCodeRoute));
     };
 
     const navigateToEditTagApprover = () => {
@@ -205,18 +204,16 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                             value={cleanedTagName}
                         />
                     </OfflineWithFeedback>
-                    {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
-                        <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
-                            <MenuItemWithTopDescription
-                                description={translate(`workspace.tags.glCode`)}
-                                title={currentPolicyTag?.['GL Code']}
-                                onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
-                                interactive={canWriteTags && !hasAccountingConnections && !hasDependentTags}
-                                shouldShowRightIcon={canWriteTags && !hasDependentTags}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
+                        <MenuItemWithTopDescription
+                            description={translate(`workspace.tags.glCode`)}
+                            title={currentPolicyTag?.['GL Code']}
+                            onPress={navigateToEditGlCode}
+                            iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
+                            interactive={canWriteTags && !hasAccountingConnections}
+                            shouldShowRightIcon={canWriteTags && !hasAccountingConnections}
+                        />
+                    </OfflineWithFeedback>
 
                     {arePolicyRulesEnabled(policy, policyData.categories, isRulesRevampEnabled) && !isMultiLevelTags && (
                         <>
