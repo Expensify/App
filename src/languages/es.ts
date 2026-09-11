@@ -63,6 +63,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Buscar',
         reports: 'Informes',
         spend: 'Gastos',
+        insights: 'Información',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -4570,6 +4571,7 @@ ${amount} para ${merchant} - ${date}`,
             accounting: 'Contabilidad',
             hr: 'HR',
             recruiting: 'Reclutamiento',
+            mcp: 'MCP',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -4713,6 +4715,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
             description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            connect: 'Conectar',
+            helpPrompt: '¿Necesitas ayuda para conectar?',
+            helpLink: 'Lee nuestra guía.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'de Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'de Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'de OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6438,6 +6459,10 @@ ${amount} para ${merchant} - ${date}`,
             connections: {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
             },
             receiptPartners: {
                 title: 'Socios de recibos',
@@ -9394,7 +9419,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
-            has: {submittedViolation: 'Infracción enviada'},
+            has: {submittedViolation: 'Infracción enviada', approvedViolation: 'Infracción aprobada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',

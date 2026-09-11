@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '搜索',
         reports: '报表',
         spend: '支出',
+        insights: '洞察',
         find: '查找',
         searchWithThreeDots: '搜索…',
         next: '下一步',
@@ -4466,6 +4467,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travel: '差旅',
             members: '成员',
             accounting: '会计',
+            mcp: 'MCP',
             receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
@@ -4600,6 +4602,25 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         createdForClient: {
             title: '您已为客户创建了工作区！',
             description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
+        },
+        mcp: {
+            connectors: '连接器',
+            connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
+            connect: '连接',
+            helpPrompt: '需要帮助连接吗？',
+            helpLink: '阅读我们的指南。',
+            claude: {
+                title: 'Claude',
+                subtitle: '由 Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: '由 Anysphere 提供',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: '由 OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6278,6 +6299,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connections: {
                 title: '会计',
                 subtitle: '同步您的科目表等数据。',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: '将 AI 助手连接到您的 Expensify 账户。',
             },
             receiptPartners: {
                 title: '收据合作伙伴',
@@ -9117,7 +9142,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '合并差旅账单',
             },
             is: '是',
-            has: {submittedViolation: '已提交违规'},
+            has: {submittedViolation: '已提交违规', approvedViolation: '已批准违规'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',

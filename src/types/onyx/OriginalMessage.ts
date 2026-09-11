@@ -237,16 +237,16 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
-/** Model of a violation captured on a submitted report action */
-type SubmittedTransactionViolation = {
-    /** Violation identifier/name captured at submit time */
+/** Model of a violation captured on a report action snapshot */
+type SnapshotTransactionViolation = {
+    /** Violation identifier/name captured at snapshot time */
     name: string;
 };
 
 /** Model of the transaction violations snapshot captured on a report action */
-type SubmittedViolationsSnapshot = {
+type ViolationsSnapshot = {
     /** Violations keyed by transaction ID */
-    transactions: Record<string, SubmittedTransactionViolation[]>;
+    transactions: Record<string, SnapshotTransactionViolation[]>;
 };
 
 /** Model of `submitted` report action */
@@ -284,13 +284,13 @@ type OriginalMessageSubmitted = {
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
     /** Snapshot of transaction violations present when the report was submitted */
-    violations?: SubmittedViolationsSnapshot;
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of the add-expense-on-submitted report action, which only carries the violations snapshot of the added expense */
 type OriginalMessageAddExpenseOnSubmitted = {
     /** Snapshot of the transaction violations present when the expense was added to the submitted report */
-    violations?: SubmittedViolationsSnapshot;
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `created` report action */
@@ -1220,6 +1220,9 @@ type OriginalMessageApproved = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Snapshot of transaction violations present when the report was approved */
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `forwarded` report action */
@@ -1243,6 +1246,9 @@ type OriginalMessageForwarded = {
 
     /** Optional message explaining why the report was forwarded that way */
     message?: string;
+
+    /** Snapshot of transaction violations present when the report was forwarded */
+    violations?: ViolationsSnapshot;
 };
 
 /**
@@ -1713,4 +1719,5 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
+    ViolationsSnapshot,
 };

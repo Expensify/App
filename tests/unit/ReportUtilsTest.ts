@@ -83,12 +83,10 @@ import {
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     changeMoneyRequestHoldStatus,
-    createDraftTransactionAndNavigateToParticipantSelector,
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getAllPolicyExpenseChatReportActions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
@@ -126,9 +124,9 @@ import {
     getParentReport,
     getParsedComment,
     getParticipantsList,
-    getPendingDeleteMemberAccountIDs,
     getPayeeName,
     getPendingChatMembers,
+    getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
@@ -153,23 +151,23 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionReportName,
-    getUploadingAttachmentHtmlFromComment,
     getTransactionSortValue,
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
     getUnreportedTransactionMessage,
+    getUploadingAttachmentHtmlFromComment,
     getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
-    getWorkspaceIcon,
     getWhisperDisplayNames,
+    getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
-    hasReportBeenForwardedSinceLastSubmit,
     hasEmptyReportsForPolicy,
-    hasExportError,
     hasExpensifyGuidesEmails,
+    hasExportError,
     hasNonReimbursableTransactions,
     hasReceiptError,
+    hasReportBeenForwardedSinceLastSubmit,
     hasSmartscanError,
     hasVisibleReportFieldViolations,
     isActionCreator,
@@ -226,7 +224,10 @@ import {
 } from '@libs/ReportUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector, getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -12169,8 +12170,36 @@ describe('ReportUtils', () => {
             participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
         };
 
-        it('should return the other participant of a 1:1 DM with their login and accountID', () => {
-            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toEqual([{login: 'other@test.com', accountID: OTHER_ACCOUNT_ID}]);
+        it('should return the other participant of a 1:1 DM with their login only, even when they have a real accountID', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toStrictEqual([{login: 'other@test.com'}]);
+        });
+
+        it('should not send a locally generated accountID for an invited user who has no account yet', () => {
+            // An invited (brand-new) email gets a client-generated accountID and an optimistic personal detail.
+            // That accountID does not exist on the server, so only the login may be passed to OpenReport.
+            const optimisticAccountID = generateAccountID('new@user.com');
+            const optimisticPersonalDetails: PersonalDetailsList = {
+                [optimisticAccountID]: {accountID: optimisticAccountID, login: 'new@user.com', isOptimisticPersonalDetail: true},
+            };
+            const optimisticDMReport: Report = {
+                ...dmReport,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, optimisticAccountID]),
+            };
+            expect(getOneOnOneChatParticipants(optimisticDMReport, optimisticPersonalDetails, currentUserAccountID)).toStrictEqual([{login: 'new@user.com'}]);
+        });
+
+        it('should not send a locally generated accountID when the optimistic detail carries no flag', () => {
+            // sendMoney (Pay someone) writes the recipient's optimistic detail without
+            // isOptimisticPersonalDetail - see src/libs/actions/IOU/SendMoney.ts
+            const optimisticAccountID = generateAccountID('new@user.com');
+            const unflaggedPersonalDetails: PersonalDetailsList = {
+                [optimisticAccountID]: {accountID: optimisticAccountID, login: 'new@user.com'},
+            };
+            const optimisticDMReport: Report = {
+                ...dmReport,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, optimisticAccountID]),
+            };
+            expect(getOneOnOneChatParticipants(optimisticDMReport, unflaggedPersonalDetails, currentUserAccountID)).toStrictEqual([{login: 'new@user.com'}]);
         });
 
         it('should return an empty list for reports that are not 1:1 DMs', () => {
@@ -21491,6 +21520,66 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined)).toBe(true);
+        });
+
+        it('should return true when an unpaid invoice report has a required field with no value', async () => {
+            const fieldWithNoValue: PolicyReportField = {
+                ...baseField,
+                target: CONST.REPORT.TYPE.INVOICE,
+                value: null,
+                defaultValue: '',
+            };
+
+            const policyWithEmptyInvoiceField = {
+                ...basePolicy,
+                areReportFieldsEnabled: false,
+                areInvoiceFieldsEnabled: true,
+                fieldList: {[`expensify_${fieldWithNoValue.fieldID}`]: fieldWithNoValue},
+            };
+
+            const unpaidInvoiceReport: Report = {
+                reportID: 'invoice-report-field-violations-unpaid',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
+            await waitForBatchedUpdates();
+
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(true);
+        });
+
+        it('should return false when a paid invoice report has a required field with no value', async () => {
+            const fieldWithNoValue: PolicyReportField = {
+                ...baseField,
+                target: CONST.REPORT.TYPE.INVOICE,
+                value: null,
+                defaultValue: '',
+            };
+
+            const policyWithEmptyInvoiceField = {
+                ...basePolicy,
+                areReportFieldsEnabled: false,
+                areInvoiceFieldsEnabled: true,
+                fieldList: {[`expensify_${fieldWithNoValue.fieldID}`]: fieldWithNoValue},
+            };
+
+            const paidInvoiceReport: Report = {
+                reportID: 'invoice-report-field-violations-paid',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
+            await waitForBatchedUpdates();
+
+            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(false);
         });
     });
 
