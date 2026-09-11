@@ -6,7 +6,7 @@ import SCREENS from '@src/SCREENS';
  * so these RHP screens still get Home underneath on a fresh load without forcing it for in-app navigation.
  */
 const HOME_TO_RHP_DEEPLINK: Record<typeof SCREENS.HOME, string[]> = {
-    // The Enter signer info flow is opened from the Time Sensitive section and from the chat message.
+    // Also opened from a chat message, so it must not force Home underneath on click.
     [SCREENS.HOME]: [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO],
 };
 

@@ -1,17 +1,9 @@
-import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {RHP_TO_HOME, RHP_TO_HOME_DEEPLINK, RHP_TO_SETTINGS, RHP_TO_SETTINGS_DEEPLINK} from '@libs/Navigation/linkingConfig/RELATIONS';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-function getFullScreenUnderRHP(path: string) {
-    const state = getAdaptedStateFromPath(path, undefined);
-    const tabRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = tabRoute?.state;
-    const fullScreen = tabState?.routes?.at(tabState.index ?? (tabState.routes?.length ?? 1) - 1);
-    const innerRoutes = (fullScreen as {state?: {routes?: Array<{name: string}>}} | undefined)?.state?.routes;
-    return {name: fullScreen?.name, central: innerRoutes?.at(-1)?.name};
-}
+import getFullScreenUnderRHP from '../utils/getFullScreenUnderRHP';
 
 describe('RHP screens opened from a chat or Home', () => {
     it.each([
