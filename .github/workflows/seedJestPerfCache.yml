@@ -1,25 +1,16 @@
 name: Seed Jest perf cache
 
-# Writes the two entries the Reassure perf jobs read: the Jest transform cache, and `main`'s
-# measured baseline (`.reassure/baseline.perf`). One `reassure --baseline` run produces both.
-#
-# Both have to be written from main, because a cache entry is scoped to the ref that wrote it:
-# entries written by the pull_request-only perf workflow would be per-PR, and writing from main is
-# what keeps them out of reach of fork PRs.
-#
-# No paths filter and no schedule - a run that finds an entry present skips the work behind it, so
-# probing every push is what rebuilds an evicted transform entry.
-#
-# Its own workflow rather than a job in seedCache.yml, because the measure takes minutes where the
-# rest of that workflow takes seconds. Under a per-ref group a merge burst would drop this baseline
-# *and* that run's node_modules seeding: measured over 82 pushes to main, near one push in five.
+# One `reassure --baseline` run, writing both entries the Reassure perf jobs read. Cache entries are
+# scoped to the ref that wrote them, so writing from main is what shares them and keeps them off fork
+# PRs. No paths filter: a run that finds an entry present skips the work, so the probe on every push is
+# what rebuilds an evicted one. Its own workflow rather than a seedCache.yml job, whose per-ref group
+# would cancel this multi-minute measure on a merge burst - near one push in five, over 82 pushes.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Keyed on the commit, like the entry this writes, so no run can supersede another one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.sha }}
   cancel-in-progress: false
@@ -27,8 +18,7 @@ concurrency:
 jobs:
   seedJestPerfCache:
     name: Seed the Jest transform cache and main's baseline
-    # Must match the perf measure jobs' runner class, so the transform output is interchangeable and
-    # the baseline durations are comparable with the branch side's.
+    # Must match the perf measure jobs' class: transform output interchangeable, durations comparable.
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -38,9 +28,8 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
-      # Keyed on the commit alone, because `github.event.pull_request.base.sha` is what the perf
-      # workflow will look this up by. That is the base tip recorded when the PR ref was last
-      # updated, so it can lag main by one push - a miss there is a cold baseline, never a wrong one.
+      # Keyed on the commit alone: the perf workflow looks this up by the PR's base.sha, which can lag
+      # main by one push - a miss there is a cold baseline, never a wrong one.
       - name: Look up this commit's baseline
         id: lookupBaseline
         # v5.0.1
@@ -50,20 +39,9 @@ jobs:
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
           lookup-only: true
 
-      # The key hashes normalized-package-lock.json, the app-version-stripped lockfile setupNode
-      # writes, so deploy version bumps do not rotate it.
-      #
-      # Not covered: `.env`, DEBUG_BABEL_TRACE and CAPTURE_METRICS, which babel.config.js reads at
-      # require time to add plugins babel-jest does not hash into an entry's name. No job here writes
-      # a `.env`, so all of them inline the same EXPO_PUBLIC_* defaults; a step that gave one job its
-      # own would make restored output wrong rather than stale, and would have to be hashed in here.
-      #
-      # No restore-keys, here or in the perf workflow: babel-jest does not hash plugin versions into
-      # an entry's name, so a prefix fallback would serve output built by a different
-      # babel-plugin-react-compiler, on a check that gates render counts at COUNT_DEVIATION: 0.
-      #
-      # A restore rather than a lookup, because this job measures on every push and wants that
-      # measure warm; the save below still only writes when this missed.
+      # normalized-package-lock.json is the app-version-stripped lockfile, so deploy bumps do not rotate
+      # the key. No restore-keys, here or in the perf workflow: babel-jest does not hash plugin versions
+      # into an entry's name, so a prefix fallback would serve output from a different react-compiler.
       - name: Restore the Jest transform cache
         id: restoreJestCache
         # v5.0.1
@@ -72,12 +50,9 @@ jobs:
           path: .jest-cache
           key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
 
-      # Must be the invocation the perf jobs run: Jest hashes the serialized project config into
-      # every entry's key, so a different testMatch populates a key space the perf jobs never read.
-      #
-      # Deliberately allowed to fail the job. Both saves below skip on a failure because a plain
-      # `if:` implies success(), so no partial entry is written. Do not add continue-on-error without
-      # emitting a ::warning:: too - that would turn this job green with no symptom at all.
+      # Must be the invocation the perf jobs run: Jest hashes the serialized project config into every
+      # entry's key, so a different testMatch populates a key space they never read. Left to fail the
+      # job - the saves below imply success(), so no partial entry is written.
       - name: Measure the baseline
         id: measureBaseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true'
@@ -92,8 +67,6 @@ jobs:
           path: .reassure/baseline.perf
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
 
-      # For people: the cache entry above is what the perf workflow consumes, this is how a baseline
-      # is read after the fact - to diff two commits, or to recover an evicted entry.
       - name: Upload this commit's baseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true'
         # v6
@@ -102,13 +75,10 @@ jobs:
           name: reassure-baseline-${{ github.sha }}
           path: .reassure/baseline.perf
           include-hidden-files: true
-          # A re-run whose entry was evicted since attempt 1 re-uploads a name attempt 1 claimed.
           overwrite: true
           retention-days: 14
 
-      # Guarded on both lookups, so an entry is only ever built from a directory this run's own Jest
-      # populated: a commit whose baseline is already cached skips the measure, leaving no transform
-      # set to save.
+      # Also guarded on the baseline lookup: a cached baseline skips the measure, so nothing was built.
       - name: Save the Jest transform cache
         if: steps.restoreJestCache.outputs.cache-hit != 'true' && steps.lookupBaseline.outputs.cache-hit != 'true'
         # v5.0.1
@@ -120,12 +90,9 @@ jobs:
       - name: Report what was seeded
         if: always()
         run: |
-          # A measure that died partway leaves a readable file that nothing cached, since both saves
-          # imply success() - hence the outcome check before the file check.
           if [[ "${{ steps.measureBaseline.outcome }}" == "failure" ]]; then
             echo "::notice::Baseline for ${{ github.sha }}: measure failed, nothing cached"
           elif [[ -f .reassure/baseline.perf ]]; then
-            # Counting measurement records, not lines: the file's first line is a metadata object.
             echo "::notice::Baseline for ${{ github.sha }}: $(grep -c '"meanDuration"' .reassure/baseline.perf) measurements"
           else
             echo "::notice::Baseline for ${{ github.sha }}: not measured this run (cache-hit=${{ steps.lookupBaseline.outputs.cache-hit || 'false' }})"
