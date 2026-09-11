@@ -44,6 +44,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    Rule,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -197,7 +198,7 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, isAdmin = false) {
+function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, rules: OnyxCollection<Rule>, isAdmin = false) {
     const transactionsArray = Object.values(transactions ?? {});
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
@@ -209,7 +210,7 @@ function getTransactionsForMergingLocally(transactionID: string, targetTransacti
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin)))
+            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin, rules)))
         );
     });
 
@@ -225,6 +226,7 @@ function getTransactionsForMerging({
     policy,
     report,
     currentUserLogin,
+    rules,
 }: {
     isOffline: boolean;
     targetTransaction: Transaction;
@@ -233,6 +235,7 @@ function getTransactionsForMerging({
     report: OnyxEntry<Report>;
     currentUserLogin: string | undefined;
     cardList?: CardList;
+    rules: OnyxCollection<Rule>;
 }) {
     const transactionID = targetTransaction.transactionID;
     if (!transactionID) {
@@ -265,7 +268,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, isAdmin);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, isAdmin);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }
@@ -289,6 +292,7 @@ function getOnyxTargetTransactionData({
     isTrackIntentUser,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -307,6 +311,7 @@ function getOnyxTargetTransactionData({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<Rule>;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -358,6 +363,7 @@ function getOnyxTargetTransactionData({
             isTrackIntentUser,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     }
 
@@ -367,7 +373,8 @@ function getOnyxTargetTransactionData({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: {
-            receipt: mergeTransaction.receipt ?? null,
+            // Clear the old count so it does not describe the newly chosen receipt.
+            receipt: mergeTransaction.receipt ? {pageCount: null, ...mergeTransaction.receipt} : null,
         },
     });
 
@@ -419,6 +426,7 @@ type MergeTransactionRequestParams = {
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<Rule>;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -453,6 +461,7 @@ function mergeTransactionRequest({
     sourceIOUAction,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -505,6 +514,7 @@ function mergeTransactionRequest({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
@@ -645,18 +655,17 @@ function mergeTransactionRequest({
         if (!sourceIouAction) {
             Log.warn("Can't find the iouAction for the transaction in the selfDM report.");
         } else {
-            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                sourceTransaction.transactionID,
-                sourceIouAction,
-                false,
-                currentUserAccountIDParam,
-                undefined,
-                undefined,
+            const {optimisticData, successData, failureData} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: sourceTransaction.transactionID,
+                reportAction: sourceIouAction,
+                isChatReportArchived: false,
+                currentUserAccountID: currentUserAccountIDParam,
+                transactionThreadReportActions: sourceTransactionThreadReportActions,
                 actionableWhisperReportActionID,
-                CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
-                false,
-            );
+                resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                shouldRemoveIOUTransaction: false,
+            });
 
             sourceTransactionOptimisticData.push(...optimisticData);
             sourceTransactionSuccessData.push(...successData);

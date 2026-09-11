@@ -8,7 +8,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
-import {isTravelCardTransaction} from '@libs/CardUtils';
+import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
@@ -920,6 +920,20 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+        // For transactions with an applied commuter exclusion, `quantity` is the route distance rounded
+        // to 2dp, so it differs from the exact conversion by at most 0.005. A gap larger than this rounding
+        // tolerance means the user manually edited the distance, so we must convert their quantity instead.
+        const ROUNDING_TOLERANCE = 0.01;
+        const isDistanceManuallyEdited =
+            hasCommuterExclusion &&
+            typeof routeDistanceMeters === 'number' &&
+            typeof quantity === 'number' &&
+            !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
+        const shouldUseExactRouteDistance = hasCommuterExclusion && typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -929,7 +943,9 @@ function getUpdatedTransaction({
         // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces(
+                shouldUseExactRouteDistance ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit) : (quantity ?? 0) * conversionFactor,
+            );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -952,7 +968,10 @@ function getUpdatedTransaction({
                         const fallbackConversionFactor =
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
-                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                        const distance = shouldUseExactRouteDistance
+                            ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
+                            : currentQuantity * fallbackConversionFactor;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
                     }
                 }
             }
@@ -1919,16 +1938,9 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
- *
- * @param transaction - The transaction whose category may still be auto-categorized
- * @param policy - The workspace policy; auto-categorize defaults to on when the attribute is unset
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
     if (!transaction) {
-        return false;
-    }
-
-    if (policy?.autoCategorizeNewExpenses === false) {
         return false;
     }
 
@@ -1948,7 +1960,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, policy?: O
     }
 
     // Invoice expense is not auto-categorized
-    if (isInvoiceReport(transaction.reportID)) {
+    if (isInvoiceReport(report)) {
         return false;
     }
 
@@ -2072,18 +2084,40 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
         violation.name === CONST.VIOLATIONS.RTER &&
         (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531 ||
             violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH)
     );
 }
 
 /**
- * Finds the broken-connection violation that drives the money-request header status and its personal-card
- * suppression. It intentionally excludes the `brokenCardConnection530` subtype (scraper being fixed on
- * Expensify's side): 530 keeps its own dedicated `brokenConnection530Error` header regardless of card type,
- * so it must never be swallowed by the personal-card suppression.
+ * Suppresses the report-level status only when every broken connection belongs to a personal card.
+ * Reports with company-card or retry-later violations must retain a status so their required action is visible.
  */
-function getBrokenConnectionViolation(transactionViolations: TransactionViolation[] | undefined): TransactionViolation | undefined {
-    return transactionViolations?.find((violation) => isBrokenConnectionViolation(violation) && violation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
+function shouldSuppressBrokenConnectionStatus(brokenConnectionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>) {
+    return (
+        brokenConnectionViolations.length > 0 &&
+        brokenConnectionViolations.every((violation) => {
+            if (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return false;
+            }
+
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            return !!card && isPersonalCard(card);
+        })
+    );
+}
+
+/** Returns a report transaction that has a broken connection status which must remain visible. */
+function getUnsuppressibleBrokenConnectionTransactionID(
+    transactions: Transaction[],
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    cardList: OnyxEntry<CardList>,
+): string | undefined {
+    return transactions.find((transaction) => {
+        const brokenConnectionViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).filter(isBrokenConnectionViolation);
+        return brokenConnectionViolations.length > 0 && !shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList);
+    })?.transactionID;
 }
 
 function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -2240,7 +2274,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, policy)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
         return false;
     }
 
@@ -2304,7 +2338,8 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 }
 
 /**
- * Check if the transaction has a defined route
+ * Check if the transaction has a defined route.
+ * Unlike getDistanceInMeters this ignores `routeDistanceMeters`: an earlier fetch's distance does not make the current route resolved.
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);
@@ -3638,6 +3673,34 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+/**
+ * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
+ * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
+ * sync with the server.
+ */
+function isScanFailedTransactionMovedOnPayment(transaction: Transaction, report: OnyxEntry<Report>): boolean {
+    if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
+    }
+    return getMerchant(transaction) === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && getAmount(transaction, true) === 0;
+}
+
+/**
+ * Whether the report has scan-failed expenses to move out and at least one other expense left behind to pay.
+ */
+function shouldSplitScanFailedTransactions(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    let hasScanFailedTransaction = false;
+    let hasRemainingTransaction = false;
+    for (const transaction of transactions) {
+        if (isScanFailedTransactionMovedOnPayment(transaction, report)) {
+            hasScanFailedTransaction = true;
+        } else {
+            hasRemainingTransaction = true;
+        }
+    }
+    return hasScanFailedTransaction && hasRemainingTransaction;
+}
+
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
     const requestType = getRequestType(transaction);
     return isDistanceExpenseType(requestType) ? requestType : undefined;
@@ -3769,7 +3832,7 @@ export {
     hasMissingSmartscanFields,
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
-    getBrokenConnectionViolation,
+    getUnsuppressibleBrokenConnectionTransactionID,
     hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
@@ -3786,6 +3849,8 @@ export {
     hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
+    isBrokenConnectionViolation,
+    shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
@@ -3858,6 +3923,8 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isScanFailedTransactionMovedOnPayment,
+    shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,

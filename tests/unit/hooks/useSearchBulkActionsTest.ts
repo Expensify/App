@@ -231,6 +231,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
@@ -239,6 +240,16 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 
 function hasSearchFlatFilters(value: unknown): value is {flatFilters: SearchQueryJSON['flatFilters']} {
     return typeof value === 'object' && value !== null && 'flatFilters' in value && Array.isArray(value.flatFilters);
+}
+
+/**
+ * The export options take one of two shapes: normally they sit inside the Export entry's `subMenuItems`, but when
+ * Export is the only bulk action available the dropdown opens straight onto them, so they sit at the top level of
+ * `headerButtonsOptions` with the EXPORT value on each one.
+ */
+function getExportMenuItems(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
+    const exportOptions = headerButtonsOptions.filter((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    return exportOptions.at(0)?.subMenuItems ?? exportOptions;
 }
 
 describe('useSearchBulkActions - CSV export flow', () => {
@@ -275,10 +286,8 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        expect(exportOption).toBeDefined();
-
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
+        expect(onSelected).toBeDefined();
 
         await act(async () => {
             onSelected?.();
@@ -306,8 +315,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -359,8 +367,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -399,8 +406,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.currentView')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -442,8 +448,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const onSelected = exportOption?.subMenuItems?.find((item) => item.text === 'export.basicExport')?.onSelected ?? exportOption?.onSelected;
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
 
         await act(async () => {
             onSelected?.();
@@ -481,8 +486,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const templateSubItem = exportOption?.subMenuItems?.find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
+        const templateSubItem = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text !== 'export.basicExport' && item.text !== 'export.currentView');
 
         expect(templateSubItem).toBeDefined();
         act(() => {
@@ -516,8 +520,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        const exportItems = exportOption?.subMenuItems ?? [];
+        const exportItems = getExportMenuItems(result.current.headerButtonsOptions);
 
         expect(exportItems.some((item) => item.text === 'Custom template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);

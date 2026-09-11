@@ -551,6 +551,7 @@ describe('actions/Duplicate', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
@@ -562,6 +563,7 @@ describe('actions/Duplicate', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
@@ -1686,6 +1688,7 @@ describe('actions/Duplicate', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(requestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -1732,6 +1735,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1803,6 +1807,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1866,6 +1871,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1922,6 +1928,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1936,6 +1943,170 @@ describe('actions/Duplicate', () => {
 
             expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
+        });
+
+        it.each([
+            ['no target policy is provided', undefined, 'reported-source'],
+            ['a target policy is provided for an unreported source', mockPolicy, CONST.REPORT.UNREPORTED_REPORT_ID],
+        ])('should duplicate a GPS distance expense as manual distance when %s', async (_description, targetPolicy, reportID) => {
+            const transactionID = 'gps-unreported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: targetPolicy?.id,
+                targetPolicy,
+                targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
+                targetReport: targetPolicy ? policyExpenseChat : undefined,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(trackExpenseCall).toBeDefined();
+            expect(trackExpenseCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distance: 56.78,
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    waypoints: undefined,
+                }),
+            );
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(56.78);
+        });
+
+        it('should keep reported workspace GPS distance duplicates as GPS with waypoints', async () => {
+            const transactionID = 'gps-reported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID: 'reported-gps-report',
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: mockPolicy.id,
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(distanceCall).toBeDefined();
+            expect(writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE))).toBeUndefined();
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                }),
+            );
+            expect(distanceCall?.[1]?.waypoints).toBeDefined();
+            expect(distanceCall?.[1]?.waypoints).not.toBe('null');
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
         });
 
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
@@ -1978,6 +2149,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2037,6 +2209,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2106,6 +2279,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2160,6 +2334,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2208,6 +2383,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2257,6 +2433,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2308,6 +2485,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2365,6 +2543,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2437,6 +2616,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2510,6 +2690,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2566,6 +2747,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2633,6 +2815,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2816,6 +2999,7 @@ describe('actions/Duplicate', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participantsPolicyTags: {},
             conciergeChat: undefined,
+            rules: undefined,
             ...overrides,
         });
 
@@ -3164,6 +3348,11 @@ describe('actions/Duplicate', () => {
             const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            );
         });
 
         it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
@@ -3285,6 +3474,175 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(0);
         });
 
+        /**
+         * Duplicates a report whose expenses may be in a different currency than the report itself, and returns the copy.
+         * `sourceCurrency` is the source report's (and, unless overridden, the target policy's) currency.
+         */
+        const duplicateCrossCurrencyReport = async (
+            transactions: Array<Partial<Transaction>>,
+            {sourceCurrency = 'INR', outputCurrency = sourceCurrency}: {sourceCurrency?: string; outputCurrency?: string} = {},
+        ) => {
+            const targetPolicy: Policy = {
+                ...mockPolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                outputCurrency,
+                autoReporting: false,
+                harvesting: {enabled: false},
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
+            const SOURCE_REPORT_ID = 'sourceReport94009';
+            const sourceReport: Report = {
+                reportID: SOURCE_REPORT_ID,
+                policyID: targetPolicy.id,
+                chatReportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: sourceCurrency,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}`, targetPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}`, sourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {policyID: targetPolicy.id});
+            await waitForBatchedUpdates();
+
+            const txs = transactions.map((overrides, index) => createCashTransaction(`dupTx${index}`, {reportID: SOURCE_REPORT_ID, ...overrides}));
+
+            duplicateReport(getDefaultParams(txs, {targetPolicy, sourceReport}));
+            await waitForBatchedUpdates();
+
+            const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
+            return Object.values(allReports ?? {}).find((r) => r?.reportName === 'Copy of Original Report');
+        };
+
+        it('should total a duplicate whose expenses are in a different currency than the report', async () => {
+            // 500 AUD -> 46000 INR and 600 AUD -> 54000 INR. Expense report totals are stored negative.
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {currency: 'AUD', amount: -600, convertedAmount: -54000, reimbursable: true},
+            ]);
+
+            expect(copy?.currency).toBe('INR');
+            expect(copy?.total).toBe(-100000);
+            expect(copy?.reimbursableTotal).toBe(-100000);
+            expect(copy?.unheldReimbursableTotal).toBe(-100000);
+            expect(copy?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should keep totalling a same-currency duplicate correctly', async () => {
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'INR', amount: -46000, reimbursable: true},
+                {currency: 'INR', amount: -54000, reimbursable: true},
+            ]);
+
+            expect(copy?.total).toBe(-100000);
+            expect(copy?.reimbursableTotal).toBe(-100000);
+            expect(copy?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should split a cross-currency duplicate across the reimbursable and non-reimbursable totals', async () => {
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {currency: 'AUD', amount: -600, convertedAmount: -54000, reimbursable: false},
+                {currency: 'INR', amount: -20000, reimbursable: true},
+            ]);
+
+            expect(copy?.total).toBe(-120000);
+            expect(copy?.reimbursableTotal).toBe(-66000);
+            expect(copy?.unheldReimbursableTotal).toBe(-66000);
+            expect(copy?.nonReimbursableTotal).toBe(-54000);
+        });
+
+        it('should measure an expense by its edited currency, not the one it was created with', async () => {
+            // Created in the report's own currency, then edited to USD: the stored conversion is the value that counts.
+            const copy = await duplicateCrossCurrencyReport([{currency: 'INR', amount: -46000, modifiedCurrency: 'USD', modifiedAmount: -550, convertedAmount: -47000, reimbursable: true}]);
+
+            expect(copy?.total).toBe(-47000);
+            expect(copy?.reimbursableTotal).toBe(-47000);
+        });
+
+        it('should apply a cross-currency total that legitimately comes to zero', async () => {
+            // A refund cancelling out an expense. The running total for the last copy is 0, which must be written as 0
+            // rather than read as "no total to apply" and leave the report showing the first expense on its own.
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {currency: 'AUD', amount: 500, convertedAmount: 46000, reimbursable: true},
+            ]);
+
+            expect(copy?.total).toBe(0);
+            expect(copy?.reimbursableTotal).toBe(0);
+        });
+
+        it('should not fabricate a total when duplicating into a workspace with a different output currency', async () => {
+            // The stored conversion is expressed in the source report's currency, so it says nothing about GBP.
+            const copy = await duplicateCrossCurrencyReport([{currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true}], {
+                sourceCurrency: 'INR',
+                outputCurrency: 'GBP',
+            });
+
+            expect(copy?.currency).toBe('GBP');
+            expect(copy?.total).toBe(0);
+        });
+
+        it('should total a per diem expense whose rate currency differs from the report currency', async () => {
+            // A per diem rate carries its own currency, so a per diem can sit on a report in another currency. That
+            // expense goes through submitPerDiemExpense rather than requestMoney, so the overrides have to reach it
+            // too, otherwise a report holding only per diems keeps the zero it was seeded with.
+            const copy = await duplicateCrossCurrencyReport([
+                {
+                    currency: 'AUD',
+                    amount: -500,
+                    convertedAmount: -46000,
+                    reimbursable: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                    comment: {
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                            customUnitID: 'unit1',
+                            customUnitRateID: 'rate1',
+                            subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 500}],
+                            attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                        },
+                    },
+                },
+            ]);
+
+            expect(copy?.total).toBe(-46000);
+            expect(copy?.reimbursableTotal).toBe(-46000);
+        });
+
+        it('should not fabricate a total from a conversion that predates an unsynced amount edit', async () => {
+            // Only the server recomputes convertedAmount, so while the edit is pending the stored conversion still
+            // describes the amount the expense had before it was edited.
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {
+                    currency: 'AUD',
+                    amount: -600,
+                    modifiedAmount: -900,
+                    convertedAmount: -54000,
+                    pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    reimbursable: true,
+                },
+            ]);
+
+            expect(copy?.total).toBe(0);
+            expect(copy?.reimbursableTotal).toBe(0);
+        });
+
+        it('should not fabricate a total when an expense is missing the conversion it needs', async () => {
+            const copy = await duplicateCrossCurrencyReport([
+                {currency: 'AUD', amount: -500, convertedAmount: -46000, reimbursable: true},
+                {currency: 'AUD', amount: -600, convertedAmount: undefined, reimbursable: true},
+            ]);
+
+            expect(copy?.total).toBe(0);
+            expect(copy?.reimbursableTotal).toBe(0);
+        });
+
         it('should pass shouldPlaySound false to individual expense calls', async () => {
             const tx1 = createCashTransaction('tx1');
             const tx2 = createCashTransaction('tx2');
@@ -3391,6 +3749,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3448,6 +3807,7 @@ describe('actions/Duplicate', () => {
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3564,6 +3924,7 @@ describe('actions/Duplicate', () => {
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
+            rules: undefined,
             ...overrides,
         });
 
