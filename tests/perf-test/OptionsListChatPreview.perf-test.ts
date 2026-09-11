@@ -192,16 +192,24 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const buildOptionList = () =>
-    createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
-        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-        currentUserLogin: CURRENT_USER_EMAIL,
-        dateFnsLocale: undefined,
-        convertToDisplayString,
-        conciergeReportID: undefined,
-        maxRecentReports: REPORTS_COUNT,
-        transactionThreadIDs,
-        lastActions,
-    });
+    createFilteredOptionList(
+        personalDetails,
+        reports,
+        undefined,
+        EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+        allPolicies,
+        {
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            dateFnsLocale: undefined,
+            convertToDisplayString,
+            conciergeReportID: undefined,
+            maxRecentReports: REPORTS_COUNT,
+            transactionThreadIDs,
+            lastActions,
+        },
+        undefined,
+    );
 
 const getPreviewOptionsConfig = (maxElements: number) => ({
     dateFnsLocale: undefined,
@@ -259,6 +267,7 @@ describe('OptionsListChatPreview', () => {
                 undefined,
                 getPreviewOptionsConfig(MAX_ELEMENTS),
                 translateLocal,
+                undefined,
             ),
         );
     });
@@ -277,6 +286,7 @@ describe('OptionsListChatPreview', () => {
                 undefined,
                 getPreviewOptionsConfig(WIDE_MAX_ELEMENTS),
                 translateLocal,
+                undefined,
             ),
         );
     });

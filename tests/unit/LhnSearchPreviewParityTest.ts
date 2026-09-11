@@ -176,6 +176,7 @@ async function computeBothSurfaces({
         currentUserLogin: CURRENT_USER_LOGIN,
         isTrackIntentUser,
         formatPhoneNumber,
+        rules: undefined,
     });
 
     const reportsCollection: OnyxCollection<Report> = {};
@@ -206,6 +207,7 @@ async function computeBothSurfaces({
         },
         undefined,
         undefined,
+        undefined,
         isTrackIntentUser,
         sortedData?.sortedActions,
     );
@@ -232,6 +234,7 @@ async function computeBothSurfaces({
         conciergeReportID: CONCIERGE_REPORT_ID,
         isTrackIntentUser,
         translate: translateLocal,
+        rules: undefined,
     });
 
     const searchOption = searchResults.recentReports.find((option) => option.reportID === report.reportID);

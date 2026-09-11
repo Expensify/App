@@ -87,6 +87,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Clock',
     'InvoiceGeneric',
     'Bolt',
+    'Bot',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.

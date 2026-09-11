@@ -14,6 +14,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -100,6 +101,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
+    const isSupportalSession = useIsSupportalSession();
     const personalDetails = usePersonalDetails();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
@@ -497,6 +499,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
                             conciergeChat,
+                            isSupportalSession,
                             shouldDismissModal: false,
                         });
                     }
@@ -517,6 +520,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             betas,
             conciergeChat,
+            isSupportalSession,
             contextualPoliciesMap,
             contextualReportsMap,
             askConcierge,

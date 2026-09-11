@@ -37,6 +37,7 @@
         "Amal",
         "Amal's",
         "Amina",
+        "Anysphere",
         "Areport",
         "Authy",
         "Ashby",
@@ -777,6 +778,7 @@
         "lastiPhoneLogin",
         "lastname",
         "lefthook",
+        "legendapp",
         "libc",
         "Libc",
         "libc's",
@@ -1248,6 +1250,6 @@
         "tests/unit/BankAccountUtilsTest.ts",
         "evals/proposalPolice/fixtures/**"
     ],
-    "ignoreRegExpList": ["@assets/.*", "[A-Za-z0-9+/]{43}="],
+    "ignoreRegExpList": ["@assets/.*", "(?<![A-Za-z0-9+/])(?:sha256/)?[A-Za-z0-9+/]{43}="],
     "useGitignore": true
 }
