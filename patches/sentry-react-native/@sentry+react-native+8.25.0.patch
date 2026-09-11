@@ -1,5 +1,5 @@
 diff --git a/node_modules/@sentry/react-native/scripts/sentry_utils.rb b/node_modules/@sentry/react-native/scripts/sentry_utils.rb
-index 5dc57a3..8887025 100644
+index 8d6e899..ed1c088 100644
 --- a/node_modules/@sentry/react-native/scripts/sentry_utils.rb
 +++ b/node_modules/@sentry/react-native/scripts/sentry_utils.rb
 @@ -1,8 +1,24 @@
