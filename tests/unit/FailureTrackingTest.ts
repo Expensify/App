@@ -39,6 +39,15 @@ describe('FailureTracking middleware', () => {
         expect(getFailureCount()).toBe(1);
     });
 
+    // A 503 arrives inside an HTTP 200, so the server is reachable and must not be counted as offline.
+    test('does NOT call recordFailure on SERVICE_UNAVAILABLE error', async () => {
+        const error = new Error(CONST.ERROR.SERVICE_UNAVAILABLE);
+
+        await expect(FailureTracking(Promise.reject(error), request, false)).rejects.toThrow(CONST.ERROR.SERVICE_UNAVAILABLE);
+
+        expect(getFailureCount()).toBe(0);
+    });
+
     test('does NOT call recordFailure on other errors', async () => {
         const error = new Error('some random error');
 

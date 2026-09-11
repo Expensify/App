@@ -223,9 +223,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
             // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
             if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
                 throw new HttpsError({
-                    message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
                     status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
-                    title: 'Issue connecting to Expensify site',
+                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
                     requestID: response.requestID,
                 });
             }

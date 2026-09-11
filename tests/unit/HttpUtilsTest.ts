@@ -54,7 +54,7 @@ describe('HttpUtils', () => {
         mockFetchResponse('This action is unavailable right now. Please try again shortly.', CONST.JSON_CODE.SERVICE_UNAVAILABLE);
 
         await expect(HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {})).rejects.toMatchObject({
-            message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+            message: CONST.ERROR.SERVICE_UNAVAILABLE,
             status: '503',
         });
     });
