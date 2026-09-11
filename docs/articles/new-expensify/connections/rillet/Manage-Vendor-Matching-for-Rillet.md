@@ -51,7 +51,7 @@ Purpose: Admins report not knowing where the Vendor field lives on an expense, a
 
 ## Where to find your imported Rillet vendors
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
@@ -59,7 +59,7 @@ Vendors are managed in Rillet, so the list is read-only in Expensify and refresh
 
 ## How to set a default company card vendor for Rillet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
 2. Select **Accounting**.
 3. On the Rillet connection, select **Export**.
 4. Select **Default company card vendor**.
