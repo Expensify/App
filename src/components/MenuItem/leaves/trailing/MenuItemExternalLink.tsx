@@ -40,4 +40,3 @@ function MenuItemExternalLink({link}: MenuItemExternalLinkProps) {
 }
 
 export default MenuItemExternalLink;
-export type {MenuItemExternalLinkProps};

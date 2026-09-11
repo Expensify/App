@@ -61,4 +61,3 @@ function MenuItemCopy({value}: MenuItemCopyProps) {
 }
 
 export default MenuItemCopy;
-export type {MenuItemCopyProps};

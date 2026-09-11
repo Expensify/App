@@ -68,5 +68,4 @@ function useMenuItemSecondaryInteractionRegistry() {
 }
 
 export default MenuItemSecondaryInteractionContext;
-export type {MenuItemSecondaryInteractionHandler};
 export {useMenuItemSecondaryInteraction, useMenuItemSecondaryInteractionRegistry};
