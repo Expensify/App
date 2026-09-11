@@ -9,7 +9,7 @@ import Onyx from 'react-native-onyx';
 import PusherHelper from '../utils/PusherHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockApplyOnyxUpdatesReliably = jest.fn((): Promise<void> => Promise.resolve());
+const mockApplyOnyxUpdatesReliably = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 
 jest.mock('@libs/actions/applyOnyxUpdatesReliably', () => ({
     __esModule: true,

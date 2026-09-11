@@ -640,7 +640,7 @@ describe('OnyxUpdatesTest', () => {
             // And update 20 failed to apply
             await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.catchup-failed')).catch(() => {});
 
-            // When a catch-up response refetches that range
+            // When a catch-up response fetches that range again
             const reportID = NumberUtils.rand64();
             await OnyxUpdates.apply({
                 type: CONST.ONYX_UPDATE_TYPES.HTTPS,

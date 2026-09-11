@@ -8,7 +8,7 @@ import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockReceivedHandlers: Record<string, (data: Record<string, unknown>) => Promise<void>> = {};
-const mockApplyOnyxUpdatesReliably = jest.fn((): Promise<void> => Promise.resolve());
+const mockApplyOnyxUpdatesReliably = jest.fn<Promise<void>, unknown[]>(() => Promise.resolve());
 
 jest.mock('@libs/actions/applyOnyxUpdatesReliably', () => ({
     __esModule: true,
