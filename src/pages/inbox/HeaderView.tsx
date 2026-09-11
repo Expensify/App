@@ -230,7 +230,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !accountManagerAccountID &&
         !!accountGuideDetails?.calendarLink &&
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
-        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
