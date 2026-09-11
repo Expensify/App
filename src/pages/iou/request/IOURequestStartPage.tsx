@@ -212,14 +212,21 @@ function IOURequestStartPage({
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [isSignDirty, setIsSignDirty] = useState(false);
+    const hasSubmittedRef = useRef(false);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
-    const isEmbeddedDirty = shouldEmbedConfirmation && (isSignDirty || hasAmountChanged);
+    const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
+    const isEmbeddedDirty = getEmbeddedHasUnsavedChanges();
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isEmbeddedDirty,
+        getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         onConfirm: cleanupPreInsertedDestination,
     });
+
+    const suppressEmbeddedDiscardPrompt = () => {
+        hasSubmittedRef.current = true;
+        suppressDiscardPrompt();
+    };
 
     const navigateBack = () => {
         if (isEmbeddedDirty) {
@@ -285,7 +292,7 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
-                suppressDiscardPrompt={suppressDiscardPrompt}
+                suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
     }
