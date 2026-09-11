@@ -12,15 +12,9 @@ import React from 'react';
 
 import MenuItemNewWindowIcon from './icons/MenuItemNewWindowIcon';
 
-/** A URL, or a way to build one on demand for a link that has to be generated per press */
-type MenuItemExternalLinkTarget = string | (() => Promise<string>);
-
 type MenuItemExternalLinkProps = {
-    /**
-     * URL the row leads to. Leave it out to keep the icon on a row that cannot offer its URL right
-     * now — the icon stays put and only the menu goes away.
-     */
-    link?: MenuItemExternalLinkTarget;
+    /** URL the row leads to */
+    link: string;
 };
 
 /**
@@ -36,35 +30,20 @@ type MenuItemExternalLinkProps = {
 function MenuItemExternalLink({link}: MenuItemExternalLinkProps) {
     const {translate} = useLocalize();
 
-    useMenuItemSecondaryInteraction(
-        link
-            ? (event, anchor) => {
-                  if (typeof link === 'function') {
-                      link().then((url) =>
-                          showContextMenu({
-                              type: CONST.CONTEXT_MENU_TYPES.LINK,
-                              event,
-                              selection: url,
-                              contextMenuAnchor: anchor,
-                          }),
-                      );
-                      return;
-                  }
-                  showContextMenu({
-                      type: CONST.CONTEXT_MENU_TYPES.LINK,
-                      event,
-                      selection: link,
-                      contextMenuAnchor: anchor,
-                  });
-              }
-            : undefined,
+    useMenuItemSecondaryInteraction((event, anchor) =>
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.LINK,
+            event,
+            selection: link,
+            contextMenuAnchor: anchor,
+        }),
     );
 
     // Tell the row the menu is there, so a screen reader says how to reach the URL
-    useMenuItemAccessibilityAnnouncement(link ? MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.CONTEXT_MENU_AVAILABLE : undefined, getContextMenuAccessibilityHint({translate}));
+    useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.CONTEXT_MENU_AVAILABLE, getContextMenuAccessibilityHint({translate}));
 
     return <MenuItemNewWindowIcon />;
 }
 
 export default MenuItemExternalLink;
-export type {MenuItemExternalLinkProps, MenuItemExternalLinkTarget};
+export type {MenuItemExternalLinkProps};
