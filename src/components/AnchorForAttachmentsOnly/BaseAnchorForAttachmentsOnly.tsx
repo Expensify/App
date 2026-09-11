@@ -48,8 +48,6 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
-    const downloadFileName = getDownloadFileName(displayName, source);
-
     return (
         <PressableWithoutFeedback
             style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
@@ -58,7 +56,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     return;
                 }
                 setDownload(sourceID, true);
-                fileDownload(translate, sourceURLWithAuth, downloadFileName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
+                fileDownload(translate, sourceURLWithAuth, getDownloadFileName(displayName, source), '', isMobileSafari()).then(() => setDownload(sourceID, false));
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}

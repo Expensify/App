@@ -18,6 +18,16 @@ describe('getAttachmentDetails', () => {
         expect(getAttachmentDetails(html).sourceURL).toBe(source);
     });
 
+    it('picks the attachment anchor over an earlier plain link when the source attribute is gone', () => {
+        const html = `See <a href="https://google.com" target="_blank" rel="noreferrer noopener">google</a><br /><br /><a href="${source}" data-attachment-id="1">file.csv</a>`;
+        expect(getAttachmentDetails(html)).toMatchObject({sourceURL: source, originalFileName: 'file.csv'});
+    });
+
+    it('does not treat an external href as the source just because the message has an attachment id', () => {
+        const html = '<a href="https://google.com" data-attachment-id="1">google</a>';
+        expect(getAttachmentDetails(html).sourceURL).toBe('');
+    });
+
     it('leaves a plain link with no source', () => {
         const html = '<a href="https://google.com" target="_blank" rel="noreferrer noopener">google</a>';
         expect(getAttachmentDetails(html).sourceURL).toBe('');
