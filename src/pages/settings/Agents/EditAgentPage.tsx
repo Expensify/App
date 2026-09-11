@@ -23,6 +23,7 @@ import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -40,7 +41,7 @@ type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function EditAgentPage({route}: EditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
@@ -83,6 +84,13 @@ function EditAgentPage({route}: EditAgentPageProps) {
     };
     const handleCopilotPress = () => {
         switchToDelegator(agentLogin);
+    };
+    const handleViewHistoryPress = () => {
+        const query = buildQueryStringFromFilterFormValues({
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            from: [String(accountID)],
+        });
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     };
 
     if (shouldShowNotFoundPage) {
@@ -151,6 +159,12 @@ function EditAgentPage({route}: EditAgentPageProps) {
                         onPress={handleEditPromptPress}
                     />
                 </OfflineWithFeedback>
+                <MenuItemAction
+                    title={translate('profilePage.viewAgentHistory')}
+                    icon={icons.MagnifyingGlass}
+                    onPress={handleViewHistoryPress}
+                    isDisabled={areActionsDisabled}
+                />
                 <MenuItemAction
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
