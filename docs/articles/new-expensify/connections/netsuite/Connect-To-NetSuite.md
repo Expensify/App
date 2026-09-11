@@ -1,161 +1,149 @@
 ---
 title: Connect to NetSuite
-description: Connect NetSuite to New Expensify for streamlined expense reporting and accounting integration.
-keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite bundle, accounting sync]
+description: Connect NetSuite to New Expensify using OAuth 2.0 and REST web services for streamlined expense reporting and accounting sync.
+keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite OAuth 2.0, NetSuite REST web services, NetSuite bundle, accounting sync]
+internalScope: Audience is Workspace admins on the Control plan who are also NetSuite administrators, covers setting up a new NetSuite connection using OAuth 2.0 and REST web services, does not cover configuring import/export settings after connecting or troubleshooting a broken connection
 order: 1
 ---
 
+# Connect to NetSuite
 
-Connect your Expensify Workspace to NetSuite to streamline expense syncing, reporting, and accounting. This guide walks you through installing the bundle, enabling features, and finalizing the connection.
+Connect your Expensify Workspace to NetSuite to streamline expense syncing, reporting, and accounting. New connections use OAuth 2.0 and NetSuite's REST web services, so you approve access on a NetSuite consent screen instead of creating and copying access tokens.
 
-**Note:** You must have a NetSuite account and be on the **Control** plan in Expensify.
-
-**Before you begin, make sure:**
-
-- You can log into NetSuite as an administrator
-- Each NetSuite **subsidiary** maps to a separate Expensify **Workspace**
-- Your Workspace currency matches the NetSuite subsidiary's default currency
-- Employees submitting reports don’t need NetSuite access or licenses
+This guide walks you through preparing NetSuite, connecting Expensify, and confirming the connection.
 
 ---
 
-# Step 1: Install the Expensify bundle in NetSuite
+## What you need before you connect to NetSuite
+
+- A NetSuite account you can log into as an administrator
+- The **Control** plan in Expensify
+- Two-factor authentication enabled on your Expensify account, which NetSuite requires to connect the integration
+- One Expensify **Workspace** per NetSuite **subsidiary**
+- A Workspace currency that matches the NetSuite subsidiary's default currency
+
+Employees submitting reports don't need NetSuite access or licenses.
+
+---
+
+## How to install the Expensify bundle in NetSuite
 
 1. In NetSuite, go to **Customization > SuiteBundler > Search & Install Bundles**
 2. Search for **Expensify** and select the **Expensify Connect** bundle (Bundle ID `283395`)
 3. Click **Install**
-4. If already installed, go to **SuiteBundler > List** and update to the latest version
+4. If the bundle is already installed, go to **SuiteBundler > List** and update to the latest version
 5. Select **Show on Existing Custom Forms** for all available fields
+
+The latest bundle version grants the permissions Expensify needs to log in using OAuth 2.0 access tokens and to use REST web services, so update it before you connect.
 
 ---
 
-# Step 2: Enable Token-Based Authentication
+## How to enable OAuth 2.0 in NetSuite
 
-1. Go to **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**
-2. Enable **Token Based Authentication**
+1. In NetSuite, go to **Setup > Company > Enable Features > SuiteCloud**
+2. Under **Manage Authentication**, enable **OAuth 2.0**
 3. Click **Save**
 
 ---
 
-# Step 3: Assign the Expensify Integration Role
+## How to enable REST web services in NetSuite
 
-1. Go to **Lists > Employees**
-2. Find and edit the employee who will connect the integration
-3. Under the **Access** tab, add the **Expensify Integration** role
-4. Click **Save**
-
-**Reminder:** Tokens link to a **user-role combination**, not just a user. You must use the same user and role for all syncs after setup.
+1. In NetSuite, go to **Setup > Company > Enable Features > SuiteCloud**
+2. Under **SuiteTalk (Web Services)**, enable **REST Web Services**
+3. Click **Save**
 
 ---
 
-# Step 4: Create access tokens
-
-1. In NetSuite, use the Global Search to search for `page: tokens`
-2. Click **New Access Token**
-3. Select **Expensify** as the application and the **Expensify Integration** role
-4. Click **Save**
-5. Copy and securely save the **Token ID** and **Token Secret** (you’ll only see them once)
-
----
-
-# Step 5: Enable Expense Reports in NetSuite
+## How to enable expense reports in NetSuite
 
 1. Go to **Setup > Company > Enable Features > Employees**
-2. Ensure **Expense Reports** is enabled
-3. If not, check the box and click **Save**
+2. Make sure **Expense Reports** is enabled
+3. If it isn't, check the box and click **Save**
 
 ---
 
-# Step 6: Set up Expense Categories in NetSuite
+## How to set up expense categories in NetSuite
 
 1. Go to **Setup > Accounting > Expense Categories**
 2. If none are listed, click **New** to create them
 
-**Note:** Expense Categories map to Expensify Categories and are linked to GL accounts for easy employee selection.
+Expense categories map to Expensify categories and are linked to GL accounts so employees can select them easily.
 
 ---
 
-# Step 7: Check Journal Entry transaction forms
+## How to check your journal entry transaction forms
 
 1. Go to **Customization > Forms > Transaction Forms**
 2. Edit the **Standard Journal Entry** form:
-   - Under **Main** tab, make sure:
-     - **Created From** is shown
-     - Display type is **Normal**
-   - Under **Lines**, ensure **Receipt URL** is shown
+   - Under the **Main** tab, make sure **Created From** is shown and its display type is **Normal**
+   - Under **Lines**, make sure **Receipt URL** is shown
 3. Repeat for all journal-type forms
 
 ---
 
-# Step 8: Check Expense Report transaction forms
+## How to check your expense report transaction forms
 
 1. Go to **Customization > Forms > Transaction Forms**
 2. Edit the **Standard Expense Report** form:
-   - Under **Main** tab:
-     - **Created From** should be shown
-   - Under **Expenses** subtab:
-     - **Receipt URL** should be shown
+   - Under the **Main** tab, make sure **Created From** is shown
+   - Under the **Expenses** subtab, make sure **Receipt URL** is shown
 3. Repeat for all expense report-type forms
 
 ---
 
-# Step 9: Check Vendor Bill transaction forms
+## How to check your vendor bill transaction forms
 
 1. Go to **Customization > Forms > Transaction Forms**
 2. Edit your Vendor Bill form:
-   - Under **Main** tab:
-     - Show “Created From”
-     - Hide **Department**, **Class**, and **Location**
-   - Under **Expenses** subtab:
-     - Show **Receipt URL**, **Department**, **Location**, **Class**
+   - Under the **Main** tab, show **Created From** and hide **Department**, **Class**, and **Location**
+   - Under the **Expenses** subtab, show **Receipt URL**, **Department**, **Location**, and **Class**
 3. Repeat for all vendor bill-type forms
 
 ---
 
-# Step 10: Check Vendor Credit transaction forms
+## How to check your vendor credit transaction forms
 
 1. Go to **Customization > Forms > Transaction Forms**
 2. Edit your Vendor Credit form:
-   - Under **Main** tab:
-     - Show “Created From”
-     - Hide **Department**, **Class**, and **Location**
-   - Under **Expenses** subtab:
-     - Show **Receipt URL**, **Department**, **Location**, **Class**
+   - Under the **Main** tab, show **Created From** and hide **Department**, **Class**, and **Location**
+   - Under the **Expenses** subtab, show **Receipt URL**, **Department**, **Location**, and **Class**
 3. Repeat for all vendor credit-type forms
 
 ---
 
-# Step 11: Set up Tax Groups (if applicable)
+## How to set up tax groups in NetSuite
 
-**Things to note about tax:**
+Expensify supports tax groups, not individual tax codes, except when you use SuiteTax. Under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each tax group contains only one tax code.
 
-- Expensify supports Tax Groups, not individual Tax Codes (except when using SuiteTax)
-- Set **Tax Code Lists Include** to “Tax Groups And Tax Codes” or “Tax Groups Only” under **Setup > Accounting > Set Up Taxes**
-- UK and Ireland: ensure each Tax Group contains only one Tax Code
-
-To create a Tax Group:
+To create a tax group:
 
 1. Go to **Setup > Accounting > Tax Groups**
 2. Click **New**
 3. Set the country, name, and subsidiary
-4. Choose a Tax Code and click **Add**
+4. Choose a tax code and click **Add**
 5. Click **Save**
 6. Repeat for each tax rate you want to show in Expensify
+
 ---
 
-# Step 12: Connect Expensify to NetSuite
+## How to connect Expensify to NetSuite
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Connect** next to **NetSuite**
-3. Click **Next** through setup steps 1–4
-4. On **Step 5**, enter:
-   - **NetSuite Account ID**
-   - Note: If connecting to a Sandbox environment, in the Account ID, ensure the "s" and "b" are always capitalized and the hyphen "-" is replaced by an underscore "_". So "123456-sb1" would be "123456_SB1".
-   - **Token ID**
-   - **Token Secret**
-5. Click **Confirm**
+3. Click **Next** through the NetSuite setup steps
+4. Enter your **NetSuite Account ID**
+5. Click **Connect**
+6. On the NetSuite consent screen, sign in if prompted and approve access for Expensify
 
-You can find your **Account ID** in NetSuite under **Setup > Integration > Web Services Preferences.**
+If you're connecting to a Sandbox environment, capitalize the "s" and "b" in the Account ID and replace the hyphen with an underscore. For example, `123456-sb1` becomes `123456_SB1`.
+
+You can find your Account ID in NetSuite under **Setup > Integration > Web Services Preferences**.
+
+<!-- SCREENSHOT:
+Suggestion: The NetSuite-hosted OAuth 2.0 consent screen showing the Expensify application requesting access, with the approve button visible.
+Location: Immediately after the connect steps above.
+Purpose: Members expect to stay in Expensify and may abandon the flow when NetSuite takes over the screen; showing the consent page confirms they're in the right place and that approving it is the final step.
+-->
 
 ![The New Expensify workspace setting is open and the More Features tab is selected and visible. The toggle to enable Accounting is highlighted with an orange call out and is currently in the grey disabled position.]({{site.url}}/assets/images/ExpensifyHelp-Xero-1.png)
 
@@ -163,20 +151,33 @@ You can find your **Account ID** in NetSuite under **Setup > Integration > Web S
 
 ---
 
-# After Setup
+## What happens after you connect to NetSuite
 
 - The NetSuite connection syncs within 1–2 minutes
-- Newly approved and paid reports will export to NetSuite via SOAP Web Services
-- Continue with configuring settings by visiting:
-  [Configure NetSuite in Expensify](https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite)
+- Newly approved and paid reports export to NetSuite
+- Next, choose your import, export, and advanced settings. [Learn how to configure NetSuite in Expensify](/articles/new-expensify/connections/netsuite/Configure-Netsuite).
+
+---
+
+## How existing NetSuite connections are affected
+
+Workspaces that already connect to NetSuite using token-based authentication keep working exactly as they do today. You don't need to reinstall the bundle, create new tokens, or reconnect. Expensify will let you know before anything changes for existing connections.
 
 ---
 
 # FAQ
 
+## Why do I need two-factor authentication to connect NetSuite?
+
+NetSuite requires two-factor authentication to authorize the integration. If two-factor authentication isn't enabled on your Expensify account, Expensify prompts you to enable it before you can continue.
+
+## Do I still need to create access tokens in NetSuite?
+
+No. New connections approve access on a NetSuite consent screen, so there are no token IDs or token secrets to create, copy, or store.
+
 ## How do I ensure smooth import of customer and vendor data from NetSuite?
 
-Set the **Page Size** to 1000 in NetSuite. To do this:
+Set the **Page Size** to 1000 in NetSuite:
+
 1. Go to **Setup > Integration > Web Services Preferences**
 2. Search for and update the **Page Size** setting
-
