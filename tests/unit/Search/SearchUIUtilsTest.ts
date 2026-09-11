@@ -62,10 +62,14 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
 }));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: jest.fn(),
-}));
+jest.mock('@userActions/Search', () => {
+    const holder = globalThis as unknown as {mockSetOptimisticDataForTransactionThreadPreview?: jest.Mock};
+    holder.mockSetOptimisticDataForTransactionThreadPreview ??= jest.fn();
+    return {
+        ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+        setOptimisticDataForTransactionThreadPreview: holder.mockSetOptimisticDataForTransactionThreadPreview,
+    };
+});
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;

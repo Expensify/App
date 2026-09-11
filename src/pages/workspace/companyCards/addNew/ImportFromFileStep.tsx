@@ -55,6 +55,7 @@ function ImportFromFileStep() {
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const [hasError, setHasError] = useState(false);
     const {policyID} = route.params;
@@ -116,7 +117,7 @@ function ImportFromFileStep() {
                         sentryLabel="ImportFromFileStep-HelpGuideLink"
                         onPress={(event) => {
                             event?.preventDefault();
-                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
+                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL, false, session);
                         }}
                         style={styles.dInlineFlex}
                     >
