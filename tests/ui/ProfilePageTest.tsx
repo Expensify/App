@@ -39,7 +39,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
-    dismissModal: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -630,9 +630,7 @@ describe('ProfilePage - View user history', () => {
         fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The RHP must stay in the stack so swiping back from Search returns to this profile and then to the screen it was opened from.
-        expect(Navigation.dismissModal).not.toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith(
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
                 rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
