@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -353,6 +354,17 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
+                        ...(item.switchProps
+                            ? {
+                                  shouldShowRightComponent: true,
+                                  // The Switch is display-only; the interactive row handles the toggle (mouse and keyboard) via onSelected, so there's no double-fire.
+                                  rightComponent: (
+                                      <View pointerEvents="none">
+                                          <Switch {...item.switchProps} />
+                                      </View>
+                                  ),
+                              }
+                            : {}),
                         onSelected: item.onSelected
                             ? () => {
                                   item.onSelected?.();

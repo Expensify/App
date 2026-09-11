@@ -33,7 +33,7 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -72,6 +72,12 @@ type PopoverMenuItem = MenuItemProps & {
 
     shouldCloseAllModals?: boolean;
     pendingAction?: PendingAction;
+
+    /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
+    errors?: Errors | null;
+
+    /** Callback to dismiss the item's errors */
+    onCloseError?: () => void;
 
     rightIcon?: IconAsset;
 
@@ -535,7 +541,12 @@ function BasePopoverMenu({
             <React.Fragment key={reactKey}>
                 {/* Compact popovers need tighter divider spacing than full-page sections. */}
                 {addSeparatorBefore === true && menuIndex > 0 && <View style={[styles.sectionDividerLine, styles.mh4, styles.mv2]} />}
-                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    onClose={item.onCloseError}
+                    errorRowStyles={styles.ph5}
+                >
                     <FocusableMenuItem
                         key={reactKey}
                         pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
@@ -599,8 +610,11 @@ function BasePopoverMenu({
             if (focusedIndex === -1) {
                 return;
             }
+            const staysOpenOnSelect = currentMenuItems.at(focusedIndex)?.shouldCloseModalOnSelect === false;
+
             selectItem(focusedIndex);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            // Keep focus on a stay-open item (e.g. an inline toggle) so the next arrow key continues from it; otherwise reset.
+            setFocusedIndex(staysOpenOnSelect ? focusedIndex : -1);
         },
         {isActive: isVisible},
     );

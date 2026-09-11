@@ -157,3 +157,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
 }
 
 export default Switch;
+export type {SwitchProps};

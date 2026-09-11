@@ -47,7 +47,15 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
-import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    downloadCategoriesCSV,
+    openPolicyCategoriesPage,
+    setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -365,8 +373,31 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        // Under the revamp the other settings moved to Rules, so this is only worth showing for the GL codes toggle.
-        if (canWriteCategories && (!isRulesRevampEnabled || !!policy?.glCodes)) {
+        // Under the revamp the Settings page is gone, so its remaining GL codes toggle is surfaced directly in this
+        // menu instead of behind a dedicated Settings page.
+        if (isRulesRevampEnabled) {
+            if (canWriteCategories && !!policy?.glCodes) {
+                menuItems.push({
+                    text: translate('workspace.categories.showCategoryGLCodes'),
+                    value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+                    // Selecting the row (click or Enter) toggles it; the Switch is a display-only indicator. Keep the menu open on select.
+                    shouldCloseModalOnSelect: false,
+                    onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
+                    numberOfLinesTitle: 0,
+                    innerContainerStyle: styles.alignItemsCenter,
+                    titleStyle: [styles.textLabel, styles.fontWeightNormal],
+                    pendingAction: policy?.pendingFields?.showCategoryGLCodes,
+                    errors: policy?.errorFields?.showCategoryGLCodes,
+                    onCloseError: () => clearPolicyErrorField(policyId, 'showCategoryGLCodes'),
+                    switchProps: {
+                        isOn: policy?.showCategoryGLCodes ?? false,
+                        accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                        onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
+                        disabled: !policy?.areCategoriesEnabled,
+                    },
+                });
+            }
+        } else if (canWriteCategories) {
             menuItems.push({
                 icon: icons.Gear,
                 text: translate('common.settings'),
@@ -380,6 +411,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                // Group the GL codes toggle apart from the spreadsheet actions under the revamp.
+                addSeparatorBefore: isRulesRevampEnabled,
             });
         }
         if (hasVisibleCategories) {
@@ -416,11 +449,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         canWriteCategories,
         isRulesRevampEnabled,
         policy?.glCodes,
+        policy?.showCategoryGLCodes,
+        policy?.areCategoriesEnabled,
+        policy?.pendingFields?.showCategoryGLCodes,
+        policy?.errorFields?.showCategoryGLCodes,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,
         isOffline,
         policyId,
+        styles.alignItemsCenter,
+        styles.textLabel,
+        styles.fontWeightNormal,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
