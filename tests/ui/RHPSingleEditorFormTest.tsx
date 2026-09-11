@@ -8,6 +8,7 @@ import {hasCircularReferences} from '@libs/Formula';
 
 import EditReportFieldText from '@pages/EditReportFieldText';
 import SavedSearchRenamePage from '@pages/Search/SavedSearchRenamePage';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspaceNamePage from '@pages/workspace/WorkspaceNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,7 +111,7 @@ describe('Single-editor RHP form boundaries', () => {
     });
 
     it('saves a wrapping workspace name as one line without changing other settings', () => {
-        const props = createMock<React.ComponentProps<typeof WorkspaceNamePage>>({policy: {id: '1', name: 'Old name', outputCurrency: 'USD'}});
+        const props = createMock<WithPolicyProps>({policy: {id: '1', name: 'Old name', outputCurrency: 'USD'}});
         render(<WorkspaceNamePage {...props} />);
 
         const values = {name: 'Design\r\nTeam\nEast'};
