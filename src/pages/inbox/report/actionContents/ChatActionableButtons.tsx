@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
 
@@ -28,11 +28,11 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {isSplitChildTransaction} from '@libs/TransactionUtils';
 
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -67,7 +67,6 @@ function AddPaymentCardButton() {
 }
 
 type ConciergeOptionsButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction<ConciergeOptionsActionName>;
 
     /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
@@ -122,7 +121,6 @@ function ConciergeOptionsButtons({action, actionOwnerReport, reportID, options}:
 }
 
 type SuggestedFollowupButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
@@ -178,7 +176,6 @@ function SuggestedFollowupButtons({action, actionOwnerReport, reportID, followup
 }
 
 type TrackExpenseButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER>;
 
     /** ID of the report that owns this action */
@@ -283,13 +280,11 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
 }
 
 type ChatActionableButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
 
-    /** ID of the report currently being displayed */
     reportID: string | undefined;
 
     /** Whether Concierge is still composing the followup list for this action, so its placeholder should be shown */

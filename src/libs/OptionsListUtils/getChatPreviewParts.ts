@@ -1,9 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
-    getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
     getOriginalMessage,
     getRenamedAction,
@@ -19,6 +16,7 @@ import {
     isReportActionVisibleAsLastAction,
     isTaskAction,
 } from '@libs/ReportActionsUtils';
+import {getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canUserPerformWriteAction,
@@ -26,12 +24,10 @@ import {
     getReportOrDraftReport,
     isChatThread,
     isDeprecatedGroupDM,
-    isDM,
     isExpenseReport,
     isChatRoom as reportUtilsIsChatRoom,
     isGroupChat as reportUtilsIsGroupChat,
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
-    isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
     isThread as reportUtilsIsThread,
 } from '@libs/ReportUtils';
@@ -40,87 +36,6 @@ import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
-    if (!lastActorDetails) {
-        return '';
-    }
-
-    if (lastActorDetails.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    return lastActorDetails.accountID !== currentUserAccountID
-        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
-        : translate('common.you');
-}
-
-function shouldShowLastActorDisplayName(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    lastAction: OnyxEntry<ReportAction>,
-    currentUserAccountIDParam: number,
-    translate: LocalizedTranslate,
-) {
-    // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
-    const lastReportAction = lastAction;
-
-    // Use report.lastActionType as fallback when report actions aren't loaded yet (e.g., on cold start)
-    const lastActionName = lastReportAction?.actionName ?? report?.lastActionType;
-
-    if (
-        !lastActionName ||
-        !lastActorDetails ||
-        reportUtilsIsSelfDM(report) ||
-        (isDM(report) && lastActorDetails.accountID !== currentUserAccountIDParam) ||
-        lastActionName === CONST.REPORT.ACTIONS.TYPE.IOU
-    ) {
-        return false;
-    }
-
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
-
-    if (!lastActorDisplayName) {
-        return false;
-    }
-
-    return true;
-}
-
-function getLastActorDisplayNameFromLastVisibleActions(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    currentUserAccountIDParam: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: boolean | undefined,
-    translate: LocalizedTranslate,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-    lastAction?: OnyxEntry<ReportAction>,
-): string {
-    const reportID = report?.reportID;
-    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-
-    if (lastReportAction) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-
-        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
-            actorDetails = {
-                displayName: lastReportAction.person?.at(0)?.text,
-                accountID: lastActorAccountID,
-            };
-        }
-
-        if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
-        }
-    }
-
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
-}
 
 // These POLICY_CHANGE_LOG actions have no custom alternate text branch in SidebarUtils.getOptionData,
 // so the LHN renders them with the generic `Name: message` prefix and search must keep the prefix too.
@@ -141,6 +56,9 @@ const ROOM_CHANGE_LOG_ACTION_NAMES = new Set<string>(Object.values(CONST.REPORT.
 const CUSTOM_ALTERNATE_TEXT_ACTION_NAMES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS,
+    CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
     CONST.REPORT.ACTIONS.TYPE.RETRACTED,
@@ -301,4 +219,4 @@ function getChatPreviewParts({
     return {actorPrefix: displayName ? `${displayName}: ` : '', customAlternateText};
 }
 
-export {getChatPreviewParts, getLastActorDisplayName, getLastActorDisplayNameFromLastVisibleActions, shouldShowLastActorDisplayName};
+export default getChatPreviewParts;

@@ -12,6 +12,7 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -137,6 +138,7 @@ function SettlementButton({
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const reportID = iouReport?.reportID;
     const personalPolicy = usePolicy(personalPolicyID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -403,6 +405,7 @@ function SettlementButton({
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
+                    hasOwnedPaidPolicy,
                     policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 }).policyID;
             };

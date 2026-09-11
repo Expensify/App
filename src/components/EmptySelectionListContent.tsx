@@ -16,7 +16,6 @@ import ScrollView from './ScrollView';
 import Text from './Text';
 
 type EmptySelectionListContentProps = {
-    /** Type of selection list */
     contentType: string;
 };
 
