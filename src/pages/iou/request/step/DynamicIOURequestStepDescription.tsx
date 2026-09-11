@@ -78,6 +78,7 @@ function DynamicIOURequestStepDescription({
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -151,6 +152,7 @@ function DynamicIOURequestStepDescription({
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
@@ -167,6 +169,7 @@ function DynamicIOURequestStepDescription({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         } else {
             setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
