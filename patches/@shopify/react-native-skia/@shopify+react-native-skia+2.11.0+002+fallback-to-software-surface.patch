@@ -1,12 +1,12 @@
 diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-index 407ab37..cbd08b2 100644
+index 407ab37..6ae3f75 100644
 --- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-@@ -30,19 +30,29 @@ class WebGLRenderer {
+@@ -30,19 +30,32 @@ class WebGLRenderer {
      _defineProperty(this, "grContext", null);
      _defineProperty(this, "contextHandle", 0);
      _defineProperty(this, "pd", 1);
-+    _defineProperty(this, "isSoftware", false);
++    _defineProperty(this, "canUseSoftware", false);
 +    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
 +    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
 +    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
@@ -38,21 +38,24 @@ index 407ab37..cbd08b2 100644
 +        this.contextHandle = 0;
 +      }
 +      // Let onResize try the software surface. It can only succeed when GetWebGLContext failed, since a
-+      // canvas that already holds a WebGL context can never hand back a 2D one.
-+      this.isSoftware = true;
++      // canvas that already holds a WebGL context can never hand back a 2D one. Never cleared once set:
++      // a failed attempt can be transient (the browser can refuse a 2D context under memory pressure),
++      // and this flag is the only thing that stops the guard in onResize from making the renderer
++      // permanently inert.
++      this.canUseSoftware = true;
      }
      this.onResize();
    }
-@@ -61,7 +71,7 @@ class WebGLRenderer {
+@@ -61,7 +74,7 @@ class WebGLRenderer {
      const {
        canvas
      } = this;
 -    if (!this.grContext) {
-+    if (!this.grContext && !this.isSoftware) {
++    if (!this.grContext && !this.canUseSoftware) {
        return;
      }
      this.pd = window.devicePixelRatio;
-@@ -76,9 +86,30 @@ class WebGLRenderer {
+@@ -76,9 +89,29 @@ class WebGLRenderer {
      }
      // Reuse the existing WebGL context and GrDirectContext: only the surface
      // needs to be recreated when the canvas is resized.
@@ -68,7 +71,6 @@ index 407ab37..cbd08b2 100644
 +      } catch (e) {
 +        surface = null;
 +      }
-+      this.isSoftware = surface !== null;
 +    }
 +    if (!surface) {
 +      this.surface = null;
@@ -86,14 +88,14 @@ index 407ab37..cbd08b2 100644
      this.surface = new _JsiSkSurface.JsiSkSurface(CanvasKit, surface);
    }
 diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-index 7a9ea19..c24ab14 100644
+index 7a9ea19..1a6ebbc 100644
 --- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-@@ -24,19 +24,29 @@ class WebGLRenderer {
+@@ -24,19 +24,32 @@ class WebGLRenderer {
      _defineProperty(this, "grContext", null);
      _defineProperty(this, "contextHandle", 0);
      _defineProperty(this, "pd", 1);
-+    _defineProperty(this, "isSoftware", false);
++    _defineProperty(this, "canUseSoftware", false);
 +    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
 +    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
 +    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
@@ -125,21 +127,24 @@ index 7a9ea19..c24ab14 100644
 +        this.contextHandle = 0;
 +      }
 +      // Let onResize try the software surface. It can only succeed when GetWebGLContext failed, since a
-+      // canvas that already holds a WebGL context can never hand back a 2D one.
-+      this.isSoftware = true;
++      // canvas that already holds a WebGL context can never hand back a 2D one. Never cleared once set:
++      // a failed attempt can be transient (the browser can refuse a 2D context under memory pressure),
++      // and this flag is the only thing that stops the guard in onResize from making the renderer
++      // permanently inert.
++      this.canUseSoftware = true;
      }
      this.onResize();
    }
-@@ -55,7 +65,7 @@ class WebGLRenderer {
+@@ -55,7 +68,7 @@ class WebGLRenderer {
      const {
        canvas
      } = this;
 -    if (!this.grContext) {
-+    if (!this.grContext && !this.isSoftware) {
++    if (!this.grContext && !this.canUseSoftware) {
        return;
      }
      this.pd = window.devicePixelRatio;
-@@ -70,9 +80,30 @@ class WebGLRenderer {
+@@ -70,9 +83,29 @@ class WebGLRenderer {
      }
      // Reuse the existing WebGL context and GrDirectContext: only the surface
      // needs to be recreated when the canvas is resized.
@@ -155,7 +160,6 @@ index 7a9ea19..c24ab14 100644
 +      } catch (e) {
 +        surface = null;
 +      }
-+      this.isSoftware = surface !== null;
 +    }
 +    if (!surface) {
 +      this.surface = null;
