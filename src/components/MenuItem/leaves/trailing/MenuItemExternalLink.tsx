@@ -18,14 +18,8 @@ type MenuItemExternalLinkProps = {
 };
 
 /**
- * Marks the row as leaving the app for a URL: renders the "opens in a new tab" icon, and offers the
- * URL through the context menu on a long press or a right-click.
- *
- * Unlike `MenuItem.Copy` this one does claim right-click, because the URL is nowhere on the screen —
- * the menu is the only way to reach it.
- *
- * Render it inside `MenuItem.Trailing`. A row that leaves the app without a URL to offer, because it
- * builds one through an API call as it goes, wants a plain `MenuItem.NewWindowIcon` instead.
+ * Marks the row as leading out of the app: renders the "opens in a new tab" icon and offers the URL
+ * through the context menu on a long press or a right-click, the only place the URL is reachable.
  */
 function MenuItemExternalLink({link}: MenuItemExternalLinkProps) {
     const {translate} = useLocalize();

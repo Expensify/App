@@ -14,19 +14,14 @@ import React from 'react';
 import {View} from 'react-native';
 
 type MenuItemCopyProps = {
-    /** Text put on the clipboard. Pass the displayed value — the row's title is not a fallback */
+    /** Text put on the clipboard */
     value: string;
 };
 
 /**
- * Makes the row's value copyable. A hovered read-only row gets a copy button in its trailing cell;
- * a touch device, which has neither hover nor dependable text selection, gets a long press instead.
- *
- * Right-click is left alone on purpose — the value is on the screen, so the browser's own menu
- * still copies it. A row whose value is *not* on the screen, a link row say, wants
- * `MenuItem.Root`'s `onSecondaryInteraction` rather than this.
- *
- * Render it inside `MenuItem.Trailing`, before `MenuItem.Chevron`.
+ * Makes the row's value copyable: a copy button on a hovered read-only row, a long press on touch,
+ * where there is no hover and no dependable text selection. Right-click is left to the browser, whose
+ * own menu already copies the value off the screen.
  */
 function MenuItemCopy({value}: MenuItemCopyProps) {
     const styles = useThemeStyles();

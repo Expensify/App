@@ -71,7 +71,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
         onPress?.(event);
     };
 
-    // Left undefined when no sub-component wants it, so the web keeps its native context menu on an ordinary row
+    // Left undefined when no sub-component wants it, so the web keeps its native context menu on a plain row
     const onSecondaryInteractionAction = registeredSecondaryInteraction
         ? (event: GestureResponderEvent | MouseEvent) => registeredSecondaryInteraction(event, pressableRef.current)
         : undefined;
@@ -82,7 +82,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
-                        // A long press on a touch device starts a text selection underneath the context menu the row is about to open, so block it for as long as the press lasts
+                        // A long press on a touch device starts a text selection under the context menu the row is about to open, so block it while the press lasts
                         onPressIn={() => !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteractionAction}
