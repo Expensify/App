@@ -116,7 +116,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                             value={reservation.seatNumber}
                             testID={CONST.FLIGHT_SEAT_TEST_ID}
                         >
-                            {!!reservation.seatNumber && <MenuItem.Copy value={reservation.seatNumber} />}
+                            <MenuItem.Copy value={reservation.seatNumber} />
                         </MenuItemField>
                     </View>
                 )}
@@ -126,17 +126,17 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                             name={translate('travel.flightDetails.class')}
                             value={cabinClass}
                         >
-                            {!!cabinClass && <MenuItem.Copy value={cabinClass} />}
+                            <MenuItem.Copy value={cabinClass} />
                         </MenuItemField>
                     </View>
                 )}
-                {!!reservation.confirmations?.at(0)?.value && (
+                {!!recordLocator && (
                     <View style={styles.w100}>
                         <MenuItemField
                             name={translate('travel.flightDetails.recordLocator')}
                             value={recordLocator}
                         >
-                            {!!recordLocator && <MenuItem.Copy value={recordLocator} />}
+                            <MenuItem.Copy value={recordLocator} />
                         </MenuItemField>
                     </View>
                 )}

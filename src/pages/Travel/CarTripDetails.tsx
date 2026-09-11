@@ -80,12 +80,12 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                     numberOfLinesTitle={2}
                 />
             )}
-            {!!reservation.reservationID && (
+            {!!confirmationNumber && (
                 <MenuItemField
                     name={translate('travel.carDetails.confirmation')}
                     value={confirmationNumber}
                 >
-                    {!!confirmationNumber && <MenuItem.Copy value={confirmationNumber} />}
+                    <MenuItem.Copy value={confirmationNumber} />
                 </MenuItemField>
             )}
             {!!displayName && (
