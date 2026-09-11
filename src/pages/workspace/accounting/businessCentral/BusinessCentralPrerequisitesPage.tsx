@@ -1,8 +1,3 @@
-/**
- * First step of the Business Central connection flow. Business Central only accepts the connection once the
- * Expensify extension is installed and an app registration exists, so this page points admins at the setup
- * instructions before asking for credentials.
- */
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

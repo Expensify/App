@@ -1,8 +1,3 @@
-/**
- * Credentials step of the Business Central connection flow. The backend validates the app registration
- * asynchronously, so submitting closes the panel and the Accounting page shows the sync progress and any
- * authentication error.
- */
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';

@@ -1,7 +1,3 @@
-/**
- * Lets an admin change which Business Central company the workspace syncs with. The backend picks the first company
- * when it connects, so this page is only reachable when the credentials can see more than one.
- */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
