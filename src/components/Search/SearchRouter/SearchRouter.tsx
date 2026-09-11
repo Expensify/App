@@ -64,6 +64,7 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
+import getSearchRouterPopoverLayout from './getSearchRouterPopoverLayout';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
@@ -517,7 +518,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-    const popoverMaxHeight = Math.min(variables.searchRouterPopoverMaxHeight, windowHeight * variables.searchRouterPopoverMaxHeightRatio);
+    const {maxHeight: popoverMaxHeight} = getSearchRouterPopoverLayout(windowHeight);
 
     return (
         <View

@@ -1,15 +1,14 @@
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
+import getSearchRouterPopoverLayout from '@components/Search/SearchRouter/getSearchRouterPopoverLayout';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobileIOS} from '@libs/Browser';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -19,8 +18,8 @@ import {Dimensions} from 'react-native';
 const isMobileWebIOS = isMobileIOS();
 
 function SearchRouterModal() {
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
     const actionAfterModalHideRef = useRef<() => void>(undefined);
@@ -61,14 +60,13 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: 0, top: variables.searchRouterPopoverTopOffset}}
+            popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: 0, top: getSearchRouterPopoverLayout(windowHeight).topOffset}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
             onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
-            innerContainerStyle={shouldUseNarrowLayout ? undefined : styles.searchRouterPopoverShadow}
             shouldShowBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
         >

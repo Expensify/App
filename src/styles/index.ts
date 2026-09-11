@@ -1282,10 +1282,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.bordersBold,
         },
 
-        searchRouterPopoverShadow: {
-            boxShadow: theme.elevatedShadow,
-        },
-
         /**
          * Matches the border and padding of editableCell so column headers stay
          * visually aligned with their editable cells.
