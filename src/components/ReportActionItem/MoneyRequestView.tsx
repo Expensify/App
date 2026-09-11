@@ -700,6 +700,7 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable({
             transactionID: transaction.transactionID,
+            transaction,
             transactionThreadReport,
             parentReport,
             iouReportOwnerLogin,
@@ -727,6 +728,7 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable({
             transactionID: transaction.transactionID,
+            transaction,
             transactionThreadReport,
             parentReport,
             iouReportOwnerLogin,
@@ -868,6 +870,7 @@ function MoneyRequestView({
 
             updateMoneyRequestTaxRate({
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
@@ -908,6 +911,7 @@ function MoneyRequestView({
 
             updateMoneyRequestCategory({
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
@@ -949,6 +953,7 @@ function MoneyRequestView({
             const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
