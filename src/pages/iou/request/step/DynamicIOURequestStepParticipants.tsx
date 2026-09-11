@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getRequestType,
+    isDistanceRequest,
     isFromCreditCardImport,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -99,6 +100,7 @@ function DynamicIOURequestStepParticipants({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
         isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+        isDistanceRequest: isDistanceRequest(initialTransaction),
     });
 
     const hasEndedSpan = useRef(false);
