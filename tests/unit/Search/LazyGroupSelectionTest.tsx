@@ -364,6 +364,27 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('clears a multi-page all-matching report selection from the header', async () => {
+        const {result} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions).toEqual({});
+        expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.hasSelectedTransactions).toBe(false);
+    });
+
     it('keeps an excluded report unchecked while selecting reports loaded by pagination', async () => {
         const {result, rerender} = renderReportSelection();
 
