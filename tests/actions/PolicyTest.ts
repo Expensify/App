@@ -1844,6 +1844,68 @@ describe('actions/Policy', () => {
             apiWriteSpy.mockRestore();
         });
 
+        it('closes a side panel saved open on this device when creating the workspace completes onboarding', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true, forceConcierge: false});
+            await waitForBatchedUpdates();
+
+            // TEST_DRIVE_RECEIVER enters the onboarding tasks block, whose optimistic data marks onboarding complete
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const onboardingAfter = await getOnyxValue(ONYXKEYS.NVP_ONBOARDING);
+            expect(onboardingAfter?.hasCompletedGuidedSetupFlow).toBe(true);
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(false);
+            expect(sidePanel?.openNarrowScreen).toBe(false);
+        });
+
+        it('leaves the side panel alone when the workspace tasks are added for an account that already finished onboarding', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: false, forceConcierge: false});
+            await waitForBatchedUpdates();
+
+            Policy.createWorkspace({
+                conciergeChat: undefined,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: Policy.generatePolicyID(),
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                currency: undefined,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
+                activePolicy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(true);
+        });
+
         it('should add onboarding tasks for TEST_DRIVE_RECEIVER even when choice is set', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();

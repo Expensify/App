@@ -85,6 +85,7 @@ import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashEscape from 'lodash/escape';
@@ -12637,7 +12638,9 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldDeferOptimisticTasks ? [] : [...tasksForOptimisticData];
+    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_SIDE_PANEL>> = shouldDeferOptimisticTasks
+        ? []
+        : [...tasksForOptimisticData];
     const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND || shouldSkipConciergeOnboarding;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
@@ -12680,6 +12683,17 @@ function prepareOnboardingOnyxData({
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {hasCompletedGuidedSetupFlow: true},
         });
+
+        // The side panel only renders once onboarding is complete, so a panel saved open by an earlier session on this device
+        // would show the moment this update lands. Close it in the same batch. Accounts the selector already treats as complete
+        // (legacy empty nvp_onboarding) keep whatever state they have.
+        if (hasCompletedGuidedSetupFlowSelector(onboarding) === false) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_SIDE_PANEL,
+                value: {open: false, openNarrowScreen: false, forceConcierge: false},
+            });
+        }
     }
 
     const successData: Array<

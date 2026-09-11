@@ -1547,7 +1547,12 @@ function clearAvatarErrors(reportID: string) {
 }
 
 type GuidedSetupOptimisticOnyxUpdate = OnyxUpdate<
-    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.NVP_INTRO_SELECTED
+    | typeof ONYXKEYS.NVP_ONBOARDING
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.NVP_SIDE_PANEL
 >;
 
 type GuidedSetupSuccessOnyxUpdate = OnyxUpdate<
@@ -1701,6 +1706,7 @@ function openReport(params: OpenReportActionParams) {
             | typeof ONYXKEYS.NVP_ONBOARDING
             | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+            | typeof ONYXKEYS.NVP_SIDE_PANEL
         >
     > = [
         {
@@ -2161,6 +2167,7 @@ function createGroupChat({
             | typeof ONYXKEYS.NVP_ONBOARDING
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.NVP_SIDE_PANEL
         >
     > = [
         {

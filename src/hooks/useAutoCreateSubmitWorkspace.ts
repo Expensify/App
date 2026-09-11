@@ -42,7 +42,6 @@ function useAutoCreateSubmitWorkspace() {
         hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
-        shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
 
     const groupPolicySelector = useMemo(
@@ -128,7 +127,7 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation);
         },
         [
             currentUserEmail,
@@ -149,7 +148,6 @@ function useAutoCreateSubmitWorkspace() {
             betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
-            shouldUseNarrowLayout,
             conciergeChat,
         ],
     );
