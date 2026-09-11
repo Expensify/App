@@ -26,7 +26,6 @@ type InsightTitleDropdownProps = {
     /** The insight options to list in the dropdown, in display order */
     configs: SearchTypeMenuItem[];
 
-    /** The currently selected insight key */
     selectedKey: SearchKey;
 
     /** Called with the newly selected insight key */

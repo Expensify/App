@@ -7,7 +7,6 @@ import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import type {ValueOf} from 'type-fest';
 
 type CustomSubPageProps = SubPageProps & {
-    /** User's form values */
     formValues: InternationalBankAccountForm;
 
     /** Fields map for the step rendering */

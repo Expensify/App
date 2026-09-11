@@ -89,6 +89,7 @@ type SubmitAmountArgs = {
     isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
+    rules: OnyxCollection<OnyxTypes.Rule>;
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     allReports: OnyxCollection<OnyxTypes.Report>;
     allReportDrafts: OnyxCollection<OnyxTypes.Report>;
@@ -114,6 +115,7 @@ type SubmitAmountArgs = {
     conciergeReportID: OnyxEntry<string>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
@@ -247,7 +249,20 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate, dateFnsLocale} = args;
+    const {
+        report,
+        policy,
+        currentUserPersonalDetails,
+        reportAttributesDerivedValue,
+        allReportDrafts,
+        allReportNVPs,
+        allPersonalDetails,
+        conciergeReportID,
+        translate,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+    } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -257,10 +272,22 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID, {
-                  translate,
-                  dateFnsLocale,
-              });
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  allPersonalDetails,
+                  conciergeReportID,
+                  reportAttributesReports,
+                  reportDraft,
+                  currentUserPersonalDetails.accountID,
+                  {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
+              );
     });
 }
 
@@ -334,6 +361,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -383,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -423,6 +452,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isTrackIntentUser,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -611,6 +641,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         reportPolicyTags,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -668,6 +699,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     navigateBack();
 }
