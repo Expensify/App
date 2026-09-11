@@ -47,7 +47,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const illustrations = useMemoizedLazyIllustrations(['CardReaderAlt', 'Flag', 'CheckboxText', 'ReportReceipt', 'AiBot']);
     const isCategoryScopedCreate = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW || !!categoryName;
 
@@ -92,23 +91,19 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID, categoryName)),
+            onPress: () => Navigation.navigate(ROUTES.RULES_EXPENSE_DEFAULT_TYPE.getRoute(policyID)),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
             isWorkspaceOnly: true,
         },
-        ...(isCustomAgentBetaEnabled
-            ? [
-                  {
-                      key: 'createAgentRule',
-                      icon: illustrations.AiBot,
-                      title: translate('workspace.rules.newRule.createAgentRule'),
-                      description: translate('workspace.rules.newRule.createAgentRuleDescription'),
-                      onPress: () => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID)),
-                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE,
-                      isWorkspaceOnly: true,
-                  } satisfies NewRuleOption,
-              ]
-            : []),
+        {
+            key: 'createAgentRule',
+            icon: illustrations.AiBot,
+            title: translate('workspace.rules.newRule.createAgentRule'),
+            description: translate('workspace.rules.newRule.createAgentRuleDescription'),
+            onPress: () => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID)),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE,
+            isWorkspaceOnly: true,
+        },
     ];
 
     const visibleNewRuleOptions = isCategoryScopedCreate ? newRuleOptions.filter((option) => !option.isWorkspaceOnly) : newRuleOptions;

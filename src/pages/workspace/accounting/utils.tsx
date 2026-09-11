@@ -1,3 +1,4 @@
+import ConnectToCampfireFlow from '@components/ConnectToCampfireFlow';
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
@@ -64,14 +65,14 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean},
+    existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean; campfire: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<
-        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare',
+        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'CampfireSquare',
         IconAsset
     >,
     cardFeeds?: CombinedCardFeeds,
@@ -129,6 +130,15 @@ function getAccountingIntegrationData(
         }
         return ROUTES.POLICY_ACCOUNTING_DUALENTRY_SETUP.getRoute(policyID);
     };
+    const getBackToAfterWorkspaceUpgradeRouteForCampfire = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.campfire) {
+            return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SETUP.getRoute(policyID);
+    };
 
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -162,12 +172,13 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR,
                     CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
+                    // Both non-reimbursable export destinations now expose an always-visible Default vendor row, so surface the matching vendor key here regardless of `autoCreateVendor` (which is an Advanced setting and is subscribed under subscribedAdvancedSettings below).
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                        ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
-                        : []),
-                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL &&
-                    policy?.connections?.quickbooksOnline?.config?.autoCreateVendor
                         ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]
+                        : []),
+                    ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD ||
+                    qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD
+                        ? [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR]
                         : []),
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.QBO)),
@@ -553,6 +564,63 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: policy?.connections?.dualEntry?.config?.pendingFields,
                 errorFields: policy?.connections?.dualEntry?.config?.errorFields,
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
+            return {
+                title: translate('workspace.accounting.campfire'),
+                icon: expensifyIcons?.CampfireSquare,
+                setupConnectionFlow: (
+                    <ConnectToCampfireFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => null,
+                subscribedImportSettings: [
+                    CONST.CAMPFIRE_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.campfire?.data?.fields?.map((field) => `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
+                ],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [
+                    CONST.CAMPFIRE_CONFIG.EXPORTER,
+                    CONST.CAMPFIRE_CONFIG.EXPORT_DATE,
+                    CONST.CAMPFIRE_CONFIG.REIMBURSABLE,
+                    CONST.CAMPFIRE_CONFIG.NON_REIMBURSABLE,
+                    CONST.CAMPFIRE_CONFIG.DEFAULT_VENDORID,
+                    CONST.CAMPFIRE_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                    CONST.CAMPFIRE_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
+                ],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                ),
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [
+                    CONST.CAMPFIRE_CONFIG.ACCOUNTING_METHOD,
+                    CONST.CAMPFIRE_CONFIG.AUTO_SYNC,
+                    CONST.CAMPFIRE_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.CAMPFIRE_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.CAMPFIRE_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.CAMPFIRE_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.CAMPFIRE_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+                ],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.campfire.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForCampfire(),
+                },
+                pendingFields: policy?.connections?.campfire?.config?.pendingFields,
+                errorFields: policy?.connections?.campfire?.config?.errorFields,
             };
         }
         default:

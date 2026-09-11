@@ -19,7 +19,6 @@ type States = {
 type Args = {
     appKey: string;
     cluster: string;
-    authEndpoint: string;
 };
 
 type UserIsTypingEvent = ReportUserIsTyping & {
@@ -28,11 +27,6 @@ type UserIsTypingEvent = ReportUserIsTyping & {
 
 type UserIsLeavingRoomEvent = Record<string, boolean> & {
     userLogin?: string;
-};
-
-type PingPongEvent = Record<string, string | number> & {
-    pingID: string;
-    pingTimestamp: number;
 };
 
 type ConciergeReasoningEvent = {
@@ -74,7 +68,6 @@ type ConciergeDraftEventsEvent = {
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
-    [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
     [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
     [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
@@ -136,7 +129,6 @@ export type {
     Args,
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
-    PingPongEvent,
     ConciergeDraftEvent,
     ConciergeDraftEventsEvent,
     EventData,

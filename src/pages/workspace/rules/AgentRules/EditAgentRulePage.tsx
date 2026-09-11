@@ -1,15 +1,12 @@
-import Button from '@components/ButtonComposed';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -21,6 +18,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -29,10 +27,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditAgentRuleForm';
 
-import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import useAgentPromptInputStyles from './useAgentPromptInputStyles';
+import useShouldUseExpandedRevampFormLayout from './useShouldUseExpandedRevampFormLayout';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
 type EditAgentRuleFormID = typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
@@ -44,12 +45,9 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const shouldUseScrollableLayout = useIsInLandscapeMode();
-    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
+    const shouldUseExpandedRevampFormLayout = useShouldUseExpandedRevampFormLayout();
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
@@ -83,39 +81,29 @@ function EditAgentRulePage({
         Navigation.goBack();
     };
 
-    const handleDelete = () => {
-        if (!policy || !agentRule) {
-            return;
-        }
+    const inputWrapperStyles = useAgentPromptInputStyles();
 
-        showConfirmModal({
-            title: translate('workspace.rules.agentRules.deleteRule'),
-            prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        onDelete: () => {
+            if (!policy) {
+                return false;
             }
-
             deletePolicyAgentRule(policy, ruleID);
-            Navigation.goBack();
-        });
-    };
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
+        titleKey: 'workspace.rules.agentRules.deleteRule',
+        promptKey: 'workspace.rules.agentRules.deleteRuleConfirmation',
+    });
 
     if (!agentRule) {
         return <NotFoundPage />;
     }
 
-    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
-        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
-        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
@@ -123,9 +111,14 @@ function EditAgentRulePage({
                 testID="EditAgentRulePage"
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
-                shouldEnableMaxHeight={shouldUseScrollableLayout || shouldUseExpandedRevampFormLayout}
+                shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
-                <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('workspace.rules.agentRules.editRuleTitle')}
+                        {...deleteHeaderProps}
+                    />
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
                     formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
@@ -133,26 +126,15 @@ function EditAgentRulePage({
                     onSubmit={saveRule}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={shouldUseScrollableLayout}
-                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldUseScrollView={false}
+                    submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                    shouldRenderFooterAboveSubmit
-                    footerContent={
-                        <Button
-                            onPress={handleDelete}
-                            style={[styles.mb4]}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        >
-                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
-                        </Button>
-                    }
                 >
-                    <View style={styles.flex1}>
+                    <View style={styles.flexGrow1}>
                         <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -166,9 +148,8 @@ function EditAgentRulePage({
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
-                                containerStyles={[styles.flex1]}
+                                containerStyles={[styles.h100]}
                                 touchableInputWrapperStyle={[styles.flex1]}
-                                textInputContainerStyles={[styles.flex1]}
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>

@@ -1644,19 +1644,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return theme.icon;
     },
 
-    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
-        if (isAdhoc) {
-            return styles.badgeAdHocSuccess;
-        }
-        if (isSuccess) {
-            return styles.badgeEnvironmentSuccess;
-        }
-        if (isError) {
-            return styles.badgeEnvironmentDanger;
-        }
-        return {};
-    },
-
     /**
      * Generate a style for the background color of the button, based on its current state.
      *
@@ -2463,6 +2450,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
         paddingBottom: safeAreaPaddingBottom,
         backgroundColor: theme.appBG,
+    }),
+
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
+        ...style,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
     }),
 });
 

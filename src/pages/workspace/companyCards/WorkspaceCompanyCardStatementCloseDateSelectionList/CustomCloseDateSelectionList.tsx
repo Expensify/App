@@ -4,8 +4,11 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -27,27 +30,26 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const [selectedDay, setSelectedDay] = useState(initiallySelectedDay);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [error, setError] = useState<string | undefined>(undefined);
+    // Freeze the day that was selected when this list opened so the pre-selected day stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialSelectedDay = useInitialSelection(selectedDay, {resetOnFocus: true});
 
     const data = useMemo(() => {
-        return CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
-            const day = {
-                value: dayValue,
-                text: dayValue.toString(),
-                keyForList: dayValue.toString(),
-                isSelected: dayValue === selectedDay,
-            };
+        const allDays = CONST.DATE.MONTH_DAYS.map<CustomCloseDateListItem>((dayValue) => ({
+            value: dayValue,
+            text: dayValue.toString(),
+            keyForList: dayValue.toString(),
+            isSelected: dayValue === selectedDay,
+        }));
 
-            if (debouncedSearchValue) {
-                if (day.text.includes(debouncedSearchValue)) {
-                    days.push(day);
-                }
-            } else {
-                days.push(day);
-            }
+        // Pin the frozen initial day to the top of the full list before search filtering, so it stays pinned while searching (search filters the already-pinned list rather than reordering it).
+        const orderedDays = moveInitialSelectionToTop(allDays, initialSelectedDay ? [initialSelectedDay.toString()] : []);
 
-            return days;
-        }, []);
-    }, [selectedDay, debouncedSearchValue]);
+        if (!debouncedSearchValue) {
+            return orderedDays;
+        }
+
+        return orderedDays.filter((day) => day?.text?.includes(debouncedSearchValue));
+    }, [selectedDay, debouncedSearchValue, initialSelectedDay]);
 
     const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);
@@ -88,7 +90,8 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             data={data}
             ListItem={SingleSelectListItem}
             onSelectRow={selectDayAndClearError}
-            initiallyFocusedItemKey={initiallySelectedDay?.toString()}
+            initiallyFocusedItemKey={initialSelectedDay?.toString()}
+            shouldScrollToFocusedIndexOnMount={false}
             confirmButtonOptions={confirmButtonOptions}
             textInputOptions={textInputOptions}
             shouldShowListEmptyContent={false}

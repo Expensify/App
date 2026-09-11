@@ -920,6 +920,20 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
 
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const hasCommuterExclusion = hasAppliedCommuterExclusion(transaction);
+        // For transactions with an applied commuter exclusion, `quantity` is the route distance rounded
+        // to 2dp, so it differs from the exact conversion by at most 0.005. A gap larger than this rounding
+        // tolerance means the user manually edited the distance, so we must convert their quantity instead.
+        const ROUNDING_TOLERANCE = 0.01;
+        const isDistanceManuallyEdited =
+            hasCommuterExclusion &&
+            typeof routeDistanceMeters === 'number' &&
+            typeof quantity === 'number' &&
+            !!existingDistanceUnit &&
+            Math.abs(quantity - DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, existingDistanceUnit)) > ROUNDING_TOLERANCE;
+        const shouldUseExactRouteDistance = hasCommuterExclusion && typeof routeDistanceMeters === 'number' && !isDistanceManuallyEdited;
 
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
@@ -929,7 +943,9 @@ function getUpdatedTransaction({
         // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            const distance = roundToTwoDecimalPlaces(
+                shouldUseExactRouteDistance ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, newDistanceUnit) : (quantity ?? 0) * conversionFactor,
+            );
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         }
 
@@ -952,7 +968,10 @@ function getUpdatedTransaction({
                         const fallbackConversionFactor =
                             newDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
                         const currentQuantity = updatedTransaction?.comment?.customUnit?.quantity ?? 0;
-                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(currentQuantity * fallbackConversionFactor));
+                        const distance = shouldUseExactRouteDistance
+                            ? DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, rateFromAnyPolicy.unit)
+                            : currentQuantity * fallbackConversionFactor;
+                        lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(distance));
                     }
                 }
             }
@@ -2319,7 +2338,8 @@ function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations
 }
 
 /**
- * Check if the transaction has a defined route
+ * Check if the transaction has a defined route.
+ * Unlike getDistanceInMeters this ignores `routeDistanceMeters`: an earlier fetch's distance does not make the current route resolved.
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType?: boolean): boolean {
     return !!transaction?.routes?.route0?.geometry?.coordinates || (!!isDistanceRequestType && transaction?.comment?.customUnit?.quantity !== undefined);
@@ -3653,6 +3673,34 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
+/**
+ * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
+ * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
+ * sync with the server.
+ */
+function isScanFailedTransactionMovedOnPayment(transaction: Transaction, report: OnyxEntry<Report>): boolean {
+    if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
+        return false;
+    }
+    return getMerchant(transaction) === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && getAmount(transaction, true) === 0;
+}
+
+/**
+ * Whether the report has scan-failed expenses to move out and at least one other expense left behind to pay.
+ */
+function shouldSplitScanFailedTransactions(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    let hasScanFailedTransaction = false;
+    let hasRemainingTransaction = false;
+    for (const transaction of transactions) {
+        if (isScanFailedTransactionMovedOnPayment(transaction, report)) {
+            hasScanFailedTransaction = true;
+        } else {
+            hasRemainingTransaction = true;
+        }
+    }
+    return hasScanFailedTransaction && hasRemainingTransaction;
+}
+
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
     const requestType = getRequestType(transaction);
     return isDistanceExpenseType(requestType) ? requestType : undefined;
@@ -3875,6 +3923,8 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isScanFailedTransactionMovedOnPayment,
+    shouldSplitScanFailedTransactions,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,

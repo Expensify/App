@@ -8,10 +8,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasOnlyHeldExpenses, hasViolations as hasViolationsReportUtils, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
+    hasOnlyHeldExpenses,
+    hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
+import {
+    getTransactionViolations,
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasOnlyPendingCardTransactions,
     showHeldExpensesBlockModal,
@@ -23,6 +31,7 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolations} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -57,6 +66,7 @@ function SubmitActionButtonContent() {
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
     const {iouReportID, transactions} = useReportPreviewData();
@@ -76,6 +86,7 @@ function SubmitActionButtonContent() {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -98,13 +109,46 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    // The header's gate receives violations pre-filtered by useTransactionsAndViolationsForReport, which drops dismissals
+    // that are only detectable with report/owner/policy context (e.g. RTER violations dismissed under instant submit). The
+    // preview context exposes the raw slice, so apply the same filter here or the two Submit buttons disagree on dismissed
+    // violations. This stays a pure computation over data already in scope; calling the hook instead would duplicate its
+    // Onyx subscriptions for every preview on screen.
+    const filteredTransactionViolations: Record<string, TransactionViolations> = {};
+    for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
+        const transactionID = transactionViolationKey.split('_').at(1) ?? '';
+        const transaction = transactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        filteredTransactionViolations[transactionViolationKey] =
+            getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
+    }
+
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        iouReport?.reportID,
+        filteredTransactionViolations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail,
+        transactions,
+    );
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         isTrackIntentUser,
         report: iouReport,
         policy,
+        rules,
     });
 
     const handleSubmit = () => {
+        // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend
+        // reject this submission, which the user only ever sees as a generic "Unexpected error". Bail out before any API
+        // call. The button is disabled on the same condition, so this is the second layer, and it has to run before the
+        // submit-to popover branch below, which would otherwise run the submission itself and hit the same rejection.
+        if (shouldBlockSubmit) {
+            return;
+        }
+
         if (hasOnlyPendingCardTransactions(transactions)) {
             showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
@@ -125,6 +169,7 @@ function SubmitActionButtonContent() {
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 policy,
+                rules,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
@@ -150,6 +195,7 @@ function SubmitActionButtonContent() {
             onPress={handleSubmit}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
+            isDisabled={shouldBlockSubmit}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
             isDEWSubmission={isDEWSubmission}
             reportID={iouReportID}

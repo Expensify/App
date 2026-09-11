@@ -355,6 +355,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: REPORT_ID,
         policyID: POLICY_ID,
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
@@ -1093,14 +1094,14 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
     });
 
-    it('routes "Mark as exported" through the same flow: partial modal first, then export-again, then marks the subset', async () => {
+    it('routes "Mark as exported" through the partial modal only, skipping export-again, then marks the subset', async () => {
         /**
          * Given: a multi-integration selection (report1 → NetSuite already exported, report2 → QBO).
          *
          * When: the user clicks NetSuite's "Mark as exported".
          *
-         * Then: it goes through the identical shared flow as export — partial-export modal first, then the
-         *       export-again modal — and only report1 is marked as exported to NetSuite.
+         * Then: only the partial-export modal is shown — the export-again modal is skipped because marking
+         *       never (re-)exports to the integration — and only report1 is marked as exported to NetSuite.
          */
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
             id: POLICY_ID_2,
@@ -1129,10 +1130,76 @@ describe('useSearchBulkActions - export options', () => {
             expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
         });
 
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(1, expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
-        expect(mockShowConfirmModal).toHaveBeenNthCalledWith(2, expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
+        expect(mockShowConfirmModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportAgainModal.title'}));
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('marks already-exported reports without showing the export-again modal', async () => {
+        /**
+         * Given: a single-integration selection where every selected report has already been exported
+         *        (the backend set `isExportedToIntegration`).
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the reports are marked straight away with no confirmation at all. The export-again copy warns
+         *       that reports are about to be exported again to the integration, which never happens here:
+         *       MarkAsExported only logs a per-report exported action.
+         */
+        mockCurrentSearchResults = makeSearchResults([makeExportedSnapshotReport(), makeExportedSnapshotReport(REPORT_ID_2, POLICY_ID)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
+    it('marks reports the backend flagged with a pending export field without showing the export-again modal', async () => {
+        /**
+         * Given: a selection whose already-exported state is represented by `pendingFields.export` rather than
+         *        `isExportedToIntegration` — the other shape the backend uses.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the reports are still marked straight away with no export-again warning.
+         */
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), isExportedToIntegration: false, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
+        });
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('shows templates when reports are selected through their report groups', async () => {
@@ -1489,6 +1556,88 @@ describe('useSearchBulkActions - export options', () => {
                 expect(mockGetExportTemplates).toHaveBeenCalled();
             });
             expect(getIncludeMultipleTaxExportArgument()).toBe(false);
+        });
+    });
+
+    describe('Reconciliation - All Expenses eligibility', () => {
+        /** The includeReconciliationAllExpenses argument getExportTemplates was last called with */
+        function getIncludeReconciliationAllExpensesArgument() {
+            return mockGetExportTemplates.mock.calls.at(-1)?.at(8);
+        }
+
+        it('offers the template when the user is a workspace admin of the selected workspace and it has company cards enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('offers the template when the user is a card admin of the selected workspace and it has the Expensify Card enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template when the user is a member, not admin, of every workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template when the admin workspaces have no card product enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: false, areExpensifyCardsEnabled: false});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('offers the template when the user is a card-enabled workspace admin of any workspace, even if the selected rows belong to a workspace they are only a member of', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {id: POLICY_ID_2, role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+            mockSelectedTransactions = {
+                tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+            };
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
         });
     });
 });
