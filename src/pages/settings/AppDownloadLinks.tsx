@@ -2,7 +2,6 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import type {MenuItemProps} from '@components/MenuItem';
 import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,26 +13,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {View} from 'react-native';
+import React from 'react';
 
-import React, {useRef} from 'react';
-
-type DownloadMenuItem = MenuItemProps & {
+type DownloadMenuItem = {
     translationKey: TranslationPaths;
     action: () => void;
     link: string;
+    icon: IconAsset;
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple', 'Monitor', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const popoverAnchor = useRef<View>(null);
 
     const menuItems: DownloadMenuItem[] = [
         {
@@ -43,7 +41,6 @@ function AppDownloadLinksPage() {
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
             icon: icons.Android,
-            iconRight: icons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
@@ -52,7 +49,6 @@ function AppDownloadLinksPage() {
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
             icon: icons.Apple,
-            iconRight: icons.NewWindow,
         },
     ];
 
@@ -74,27 +70,23 @@ function AppDownloadLinksPage() {
             />
 
             <ScrollView style={[styles.mt3]}>
-                {menuItems.map((item: DownloadMenuItem) => (
-                    <MenuItem
+                {menuItems.map((item) => (
+                    <MenuItem.Root
                         key={item.translationKey}
-                        onPress={item.action}
-                        onSecondaryInteraction={(e) =>
-                            showContextMenu({
-                                type: CONST.CONTEXT_MENU_TYPES.LINK,
-                                event: e,
-                                selection: item.link,
-                                contextMenuAnchor: popoverAnchor.current,
-                            })
-                        }
-                        ref={popoverAnchor}
-                        title={translate(item.translationKey)}
-                        icon={item.icon}
-                        iconRight={item.iconRight}
-                        shouldBlockSelection
-                        shouldShowContextMenuHint
-                        shouldShowRightIcon
-                        role={CONST.ROLE.LINK}
-                    />
+                        onPress={callFunctionIfActionIsAllowed(item.action)}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={item.icon} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate(item.translationKey)}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.ExternalLink link={item.link} />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 ))}
             </ScrollView>
         </ScreenWrapper>

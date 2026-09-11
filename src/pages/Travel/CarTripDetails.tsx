@@ -1,3 +1,4 @@
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -38,6 +39,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     }
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
+    const confirmationNumber = reservation.confirmations?.at(0)?.value ?? reservation.reservationID;
 
     return (
         <>
@@ -79,13 +81,12 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 />
             )}
             {!!reservation.reservationID && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.confirmation')}
-                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    interactive={false}
-                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
-                    copyable
-                />
+                <MenuItemField
+                    name={translate('travel.carDetails.confirmation')}
+                    value={confirmationNumber}
+                >
+                    {!!confirmationNumber && <MenuItem.Copy value={confirmationNumber} />}
+                </MenuItemField>
             )}
             {!!displayName && (
                 <MenuItemWithTopDescription
