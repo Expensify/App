@@ -2628,15 +2628,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (
-            reportID: string | undefined,
-            reportActionID?: string,
-            referrer?: string,
-            backTo?: string,
-            secureKey?: string,
-            isPendingCreation?: boolean,
-            sourceReportID?: string,
-        ) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
