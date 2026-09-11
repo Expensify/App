@@ -69,6 +69,7 @@ function SearchRouterModal() {
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
             innerContainerStyle={shouldUseNarrowLayout ? undefined : styles.searchRouterPopoverShadow}
+            shouldShowBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer

@@ -48,7 +48,7 @@ const lightTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productLight400,
+    overlay: colors.productLight300,
     inverse: colors.productLight900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     elevatedShadow: '0px 4px 12px 0px rgba(2,18,4,0.06), 0px 0px 1px 0px rgba(2,18,4,0.072), 0px 8px 16px 4px rgba(2,18,4,0.036), 0px 18px 40px 8px rgba(2,18,4,0.027)',

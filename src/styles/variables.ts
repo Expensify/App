@@ -246,7 +246,7 @@ export default {
     searchRouterPopoverWidth: 600,
     searchRouterPopoverMaxHeight: 520,
     searchRouterPopoverMaxHeightRatio: 0.85,
-    searchRouterPopoverTopOffset: 40,
+    searchRouterPopoverTopOffset: 100,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
