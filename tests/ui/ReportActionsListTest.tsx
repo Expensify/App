@@ -20,7 +20,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
-import ReportActionsPaginationLoadingIndicator, {PAGINATION_LOADING_INDICATOR_HEIGHT} from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
+import ReportActionsPaginationLoadingIndicator from '@pages/inbox/report/ReportActionsPaginationLoadingIndicator';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -692,7 +692,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListHeaderComponent)?.props.direction).toBe('older');
             expect(findPaginationLoadingIndicator(getCapturedListProps()?.ListFooterComponent)?.props.direction).toBe('newer');
-            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(PAGINATION_LOADING_INDICATOR_HEIGHT);
+            expect(getCapturedListProps()?.estimatedHeaderSize).toBe(CONST.PAGINATION_LOADING_INDICATOR_HEIGHT);
             expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
 
             mockHasLoadingOlderReportActionsError = true;

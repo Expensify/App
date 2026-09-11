@@ -6996,6 +6996,7 @@ const CONST = {
 
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
+    PAGINATION_LOADING_INDICATOR_HEIGHT: 72,
 
     /** Dimensions for illustration shown in Confirmation Modal */
     CONFIRM_CONTENT_SVG_SIZE: {

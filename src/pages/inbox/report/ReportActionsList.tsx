@@ -72,7 +72,7 @@ import {useReportActionsListActions, useReportActionsListState} from './ReportAc
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ReportActionsListPaddingView from './ReportActionsListPaddingView';
-import ReportActionsPaginationLoadingIndicator, {PAGINATION_LOADING_INDICATOR_HEIGHT} from './ReportActionsPaginationLoadingIndicator';
+import ReportActionsPaginationLoadingIndicator from './ReportActionsPaginationLoadingIndicator';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
@@ -268,8 +268,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const canPaginateNewer = viewportHeight > 0 && !isOffline && !!hasOnceLoadedReportActions && hasNewerActions;
     const shouldShowOlderPaginationLoadingIndicator = canPaginateOlder && !!isLoadingOlderReportActions && !hasLoadingOlderReportActionsError;
     const shouldShowNewerPaginationLoadingIndicator = canPaginateNewer && !!isLoadingNewerReportActions && !hasLoadingNewerReportActionsError;
-    const olderPaginationExtent = shouldShowOlderPaginationLoadingIndicator ? PAGINATION_LOADING_INDICATOR_HEIGHT : 0;
-    const newerPaginationExtent = canPaginateNewer ? newerFooterHeight + (shouldShowNewerPaginationLoadingIndicator ? PAGINATION_LOADING_INDICATOR_HEIGHT : 0) : 0;
+    const olderPaginationExtent = shouldShowOlderPaginationLoadingIndicator ? CONST.PAGINATION_LOADING_INDICATOR_HEIGHT : 0;
+    const newerPaginationExtent = canPaginateNewer ? newerFooterHeight + (shouldShowNewerPaginationLoadingIndicator ? CONST.PAGINATION_LOADING_INDICATOR_HEIGHT : 0) : 0;
 
     const {onScroll: checkPaginationOnScroll, onContentSizeChange: checkPaginationOnContentSizeChange} = useReportActionsPaginationScroll({
         reportID,
@@ -486,6 +486,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const reportActionIndex = renderedVisibleReportActions.length - index - 1;
 
         return (
+            // This context has to be created for each item, therefore it cannot be memoized.
+            // eslint-disable-next-line react/jsx-no-constructed-context-values
             <ReportActionIndexContext.Provider value={{index, isNewest: index === listData.length - 1, isRecycling: true}}>
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
