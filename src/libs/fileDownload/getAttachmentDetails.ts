@@ -8,11 +8,12 @@ import type {GetAttachmentDetails} from './types';
  * An edit re-serializes the anchor without `data-expensify-source`, so the attachment is recognized by its own href
  * instead. The auth token gets appended to whatever is returned, so only Expensify-hosted URLs qualify.
  */
+const ANCHOR_HREF_AND_LABEL_REGEX = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi;
+
 function findAttachmentAnchor(html: string): {href: string; label: string} | undefined {
     const attachmentURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
-    for (const [, attributes, label] of html.matchAll(/<a\s([^>]*)>([^<]*)<\/a>/gi)) {
-        const href = attributes.match(/href="([^"]*)"/i)?.[1];
-        if (href && attachmentURLRegex.test(href)) {
+    for (const [, href, label] of html.matchAll(ANCHOR_HREF_AND_LABEL_REGEX)) {
+        if (attachmentURLRegex.test(href)) {
             return {href, label};
         }
     }
