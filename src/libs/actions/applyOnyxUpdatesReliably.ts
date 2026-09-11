@@ -49,9 +49,7 @@ export default function applyOnyxUpdatesReliably<TKey extends OnyxKey>(
 
     const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
     if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, updateType: updates.type})) {
-        return onyxApply(updates)
-            .catch(() => fetchMissingUpdates())
-            .then(() => {});
+        return onyxApply(updates).then(() => {});
     }
 
     return fetchMissingUpdates();

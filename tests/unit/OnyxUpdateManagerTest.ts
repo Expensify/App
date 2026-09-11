@@ -752,19 +752,25 @@ describe('OnyxUpdateManager', () => {
         });
     });
 
-    it('should fetch the missing updates when an apply fails, even with no visible gap', async () => {
+    it('should fetch a range covering an update whose apply failed once the next update arrives', async () => {
         // Given an update with no gap before it, so nothing would trigger a fetch on its own
-        const update: OnyxUpdatesFromServer<never> = {...OnyxUpdateMockUtils.createUpdate(2), previousUpdateID: 0};
-        App.getMissingOnyxUpdates.mockImplementationOnce(() => Promise.resolve({jsonCode: 200, onyxData: []}));
+        const failing: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(2);
 
-        // And its apply fails
+        // And its apply fails, leaving the watermark behind it
         OnyxUpdates.apply.mockImplementationOnce(() => Promise.reject(new Error('apply failed')));
 
         // When it is applied
-        await applyOnyxUpdatesReliably(update, {shouldRunSync: true});
+        await expect(applyOnyxUpdatesReliably(failing, {shouldRunSync: true})).rejects.toThrow('apply failed');
 
-        // Then the failure itself triggers the fetch, instead of waiting for a later gap check
+        // Then the failure alone asks the server for nothing, because a range ending below it cannot recover it
+        expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+        // When the next update arrives against the held watermark
+        await applyOnyxUpdatesReliably(OnyxUpdateMockUtils.createUpdate(3), {shouldRunSync: true});
+
+        // Then the range fetched covers the update that failed
         expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        expect(App.getMissingOnyxUpdates).toHaveBeenCalledWith(1, 2);
     });
 
     describe('in-flight reconnect coverage', () => {
