@@ -319,13 +319,13 @@ describe('useFormErrorManagement', () => {
         expect(result.current.formError).toBe('');
     });
 
-    it('keeps the required error alive while another receipt of a multi-scan is still half-filled', () => {
-        // Given a confirmation showing a complete receipt while a sibling one is half-filled. Confirming switches to
+    it('keeps the required error alive while another receipt of a multi-scan is still partially filled', () => {
+        // Given a confirmation showing a complete receipt while a sibling one is partially filled. Confirming switches to
         // the sibling, and the error has to survive the render where the complete receipt is still the one on screen.
-        const completeReceiptParams = (halfFilledScanID?: string): Params => ({
+        const completeReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
             ...baseParams,
             canEnterScanFieldsManually: true,
-            halfFilledScanID,
+            partiallyManuallyFilledScanID,
             transaction: createMock<OnyxTypes.Transaction>({
                 transactionID: 'txn1',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -336,8 +336,8 @@ describe('useFormErrorManagement', () => {
             }),
         });
 
-        const halfFilledReceiptParams = (halfFilledScanID?: string): Params => ({
-            ...completeReceiptParams(halfFilledScanID),
+        const partiallyFilledReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
+            ...completeReceiptParams(partiallyManuallyFilledScanID),
             transaction: createMock<OnyxTypes.Transaction>({
                 transactionID: 'txn1',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -350,15 +350,15 @@ describe('useFormErrorManagement', () => {
 
         const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
             wrapper: Wrapper,
-            initialProps: halfFilledReceiptParams('txn1'),
+            initialProps: partiallyFilledReceiptParams('txn1'),
         });
         act(() => result.current.setFormError('common.error.fieldRequired'));
 
-        // Moving to a receipt that has nothing missing would clear the error, but a sibling is still half-filled
+        // Moving to a receipt that has nothing missing would clear the error, but a sibling is still partially filled
         rerender(completeReceiptParams('txn2'));
         expect(result.current.formError).toBe('common.error.fieldRequired');
 
-        // Once no receipt is half-filled any more the error clears, so confirmation is no longer blocked
+        // Once no receipt is partially filled any more the error clears, so confirmation is no longer blocked
         rerender(completeReceiptParams(undefined));
         expect(result.current.formError).toBe('');
     });

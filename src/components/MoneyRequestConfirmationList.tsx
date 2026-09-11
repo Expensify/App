@@ -130,17 +130,11 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
-    /**
-     * Whether the Scan flow lets the user fill in the amount / merchant / date themselves instead of waiting for
-     * SmartScan (new manual expense flow). Filling in any one of them makes all three required.
-     */
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually?: boolean;
 
-    /**
-     * ID of a transaction whose Scan fields are half-filled, when there is one. Multi-scan confirms every receipt at
-     * once, so this can be a receipt other than the one on screen, and confirmation is blocked until it is completed.
-     */
-    halfFilledScanID?: string;
+    /** ID of a partially filled Scan among the transactions being confirmed. Can be a receipt other than the one on screen. */
+    partiallyManuallyFilledScanID?: string;
 
     /** Brings another of the confirmed transactions on screen, so its inline errors are the ones the user sees */
     onSwitchToTransaction?: (transactionID: string) => void;
@@ -192,7 +186,7 @@ function MoneyRequestConfirmationList({
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
     canEnterScanFieldsManually = false,
-    halfFilledScanID,
+    partiallyManuallyFilledScanID,
     onSwitchToTransaction,
     isEditingSplitBill,
     isReceiptEditable,
@@ -366,7 +360,7 @@ function MoneyRequestConfirmationList({
         isPolicyExpenseChat,
         isScanRequest,
         canEnterScanFieldsManually,
-        halfFilledScanID,
+        partiallyManuallyFilledScanID,
         shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,
@@ -492,18 +486,17 @@ function MoneyRequestConfirmationList({
         isTimeRequest,
         routeError,
         canEnterScanFieldsManually,
-        halfFilledScanID,
+        partiallyManuallyFilledScanID,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
     });
 
-    // On a multi-scan the receipt that is half-filled may not be the one on screen, so bring it into view before its
-    // blank fields are asked to raise the error.
+    // The partially filled receipt may not be the one on screen, so bring it into view to show its inline errors.
     const validateAndRevealFields: typeof validate = (paymentType) => {
         const result = validate(paymentType);
-        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && halfFilledScanID && halfFilledScanID !== transactionID) {
-            onSwitchToTransaction?.(halfFilledScanID);
+        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && partiallyManuallyFilledScanID && partiallyManuallyFilledScanID !== transactionID) {
+            onSwitchToTransaction?.(partiallyManuallyFilledScanID);
         }
         return result;
     };
@@ -528,12 +521,8 @@ function MoneyRequestConfirmationList({
         onSendMoney,
     });
 
-    // The amount / merchant / date render these errors inline, and compact mode keeps those fields behind "Show more",
-    // so an outstanding one has to open the section or pressing Create looks like it did nothing. Opening it during
-    // render rather than from the press keeps it open when a multi-scan switches to the half-filled receipt, since
-    // that remounts and resets the flag. Writing the flag itself (rather than reading the error alongside it) keeps
-    // the section open once the user starts filling the fields in and the error clears, and keeps the receipt sizing,
-    // which reads the same flag, from disagreeing with what is on screen.
+    // These errors render inline on fields that compact mode keeps behind "Show more", so open the section or pressing
+    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
     if (INLINE_FIELD_ERROR_KEYS.has(formError) && !showMoreFields) {
         setShowMoreFields(true);
     }

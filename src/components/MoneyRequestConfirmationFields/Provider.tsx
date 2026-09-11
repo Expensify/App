@@ -37,7 +37,7 @@ type ProviderProps = {
     /** Whether we're editing an existing split expense */
     isEditingSplitBill?: boolean;
 
-    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually?: boolean;
 
     /** Whether the surface is in a policy-expense chat */

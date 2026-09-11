@@ -119,10 +119,7 @@ type UseExpenseSubmissionParams = {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
 
-    /**
-     * Whether the Scan confirmation lets the user fill in the amount / merchant / date themselves. When it does, the
-     * receipt state has to be re-derived at submit time, see `getReceiptWithCurrentState`.
-     */
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
     // Report data
@@ -412,12 +409,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     /**
-     * The receipt state sent to the backend decides whether SmartScan reads the receipt, and on a Scan the user filled
-     * in themselves it depends on the amount / merchant / date. `receiptFiles` bakes that state in during an async
-     * file validation pass, so it lags the field the user just typed. Deriving it from the live transaction at submit
-     * time instead keeps a submit that lands mid-validation from scanning over values the user entered, or from
-     * skipping the scan on a field they just cleared. Returning `undefined` leaves the validated receipt's own state
-     * in place, which is what every other flow submits.
+     * `receiptFiles` bakes in the receipt state during an async validation pass, so it lags the field the user just
+     * typed. Deriving it from the live transaction at submit time keeps SmartScan from scanning over entered values.
+     * `undefined` leaves the validated receipt's own state in place, which is what every other flow submits.
      */
     function getCurrentReceiptState(item: Transaction): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
         const receipt = receiptFiles[item.transactionID];

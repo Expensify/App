@@ -508,7 +508,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
         });
 
-        it('stops requiring the blank fields once the half-filled ones are cleared back to an untouched scan', async () => {
+        it('stops requiring the blank fields once the partially filled ones are cleared back to an untouched scan', async () => {
             await renderScanConfirmation();
 
             fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Starbucks');

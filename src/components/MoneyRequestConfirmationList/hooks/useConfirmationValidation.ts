@@ -114,14 +114,11 @@ type UseConfirmationValidationParams = {
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
 
-    /** Whether the Scan flow lets the user fill in the amount / merchant / date instead of waiting for SmartScan */
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
-    /**
-     * ID of a half-filled Scan among the transactions being confirmed, when there is one. Multi-scan confirms every
-     * receipt at once, so this can name a receipt other than the one being validated here.
-     */
-    halfFilledScanID?: string;
+    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
+    partiallyManuallyFilledScanID?: string;
 
     /** Whether the confirmation fields are read-only (date is not inline-editable) */
     isReadOnly: boolean;
@@ -176,7 +173,7 @@ function useConfirmationValidation({
     isTimeRequest,
     routeError,
     canEnterScanFieldsManually,
-    halfFilledScanID,
+    partiallyManuallyFilledScanID,
     isReadOnly,
     shouldShowDate,
     isTaxAmountEmpty,
@@ -208,15 +205,13 @@ function useConfirmationValidation({
         if (isConfirmationAmountMissing(transaction, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
-        // The amount / merchant / date the Scan confirmation reveals are all-or-nothing. Leaving all three blank hands
-        // the expense to SmartScan and filling all three in submits it as a manual expense, but a half-filled set is
-        // neither, so it is blocked here and each blank field raises the same error inline.
+        // The three fields are all-or-nothing, so a partially filled set is blocked and each blank field flags inline.
         if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         // On a multi-scan the same rule has to hold for the receipts that are not on screen, since Create submits
         // all of them at once. The caller brings the offending one into view so its blank fields raise this inline.
-        if (halfFilledScanID) {
+        if (partiallyManuallyFilledScanID) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (

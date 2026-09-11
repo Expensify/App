@@ -5446,12 +5446,12 @@ describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () =>
         ['amount', {isAmountSet: true}],
         ['merchant', {isMerchantSet: true}],
         ['date', {isCreatedSet: true}],
-    ])('treats the expense as half-filled once only the %s is entered', (_field, values) => {
+    ])('treats the expense as partially filled once only the %s is entered', (_field, values) => {
         expect(TransactionUtils.hasAnyManuallyEnteredScanField(generateScanDraft(values))).toBe(true);
         expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft(values), true)).toBe(true);
     });
 
-    it('stops reporting a half-filled expense once all three are entered', () => {
+    it('stops reporting a partially filled expense once all three are entered', () => {
         const complete = generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
         expect(TransactionUtils.hasAnyManuallyEnteredScanField(complete)).toBe(true);
         expect(TransactionUtils.isPartiallyEnteredScanExpense(complete, true)).toBe(false);

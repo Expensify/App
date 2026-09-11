@@ -119,10 +119,7 @@ type TransactionParams = {
     merchant?: string;
     receipt?: OnyxEntry<Receipt>;
 
-    /**
-     * Overrides the state carried on `receipt` when the caller derives it at submit time. The Scan confirmation does,
-     * so the optimistic transaction does not read "Scanning..." for a receipt that is not being scanned.
-     */
+    /** Receipt scan state for the optimistic transaction. Falls back to `receipt.state` when not set. */
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
@@ -293,28 +290,22 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
 type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountSet' | 'isMerchantSet' | 'isCreatedSet'>;
 
 /**
- * The amount / merchant / date fields the Scan confirmation reveals behind "Show more" are all-or-nothing: leaving
- * all three blank hands the expense to SmartScan, and filling all three in submits it as a manual expense whose
- * receipt is never scanned over. Only once all three carry a value of their own is the receipt submitted as `open`.
+ * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
+ * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
  */
 function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
     return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
 }
 
-/**
- * Whether the user filled in at least one of those three fields. Entering any one of them is what turns the expense
- * from a scan into a manual one, so it is the point where the other two stop being SmartScan's to fill in and the
- * "Automatic" label leaves all three.
- */
+/** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
 function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
     return isScanRequest(transaction) && (!!transaction?.isAmountSet || !!transaction?.isMerchantSet || !!transaction?.isCreatedSet);
 }
 
 /**
- * Whether the user started filling the three fields in but stopped short. That is neither a scan nor a complete
- * manual expense, so confirmation is blocked until the remaining fields are entered (or all three are cleared again).
- * `canEnterScanFieldsManually` says whether the surface offers those fields at all: splits, moved tracked expenses
- * and test receipts carry the same flags without ever having shown them, so they must not be held to this rule.
+ * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
+ * expenses and test receipts carry the same flags without ever having shown them.
  */
 function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
     return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);

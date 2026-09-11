@@ -71,17 +71,14 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // picker stays empty until the user picks one, the same way the amount field starts empty.
     const shouldShowEmptyDate = canEnterScanFieldsManually && !dateState?.isCreatedSet;
 
-    // Opening the calendar blurs the input, so the open picker is this field's "the user is on it" signal rather
-    // than focus, and it is what draws the focused border. The hint follows it so it can't sit next to an open
-    // calendar promising to fill in the date the user is picking. Entering any one of the three fields drops the hint
-    // from all of them, since that is the point where the expense stops being scanned.
+    // Opening the calendar blurs the input, so the open picker stands in for focus here. The hint goes once the user
+    // takes the field over, by opening the picker or by entering any of the three fields.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
-    // On a half-filled Scan the date is required even though it is never blank in the draft, so the all-or-nothing
-    // predicate stands in for `createdMissing` there.
+    // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
     const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
     const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
 

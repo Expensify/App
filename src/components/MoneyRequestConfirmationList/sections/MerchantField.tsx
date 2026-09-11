@@ -54,11 +54,8 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
     const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
 
-    // While the Scan confirmation is still waiting on SmartScan for this field, it says so instead of sitting empty.
-    // Focusing the field is the user taking it over, so the hint goes as soon as that happens rather than waiting for
-    // the first keystroke. It would otherwise sit next to the caret promising to fill in what is being typed.
-    // Entering any one of the three fields drops the hint from all of them, since that is the point where the expense
-    // stops being scanned and the other two become the user's to fill in as well.
+    // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
+    // entering any of the three fields.
     const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !hasAnyManuallyEnteredScanField(merchantState);
 
     // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
@@ -87,8 +84,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         }
 
         // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
-        // merchant is the required value that is still missing. On a half-filled Scan it is required even though the
-        // surface does not otherwise demand a merchant, because the three fields are all-or-nothing there.
+        // merchant is the one that is missing.
         if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
             return translate('common.error.fieldRequired');
         }

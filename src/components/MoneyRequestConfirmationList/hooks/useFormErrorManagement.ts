@@ -54,14 +54,11 @@ type UseFormErrorManagementParams = {
     /** Whether the IOU was started from a SmartScan flow */
     isScanRequest: boolean;
 
-    /** Whether the Scan confirmation lets the user fill in the amount / merchant / date themselves */
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
-    /**
-     * ID of a half-filled Scan among the transactions being confirmed, when there is one. On a multi-scan it can name
-     * a receipt other than the one on screen, which is why the required error must not be cleared against this one.
-     */
-    halfFilledScanID?: string;
+    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
+    partiallyManuallyFilledScanID?: string;
 
     /** Whether the merchant field should be visible in the UI */
     shouldShowMerchant: boolean;
@@ -148,7 +145,7 @@ function useFormErrorManagement({
     isPolicyExpenseChat,
     isScanRequest,
     canEnterScanFieldsManually,
-    halfFilledScanID,
+    partiallyManuallyFilledScanID,
     shouldShowMerchant,
     hasSmartScanFailed,
     didConfirmSplit,
@@ -230,14 +227,13 @@ function useFormErrorManagement({
     const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually);
     const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually);
     useEffect(() => {
-        // `halfFilledScanID` keeps the error alive while any other receipt of a multi-scan is still half-filled. The
-        // predicates above only see the transaction on screen, so without it the error would clear the moment a
-        // complete receipt is displayed, including during the render it takes to switch to the incomplete one.
-        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing || !!halfFilledScanID) {
+        // The predicates above only see the transaction on screen, so the ID keeps the error alive while another
+        // receipt of a multi-scan is still partially filled.
+        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing || !!partiallyManuallyFilledScanID) {
             return;
         }
         setFormError('');
-    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, halfFilledScanID, setFormError]);
+    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, partiallyManuallyFilledScanID, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;

@@ -262,10 +262,7 @@ function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanF
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
 }
 
-/**
- * Whether the merchant is still missing on a Scan the user started filling in. Shares the all-or-nothing rule the
- * amount and date use, so the three blank fields of a half-filled scan all raise the same inline error.
- */
+/** Whether the merchant is still missing on a Scan the user started filling in, under the same all-or-nothing rule. */
 function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
     return isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually) && !transaction?.isMerchantSet;
 }

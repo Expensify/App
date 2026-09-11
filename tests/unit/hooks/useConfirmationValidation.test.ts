@@ -973,25 +973,25 @@ describe('useConfirmationValidation', () => {
             expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
         });
 
-        it('blocks confirmation when another receipt in a multi-scan is the half-filled one', () => {
+        it('blocks confirmation when another receipt in a multi-scan is the partially filled one', () => {
             // The transaction on screen is a complete manual scan, but a sibling receipt is not.
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, halfFilledScanID: 'other-txn'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: 'other-txn'},
                     ),
                 ),
             );
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
         });
 
-        it('lets a multi-scan through once no receipt is left half-filled', () => {
+        it('lets a multi-scan through once no receipt is left partially filled', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation(
                     createScanValidationParams(
                         {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
-                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, halfFilledScanID: undefined},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: undefined},
                     ),
                 ),
             );
