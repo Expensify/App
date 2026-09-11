@@ -59,6 +59,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const submit = (submitData: unknown) => {
         const data = submitData as ReimbursementAccountForm;
+        let shouldMarkSubmitting = false;
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             connectBankAccountManually(
                 bankAccountID,
@@ -73,6 +74,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 },
                 policyID,
             );
+            shouldMarkSubmitting = true;
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             const previousPlaidAccountID = reimbursementAccount?.achData?.plaidAccountID;
             const newPlaidAccountID = data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID];
@@ -80,7 +82,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             if (plaidAccountIDChanged) {
                 deletePaymentBankAccount(bankAccountID, undefined);
             }
-            connectBankAccountWithPlaid(
+            shouldMarkSubmitting = connectBankAccountWithPlaid(
                 plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -94,7 +96,9 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 policyID,
             );
         }
-        markSubmitting();
+        if (shouldMarkSubmitting) {
+            markSubmitting();
+        }
     };
 
     const renderBankInfo = () => {

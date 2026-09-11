@@ -73,7 +73,7 @@ describe('actions/BankAccounts', () => {
             } as Partial<ReimbursementAccountForm>);
 
             // When we connect with Plaid for Chase on a new account
-            connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
+            const shouldMarkSubmitting = connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
             await waitForBatchedUpdates();
 
             // Then we should not call the backend, and should move user to manual with cleared account/routing draft fields
@@ -89,6 +89,7 @@ describe('actions/BankAccounts', () => {
             expect(reimbursementAccountDraft?.plaidAccountID).toBe('plaidAccountID123');
             expect(reimbursementAccountDraft?.plaidAccessToken).toBe('plaidAccessToken123');
             expect(reimbursementAccountDraft?.mask).toBe('3333');
+            expect(shouldMarkSubmitting).toBe(false);
         });
 
         test('does not short-circuit Chase flow when bankAccountID is non-zero', () => {
@@ -97,10 +98,11 @@ describe('actions/BankAccounts', () => {
             const selectedPlaidBankAccount = getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]);
 
             // When we connect with Plaid
-            connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
+            const shouldMarkSubmitting = connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
             return waitForBatchedUpdates().then(() => {
                 // Then we should call the existing API command
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
+                expect(shouldMarkSubmitting).toBe(true);
                 const call = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID).at(0);
                 if (!call) {
                     throw new Error('Expected ConnectBankAccountWithPlaid fetch call');
