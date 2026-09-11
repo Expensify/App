@@ -5,7 +5,6 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -20,6 +19,8 @@ import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
 type NavigationTabBarAvatarProps = {
+    isWideLayout: boolean;
+
     isSelected?: boolean;
 
     /** Function to call when the avatar is pressed */
@@ -29,7 +30,7 @@ type NavigationTabBarAvatarProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isWideLayout, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -37,7 +38,6 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
     /**
@@ -80,15 +80,15 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={isWideLayout ? styles.leftNavigationTabBarItem : styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
-            style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
+            style={({hovered}) => [style, isWideLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
+                    {renderAvatar(isSelected || (isWideLayout && hovered), hovered)}
                     <Text
                         numberOfLines={2}
                         style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}

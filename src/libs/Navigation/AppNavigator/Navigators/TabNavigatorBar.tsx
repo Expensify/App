@@ -9,6 +9,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
 
@@ -31,7 +32,9 @@ const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, r
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
 function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const layoutMode = useNavigationLayoutContext()?.mode;
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
@@ -79,6 +82,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
                 <NavigationTabBar
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
+                    layoutMode={layoutMode}
                 />
             </View>
         );
@@ -87,10 +91,13 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            style={[layoutMode ? styles.nativeTabNavigatorBarContainer : styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            <NavigationTabBar
+                selectedTab={selectedTab}
+                layoutMode={layoutMode}
+            />
         </View>
     );
 }

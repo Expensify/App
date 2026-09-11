@@ -724,6 +724,12 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        nativeTabNavigatorBarContainer: {
+            width: variables.navigationTabBarSize,
+            height: '100%',
+            overflow: 'visible',
+        },
+
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -766,6 +772,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         leftNavigationTabBarItem: {
             height: variables.navigationTabBarSize,
+            width: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -6406,6 +6413,12 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.sideBarWidth,
         },
 
+        nativeSplitNavigatorSidebar: {
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            overflow: 'hidden',
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -6904,6 +6917,11 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+
+        navigationTabBarSafeAreaInsets: (paddingTop: number, paddingBottom: number) => ({paddingTop, paddingBottom}) satisfies ViewStyle,
+
+        leftNavigationTabBarFABPosition: (safeAreaPaddingBottom: number) =>
+            ({position: 'absolute', bottom: safeAreaPaddingBottom, left: 0, width: variables.navigationTabBarSize}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 

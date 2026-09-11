@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 
 import variables from '@styles/variables';
 
@@ -42,7 +43,9 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const layoutMode = useNavigationLayoutContext()?.mode;
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();
 

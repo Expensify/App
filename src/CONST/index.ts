@@ -1110,6 +1110,7 @@ const CONST = {
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
+        NATIVE_RESPONSIVE_LAYOUT: 'nativeResponsiveLayout',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

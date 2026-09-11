@@ -20,6 +20,15 @@ import type {PlatformStackNavigationOptions} from './NavigationOptions';
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
 
+type NavigationLayoutMode = 'narrow' | 'wide';
+
+type SplitRenderConfig = {
+    sidebarRouteName: string;
+    sidebarWidth: number;
+    mode: NavigationLayoutMode;
+    persistentRouteNames: string[];
+};
+
 // Common event map merged from both stack and native-stack navigations.
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
 
@@ -30,7 +39,10 @@ type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
 type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOptions;
 
 // Router options used in the PlatformStackNavigation
-type PlatformStackRouterOptions = StackRouterOptions & {parentRoute?: RouteProp<ParamListBase>};
+type PlatformStackRouterOptions = StackRouterOptions & {
+    parentRoute?: RouteProp<ParamListBase>;
+    getShouldUseNarrowLayout?: () => boolean;
+};
 
 // Factory function type for creating a router specific to the PlatformStackNavigation
 type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = RouterFactory<
@@ -78,6 +90,7 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
+        splitRenderConfig?: SplitRenderConfig;
     };
 
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
@@ -93,6 +106,8 @@ export {isRouteBasedScreenOptions};
 
 export type {
     PlatformStackNavigationState,
+    NavigationLayoutMode,
+    SplitRenderConfig,
     PlatformStackNavigationEventMap,
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,

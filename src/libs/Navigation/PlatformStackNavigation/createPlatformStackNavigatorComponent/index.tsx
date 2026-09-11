@@ -1,5 +1,3 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -10,6 +8,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import useNavigationLayoutMode from '@libs/Navigation/PlatformStackNavigation/useNavigationLayoutMode';
 
 import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
@@ -39,6 +38,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     sidebarScreen,
     defaultCentralScreen,
     parentRoute,
+    splitRenderConfig,
     persistentScreens,
     createRouter,
     getCustomState,
@@ -49,7 +49,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, getShouldUseNarrowLayout} = useNavigationLayoutMode(splitRenderConfig?.mode);
     const {
         navigation,
         state: originalState,
@@ -74,6 +74,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             defaultCentralScreen,
             sidebarScreen,
             parentRoute,
+            getShouldUseNarrowLayout,
             persistentScreens,
             screenLayout,
         },
@@ -86,6 +87,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         descriptors,
         displayName,
         parentRoute,
+        shouldUseNarrowLayout,
     };
 
     const state = getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState;

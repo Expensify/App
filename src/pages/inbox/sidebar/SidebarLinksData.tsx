@@ -4,6 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,6 +24,8 @@ type SidebarLinksDataProps = {
 
 function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
+    const layoutMode = useNavigationLayoutContext()?.mode;
+    const isVisible = isFocused || layoutMode === 'wide';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
@@ -32,7 +36,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
 
     return (
         <View
-            accessibilityElementsHidden={!isFocused}
+            accessibilityElementsHidden={!isVisible}
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}

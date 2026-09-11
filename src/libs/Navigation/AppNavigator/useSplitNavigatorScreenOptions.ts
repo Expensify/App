@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {NavigationLayoutMode, PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import variables from '@styles/variables';
 
@@ -33,10 +33,11 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
     },
 };
 
-const useSplitNavigatorScreenOptions = () => {
+const useSplitNavigatorScreenOptions = (layoutMode?: NavigationLayoutMode) => {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     const centralScreenEnter: EnterAnimation = !IS_MOBILE_SAFARI && shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};

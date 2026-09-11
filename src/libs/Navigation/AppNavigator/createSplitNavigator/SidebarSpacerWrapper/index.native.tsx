@@ -1,4 +1,3 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ReactNode} from 'react';
@@ -12,9 +11,8 @@ type SidebarSpacerWrapperProps = {
 
 function SidebarSpacerWrapper({children}: SidebarSpacerWrapperProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>{children}</View>;
+    return <View style={styles.flex1}>{children}</View>;
 }
 
 export default SidebarSpacerWrapper;

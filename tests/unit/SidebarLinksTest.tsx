@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type {NavigationLayoutMode} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import SidebarLinks from '@pages/inbox/sidebar/SidebarLinks';
 
@@ -23,9 +24,13 @@ jest.mock('@components/LHNOptionsList/LHNOptionsList', () => {
 });
 
 let mockShouldUseNarrowLayout = true;
+let mockLayoutMode: NavigationLayoutMode | undefined;
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isInLandscapeMode: false}),
+}));
+jest.mock('@libs/Navigation/AppNavigator/NavigationLayoutContext', () => ({
+    useNavigationLayoutContext: () => (mockLayoutMode ? {mode: mockLayoutMode} : undefined),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
@@ -62,6 +67,7 @@ function renderSidebarLinks() {
 describe('SidebarLinks showReportPage navigation guard', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockLayoutMode = undefined;
         mockNavigation.getTopmostReportActionId.mockReturnValue(undefined);
     });
 
@@ -100,5 +106,17 @@ describe('SidebarLinks showReportPage navigation guard', () => {
         fireEvent.press(screen.getByTestId('lhn-row'));
 
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to another report when the isolated navigation layout is wide', () => {
+        mockShouldUseNarrowLayout = true;
+        mockLayoutMode = 'wide';
+        mockNavigation.getActiveRoute.mockReturnValue('/r/999');
+        mockNavigation.getTopmostReportId.mockReturnValue('999');
+
+        renderSidebarLinks();
+        fireEvent.press(screen.getByTestId('lhn-row'));
+
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID, undefined));
     });
 });

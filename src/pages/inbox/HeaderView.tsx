@@ -34,6 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 import Parser from '@libs/Parser';
 import {getPersonalDetailByEmail, getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName, isTransactionThread} from '@libs/ReportActionsUtils';
@@ -110,7 +111,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout: shouldUseNarrowLayoutFallback, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
+    const layoutMode = useNavigationLayoutContext()?.mode;
+    const shouldUseNarrowLayout = isInNarrowPaneModal || (layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback);
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
