@@ -1019,6 +1019,14 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
         },
 
+        headerBackButtonGlass: {
+            alignItems: 'center',
+            height: variables.componentSizeNormal,
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
         visuallyHidden: {
             ...visibility.hidden,
             overflow: 'hidden',

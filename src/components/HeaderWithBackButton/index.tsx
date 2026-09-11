@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
+import HeaderBackButtonGlass from '@components/HeaderBackButtonGlass';
 import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
 import PinButton from '@components/PinButton';
@@ -215,30 +216,32 @@ function HeaderWithBackButton({
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
-                        <PressableWithoutFeedback
-                            ref={setBackButtonRef}
-                            onPress={() => {
-                                if (Keyboard.isVisible()) {
-                                    Keyboard.dismiss();
-                                }
-                                const topmostReportId = Navigation.getTopmostReportId();
-                                if (shouldNavigateToTopMostReport && topmostReportId) {
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
-                                } else {
-                                    onBackButtonPress();
-                                }
-                            }}
-                            style={[styles.touchableButtonImage]}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.back')}
-                            id={CONST.BACK_BUTTON_NATIVE_ID}
-                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
-                        >
-                            <Icon
-                                src={icons.BackArrow}
-                                fill={iconFill ?? theme.icon}
-                            />
-                        </PressableWithoutFeedback>
+                        <HeaderBackButtonGlass>
+                            <PressableWithoutFeedback
+                                ref={setBackButtonRef}
+                                onPress={() => {
+                                    if (Keyboard.isVisible()) {
+                                        Keyboard.dismiss();
+                                    }
+                                    const topmostReportId = Navigation.getTopmostReportId();
+                                    if (shouldNavigateToTopMostReport && topmostReportId) {
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+                                    } else {
+                                        onBackButtonPress();
+                                    }
+                                }}
+                                style={[styles.touchableButtonImage]}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.back')}
+                                id={CONST.BACK_BUTTON_NATIVE_ID}
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+                            >
+                                <Icon
+                                    src={icons.BackArrow}
+                                    fill={iconFill ?? theme.icon}
+                                />
+                            </PressableWithoutFeedback>
+                        </HeaderBackButtonGlass>
                     </Tooltip>
                 )}
                 {!!icon && (

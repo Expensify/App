@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
+import HeaderBackButtonGlass from '@components/HeaderBackButtonGlass';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -381,12 +382,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                         text={translate('common.back')}
                                         shiftVertical={4}
                                     >
-                                        <View>
+                                        <HeaderBackButtonGlass>
                                             <Icon
                                                 src={icons.BackArrow}
                                                 fill={theme.icon}
                                             />
-                                        </View>
+                                        </HeaderBackButtonGlass>
                                     </Tooltip>
                                 </PressableWithoutFeedback>
                             )}
