@@ -1,3 +1,4 @@
+import type {NumericEditingSelection} from '@components/NumericEditingController/types';
 import {normalizeNumericInput, toCanonicalValueDefault, toDisplayTextDefault} from '@components/NumericEditingController/utils';
 
 import useLocalize from '@hooks/useLocalize';
@@ -24,8 +25,8 @@ type UseNumericEditingControllerParams = {
     /** Maps canonical values to displayed text. Defaults to identity. */
     toDisplayText?: (canonicalValue: string) => string;
 
-    /** Maps validated text to a canonical value. Defaults to identity. */
-    toCanonicalValue?: (displayText: string, previousCanonicalValue: string) => string;
+    /** Maps validated text to a canonical value, given the selection the edit replaced. Defaults to identity. */
+    toCanonicalValue?: (displayText: string, previousCanonicalValue: string, previousSelection: NumericEditingSelection) => string;
 };
 
 /** Runs on mount and whenever `decimals` changes, sanitizing values that exceed the new precision. */
@@ -98,7 +99,8 @@ function useNumericEditingController({
             return;
         }
 
-        const nextValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current);
+        // The change event lands before the native selection event, so this is still the selection the edit replaced.
+        const nextValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current, selection);
         const previousValue = applyValue(nextValue);
 
         syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
@@ -128,7 +130,11 @@ function useNumericEditingController({
             return;
         }
 
-        setNumber(toDisplayText(stripDecimalsFromAmount(currentValue)));
+        // Preserve the canonical sign because text conversion treats a full selection as a replacement.
+        const nextValue = stripDecimalsFromAmount(currentValue);
+        const previousValue = applyValue(nextValue);
+
+        syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
     });
 
     return {
