@@ -386,6 +386,7 @@ describe('top-level Search Router navigation source', () => {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
+                insights: 'Insights',
                 workspaces: 'Workspaces',
                 domains: 'Domains',
                 account: 'Account',
@@ -394,16 +395,61 @@ describe('top-level Search Router navigation source', () => {
                 Home: mockIcon,
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
                 Building: mockIcon,
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
+            isInsightsEnabled: false,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
         expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
         expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
+    });
+
+    it('adds the Insights destination when the beta is enabled', () => {
+        // Given a user with the Insights beta
+        const isInsightsEnabled = true;
+
+        // When the top-level destinations are built
+        const items = buildTopLevelNavigationItems({
+            labels: {
+                home: 'Home',
+                inbox: 'Inbox',
+                spend: 'Spend',
+                insights: 'Insights',
+                workspaces: 'Workspaces',
+                domains: 'Domains',
+                account: 'Account',
+            },
+            icons: {
+                Home: mockIcon,
+                Inbox: mockIcon,
+                ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
+                Building: mockIcon,
+                Globe: mockIcon,
+                Gear: mockIcon,
+            },
+            isInsightsEnabled,
+            getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
+            getDestinationText: (destination) => `Go to ${destination}`,
+        });
+
+        // Then the Insights row follows Spend and navigates to the Spend dashboard
+        expect(items.map((item) => item.keyForList)).toEqual([
+            'topLevelHome',
+            'topLevelInbox',
+            'topLevelSpend',
+            'topLevelInsights',
+            'topLevelWorkspaces',
+            'topLevelDomains',
+            'topLevelAccount',
+        ]);
+        items.at(3)?.action?.();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
     });
 
     it('navigates each top-level row to its intended route', () => {
@@ -414,6 +460,7 @@ describe('top-level Search Router navigation source', () => {
                 home: 'Home',
                 inbox: 'Inbox',
                 spend: 'Spend',
+                insights: 'Insights',
                 workspaces: 'Workspaces',
                 domains: 'Domains',
                 account: 'Account',
@@ -422,10 +469,12 @@ describe('top-level Search Router navigation source', () => {
                 Home: mockIcon,
                 Inbox: mockIcon,
                 ReceiptMultiple: mockIcon,
+                PieChart: mockIcon,
                 Building: mockIcon,
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
+            isInsightsEnabled: false,
             getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -733,7 +782,7 @@ describe('Workspace Search Router navigation source', () => {
             return [undefined];
         });
         mockUseNetwork.mockReturnValue({isOffline: true});
-        mockIsBetaEnabled.mockReturnValue(true);
+        mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.INSIGHTS_PAGE);
         mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
             ...spendIcons,
             ...workspaceIcons,
