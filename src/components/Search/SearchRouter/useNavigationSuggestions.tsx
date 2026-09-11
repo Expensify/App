@@ -106,7 +106,7 @@ type BuildTopLevelNavigationItemsParams = {
         account: string;
     };
     icons: TopLevelNavigationIcons;
-    isInsightsEnabled: boolean;
+    isInsightsPageBetaEnabled: boolean;
     getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
@@ -203,7 +203,7 @@ type BuildAccountNavigationItemsParams = {
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
-function buildTopLevelNavigationItems({labels, icons, isInsightsEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -226,7 +226,7 @@ function buildTopLevelNavigationItems({labels, icons, isInsightsEnabled, getSpen
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
-        ...(isInsightsEnabled
+        ...(isInsightsPageBetaEnabled
             ? [
                   {
                       text: getDestinationText(labels.insights),
@@ -408,7 +408,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        isInsightsEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
+        isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
         getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });

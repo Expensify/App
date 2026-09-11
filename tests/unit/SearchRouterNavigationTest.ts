@@ -93,6 +93,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['common.home', 'Home'],
                 ['common.inbox', 'Inbox'],
                 ['common.spend', 'Spend'],
+                ['common.insights', 'Insights'],
                 ['common.workspacesTabTitle', 'Workspaces'],
                 ['common.domains', 'Domains'],
                 ['initialSettingsPage.account', 'Account'],
@@ -400,7 +401,7 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsEnabled: false,
+            isInsightsPageBetaEnabled: false,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -411,7 +412,7 @@ describe('top-level Search Router navigation source', () => {
 
     it('adds the Insights destination when the beta is enabled', () => {
         // Given a user with the Insights beta
-        const isInsightsEnabled = true;
+        const isInsightsPageBetaEnabled = true;
 
         // When the top-level destinations are built
         const items = buildTopLevelNavigationItems({
@@ -433,7 +434,7 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsEnabled,
+            isInsightsPageBetaEnabled,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -474,7 +475,7 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsEnabled: false,
+            isInsightsPageBetaEnabled: false,
             getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -765,7 +766,7 @@ describe('Workspace Search Router navigation source', () => {
         expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
     });
 
-    it('composes localized Workspace suggestions after Spend with hook-level filtering and beta flags', () => {
+    it('composes localized Workspace suggestions after top-level rows with hook-level filtering and beta flags', () => {
         const activePolicy = createWorkspacePolicy('1', 'Active Workspace');
         const deletedPolicy = createWorkspacePolicy('2', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
         const policies = {
@@ -782,19 +783,23 @@ describe('Workspace Search Router navigation source', () => {
             return [undefined];
         });
         mockUseNetwork.mockReturnValue({isOffline: true});
-        mockIsBetaEnabled.mockImplementation((beta) => beta !== CONST.BETAS.INSIGHTS_PAGE);
+        mockIsBetaEnabled.mockReturnValue(true);
         mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
             ...spendIcons,
             ...workspaceIcons,
             Home: mockIcon,
             Inbox: mockIcon,
             ReceiptMultiple: mockIcon,
+            PieChart: mockIcon,
             Gear: mockIcon,
         });
         mockUseSearchTypeMenuSections.mockReturnValue([
             {
                 translationPath: 'search.tabs.expenseReports',
-                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                menuItems: [
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.EXPENSES, 'search.tabs.expenses', 'Receipt', 'type:expense'),
+                    createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report'),
+                ],
             },
         ]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
@@ -807,19 +812,10 @@ describe('Workspace Search Router navigation source', () => {
         const actualGetWorkspaceMenuItems = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems').default;
         jest.mocked(getWorkspaceMenuItems).mockImplementationOnce((params) => actualGetWorkspaceMenuItems(params).filter((item) => item.screenName === SCREENS.WORKSPACE.PROFILE));
 
-        const {result} = renderHook(() => useNavigationSuggestions('go'));
+        const {result} = renderHook(() => useNavigationSuggestions('go to workspace'));
 
-        expect(result.current.map((item) => item.keyForList)).toEqual([
-            'topLevelAccount',
-            'topLevelDomains',
-            'topLevelHome',
-            'topLevelInbox',
-            'topLevelSpend',
-            'topLevelWorkspaces',
-            'spend_reports',
-            `workspace_1_${SCREENS.WORKSPACE.PROFILE}`,
-        ]);
-        expect(result.current.at(7)).toMatchObject({text: 'Go to Overview'});
+        expect(result.current.map((item) => item.keyForList)).toEqual(['topLevelWorkspaces', `workspace_1_${SCREENS.WORKSPACE.PROFILE}`]);
+        expect(result.current.at(1)).toMatchObject({text: 'Go to Overview'});
         expect(result.current.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
         expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
         expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
