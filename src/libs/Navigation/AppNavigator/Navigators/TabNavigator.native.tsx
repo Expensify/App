@@ -1,7 +1,8 @@
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
@@ -13,18 +14,22 @@ import SCREENS from '@src/SCREENS';
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
  */
+import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
 
-import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
+import TabNavigatorBar from './TabNavigatorBar';
 import WorkspaceNavigator from './WorkspaceNavigator';
 
-const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
+const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
+
+const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -36,13 +41,14 @@ const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
     lazy: true,
-    tabBarControllerMode: 'tabBar' as const,
-    tabBarMinimizeBehavior: 'onScrollDown' as const,
+    animation: 'none' as const,
+    freezeOnBlur: true,
+    tabBarPosition: 'bottom' as const,
 } as const;
 
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const theme = useTheme();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -81,35 +87,30 @@ function TabNavigator() {
         },
     });
 
+    const screenOptions = {
+        ...TAB_SCREEN_OPTIONS_BASE,
+        sceneStyle: {flex: 1, backgroundColor: theme.appBG},
+    };
+
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
-            screenOptions={TAB_SCREEN_OPTIONS_BASE}
+            tabBar={renderTabBar}
+            screenOptions={screenOptions}
+            screenLayout={bottomTabScreenLayoutWrapper}
             UNSTABLE_router={tabRouterOverride}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={{
-                    tabBarLabel: translate('common.home'),
-                    tabBarIcon: {type: 'sfSymbol', name: 'house'},
-                }}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
-                options={{
-                    tabBarLabel: translate('common.inbox'),
-                    tabBarIcon: {type: 'sfSymbol', name: 'tray'},
-                }}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
-                options={{
-                    tabBarLabel: translate('common.spend'),
-                    tabBarSystemItem: 'search',
-                }}
             />
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
@@ -118,18 +119,10 @@ function TabNavigator() {
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={SettingsSplitNavigator}
-                options={{
-                    tabBarLabel: translate('common.settings'),
-                    tabBarIcon: {type: 'sfSymbol', name: 'gear'},
-                }}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
-                options={{
-                    tabBarLabel: translate('common.workspacesTabTitle'),
-                    tabBarIcon: {type: 'sfSymbol', name: 'building.2'},
-                }}
             />
         </Tab.Navigator>
     );

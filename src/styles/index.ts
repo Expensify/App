@@ -1981,6 +1981,15 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        nativeTabBarFloatingButtons: {
+            position: 'absolute',
+            right: 0,
+            bottom: variables.bottomTabHeight,
+            left: 0,
+            height: 0,
+            zIndex: 10,
+        },
+
         topBarLabel: {
             color: theme.text,
             fontSize: fontScale.h2,
