@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
@@ -50,13 +50,8 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
-    /** Label type */
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
-
-    /** Label value */
     value: number;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 

@@ -12,7 +12,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -24,7 +24,6 @@ type BigNumberPadProps = {
     /** Used to locate this view from native classes. */
     id?: string;
 
-    /** Whether long press is disabled */
     isLongPressDisabled?: boolean;
 };
 

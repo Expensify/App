@@ -57,9 +57,7 @@ type ReportScreenProps = ReportScreenNavigationProps & {
 };
 
 type ReportScreenEditMessageProviderProps = {
-    /** The report ID */
     reportID: string | undefined;
-    /** The children */
     children: React.ReactNode;
 };
 
