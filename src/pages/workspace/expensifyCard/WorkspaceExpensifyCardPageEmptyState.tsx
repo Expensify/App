@@ -134,7 +134,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
         const result = await showConfirmModal({
             title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
-            prompt: translate('workspace.bankAccount.updateCurrencyForExpensifyCard'),
+            prompt: translate('workspace.bankAccount.euUkUpdateCurrencyForExpensifyCard'),
             confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
             cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
             shouldShowCancelButton: !shouldBlockCurrencyChange,
