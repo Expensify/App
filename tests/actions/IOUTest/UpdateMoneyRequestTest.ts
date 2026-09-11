@@ -31,6 +31,7 @@ import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
@@ -707,7 +708,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const optimisticSnapshot = onyxData.optimisticData?.find(
                 (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
             );
-            const optimisticSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = optimisticSnapshot?.value?.data;
+            const optimisticSnapshotData: ReadonlyDeep<NullishDeep<SearchResults['data']>> | null | undefined = optimisticSnapshot?.value?.data;
             const optimisticTransaction = optimisticSnapshotData?.[transactionKey];
             expect(optimisticTransaction).toMatchObject({
                 modifiedAmount: -20000,
@@ -717,14 +718,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const successSnapshot = onyxData.successData?.find(
                 (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
             );
-            const successSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = successSnapshot?.value?.data;
+            const successSnapshotData: ReadonlyDeep<NullishDeep<SearchResults['data']>> | null | undefined = successSnapshot?.value?.data;
             const successTransaction = successSnapshotData?.[transactionKey];
             expect(successTransaction).toEqual({pendingFields: {amount: null}});
 
             const failureSnapshot = onyxData.failureData?.find(
                 (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
             );
-            const failureSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = failureSnapshot?.value?.data;
+            const failureSnapshotData: ReadonlyDeep<NullishDeep<SearchResults['data']>> | null | undefined = failureSnapshot?.value?.data;
             const failureTransaction = failureSnapshotData?.[transactionKey];
             expect(failureTransaction).toMatchObject({
                 transactionID,

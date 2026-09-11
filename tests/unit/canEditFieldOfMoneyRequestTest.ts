@@ -5,6 +5,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx/DerivedValues';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import Onyx from 'react-native-onyx';
@@ -14,6 +15,13 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createInvoiceReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+// Onyx.get returns deeply read-only data. canEditFieldOfMoneyRequest only reads this derived value,
+// so the assertions below can treat it as the mutable derived type.
+async function getOutstandingReportsByPolicyID(): Promise<OutstandingReportsByPolicyIDDerivedValue | undefined> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- canEditFieldOfMoneyRequest only reads this derived value, so unwrapping the deep readonly here avoids widening its signature
+    return (await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID)) as OutstandingReportsByPolicyIDDerivedValue | undefined;
+}
 
 const currentUserAccountID = 5;
 const currentUserEmail = 'bjorn@vikings.net';
@@ -106,7 +114,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it('should return false for invoice report action if it is not outstanding report', async () => {
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -121,7 +129,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             it('should return true for invoice report action when there are outstanding reports', async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, outstandingExpenseReport);
                 await waitForBatchedUpdates();
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -271,7 +279,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                     },
                 });
                 await waitForBatchedUpdates();
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 // When the submitter tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
@@ -299,7 +307,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
                 await waitForBatchedUpdates();
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 // When a user tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
@@ -333,7 +341,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, approvedReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, reimbursedReport2);
                 await waitForBatchedUpdates();
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 // When trying to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
@@ -354,7 +362,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
                 await waitForBatchedUpdates();
-                const outstandingReportsByPolicyID = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+                const outstandingReportsByPolicyID = await getOutstandingReportsByPolicyID();
 
                 // When the submitter tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({

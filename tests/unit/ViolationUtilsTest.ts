@@ -132,7 +132,7 @@ const duplicatedTransactionViolation = {
     type: CONST.VIOLATION_TYPES.WARNING,
 };
 
-function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>) {
+function getTransactionViolationsFromResult(result: ReturnType<typeof ViolationsUtils.getViolationsOnyxData>): TransactionViolation[] {
     if (result.onyxMethod !== Onyx.METHOD.SET) {
         throw new Error('Expected a SET transaction violation update with a value');
     }

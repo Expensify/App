@@ -453,6 +453,15 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
     );
 }
 
+/**
+ * `getViolationsOnyxData` always returns a SET update holding a freshly built violations array. Onyx input values are
+ * deeply read-only so that data read back with `Onyx.get` can be written straight back in, so the array is spelled out
+ * here to keep it mutable for callers that copy it into their own optimistic data.
+ */
+type TransactionViolationsOnyxData = Omit<Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>, {onyxMethod: typeof Onyx.METHOD.SET}>, 'value'> & {
+    value: TransactionViolation[];
+};
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -486,7 +495,7 @@ const ViolationsUtils = {
         shouldRemoveRejectedExpenseViolation?: boolean;
         distanceOriginalPolicy?: OnyxEntry<Policy>;
         ownerLogin: string | undefined;
-    }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
+    }): TransactionViolationsOnyxData {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
         const isPartialTransaction = TransactionUtils.isPartialTransaction(updatedTransaction);

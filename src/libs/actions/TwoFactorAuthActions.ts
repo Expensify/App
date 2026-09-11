@@ -11,11 +11,12 @@ import Onyx from 'react-native-onyx';
  * Clear 2FA data if the flow is interrupted without finishing
  */
 function clearTwoFactorAuthData(clearProgress = false) {
-    const data: OnyxMergeInput<typeof ONYXKEYS.ACCOUNT> = {recoveryCodes: null, twoFactorAuthSecretKey: null, codesAreCopied: false};
-
-    if (clearProgress) {
-        data.twoFactorAuthSetupInProgress = null;
-    }
+    const data: OnyxMergeInput<typeof ONYXKEYS.ACCOUNT> = {
+        recoveryCodes: null,
+        twoFactorAuthSecretKey: null,
+        codesAreCopied: false,
+        ...(clearProgress ? {twoFactorAuthSetupInProgress: null} : {}),
+    };
 
     Onyx.merge(ONYXKEYS.ACCOUNT, data);
 }
