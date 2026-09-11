@@ -5,6 +5,7 @@ import type * as LegendListModule from '@legendapp/list/react-native';
 import type * as FlashListModule from '@shopify/flash-list';
 import type React from 'react';
 import type {ReactNode} from 'react';
+import type React from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
 
@@ -22,6 +23,7 @@ import {TextDecoder, TextEncoder} from 'util';
 
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockLegendList from './setupMockLegendList';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -31,6 +33,7 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+setupMockLegendList();
 
 // LegendList relies on native layout measurements that Jest does not produce. FlashList's Jest setup supplies
 // deterministic layouts while keeping performance tests virtualized in the same way as the previous list.

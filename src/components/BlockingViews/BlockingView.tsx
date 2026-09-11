@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';

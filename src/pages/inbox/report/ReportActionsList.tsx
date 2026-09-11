@@ -1,7 +1,9 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import type {ActionListRef} from '@components/FlashList/types';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
@@ -12,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportActionsPaginationScroll from '@hooks/useReportActionsPaginationScroll';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -46,7 +49,6 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -184,7 +186,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const {sessionStartTime} = useConciergeSessionState();
+    const sessionStartTime = useConciergeSessionStartTime();
 
     const didLayout = useRef(false);
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
@@ -194,6 +196,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     }, [reportID]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
+
+    // Owned here rather than by the callout, which unmounts as the layout and composer change size.
+    useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     // OpenReport can first provide a tiny cached page and then replace it with the hydrated page. Remounting
     // gives the complete dataset a fresh initial layout so initialScrollAtEnd targets its actual end.
@@ -208,6 +213,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -296,6 +302,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
+        newMessageBoundaryTime: isConciergeHiddenHistory ? sessionStartTime : undefined,
     });
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
@@ -556,6 +563,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
 
     /**
@@ -581,6 +589,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     return (
         <>
+            {/* Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
+                does not carry it out of sight. Renders nothing on the layouts the composer mount serves. */}
+            <MerchantRuleSuggestionBanner
+                reportID={reportID}
+                policyID={report?.policyID}
+                containerStyles={[styles.mh4, styles.mt2]}
+                overlayStyles={styles.merchantRuleCalloutOverlay}
+            />
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
