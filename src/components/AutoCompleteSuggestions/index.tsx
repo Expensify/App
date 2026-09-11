@@ -13,6 +13,7 @@ import React, {useEffect} from 'react';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
 
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+import getBottomSuggestionPadding from './AutoCompleteSuggestionsPortal/getBottomSuggestionPadding';
 import getLeftOffset from './getSuggestionsLeftOffset';
 import getSuggestionsViewportBottom from './getSuggestionsViewportBottom';
 
@@ -43,11 +44,13 @@ function isSuggestionMenuRenderedAbove(isEnoughSpaceAboveForBigMenu: boolean, is
 }
 
 type IsEnoughSpaceToRenderMenuAboveCursor = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
-    contentHeight: number;
+    menuHeight: number;
     topInset: number;
 };
-function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
-    return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, menuHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
+    const gapAboveCursor = Math.max(CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE, getBottomSuggestionPadding(true));
+
+    return y + (cursorCoordinates.y - scrollValue) > menuHeight + gapAboveCursor + topInset;
 }
 
 const initialContainerState = {
@@ -123,7 +126,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 y,
                 cursorCoordinates,
                 scrollValue,
-                contentHeight: contentMaxHeight,
+                menuHeight: StyleUtils.getAutoCompleteSuggestionContainerHeight(contentMaxHeight),
                 topInset,
             });
 
@@ -134,7 +137,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     y,
                     cursorCoordinates,
                     scrollValue,
-                    contentHeight: contentMinHeight,
+                    menuHeight: StyleUtils.getAutoCompleteSuggestionContainerHeight(contentMinHeight),
                     topInset,
                 });
 
@@ -186,6 +189,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         isKeyboardAnimatingRef,
         isInLandscapeMode,
         insets,
+        StyleUtils,
     ]);
 
     // Prevent rendering if container dimensions are not set or if we have no suggestions

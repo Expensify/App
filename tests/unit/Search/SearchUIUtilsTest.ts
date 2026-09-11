@@ -53,6 +53,11 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+declare global {
+    var createTransactionThreadReportMock: jest.Mock;
+    var setOptimisticDataForTransactionThreadPreviewMock: jest.Mock;
+}
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -60,11 +65,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
-    createTransactionThreadReport: jest.fn(),
+    createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+    setOptimisticDataForTransactionThreadPreview: globalThis.setOptimisticDataForTransactionThreadPreviewMock ?? (globalThis.setOptimisticDataForTransactionThreadPreviewMock = jest.fn()),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
@@ -12480,6 +12485,7 @@ describe('SearchUIUtils', () => {
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
             expect(createTransactionThreadReport).toHaveBeenCalledWith({
                 introSelected: introSelectedData,
+                conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
                 betas: undefined,

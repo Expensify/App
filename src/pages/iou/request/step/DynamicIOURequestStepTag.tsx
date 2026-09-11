@@ -172,6 +172,7 @@ function DynamicIOURequestStepTag({
         if (isEditing) {
             updateMoneyRequestTag({
                 transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
