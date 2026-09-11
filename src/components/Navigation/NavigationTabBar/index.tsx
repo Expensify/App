@@ -48,8 +48,6 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {isBetaEnabled} = usePermissions();
     const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
-    const {isBetaEnabled} = usePermissions();
-    const shouldShowAccountTab = !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -135,7 +133,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
-                                {shouldShowAccountTab && (
+                                {!isInsightsTabVisible && (
                                     <NavigationTabBarAvatar
                                         style={styles.leftNavigationTabBarItem}
                                         isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
