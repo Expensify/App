@@ -2752,6 +2752,7 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[], inclu
 }
 
 function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[], includeLogin = true): boolean {
+    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term).toLocaleLowerCase());
     let searchText = report.text ?? '';
     if (includeLogin) {
         searchText += report.login ?? '';
@@ -2769,7 +2770,7 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
     }
     searchText = deburr(searchText.toLocaleLowerCase());
 
-    return searchTerms.every((term) => searchText.includes(term)) || filterReports([report], searchTerms, includeLogin).length > 0;
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms, includeLogin).length > 0;
 }
 
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {

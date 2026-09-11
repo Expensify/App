@@ -5579,6 +5579,16 @@ describe('OptionsListUtils', () => {
             // Then the report matches
             expect(doesMatch).toBe(true);
         });
+
+        it('matches an uppercase accented query against a group participant', () => {
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{displayName: 'José', login: 'jose@example.com'}],
+            };
+
+            expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'], true)).toBe(true);
+        });
     });
 
     describe('getMostRecentOptions()', () => {

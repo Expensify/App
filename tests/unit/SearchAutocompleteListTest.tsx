@@ -814,8 +814,9 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
-            // Then the local result candidate pool still uses the suggestion limit
-            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
+            // Then the local result candidate pool remains capped; the server-only validation pass only receives its one ID.
+            expect(getSearchOptionsSpy).toHaveBeenCalledWith(expect.objectContaining({maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS}));
+            expect(getSearchOptionsSpy).toHaveBeenLastCalledWith(expect.objectContaining({maxResults: 1}));
         });
 
         // Regression test for https://github.com/Expensify/App/issues/93009: after the two-section switcher was

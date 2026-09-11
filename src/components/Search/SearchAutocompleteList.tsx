@@ -24,12 +24,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, createOptionFromReport, doesReportMatchSearchTerms, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport, isOneOnOneChat} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -301,6 +301,64 @@ function SearchAutocompleteList({
         convertToDisplayString,
     ]);
 
+    const serverReportsOptions = useMemo(() => {
+        if (!hasActiveSearchResults || listOptions === null || !searchResultReportIDs?.length) {
+            return CONST.EMPTY_ARRAY;
+        }
+
+        const orderedReportIDs = [...new Set(searchResultReportIDs)].slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        const reportIDs = new Set(orderedReportIDs);
+        const options = getSearchOptions({
+            dateFnsLocale,
+            convertToDisplayString,
+            options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: true,
+            includeReadOnly: true,
+            searchQuery: autocompleteQueryValue,
+            maxResults: orderedReportIDs.length,
+            includeUserToInvite: false,
+            includeRecentReports: true,
+            includeCurrentUser: false,
+            countryCode,
+            shouldShowGBR: false,
+            shouldUnreadBeBold: true,
+            loginList,
+            visibleReportActionsData,
+            currentUserAccountID,
+            currentUserEmail,
+            policyCollection: policies,
+            personalDetails,
+            sortedActions,
+            conciergeReportID,
+            isTrackIntentUser,
+            translate,
+        }).options;
+        const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
+        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option);
+    }, [
+        hasActiveSearchResults,
+        listOptions,
+        searchResultReportIDs,
+        dateFnsLocale,
+        convertToDisplayString,
+        draftComments,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+        sortedActions,
+        conciergeReportID,
+        isTrackIntentUser,
+        translate,
+    ]);
+
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
@@ -432,36 +490,8 @@ function SearchAutocompleteList({
         }
 
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
-            const searchTerms = autocompleteQueryValue.split(' ').filter(Boolean).map(StringUtils.normalizeForMatch);
-            const shouldMatchLogin = searchTerms.some((term) => term.includes('@'));
             const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
-            for (const reportID of searchResultReportIDs) {
-                if (matchedReportIDs.has(reportID)) {
-                    continue;
-                }
-                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                if (!report || report.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS]) {
-                    continue;
-                }
-                const reportOption = createOptionFromReport({
-                    dateFnsLocale,
-                    convertToDisplayString,
-                    report,
-                    personalDetails,
-                    privateIsArchived: undefined,
-                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
-                    sortedActions,
-                    conciergeReportID,
-                    config: {showPersonalDetails: isOneOnOneChat(report)},
-                    visibleReportActionsData,
-                    isTrackIntentUser,
-                });
-                if (!doesReportMatchSearchTerms(reportOption, searchTerms, shouldMatchLogin)) {
-                    continue;
-                }
-                reportOptions.push(reportOption);
-                matchedReportIDs.add(reportID);
-            }
+            reportOptions.push(...serverReportsOptions.filter((option) => !matchedReportIDs.has(option.reportID)));
 
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
@@ -474,21 +504,7 @@ function SearchAutocompleteList({
         }
 
         return searchResultReportIDs && searchResultReportIDs.length > 0 && hasActiveSearchResults ? reportOptions : reportOptions.slice(0, 20);
-    }, [
-        autocompleteQueryValue,
-        hasActiveSearchResults,
-        searchOptions,
-        searchResultReportIDs,
-        reports,
-        dateFnsLocale,
-        personalDetails,
-        policies,
-        sortedActions,
-        conciergeReportID,
-        visibleReportActionsData,
-        isTrackIntentUser,
-        convertToDisplayString,
-    ]);
+    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs, serverReportsOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
