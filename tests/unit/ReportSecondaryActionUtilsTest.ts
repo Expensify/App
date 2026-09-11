@@ -2584,6 +2584,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2635,6 +2636,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2687,6 +2689,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2739,6 +2742,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2789,6 +2793,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2833,6 +2838,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2877,6 +2883,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2923,6 +2930,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
