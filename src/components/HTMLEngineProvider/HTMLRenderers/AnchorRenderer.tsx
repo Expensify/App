@@ -28,7 +28,6 @@ import TableLinkColumnContext from './TableLinkColumnContext';
 import {getTextContent, isLinkColumnAnchor} from './TableRowLink';
 
 type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
-    /** Key of the element */
     key?: string;
 };
 

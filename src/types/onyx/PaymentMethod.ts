@@ -22,7 +22,6 @@ type PaymentMethod = (BankAccount | Fund) & {
     /** Width of the menu item icon */
     iconWidth?: number;
 
-    /** Icon wrapper styles */
     iconStyles?: StyleProp<ViewStyle>;
 
     /** The fill color to pass into the icon. */
