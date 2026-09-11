@@ -53,6 +53,11 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+declare global {
+    var createTransactionThreadReportMock: jest.Mock;
+    var setOptimisticDataForTransactionThreadPreviewMock: jest.Mock;
+}
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -60,23 +65,12 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
-    createTransactionThreadReport: jest.fn(),
+    createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-// `SearchUIUtils` and `@userActions/Search` import each other, so Jest builds this mocked module twice and runs the
-// factory once per copy. Each copy would otherwise get its own `jest.fn()`, and the tests below would assert against a
-// different mock than the one the code under test calls. Caching the mock on `globalThis` gives both copies the same
-// one. The cache has to live inside the factory because `jest.mock` calls are hoisted above the module body.
-declare global {
-    var setOptimisticDataForTransactionThreadPreviewMock: jest.Mock | undefined;
-}
-jest.mock('@userActions/Search', () => {
-    globalThis.setOptimisticDataForTransactionThreadPreviewMock ??= jest.fn();
-
-    return {
-        ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-        setOptimisticDataForTransactionThreadPreview: globalThis.setOptimisticDataForTransactionThreadPreviewMock,
-    };
-});
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    setOptimisticDataForTransactionThreadPreview: globalThis.setOptimisticDataForTransactionThreadPreviewMock ?? (globalThis.setOptimisticDataForTransactionThreadPreviewMock = jest.fn()),
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -12491,6 +12485,7 @@ describe('SearchUIUtils', () => {
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
             expect(createTransactionThreadReport).toHaveBeenCalledWith({
                 introSelected: introSelectedData,
+                conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
                 betas: undefined,
