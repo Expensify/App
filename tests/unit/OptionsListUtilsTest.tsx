@@ -6399,7 +6399,7 @@ describe('OptionsListUtils', () => {
             const groupReport: SearchOption<Report> = {
                 ...report,
                 item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
-                participantsList: [{displayName: 'José', login: 'jose@example.com'}],
+                participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
             };
 
             expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'], true)).toBe(true);
