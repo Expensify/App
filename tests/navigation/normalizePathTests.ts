@@ -37,10 +37,10 @@ describe('normalizePath', () => {
 
     // Redaction relies on the `/v/:accountID/:validateCode` shape, which repeated slashes break, so the
     // collapsed path is what gets logged.
-    it.each(['//v/123/validatecode', '/v//123/validatecode', '/v/123//validatecode', '//u/456/validatecode'])('redacts the validate code in %s', (input) => {
+    it.each(['//v/123/CODE123', '/v//123/CODE123', '/v/123//CODE123', '//u/456/CODE123'])('redacts the validate code in %s', (input) => {
         normalizePath(input);
 
-        expect(JSON.stringify(mockLogAlert.mock.calls)).not.toContain('validatecode');
+        expect(JSON.stringify(mockLogAlert.mock.calls)).not.toContain('CODE123');
         expect(JSON.stringify(mockLogAlert.mock.calls)).toContain('redacted');
     });
 
