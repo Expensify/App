@@ -1,5 +1,4 @@
 import type {ChartDataPoint} from '@components/Charts';
-import {getSliceColorsByDataIndex} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
@@ -29,6 +28,27 @@ type BuildChartSeriesParams = {
 };
 
 /**
+ * Palette color of every data point, keyed by its position in `data`.
+ *
+ * Colors follow slice ranking rather than array order: the largest absolute value takes the first
+ * palette color, the second largest the next one, and so on. The donut canvas ranks its slices the
+ * same way, so a legend or an inline table can look a group's color up here and match what is
+ * drawn. Kept on this side rather than in the chart's own utils so nothing about how the canvas
+ * paints itself has to change to serve the table.
+ */
+function getSliceColorsByDataIndex(data: ChartDataPoint[]): string[] {
+    const colors: string[] = Array.from({length: data.length});
+
+    const ranked = data.map((point, index) => ({absTotal: Math.abs(point.total), index})).sort((a, b) => b.absTotal - a.absTotal);
+
+    for (const [rank, entry] of ranked.entries()) {
+        colors[entry.index] = VictoryTheme.colors.getColor(rank);
+    }
+
+    return colors;
+}
+
+/**
  * Builds the series a chart plots: one row per group, each pairing the plotted point with the
  * grouped search result it came from.
  *
@@ -47,8 +67,8 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
         return {point, item};
     });
 
-    // Pie colors follow the slice ranking rather than the array order, so they come from the same
-    // helper the canvas draws from. Bars are colored by position, and a line is single-colored.
+    // Pie colors follow the slice ranking rather than the array order, so they are ranked the same
+    // way the canvas ranks its slices. Bars are colored by position, and a line is single-colored.
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 
     return rows.map((row, index) => {
@@ -99,4 +119,4 @@ function formatPercentOfTotal(percent: number, locale: Locale | undefined): stri
     return format(locale, percent / 100, options);
 }
 
-export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal};
+export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal, getSliceColorsByDataIndex};

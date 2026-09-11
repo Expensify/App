@@ -1,7 +1,7 @@
 import type {ChartDataPoint} from '@components/Charts/types';
-import {getSliceColorsByDataIndex, processDataIntoSlices} from '@components/Charts/utils';
+import {processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {buildChartSeries, formatPercentOfTotal, getPercentOfTotal} from '@components/Search/buildChartSeries';
+import {buildChartSeries, formatPercentOfTotal, getPercentOfTotal, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem} from '@components/Search/types';
 

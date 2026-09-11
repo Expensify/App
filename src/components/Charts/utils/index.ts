@@ -214,26 +214,6 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 }
 
 /**
- * Resolves the palette color of every data point, keyed by its position in `data`.
- *
- * Colors follow the slice ranking rather than the array order: the largest absolute value gets the
- * first palette color, the second largest the next one, and so on. `processDataIntoSlices` draws the
- * pie from the same mapping, so anything rendered next to the chart (a legend, an inline table) can
- * look a group's color up here and stay in sync with the canvas.
- */
-function getSliceColorsByDataIndex(data: ChartDataPoint[]): string[] {
-    const colors: string[] = Array.from({length: data.length});
-
-    const ranked = data.map((point, index) => ({absTotal: Math.abs(point.total), index})).sort((a, b) => b.absTotal - a.absTotal);
-
-    for (const [rank, entry] of ranked.entries()) {
-        colors[entry.index] = VictoryTheme.colors.getColor(rank);
-    }
-
-    return colors;
-}
-
-/**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
 function processDataIntoSlices(
@@ -248,7 +228,6 @@ function processDataIntoSlices(
 
     // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
     const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
-    const sliceColors = getSliceColorsByDataIndex(data);
 
     return data
         .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
@@ -263,7 +242,7 @@ function processDataIntoSlices(
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
-                    color: sliceColors.at(slice.originalIndex) ?? VictoryTheme.colors.getColor(index),
+                    color: VictoryTheme.colors.getColor(index),
                     percentage: fraction * 100,
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
@@ -485,7 +464,6 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
-    getSliceColorsByDataIndex,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,
