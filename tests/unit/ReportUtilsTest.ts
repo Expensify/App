@@ -7110,7 +7110,6 @@ describe('ReportUtils', () => {
     describe('restoreAttachmentAnchorAttributes', () => {
         const docUrl = 'https://www.expensify.com/chat-attachments/123/file.doc';
         const originalDocHtml = `Hello<br /><br /><a href="${docUrl}" data-expensify-source="${docUrl}" data-name="file.doc">file.doc</a>`;
-        // What the markdown round-trip produces: the attachment attributes are gone, so the doc renders as a plain link.
         const roundTrippedHtml = `Hello edited<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
 
         it('re-applies the attachment attributes an edit dropped from a doc anchor', () => {

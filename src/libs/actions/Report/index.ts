@@ -257,6 +257,8 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type DeferredAttachmentEdits from '@src/types/onyx/DeferredAttachmentEdits';
+import type {DeferredAttachmentEdit} from '@src/types/onyx/DeferredAttachmentEdits';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -3366,6 +3368,7 @@ function deleteReportComment(
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
+    clearDeferredAttachmentEdit(reportActionID);
     const reportActionMessage = ReportActionsUtils.getReportActionMessage(reportAction);
     const reportCommentText = reportActionMessage?.html ?? '';
 
@@ -3633,72 +3636,86 @@ function handleUserDeletedLinksInHtml(
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
-/** Keyed by report action so a newer edit supersedes one still waiting. */
-const deferredAttachmentEdits = new Map<string, () => void>();
+const deferredAttachmentEditWatchers = new Map<string, () => void>();
+let deferredAttachmentEdits: OnyxEntry<DeferredAttachmentEdits>;
 
-/**
- * The upload is already in flight, so no queued request is left to carry the file and the edit alone would replace
- * the comment with its text. Replay it once the attachment has synced.
- */
-function deferEditUntilAttachmentSyncs(
-    originalReport: OnyxEntry<Report>,
-    reportActionID: string,
-    textForNewComment: string,
-    isOriginalReportArchived: boolean | undefined,
-    currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    videoAttributeCache: Record<string, string> | undefined,
-    revertOptimisticEdit: () => void,
-) {
-    const originalReportID = originalReport?.reportID;
-    if (!originalReportID) {
-        revertOptimisticEdit();
+function clearDeferredAttachmentEdit(reportActionID: string) {
+    deferredAttachmentEditWatchers.get(reportActionID)?.();
+    if (!deferredAttachmentEdits?.[reportActionID]) {
         return;
     }
+    Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
+}
 
-    deferredAttachmentEdits.get(reportActionID)?.();
-
+function watchDeferredAttachmentEdit(reportActionID: string, deferredEdit: DeferredAttachmentEdit) {
+    const {reportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache} = deferredEdit;
+    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
     let connection: Connection | undefined;
     let hasStopped = false;
     const stop = () => {
         hasStopped = true;
-        deferredAttachmentEdits.delete(reportActionID);
+        deferredAttachmentEditWatchers.delete(reportActionID);
         if (connection !== undefined) {
             Onyx.disconnect(connection);
         }
     };
+    deferredAttachmentEditWatchers.set(reportActionID, stop);
 
     // We use connectWithoutView because this waits on a background sync and renders nothing itself.
     connection = Onyx.connectWithoutView({
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+        key: reportActionsKey,
         callback: (reportActions) => {
             if (hasStopped) {
                 return;
             }
             const syncedAction = reportActions?.[reportActionID];
-            if (!syncedAction || !isEmptyObject(syncedAction.errors ?? {})) {
+            if (!syncedAction) {
+                return;
+            }
+            if (!isEmptyObject(syncedAction.errors ?? {})) {
                 stop();
-                revertOptimisticEdit();
+                Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
+                Onyx.merge(reportActionsKey, {[reportActionID]: {pendingAction: null, ...(originalMessage ? {message: [originalMessage]} : {})}});
                 return;
             }
             if (ReportActionsUtils.getReportActionHtml(syncedAction)?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
                 return;
             }
+            // The report cache can still be empty right after a cold start; a later update re-fires this callback.
+            const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (!originalReport) {
+                return;
+            }
             stop();
+            Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
 
             // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
             Promise.resolve().then(() =>
-                editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, personalDetails, videoAttributeCache),
+                editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, allPersonalDetails, videoAttributeCache),
             );
         },
     });
-
-    if (hasStopped) {
-        Onyx.disconnect(connection);
-        return;
-    }
-    deferredAttachmentEdits.set(reportActionID, stop);
 }
+
+// We use connectWithoutView because the deferred edits are persisted so they survive a restart, and the watchers
+// that replay them are background work with nothing to render.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DEFERRED_ATTACHMENT_EDITS,
+    callback: (deferredEdits) => {
+        deferredAttachmentEdits = deferredEdits;
+        for (const [reportActionID, stop] of deferredAttachmentEditWatchers) {
+            if (!deferredEdits?.[reportActionID]) {
+                stop();
+            }
+        }
+        for (const [reportActionID, deferredEdit] of Object.entries(deferredEdits ?? {})) {
+            if (!deferredEdit || deferredAttachmentEditWatchers.has(reportActionID)) {
+                continue;
+            }
+            watchDeferredAttachmentEdit(reportActionID, deferredEdit);
+        }
+    },
+});
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(
@@ -3833,13 +3850,16 @@ function editReportComment(
         reportActionID,
     };
 
-    // Nothing is left in the queue to re-attach the file, so this edit would carry the text alone.
+    // A newer edit supersedes one still waiting on its upload, otherwise the old one replays over it.
+    clearDeferredAttachmentEdit(reportActionID);
+
+    // Nothing is left in the queue to re-attach the file, so this edit would carry the text alone. The upload is
+    // already in flight, so the edit is parked until the attachment syncs and replayed against the stored copy.
     const hasQueuedAttachmentRequest = getAll().some((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
     if (uploadingAttachmentHtml && !hasQueuedAttachmentRequest) {
         Onyx.update(optimisticData);
-        deferEditUntilAttachmentSyncs(originalReport, reportActionID, textForNewComment, isOriginalReportArchived, currentUserLogin, personalDetails, videoAttributeCache, () => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {[reportActionID]: {...originalReportAction, pendingAction: null}});
-        });
+        const deferredEdit: DeferredAttachmentEdit = {reportID: originalReportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache};
+        Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: deferredEdit});
         return;
     }
 

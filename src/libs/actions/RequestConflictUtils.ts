@@ -275,9 +275,8 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
 }
 
 /**
- * A copy of the queued file under a new name. The server builds the stored attachment markup from the uploaded
- * file, so an edit that renames the attachment only survives the sync if the queued file carries the new name.
- * `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
  */
 function renameQueuedAttachment(file: unknown, name: string): unknown {
     if (typeof File !== 'undefined' && file instanceof File) {
