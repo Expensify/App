@@ -328,6 +328,30 @@ describe('BookTravelButton', () => {
         });
     });
 
+    describe('when account.primaryLogin is absent from Onyx (e.g. a session restored from storage after a reload)', () => {
+        it('falls back to the session email instead of blocking the user with the contact-method error', async () => {
+            // Given a validated admin whose work email is only known from the session, not from account.primaryLogin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+                await Onyx.merge(ONYXKEYS.SESSION, {email: USER_LOGIN});
+                await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
+                await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then travel enablement proceeds rather than surfacing the "add a work email" error
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(screen.queryByText(/add a work email as your primary login/)).toBeNull();
+        });
+    });
+
     describe('when the user has a personal-email login', () => {
         it('shows the public-domain error even when legal details are missing', async () => {
             // Given a user logged in with a public-domain email and no legal name set yet
