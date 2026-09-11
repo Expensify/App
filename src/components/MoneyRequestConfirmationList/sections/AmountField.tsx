@@ -65,7 +65,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onAmountChange, onNegativeChange} = useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onAmountDigitsChange, onNegativeChange} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -259,7 +259,7 @@ function AmountField({
         // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
         // that sign clears the field and must reset the discard-confirmation state.
         onNegativeChange?.(shouldResetNegativeState ? false : isNegative);
-        onAmountChange?.(digits);
+        onAmountDigitsChange?.(digits);
 
         if (parsedAmount === null && shouldResetNegativeState) {
             hasEnteredValidAmountRef.current = false;

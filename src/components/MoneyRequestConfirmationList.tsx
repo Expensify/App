@@ -91,7 +91,7 @@ type MoneyRequestConfirmationListProps = {
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
 
     /** Reports changes to the numeric digits of the inline amount field (new manual expense flow). */
-    onAmountChange?: (digits: string) => void;
+    onAmountDigitsChange?: (digits: string) => void;
 
     /** Reports whether the inline amount is negative (new manual expense flow). */
     onNegativeChange?: (isNegative: boolean) => void;
@@ -198,7 +198,7 @@ function MoneyRequestConfirmationList({
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
     shouldHideToSection = false,
-    onAmountChange,
+    onAmountDigitsChange,
     onNegativeChange,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
@@ -548,7 +548,7 @@ function MoneyRequestConfirmationList({
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             onSubmitForm={confirm}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
-            onAmountChange={onAmountChange}
+            onAmountDigitsChange={onAmountDigitsChange}
             onNegativeChange={onNegativeChange}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>

@@ -45,7 +45,7 @@ type ConfirmationFieldsContextValue = {
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
     /** Reports changes to the numeric digits of the inline amount field (new manual expense flow). */
-    onAmountChange?: (digits: string) => void;
+    onAmountDigitsChange?: (digits: string) => void;
 
     /** Reports whether the inline amount is negative (new manual expense flow). */
     onNegativeChange?: (isNegative: boolean) => void;

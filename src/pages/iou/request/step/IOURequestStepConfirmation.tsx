@@ -128,7 +128,7 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         shouldHideHeader?: boolean;
 
         /** Reports changes to the numeric digits of the inline amount field (new manual expense flow) */
-        onAmountChange?: (digits: string) => void;
+        onAmountDigitsChange?: (digits: string) => void;
 
         /** Reports whether the inline amount is negative (new manual expense flow) */
         onNegativeChange?: (isNegative: boolean) => void;
@@ -145,7 +145,7 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
-    onAmountChange,
+    onAmountDigitsChange,
     onNegativeChange,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
@@ -1169,7 +1169,7 @@ function IOURequestStepConfirmationContent({
                                     isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
-                                    onAmountChange={onAmountChange}
+                                    onAmountDigitsChange={onAmountDigitsChange}
                                     onNegativeChange={onNegativeChange}
                                 />
                             )}

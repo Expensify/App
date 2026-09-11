@@ -287,7 +287,7 @@ function IOURequestStartPage({
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
-                onAmountChange={setTypedAmount}
+                onAmountDigitsChange={setTypedAmount}
                 onNegativeChange={setIsAmountNegative}
                 suppressDiscardPrompt={suppressDiscardPrompt}
             />
