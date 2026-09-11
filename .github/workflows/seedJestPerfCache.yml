@@ -3,8 +3,7 @@ name: Seed Jest perf cache
 # One `reassure --baseline` run, writing both entries the Reassure perf jobs read. Cache entries are
 # scoped to the ref that wrote them, so writing from main is what shares them and keeps them off fork
 # PRs. No paths filter: a run that finds an entry present skips the work, so the probe on every push is
-# what rebuilds an evicted one. Its own workflow rather than a seedCache.yml job, whose per-ref group
-# would cancel this multi-minute measure on a merge burst - near one push in five, over 82 pushes.
+# what rebuilds an evicted one.
 
 on:
   push:
