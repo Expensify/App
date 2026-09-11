@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
@@ -42,13 +42,6 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const [isHidden, setIsHidden] = useState(!isVisible);
     const layout = useExpandedChartLayout(availableSize);
 
-    useEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        setIsHidden(false);
-    }, [isVisible]);
-
     const onContainerLayout = (event: LayoutChangeEvent) => {
         // Re-measuring mid close animation would rescale the chart
         if (!isVisible) {
@@ -66,6 +59,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose}
+            onModalShow={() => setIsHidden(false)}
             onModalHide={() => setIsHidden(true)}
             // Browser back should close only the modal, not the report behind it
             shouldHandleNavigationBack
