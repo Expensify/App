@@ -863,11 +863,11 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getOverLimitForwardsToUpdateMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getOverLimitForwardsToUpdateMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        lastMessageTextFromReport = getApprovalLimitUpdateMessage(translate, lastReportAction, convertToDisplayStringUtil);
+        lastMessageTextFromReport = getApprovalLimitUpdateMessage(translate, lastReportAction, convertToDisplayString);
     }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
