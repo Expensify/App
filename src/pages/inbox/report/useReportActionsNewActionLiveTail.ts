@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -153,14 +153,14 @@ function useReportActionsNewActionLiveTail({
         });
     });
 
-    const completeLiveTailPruneAfterScrollToBottom = useCallback(() => {
+    const completeLiveTailPruneAfterScrollToBottom = () => {
         if (liveTailJumpRef.current.stage !== 'await_prune') {
             return;
         }
         pruneReportActionPagesToNewestWindow(reportID, sortedAllReportActionsForPagination, reportActionPages);
         setTreatAsNoPaginationAnchor(false);
         liveTailJumpRef.current = {stage: 'idle'};
-    }, [reportID, sortedAllReportActionsForPagination, reportActionPages, setTreatAsNoPaginationAnchor]);
+    };
 
     useEffect(() => {
         liveTailJumpRef.current = {stage: 'idle'};
