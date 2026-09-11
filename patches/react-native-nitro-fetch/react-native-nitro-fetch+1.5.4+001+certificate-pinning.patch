@@ -12,10 +12,10 @@ index 45c0f78..2a3d84c 100644
  }
 diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
 new file mode 100644
-index 0000000..5d179b6
+index 0000000..a432432
 --- /dev/null
 +++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
-@@ -0,0 +1,217 @@
+@@ -0,0 +1,212 @@
 +package com.margelo.nitro.nitrofetch
 +
 +import android.content.Context
@@ -40,16 +40,12 @@ index 0000000..5d179b6
 + * to each CronetEngine.Builder in enforce mode. Monitor mode uses a separate pinned HEAD probe so
 + * the real request remains unblocked while pin mismatches are reported to Sentry.
 + *
-+ * The Cloudflare-fronted expensify.com hosts (Groups A & B) pin the SPKI of the ROOT of every CA
-+ * Cloudflare may issue from - Let's Encrypt, Google Trust Services and SSL.com - plus each CA's live
-+ * issuing intermediate, so the app survives leaf rotation, intermediate rotation AND a CA switch
-+ * without an emergency release. Cronet evaluates pins against the validated chain, which includes
-+ * the trust anchor, so root pins match here without extra chain reconstruction. The other hosts pin
-+ * the leaf SPKI hash (primary) plus the issuing intermediate CA SPKI hash (durable backup).
-+ *
-+ * Keep in sync with config/certificatePinning/pins.json,
-+ * android/app/src/main/res/xml/network_security_config_enforce.xml, CertificatePinning.kt and
-+ * CertificatePinning.swift. Regenerate with scripts/generateCertificatePins.sh.
++ * Each host pins ONLY the ROOT CA SPKI hashes of every CA that can issue its certificate. Roots
++ * are the only durable pin target: leaves are re-keyed on every renewal and every CA in play
++ * issues from a rotating pool of intermediates, both of which have already broken
++ * leaf/intermediate pins in production. Cronet evaluates pins against the verified chain
++ * including the trust-anchor root, so root pins match even though servers never send the root.
++ * Keep in sync with config/certificatePinning/pins.json, CertificatePinning.kt and CertificatePinning.swift.
 + */
 +internal object ExpensifyCertificatePins {
 +  // Keep in sync with config/certificatePinning/pins.json and the platform implementations.
@@ -71,46 +67,45 @@ index 0000000..5d179b6
 +
 +  private fun decode(base64Hash: String): ByteArray = android.util.Base64.decode(base64Hash, android.util.Base64.DEFAULT)
 +
-+  /**
-+   * Cloudflare can issue the expensify.com edge certificate from any of the CAs it uses -
-+   * Let's Encrypt, Google Trust Services or SSL.com - and can rotate between them without notice
-+   * (the unannounced 2026-07-07 Let's Encrypt -> Google Trust Services rotation is what broke us).
-+   * To survive leaf rotation, intermediate rotation AND a CA switch without an emergency release, the
-+   * Cloudflare-fronted hosts (Groups A & B) pin the SPKI of the ROOT of each of those three CAs, plus
-+   * the live issuing intermediate for each. Any of these appearing in the validated chain satisfies
-+   * the pin. Regenerate with scripts/generateCertificatePins.sh (which also prints these CA pins).
-+   */
-+  private val cloudflareExpensifyPins: Set<ByteArray> = pins(
-+    // Let's Encrypt - live CA for www/secure/staging (reverted to Let's Encrypt after the 2026-07-07 GTS rotation)
++  // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
++  // between Let's Encrypt, Google Trust Services and SSL.com without notice, and its backup
++  // certificates (deployed automatically on a revocation or key compromise) can also come from
++  // Sectigo, so the roots of all four CAs are pinned. GTS Root R2 is not pinned: Mozilla removed
++  // it from its root store in 2026.
++  private val cloudflareExpensifyRoots = pins(
 +    "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
 +    "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
-+    "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=", // Let's Encrypt YE1 intermediate (live ECDSA)
-+    // Google Trust Services - backup CA
 +    "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
-+    "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
 +    "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
 +    "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
-+    "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=", // Google Trust Services WE1 intermediate (live ECDSA)
-+    // SSL.com - backup CA
 +    "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
 +    "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
++    "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", // USERTrust RSA Certification Authority (Sectigo)
++    "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", // USERTrust ECC Certification Authority (Sectigo)
++    "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", // Sectigo Public Server Authentication Root R46
++    "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=", // Sectigo Public Server Authentication Root E46
++  )
++
++  // Group E: CloudFront - all five Amazon Trust Services roots (the only stable pin targets per AWS docs).
++  private val cloudfrontRoots = pins(
++    "++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", // Amazon Root CA 1
++    "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", // Amazon Root CA 2
++    "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", // Amazon Root CA 3
++    "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", // Amazon Root CA 4
++    "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=", // Starfield Services Root CA G2
 +  )
 +
 +  private val pinnedDomains: Map<String, Set<ByteArray>> = mapOf(
-+    // Groups A & B: Cloudflare-fronted expensify.com hosts - multi-CA root + intermediate pinning (see above)
-+    "www.expensify.com" to cloudflareExpensifyPins,
-+    "secure.expensify.com" to cloudflareExpensifyPins,
-+    "staging.expensify.com" to cloudflareExpensifyPins,
-+    "staging-secure.expensify.com" to cloudflareExpensifyPins,
-+    "new.expensify.com" to cloudflareExpensifyPins,
-+    "staging.new.expensify.com" to cloudflareExpensifyPins,
-+    // Group C: integrations leaf + Let's Encrypt R13 intermediate
-+    "integrations.expensify.com" to pins("7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="),
-+    // Group D: travel leaf + Google Trust Services WE1 intermediate
-+    "travel.expensify.com" to pins("Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-+    "staging.travel.expensify.com" to pins("Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="),
-+    // Group E: CloudFront leaf + Amazon RSA 2048 M01 intermediate
-+    "d2k5nsl2zxldvw.cloudfront.net" to pins("P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="),
++    "www.expensify.com" to cloudflareExpensifyRoots,
++    "secure.expensify.com" to cloudflareExpensifyRoots,
++    "staging.expensify.com" to cloudflareExpensifyRoots,
++    "staging-secure.expensify.com" to cloudflareExpensifyRoots,
++    "new.expensify.com" to cloudflareExpensifyRoots,
++    "staging.new.expensify.com" to cloudflareExpensifyRoots,
++    "integrations.expensify.com" to cloudflareExpensifyRoots,
++    "travel.expensify.com" to cloudflareExpensifyRoots,
++    "staging.travel.expensify.com" to cloudflareExpensifyRoots,
++    "d2k5nsl2zxldvw.cloudfront.net" to cloudfrontRoots,
 +  )
 +
 +  private fun pins(vararg hashes: String): Set<ByteArray> = hashes.map(::decode).toSet()
