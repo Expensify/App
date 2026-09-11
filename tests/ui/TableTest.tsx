@@ -83,7 +83,7 @@ let mockShouldUseNarrowLayout = false;
 
 jest.mock('@components/SelectionList/hooks/useScrollToFocusedInput', () => ({
     __esModule: true,
-    default: () => {
+    default: function useScrollToFocusedInput() {
         const ReactLocal = jest.requireActual<typeof React>('react');
         return {
             containerRef: ReactLocal.useRef(null),

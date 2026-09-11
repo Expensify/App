@@ -2,16 +2,23 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import type {FlashListProps} from '@shopify/flash-list';
 import type {StickyHeaderRef} from '@shopify/flash-list/dist/recyclerview/components/StickyHeaders';
-import type {RecyclerViewManager} from '@shopify/flash-list/dist/recyclerview/RecyclerViewManager';
+import type * as ReactNative from 'react-native';
+import type {View} from 'react-native';
 
 import {StickyHeaders} from '@shopify/flash-list/dist/recyclerview/components/StickyHeaders';
+import {ConsecutiveNumbers} from '@shopify/flash-list/dist/recyclerview/helpers/ConsecutiveNumbers';
+import {RecyclerViewManager} from '@shopify/flash-list/dist/recyclerview/RecyclerViewManager';
 import React from 'react';
-import {Animated, View} from 'react-native';
+// FlashList uses core Animated; its interpolation must be exercised by the same implementation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
+
+import {getOptionalNumberProperty, parseJSONRecord} from '../utils/typeGuards';
 
 // Keep FlashList's real sticky-index and Animated interpolation logic. Only replace its host wrappers.
 jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
-    const {View: NativeView} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View: NativeView} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         CompatAnimatedView: (props: React.ComponentProps<typeof View>) =>
             ReactLocal.createElement(NativeView, {
@@ -23,7 +30,7 @@ jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => {
 
 jest.mock('@shopify/flash-list/dist/recyclerview/ViewHolder', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
-    const {View: NativeView} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View: NativeView} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         ViewHolder: () => ReactLocal.createElement(NativeView, {testID: 'sticky-copy'}),
     };
@@ -38,15 +45,12 @@ function setup({hideWhenInactive = true, hideRelatedCell = false, inverted = fal
         stickyHeaderConfig: {hideWhenInactive, hideRelatedCell},
     };
     const layout = {x: 0, y: 0, width: 300, height: 48};
-    const managerState = {
-        props,
-        firstItemOffset: 120,
-        getDataLength: () => data.length,
-        getLastScrollOffset: jest.fn(() => 280),
-        getEngagedIndices: () => ({startIndex: 0, endIndex: 2}),
-        getLayout: () => layout,
-        tryGetLayout: (index: number) => (index < 0 ? undefined : layout),
-    };
+    const managerState = new RecyclerViewManager(props);
+    managerState.firstItemOffset = 120;
+    jest.spyOn(managerState, 'getLastScrollOffset').mockReturnValue(280);
+    jest.spyOn(managerState, 'getEngagedIndices').mockReturnValue(new ConsecutiveNumbers(0, 2));
+    jest.spyOn(managerState, 'getLayout').mockReturnValue(layout);
+    jest.spyOn(managerState, 'tryGetLayout').mockImplementation((index) => (index < 0 ? undefined : layout));
     const stickyHeaderRef: React.RefObject<StickyHeaderRef> = {
         current: {reportScrollEvent: jest.fn(), reportLayout: jest.fn()},
     };
@@ -59,7 +63,7 @@ function setup({hideWhenInactive = true, hideRelatedCell = false, inverted = fal
             stickyHeaderIndices={stickyHeaderIndices}
             stickyHeaderOffset={0}
             stickyHeaderRef={stickyHeaderRef}
-            recyclerViewManager={managerState as unknown as RecyclerViewManager<Item>}
+            recyclerViewManager={managerState}
             scrollY={scrollY}
             renderItem={() => null}
             onChangeStickyIndex={onChangeStickyIndex}
@@ -77,8 +81,8 @@ function setup({hideWhenInactive = true, hideRelatedCell = false, inverted = fal
 
 function getOverlayOpacity() {
     // AnimatedNode's JSON representation evaluates its interpolation without a native host.
-    const style = JSON.parse(JSON.stringify(screen.getByTestId('sticky-overlay').props.style)) as {opacity?: number};
-    return style.opacity;
+    const style = parseJSONRecord(JSON.stringify(screen.getByTestId('sticky-overlay').props.style));
+    return getOptionalNumberProperty(style, 'opacity');
 }
 
 describe('FlashList native sticky-header release patch', () => {

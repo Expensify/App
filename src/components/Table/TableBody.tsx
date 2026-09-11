@@ -11,7 +11,7 @@ import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
@@ -19,7 +19,7 @@ import type {TableListMetadata} from './buildTableListData';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
-import {TableRowSemanticIDContext, TableScrollHeaderFocusContext, useTableContext} from './TableContext';
+import {TableFocusActionsContext, TableRowSemanticIDContext, TableScrollHeaderFocusContext, useTableContext} from './TableContext';
 
 /**
  * Props for the TableBody component.
@@ -96,6 +96,7 @@ function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListH
  * ```
  */
 function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ...props}: TableBodyListProps) {
+    const setFocusedSearchInputID = useContext(TableFocusActionsContext);
     const styles = useThemeStyles();
     const scrollEnabled = useScrollEnabled();
     const [isListLoaded, setIsListLoaded] = useState(false);
@@ -106,7 +107,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         listProps,
         listRef,
         focusedSearchInputID,
-        setFocusedSearchInputID,
         listContainerRef,
         trackScrollOffset,
         title,

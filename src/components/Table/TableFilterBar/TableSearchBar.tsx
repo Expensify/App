@@ -1,4 +1,4 @@
-import {TableScrollHeaderFocusContext, useTableContext} from '@components/Table/TableContext';
+import {TableFocusActionsContext, TableScrollHeaderFocusContext, useTableContext} from '@components/Table/TableContext';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -31,6 +31,7 @@ function TableSearchBar({label}: TableSearchBarProps) {
     const [inputFocused, setInputFocused] = useState(false);
     const searchInputID = useId();
     const scrollingHeaderFocusSetter = useContext(TableScrollHeaderFocusContext);
+    const setFocusedSearchInputID = useContext(TableFocusActionsContext);
     const shouldSuppressPopoverFocus = useSyncExternalStore(subscribeToShouldSuppressBackgroundInputFocus, getShouldSuppressBackgroundInputFocus, getShouldSuppressBackgroundInputFocus);
     const wasSuppressingPopoverFocus = usePrevious(shouldSuppressPopoverFocus);
 
@@ -38,7 +39,6 @@ function TableSearchBar({label}: TableSearchBarProps) {
         activeSearchString,
         isEmptyResult,
         listRef,
-        setFocusedSearchInputID,
         shouldUseNarrowTableLayout,
         scrollInputIntoView,
         onSearchStringChange,
