@@ -42,6 +42,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
+    isActionOfType,
     isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
@@ -499,7 +500,9 @@ function ReportActionItem({
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
+    const originalMessage = getOriginalMessage(action);
+    const plainMessage =
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED) && originalMessage ? translate('agentPromptUpdated', originalMessage) : getReportActionText(action);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (

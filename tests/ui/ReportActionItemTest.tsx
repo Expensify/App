@@ -1306,12 +1306,15 @@ describe('ReportActionItem', () => {
                 updatedByAccountID: ACTOR_ACCOUNT_ID,
                 updatedBy: actorEmail,
             });
+            action.message = [];
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
+            const auditMessage = `${actorEmail} updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(auditMessage)).toBeOnTheScreen();
             expect(
-                screen.getByText(
-                    `${actorEmail} updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`,
+                screen.getByLabelText(
+                    /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
                 ),
             ).toBeOnTheScreen();
         });
