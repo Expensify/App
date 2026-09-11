@@ -90,6 +90,7 @@ type UseOnyxReturn = [unknown, {status: string}];
 let mockLinkedAction: ReportAction | null | undefined;
 let mockLinkedActionInTransactionThread: ReportAction | null | undefined;
 let mockIsLoadingInitialReportActions: boolean;
+let mockIsLoadingTransactionThreadActions: boolean;
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -103,8 +104,12 @@ jest.mock('@hooks/useOnyx', () => ({
         if (key.startsWith('reportActions_')) {
             return [mockLinkedActionInTransactionThread, {status: 'loaded'}];
         }
-        if (key.startsWith('reportLoadingState_')) {
+        if (key === 'reportLoadingState_12345') {
             return [mockIsLoadingInitialReportActions, {status: 'loaded'}];
+        }
+        // Any other report's loading state is the transaction thread's, fetched by its own OpenReport.
+        if (key.startsWith('reportLoadingState_')) {
+            return [mockIsLoadingTransactionThreadActions, {status: 'loaded'}];
         }
         if (key.startsWith('report_')) {
             return [{reportID: '12345', type: 'chat'}, {status: 'loaded'}];
@@ -142,6 +147,7 @@ describe('LinkedActionNotFoundGuard', () => {
         mockIsReportActionVisible = true;
         mockTransactionThreadReportID = undefined;
         mockLinkedActionInTransactionThread = null;
+        mockIsLoadingTransactionThreadActions = false;
     });
 
     it('renders children when linked action exists', () => {
@@ -164,6 +170,50 @@ describe('LinkedActionNotFoundGuard', () => {
         mockTransactionThreadReportID = '54321';
 
         render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        expect(screen.getByTestId('test-children')).toBeTruthy();
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('waits for the transaction thread to finish loading before treating the linked action as unavailable', () => {
+        // The thread is fetched by its own OpenReport, so the route report can settle first. Deciding "not found" then
+        // would clear a valid reportActionID before the linked message ever arrives. See issue #86919.
+        mockLinkedAction = null;
+        mockLinkedActionInTransactionThread = null;
+        mockTransactionThreadReportID = '54321';
+        mockIsLoadingInitialReportActions = true;
+        mockIsLoadingTransactionThreadActions = true;
+
+        const {rerender} = render(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        // The route report's request finishes while the thread's is still in flight.
+        act(() => {
+            mockIsLoadingInitialReportActions = false;
+        });
+
+        rerender(
+            <LinkedActionNotFoundGuard>
+                <TestChildren />
+            </LinkedActionNotFoundGuard>,
+        );
+
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        // Once the thread's actions land, the linked action resolves normally.
+        act(() => {
+            mockIsLoadingTransactionThreadActions = false;
+            mockLinkedActionInTransactionThread = createReportAction({reportID: '54321'});
+        });
+
+        rerender(
             <LinkedActionNotFoundGuard>
                 <TestChildren />
             </LinkedActionNotFoundGuard>,

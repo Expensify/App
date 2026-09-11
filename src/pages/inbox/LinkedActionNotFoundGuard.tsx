@@ -74,8 +74,14 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const [linkedActionInTransactionThread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {
         selector: (actions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(actions, reportActionIDFromRoute),
     });
+    // The thread is fetched by its own OpenReport, so it can still be loading after the route report has settled.
+    // Defaults to false so reports without a transaction thread are unaffected.
+    const [isLoadingTransactionThreadActions = false] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(transactionThreadReportID)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
 
     const linkedAction = linkedActionInRoute ?? linkedActionInTransactionThread;
+    const isLoadingLinkedActionSource = isLoadingInitialReportActions || (!!transactionThreadReportID && isLoadingTransactionThreadActions);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const isReportArchived = useReportIsArchived(reportIDFromRoute);
@@ -114,7 +120,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     //
     // Note: the inaccessible whisper case is handled separately by the whisper effect.
     const isLinkedActionUnavailable =
-        !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction));
+        !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingLinkedActionSource && !linkedAction));
 
     // Action was deleted or completely removed while we were viewing it — navigate away.
     // This handles both: (1) action exists but is hidden/deleted, and (2) action was
@@ -123,7 +129,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         if (!wasEverVisible) {
             return;
         }
-        const isActionGone = isLinkedActionDeleted || (!linkedAction && !isLoadingInitialReportActions);
+        const isActionGone = isLinkedActionDeleted || (!linkedAction && !isLoadingLinkedActionSource);
         if (!isActionGone) {
             return;
         }
@@ -133,7 +139,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         if (reportIDFromRoute) {
             cleanStaleReportActionBackToParam(reportIDFromRoute, reportActionIDFromRoute);
         }
-    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key, navigatorKey, reportIDFromRoute, reportActionIDFromRoute]);
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingLinkedActionSource, route.key, navigatorKey, reportIDFromRoute, reportActionIDFromRoute]);
 
     // Handle inaccessible whisper
     useEffect(() => {
