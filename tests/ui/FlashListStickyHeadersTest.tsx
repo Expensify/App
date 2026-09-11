@@ -2,7 +2,6 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import type {FlashListProps} from '@shopify/flash-list';
 import type {StickyHeaderRef} from '@shopify/flash-list/dist/recyclerview/components/StickyHeaders';
-import type * as ReactNative from 'react-native';
 import type {View} from 'react-native';
 
 import {StickyHeaders} from '@shopify/flash-list/dist/recyclerview/components/StickyHeaders';
@@ -18,7 +17,7 @@ import {getOptionalNumberProperty, parseJSONRecord} from '../utils/typeGuards';
 // Keep FlashList's real sticky-index and Animated interpolation logic. Only replace its host wrappers.
 jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
-    const {View: NativeView} = jest.requireActual<typeof ReactNative>('react-native');
+    const {View: NativeView} = jest.requireActual<{View: typeof View}>('react-native');
     return {
         CompatAnimatedView: (props: React.ComponentProps<typeof View>) =>
             ReactLocal.createElement(NativeView, {
@@ -30,7 +29,7 @@ jest.mock('@shopify/flash-list/dist/recyclerview/components/CompatView', () => {
 
 jest.mock('@shopify/flash-list/dist/recyclerview/ViewHolder', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
-    const {View: NativeView} = jest.requireActual<typeof ReactNative>('react-native');
+    const {View: NativeView} = jest.requireActual<{View: typeof View}>('react-native');
     return {
         ViewHolder: () => ReactLocal.createElement(NativeView, {testID: 'sticky-copy'}),
     };
