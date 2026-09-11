@@ -6502,6 +6502,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 expensifyCardBannerLearnMoreButton: 'Saiba mais',
                 statementCloseDateTitle: 'Data de fechamento do extrato',
                 statementCloseDateDescription: 'Informe quando o seu fechamento da fatura do cartão ocorrer e criaremos uma fatura correspondente no Expensify.',
+                exportAccount: 'Exportar conta',
             },
             workflows: {
                 title: 'Fluxos de trabalho',

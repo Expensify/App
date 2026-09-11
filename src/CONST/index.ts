@@ -5274,6 +5274,15 @@ const CONST = {
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
+
+        /**
+         * How a card's export account is resolved. Most integrations point a card's NVP at one entry in a flat account
+         * list, while Rillet and DualEntry resolve it through a program account that each card feed can override.
+         */
+        EXPORT_RESOLVER: {
+            SINGLE_ACCOUNT: 'singleAccount',
+            PROGRAM_ACCOUNT: 'programAccount',
+        },
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts

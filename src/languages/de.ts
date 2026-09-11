@@ -6548,6 +6548,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 expensifyCardBannerLearnMoreButton: 'Mehr erfahren',
                 statementCloseDateTitle: 'Abrechnungsschlussdatum',
                 statementCloseDateDescription: 'Teile uns mit, wann dein Kreditkartenkontoauszug abgeschlossen wird, und wir erstellen einen passenden Auszug in Expensify.',
+                exportAccount: 'Konto exportieren',
             },
             workflows: {
                 title: 'Workflows',

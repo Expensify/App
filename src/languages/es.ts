@@ -6427,6 +6427,7 @@ ${amount} para ${merchant} - ${date}`,
                 expensifyCardBannerLearnMoreButton: 'Más información',
                 statementCloseDateTitle: 'Fecha de cierre del estado de cuenta',
                 statementCloseDateDescription: 'Indícanos cuándo cierra el estado de cuenta de tu tarjeta y crearemos uno correspondiente en Expensify.',
+                exportAccount: 'Exportar cuenta',
             },
             workflows: {
                 title: 'Flujos de trabajo',
