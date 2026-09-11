@@ -9432,6 +9432,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Keine Ausgaben zum Genehmigen',
                 subtitle: 'Null Ausgaben. Maximale Entspannung. Gut gemacht!',
             },
+            staleResults: {title: 'Aktualisierung erforderlich', subtitle: 'Diese Seite ist veraltet, aktualisieren Sie sie, um die neuesten Inhalte zu sehen', buttonText: 'Aktualisieren'},
         },
         columns: 'Spalten',
         editColumns: 'Spalten bearbeiten',
