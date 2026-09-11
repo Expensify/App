@@ -5,6 +5,7 @@ import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
     appendTimeToFileName,
     canvasFallback,
+    getDownloadFileName,
     getExportFileName,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
@@ -531,6 +532,34 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
+        });
+    });
+
+    describe('getDownloadFileName', () => {
+        const source = 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa39e7b4276ab18285ee51d65b461b38aa5.csv';
+
+        it('leaves a name that already carries its extension alone', () => {
+            expect(getDownloadFileName('PerDiem-2024-11-21_10_02_48.939.csv', source)).toBe('PerDiem-2024-11-21_10_02_48.939.csv');
+        });
+
+        it('takes the extension from the source when a rename dropped it', () => {
+            expect(getDownloadFileName('1234', source)).toBe('1234.csv');
+        });
+
+        it('appends the extension when the only dot in the name is not an extension', () => {
+            expect(getDownloadFileName('Q3.2026 numbers', source)).toBe('Q3.2026 numbers.csv');
+        });
+
+        it('keeps the source extension even when the name ends in a different one', () => {
+            expect(getDownloadFileName('report.txt', source)).toBe('report.txt.csv');
+        });
+
+        it('matches the extension case-insensitively', () => {
+            expect(getDownloadFileName('report.CSV', source)).toBe('report.CSV');
+        });
+
+        it('leaves the name alone when the source has no extension either', () => {
+            expect(getDownloadFileName('1234', 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa')).toBe('1234');
         });
     });
 });

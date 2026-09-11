@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
+import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 
 import {setDownload} from '@userActions/Download';
 
@@ -47,6 +48,8 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
+    const downloadFileName = getDownloadFileName(displayName, source);
+
     return (
         <PressableWithoutFeedback
             style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
@@ -55,7 +58,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     return;
                 }
                 setDownload(sourceID, true);
-                fileDownload(translate, sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
+                fileDownload(translate, sourceURLWithAuth, downloadFileName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}

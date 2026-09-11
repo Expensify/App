@@ -12,6 +12,7 @@ const getAttachmentDetails: GetAttachmentDetails = (html) => {
     const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');
     const SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}*=*"(.+?)"`, 'i');
+    const HREF_REGEX = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/i;
     const ORIGINAL_FILENAME_REGEX = IS_IMAGE_TAG ? new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}*=*"(.+?)"`, 'i') : new RegExp('<(?:a|video)[^>]*>([^<]+)</(?:a|video)>', 'i');
     if (!html) {
         return {
@@ -22,7 +23,9 @@ const getAttachmentDetails: GetAttachmentDetails = (html) => {
     }
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
-    const sourceURL = tryResolveUrlFromApiRoot(html.match(SOURCE_REGEX)?.[1] ?? '');
+    const href = IS_IMAGE_TAG ? undefined : html.match(HREF_REGEX)?.[1];
+    const isAttachmentHref = !!href && (html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE) || new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(href));
+    const sourceURL = tryResolveUrlFromApiRoot(html.match(SOURCE_REGEX)?.[1] ?? (isAttachmentHref ? href : ''));
     const imageURL = IS_IMAGE_TAG ? tryResolveUrlFromApiRoot(html.match(PREVIEW_SOURCE_REGEX)?.[1] ?? '') : null;
     const previewSourceURL = IS_IMAGE_TAG ? imageURL : sourceURL;
     const originalFileName = html.match(ORIGINAL_FILENAME_REGEX)?.[1] ?? null;

@@ -159,6 +159,14 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
 };
 
+function getDownloadFileName(displayName: string, source: string): string {
+    const sourceExtension = splitExtensionFromFileName(getFileName(source)).fileExtension;
+    if (!displayName || !sourceExtension || displayName.toLowerCase().endsWith(`.${sourceExtension.toLowerCase()}`)) {
+        return displayName;
+    }
+    return `${displayName}.${sourceExtension}`;
+}
+
 /**
  * Returns the MIME type for a given file extension.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
@@ -945,6 +953,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getFileName,
+    getDownloadFileName,
     getFileType,
     cleanFileName,
     getExportFileName,
