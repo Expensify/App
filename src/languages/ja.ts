@@ -2473,7 +2473,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '2要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '2要素認証を有効にしてください',
         twoFactorAuthIsRequiredXero: 'Xero 会計連携には二要素認証が必要です。',
-        twoFactorAuthIsRequiredCompany: 'あなたの会社では、2 要素認証が必須です。',
+        twoFactorAuthIsRequiredCompany: 'お客様の会社では、二要素認証（2FA）が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須で、無効にすることはできません。',
         replaceDevice: 'デバイスを交換',
@@ -2486,6 +2486,7 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadCodes: 'コードをダウンロード',
         copyCodes: 'コードをコピー',
         twoFactorAuthIsRequiredNetSuiteDescription: 'セキュリティ上の理由により、連携を接続するには NetSuite で二要素認証が必要です。',
+        enable2FA: '有効にする',
     },
     recoveryCodeForm: {
         error: {
