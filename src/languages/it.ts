@@ -9664,6 +9664,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             category: 'Categoria',
             tag: 'Etichetta',
         },
+        viewAsTable: 'Visualizza come tabella',
+        viewAsSingleExpense: 'Visualizza come spesa singola',
     },
     report: {
         newReport: {

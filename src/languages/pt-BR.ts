@@ -9635,6 +9635,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             category: 'Categoria',
             tag: 'Etiqueta',
         },
+        viewAsTable: 'Ver como tabela',
+        viewAsSingleExpense: 'Ver como despesa individual',
     },
     report: {
         newReport: {

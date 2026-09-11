@@ -161,6 +161,7 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -680,7 +681,8 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                // A single-expense report switched to the table view opens at the same width a multi-expense table does.
+                if (item.transactions.length > 1 || shouldUseTableViewForSingleExpense) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -764,6 +766,7 @@ function Search({
             currentSearchKey,
             getCurrencyDecimals,
             conciergeChat,
+            shouldUseTableViewForSingleExpense,
         ],
     );
 

@@ -132,10 +132,14 @@ function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Tran
  * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
  *
  * If report is a special "transaction thread" we want to use other Report views.
- * Likewise, if report has only 1 connected transaction, then we also use other views.
+ * Likewise, if report has only 1 connected transaction, then we also use other views,
+ * unless the user has opted single-expense reports into the table view.
  */
-function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
-    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[], shouldUseTableViewForSingleExpense = false) {
+    if (isReportTransactionThread(report)) {
+        return false;
+    }
+    return shouldUseTableViewForSingleExpense || !isSingleTransactionReport(report, transactions);
 }
 
 function shouldWaitForTransactions(

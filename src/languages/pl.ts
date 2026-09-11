@@ -9656,6 +9656,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             category: 'Kategoria',
             tag: 'Tag',
         },
+        viewAsTable: 'Wyświetl jako tabelę',
+        viewAsSingleExpense: 'Wyświetl jako pojedynczy wydatek',
     },
     report: {
         newReport: {
