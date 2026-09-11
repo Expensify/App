@@ -10,6 +10,7 @@ import type {ListItem, SelectionListWithSectionsHandle} from '@components/Select
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -86,6 +87,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
+    const isSupportalSession = useIsSupportalSession();
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -309,6 +311,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     conciergeChat,
+                    isSupportalSession,
                 }),
             )();
         });
