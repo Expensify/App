@@ -539,7 +539,7 @@ describe('FileUtils', () => {
                 isValidatingMultipleFiles: true,
             });
 
-            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.title).toBe('attachmentPicker.someFilesCantBeUploaded');
             expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
         });
 

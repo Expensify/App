@@ -791,6 +791,7 @@ const getFileValidationErrorText = (
                     reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
                 };
             case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                // This error can only occur for a multi-file selection, so it intentionally has no single-file case below.
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.maxFileLimitExceeded'),
@@ -803,7 +804,7 @@ const getFileValidationErrorText = (
     switch (validationError.error) {
         case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
             return {
-                title: translate('attachmentPicker.attachmentError'),
+                title: translate(validationError.isValidatingMultipleFiles ? 'attachmentPicker.someFilesCantBeUploaded' : 'attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.folderNotAllowedMessage'),
             };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
