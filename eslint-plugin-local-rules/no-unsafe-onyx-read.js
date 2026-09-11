@@ -11,10 +11,6 @@ const SNAPSHOT_KEYS_DECLARATION = /SEARCH_SNAPSHOT_ONYX_KEYS:\s*\[([^\]]*)\]/;
 
 const ONYXKEYS_ROOT = 'ONYXKEYS';
 
-/**
- * Walks up from the working directory until it finds the repo root, so the rule resolves the same file
- * whether ESLint runs it from a workspace subdirectory or Jest requires it from the root.
- */
 function findRepoRoot() {
     let current = path.resolve(process.cwd());
 
@@ -33,15 +29,6 @@ function findRepoRoot() {
     }
 }
 
-/**
- * The `ONYXKEYS` access paths that `src/hooks/useOnyx.ts` redirects to `snapshot_<hash>` inside a
- * `SearchScopeProvider` subtree. A one-shot read of these returns live data where the component would have
- * seen the snapshot.
- *
- * The list is read out of `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` rather than restated here, so the two cannot
- * drift. `runtimeConfigured` is the definition that web and native both load, and it already names the keys
- * as `ONYXKEYS` paths, which is the form a call site writes them in.
- */
 function resolveRestrictedKeyPaths() {
     const repoRoot = findRepoRoot();
 
@@ -63,12 +50,6 @@ const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
 const READ_METHOD = 'get';
 
-/**
- * The TypeScript-only nodes a key expression arrives wrapped in, all of which carry the real expression on
- * `.expression`. They have to be unwrapped before the key is read, because `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const ``
- * is how this codebase writes a collection member key, and a rule that stopped at the wrapper would call
- * every one of them unresolvable.
- */
 const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
 
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
@@ -179,11 +160,6 @@ function getStaticPropertyName(memberExpression) {
     return getStaticName(memberExpression.property, memberExpression.computed);
 }
 
-/**
- * Unwraps the shapes a collection member key is written in, so `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` ``
- * is read as the prefix it starts with, through any type-only wrapper the key carries. Only a leading
- * interpolation counts: anything before it makes the key something other than that prefix.
- */
 function unwrapKeyExpression(node) {
     if (node && TYPE_ONLY_EXPRESSIONS.has(node.type)) {
         return unwrapKeyExpression(node.expression);
@@ -219,10 +195,6 @@ function getVariableByName(scope, variableName) {
     return null;
 }
 
-/**
- * Resolves an identifier back to the expression it was declared with, but only through a `const` with a
- * single declaration, where the binding cannot hold anything else by the time the read runs.
- */
 function getConstInitializer(node, scope) {
     const variable = getVariableByName(scope, node.name);
 
@@ -239,10 +211,6 @@ function getConstInitializer(node, scope) {
     return definition.node.init ?? null;
 }
 
-/**
- * Turns `ONYXKEYS.COLLECTION.REPORT` into `COLLECTION.REPORT`, and returns null for anything that is not
- * a static member access rooted at `ONYXKEYS`.
- */
 function getOnyxKeyPath(node, scope, seen = new Set()) {
     const segments = [];
     let current = unwrapKeyExpression(node);
@@ -308,21 +276,10 @@ function isHookOption(property) {
     return !!calleeName && isHookName(calleeName);
 }
 
-/**
- * Only the library's public entry point. A deep import of its internals, such as
- * `react-native-onyx/dist/OnyxUtils`, is a different set of functions that app code is not meant to reach
- * at all, so this rule says nothing about it.
- */
 function isOnyxModuleSource(sourceValue) {
     return sourceValue === ONYX_MODULE;
 }
 
-/**
- * Whether an identifier sits where React runs it as part of rendering: a hook's `selector` option, a
- * render-time hook argument such as `useMemo`'s factory, or a component wrapper such as `memo`. This is the
- * same set of positions `classifyFunctionBoundary` treats as render, checked against a name rather than
- * against a function written in place.
- */
 function isRenderTimeUsage(identifier) {
     const parent = identifier.parent;
 
@@ -337,11 +294,6 @@ function isRenderTimeUsage(identifier) {
     return matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES) || !!getRenderTimeArgumentIndices(parent.callee)?.has(parent.arguments.indexOf(identifier));
 }
 
-/**
- * The declaration that binds a function to a name, so a callback written apart from the call that runs it
- * can be traced to its use sites. Covers both forms a named callback is written in: a function declaration,
- * and a function assigned to a variable.
- */
 function getFunctionBinding(functionNode, parent) {
     if (functionNode.type === 'FunctionDeclaration' && functionNode.id?.type === 'Identifier') {
         return {declaration: functionNode, name: functionNode.id.name};
@@ -354,12 +306,6 @@ function getFunctionBinding(functionNode, parent) {
     return null;
 }
 
-/**
- * Whether any reference to the bound name reaches a render-time position, following renaming assignments so
- * `const selector = pickAccount` is read as a use of `pickAccount`. Without this, a selector declared next to
- * the hook rather than inside its options object reads as an ordinary function and its Onyx read goes
- * unreported, even though the hook calls it on every render.
- */
 function isReferencedAtRenderTime(declaration, boundName, sourceCode, seen = new Set()) {
     const variable = sourceCode.getDeclaredVariables(declaration).find((declaredVariable) => declaredVariable.name === boundName);
 
@@ -465,10 +411,6 @@ function classifyPosition(ancestors, sourceCode) {
     return MODULE_SCOPE;
 }
 
-/**
- * Reports the read's key when it names a restricted key, or a null key when the expression cannot be
- * resolved and so cannot be shown to name anything else.
- */
 function findRestrictedKey(keyArgument, scope) {
     const keyPath = getOnyxKeyPath(keyArgument, scope);
 

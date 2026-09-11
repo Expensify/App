@@ -264,8 +264,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         valid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`},
 
-            // a deep import of the library's internals is a different function that app code is not meant to reach,
-            // so the rule says nothing about it, in any position
             {code: `${ONYX_UTILS_IMPORT} export function submit(reportID) { return OnyxUtils.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`},
             {code: `${ONYX_UTILS_IMPORT} export function submit() { return OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST); }`},
             {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; export function submit() { return get(ONYXKEYS.COLLECTION.REPORT); }`},
@@ -276,7 +274,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         ],
         invalid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`, errors: RESTRICTED_ERRORS},
-            // position is still checked on the internal read; only the key ban is scoped to the public surface
             {
                 code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`,
                 errors: RESTRICTED_ERRORS,
@@ -304,8 +301,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
 describe('no-unsafe-onyx-read under the TypeScript parser', () => {
     tsRuleTester.run(ruleModule.name, ruleModule, {
         valid: [
-            // `as const` on a collection member key is how this codebase writes one, so the wrapper must not
-            // make the key unresolvable
             {code: `${ONYX_IMPORT} export function submit(id: string) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` as const); }`},
             {code: `${ONYX_IMPORT} export function submit(id: string) { const key = \`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\` as const; return Onyx.get(key); }`},
             {
@@ -337,10 +332,6 @@ describe('no-unsafe-onyx-read under the TypeScript parser', () => {
 describe('no-unsafe-onyx-read restricted keys', () => {
     const linter = new Linter();
 
-    /**
-     * The restriction the rule implements, stated against its source of truth: a key is out of reach when
-     * `src/hooks/useOnyx.ts` would have redirected it to a Search snapshot.
-     */
     function isSearchSnapshotKey(value: string): boolean {
         return !value.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((prefix) => value.startsWith(prefix));
     }
@@ -349,7 +340,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         return typeof value === 'object' && value !== null;
     }
 
-    /** Every string-valued entry of ONYXKEYS, as the access path a call site would write. */
     function collectKeyPaths(node: Record<string, unknown>, prefix: string[] = []): Array<[string, string]> {
         return Object.entries(node).flatMap<[string, string]>(([name, value]) => {
             if (typeof value === 'string') {
