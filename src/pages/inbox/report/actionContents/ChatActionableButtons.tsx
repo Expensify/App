@@ -187,7 +187,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const {translate} = useLocalize();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const personalDetail = useCurrentUserPersonalDetails();
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {

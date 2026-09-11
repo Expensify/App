@@ -241,7 +241,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
