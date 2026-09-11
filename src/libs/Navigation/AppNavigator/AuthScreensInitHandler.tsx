@@ -100,7 +100,7 @@ function AuthScreensInitHandler() {
     const policyOwnerLogin = ownerEmail ?? session?.email;
     const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
     const policyOwnerDisplayName = usePersonalDetailByLogin(policyOwnerLogin, displayNameSelector);
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const reportAttributes = useReportAttributes();

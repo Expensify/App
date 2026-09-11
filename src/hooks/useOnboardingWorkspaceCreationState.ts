@@ -30,7 +30,7 @@ function useOnboardingWorkspaceCreationState() {
     const currentUserAccountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const localCurrencyCode = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
