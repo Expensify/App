@@ -670,6 +670,7 @@
 "../../src/libs/Clipboard/index.ts"	"@typescript-eslint/no-deprecated/document.execCommand"	1
 "../../src/libs/Clipboard/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Clipboard/index.ts"	"no-restricted-syntax"	1
+"../../src/libs/cloneMutable.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-deprecated/TextInput.State.currentlyFocusedField"	1
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
