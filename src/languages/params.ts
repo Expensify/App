@@ -1,5 +1,7 @@
 import type {ConnectionName} from './TranslationTypes';
 
+type NewRulePromptUnsupportedParams = {area: string};
+
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
@@ -36,6 +38,7 @@ type ExportAgainModalDescriptionParams = {
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
 export type {
+    NewRulePromptUnsupportedParams,
     ParentNavigationSummaryParams,
     StepCounterParams,
     ChangeFieldParams,

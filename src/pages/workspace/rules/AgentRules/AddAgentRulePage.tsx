@@ -78,6 +78,13 @@ function AddAgentRulePage({
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
+    // A prompt already in the draft was handed over from the New rule flow, so it opens on the tab showing it.
+    const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
+    if (!didOpenTabForDraft && hasDraftPrompt) {
+        setDidOpenTabForDraft(true);
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+    }
+
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
         setActiveTabPolicyID(policyID);

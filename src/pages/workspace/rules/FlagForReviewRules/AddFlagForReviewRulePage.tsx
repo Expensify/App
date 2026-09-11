@@ -17,6 +17,7 @@ type AddFlagForReviewRulePageProps =
 
 function AddFlagForReviewRulePage({route}: AddFlagForReviewRulePageProps) {
     const {policyID, categoryName} = route.params;
+    const isPrefilled = 'isPrefilled' in route.params && route.params.isPrefilled === 'true';
     const isCategoryScopedFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_NEW;
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -35,6 +36,7 @@ function AddFlagForReviewRulePage({route}: AddFlagForReviewRulePageProps) {
             initialCategoryName={categoryName}
             isCategoryLocked={isCategoryScopedFlow ? true : undefined}
             isCategoryScopedFlow={isCategoryScopedFlow}
+            isPrefilled={isPrefilled}
             testID="AddFlagForReviewRulePage"
         />
     );

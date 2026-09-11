@@ -18,6 +18,7 @@ type AddRequireFieldsRulePageProps =
 function AddRequireFieldsRulePage({route}: AddRequireFieldsRulePageProps) {
     const {policyID, categoryName} = route.params;
     const isCategoryScopedFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_FIELDS_RULE_NEW;
+    const isPrefilled = 'isPrefilled' in route.params && route.params.isPrefilled === 'true';
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const scopedCategory = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -34,6 +35,7 @@ function AddRequireFieldsRulePage({route}: AddRequireFieldsRulePageProps) {
             categoryName={hasExistingRule ? categoryName : undefined}
             initialCategoryName={categoryName}
             isCategoryLocked={isCategoryScopedFlow ? true : undefined}
+            isPrefilled={isPrefilled}
             testID="AddRequireFieldsRulePage"
         />
     );
