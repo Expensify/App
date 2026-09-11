@@ -8,9 +8,9 @@ on:
         description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
         required: false
         default: ''
-      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified, the commit pinned by the App submodule is used.
       MOBILE_EXPENSIFY_PULL_REQUEST_URL:
-        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description.
         required: false
         default: ''
       REVIEWED_CODE:
@@ -32,6 +32,10 @@ on:
         default: true
       FORCE_NATIVE_BUILD:
         description: Force a full native build, bypassing Rock remote cache
+        type: boolean
+        default: false
+      MOBILE_EXPENSIFY_MAIN:
+        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule.
         type: boolean
         default: false
 
@@ -62,8 +66,8 @@ jobs:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).
       APP_REF: ${{ needs.resolveRefs.outputs.APP_REF || 'main' }}
       APP_PR_NUMBER: ${{ needs.resolveRefs.outputs.APP_PR_NUMBER }}
-      # Fall back to Mobile-Expensify main when nothing is resolved (test builds track the latest OldDot).
-      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || 'main' }}
+      # Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
+      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || (inputs.MOBILE_EXPENSIFY_MAIN && 'main' || '') }}
       MOBILE_EXPENSIFY_PR: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }}
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
       BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
