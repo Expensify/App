@@ -18,9 +18,12 @@ type ErrorMessageRowProps = {
     onDismiss?: () => void;
 
     dismissError?: () => void;
+
+    /** Retries a failed receipt upload. */
+    onRetryReceiptUpload?: () => void;
 };
 
-function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, errorRowTextStyles}: ErrorMessageRowProps) {
+function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, errorRowTextStyles, onRetryReceiptUpload}: ErrorMessageRowProps) {
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
     const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError | OnyxCommon.TranslationKeyError] => errorEntry[1] !== null);
@@ -35,6 +38,7 @@ function ErrorMessageRow({errors, errorRowStyles, onDismiss, dismissError, error
             containerStyles={errorRowStyles}
             errorTextStyles={errorRowTextStyles}
             dismissError={dismissError}
+            onRetryReceiptUpload={onRetryReceiptUpload}
         />
     ) : null;
 }

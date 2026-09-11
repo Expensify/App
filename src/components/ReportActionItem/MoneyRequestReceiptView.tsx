@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,8 +37,12 @@ import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
+import retryReceiptUpload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler';
+import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
@@ -69,7 +74,7 @@ import variables from '@styles/variables';
 
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
-import {replaceReceipt} from '@userActions/IOU/Receipt';
+import {clearReceiptUploadError, replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport, setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 
@@ -77,7 +82,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {ReceiptError, TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -136,7 +141,8 @@ function MoneyRequestReceiptView({
     hasParentPendingAction = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -414,6 +420,41 @@ function MoneyRequestReceiptView({
 
     const {showConfirmModal} = useConfirmModal();
 
+    const retryableReceiptError = Object.values(errors ?? {}).find((error): error is ReceiptError => isReceiptError(error));
+    const receiptRetryContext: ReceiptRetryContext | undefined = retryableReceiptError
+        ? {
+              receiptError: retryableReceiptError,
+              transaction,
+              iouReport: moneyRequestReport,
+              policyParams: {policy, policyCategories, policyTagList},
+              betas,
+              conciergeReportID,
+              isSelfTourViewed: !!isSelfTourViewed,
+              isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+              isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+              delegateAccountID,
+              formatPhoneNumber,
+              getCurrencyDecimals,
+          }
+        : undefined;
+
+    const canRetryUpload = !!receiptRetryContext && canBuildRetryPayload(receiptRetryContext);
+
+    const retryReceiptUploadAndClearError = () => {
+        if (!receiptRetryContext) {
+            return;
+        }
+
+        retryReceiptUpload(receiptRetryContext, () =>
+            clearReceiptUploadError({
+                transactionID: transaction?.transactionID,
+                reportID: parentReportAction?.reportID ?? report?.reportID,
+                reportActionID: parentReportAction?.reportActionID,
+                reportIDWithCreationError: report?.reportID,
+            }),
+        ).catch((error: unknown) => Log.alert('[ReceiptRetry] Retry failed unexpectedly', {error}));
+    };
+
     const transactionAndReportActionErrors = useMemo(
         () => ({
             ...transaction?.errors,
@@ -657,6 +698,7 @@ function MoneyRequestReceiptView({
                         });
                     }}
                     dismissError={dismissReceiptError}
+                    onRetryReceiptUpload={canRetryUpload ? retryReceiptUploadAndClearError : undefined}
                     style={[shouldShowAuditMessage ? styles.mt3 : styles.mv3, !showReceiptErrorWithEmptyState && styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >

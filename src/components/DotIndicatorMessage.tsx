@@ -43,9 +43,12 @@ type DotIndicatorMessageProps = {
 
     textStyles?: StyleProp<TextStyle>;
     dismissError?: () => void;
+
+    /** Retries the failed receipt upload. */
+    onRetryReceiptUpload?: () => void;
 };
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissError = () => {}}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissError = () => {}, onRetryReceiptUpload}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -136,6 +139,15 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         );
         const buttonsRow = (
             <View style={[styles.flexRow, styles.gap3]}>
+                {!!onRetryReceiptUpload && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        onPress={onRetryReceiptUpload}
+                    >
+                        <Button.Text>{translate('common.tryAgain')}</Button.Text>
+                    </Button>
+                )}
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
