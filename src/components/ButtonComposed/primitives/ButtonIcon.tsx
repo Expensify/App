@@ -12,7 +12,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ButtonIconProps = {
-    /** The icon asset to display */
     src: IconAsset;
 
     /** Icon color used on hover. */
@@ -23,9 +22,12 @@ type ButtonIconProps = {
 
     /** Default icon color when the button is not hovered. */
     fill?: string;
+
+    /** Accessibility label applied to this icon. When set, the icon is exposed to assistive tech with this label. */
+    accessibilityLabel?: string;
 };
 
-function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
+function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
@@ -43,6 +45,7 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
                 fill={propsFill ?? defaultFill}
                 size={size}
                 isButtonIcon
+                accessibilityLabel={accessibilityLabel}
             />
         </View>
     );

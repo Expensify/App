@@ -108,3 +108,53 @@
     ```
 
 - Upstream issue: not yet reported at the time of writing (2.6.4 is the latest release).
+
+### [react-native-google-places-autocomplete+2.6.4+005+fix-loader-stuck-on-abort.patch](react-native-google-places-autocomplete+2.6.4+005+fix-loader-stuck-on-abort.patch)
+
+- Reason:
+
+    ```
+    On Android the address suggestion list could spin forever instead of showing
+    results (Expensify/App#98825). Two 2.6.4 changes combine to cause it.
+
+    First, the effect that re-requests on query change gained `stateText` in its
+    dependency array, and its cleanup calls `_abortRequests()`. In 2.5.6 that cleanup
+    was keyed to `[props.query]` alone, so every abort was paired with a request that
+    replaced it. In 2.6.4 the cleanup runs on every keystroke, while the effect body
+    only re-requests when `queryString` changed — so typing aborts requests without
+    issuing new ones.
+
+    Second, `listLoaderDisplayed` is only ever cleared from `onreadystatechange` at
+    readyState 4, and `_abortRequests` detaches that handler (`onreadystatechange =
+    null`) before calling `abort()`. An aborted request therefore leaves the loader
+    flag stuck true with nothing to reset it.
+
+    AddressSearch passes no `debounce` prop, so `debounceMs` is 0 and the request is
+    issued from a `setTimeout(..., 0)`. When that timer wins the race against React
+    flushing passive effects, the request reaches readyState 1 (setting the loader
+    true) and is then aborted by the cleanup of the very render that scheduled it.
+    Nothing re-issues it and nothing clears the flag, so the loader spins forever.
+    The race is why this reproduces on Android/Hermes but not reliably on web, where
+    the scheduler drains passive effects on a different task queue.
+
+    Upstream 2.6.4 gates the whole list on `dataSource.length > 0`, which makes the
+    stuck loader invisible; patch 003 deliberately restores 2.5.6's reachable loader,
+    so the leak became user-visible in this app.
+
+    The fix drops `stateText` from that effect's dependency array, restoring 2.5.6's
+    `[props.query]` keying (2.5.6 carried the same eslint-disable for the same reason).
+    `stateText` is still read in the body, but only inside the `queryChanged` guard,
+    and the effect re-runs on every render where `queryString` changed, so the value
+    read there is always current. This leaves the four `_abortRequests()` call sites
+    exactly as 2.5.6 had them: the query-change/unmount cleanup, `_onPress`,
+    `_requestNearby`, and the top of `_request`.
+
+    It also clears the loader flag inside `_abortRequests`, so no abort path can strand
+    it — including `_request`'s short-text early return and row press, where 2.5.6 left
+    a stale `true` that happened to be invisible. Callers that immediately re-request
+    set the flag back to true in the same tick (`open()` moves the new request to
+    readyState 1 synchronously, and React batches), so there is no flicker.
+    ```
+
+- E/App issue: https://github.com/Expensify/App/issues/98825
+- Upstream issue: not yet reported at the time of writing (2.6.4 is the latest release).

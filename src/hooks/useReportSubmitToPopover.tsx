@@ -32,7 +32,7 @@ import useWindowDimensions from './useWindowDimensions';
 const popoverDimensions = {
     width: CONST.POPOVER_DROPDOWN_WIDTH,
     height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-    minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
+    portraitHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT,
 };
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
@@ -68,7 +68,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
 
     const submitToPopoverContentHeight = useMemo(() => {
         if (!isInLandscapeMode) {
-            return popoverDimensions.height;
+            // Portrait uses the dedicated fixed height for this popover (`POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT`),
+            // so the intent stays explicit rather than silently coupling to the generic dropdown max.
+            return popoverDimensions.portraitHeight;
         }
 
         const contentHeightLandscapeMode = calculateModalHeightInLandscapeMode(windowHeight, topSafeAreaInset, keyboardActiveHeight);
@@ -230,10 +232,13 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         [StyleUtils, isSmallScreenWidth, popoverContainerStyle, viewportOffsetTop, windowHeight],
     );
 
+    // No height in portrait: the wrapper `View` below owns it. This container is the modal's own box, so a height set
+    // here does not bound the content (the wrapper's `flex1` had nothing to resolve against, which let the content
+    // overflow the fixed box and pushed the Confirm button out of view).
     const innerContainerStyle = useMemo(
         () => ({
             ...popoverContainerStyle,
-            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {minHeight: popoverDimensions.minHeight}),
+            ...(isInLandscapeMode ? styles.getPopoverMaxHeight(windowHeight, true) : {}),
         }),
         [popoverContainerStyle, isInLandscapeMode, windowHeight, styles],
     );
@@ -260,12 +265,20 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
                 shouldUseModalPaddingStyle
+                // `FixedFooter` inside the list already applies the bottom safe area on top of its own 20px, so let it
+                // own that spacing entirely. Without this the narrow bottom-docked modal adds its own 16px plus a
+                // second safe area inset (both helpers sum rather than max), leaving far too much room under Confirm.
+                enableEdgeToEdgeBottomSafeAreaPadding
                 avoidKeyboard
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 <View
                     collapsable={false}
-                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, !isInLandscapeMode && styles.flex1, styles.w100, styles.pt4]}
+                    // Single owner of the popover height: this is the `flexColumn` box that directly parents the
+                    // content, so the height here is what bounds the chain below and lets the list scroll instead of
+                    // growing the popover. `flex1` is deliberately omitted, since `flex-basis: 0` would override the
+                    // height and hand sizing back to the content. `pt4` (wide only) is padding within that height.
+                    style={[StyleUtils.getHeight(submitToPopoverContentHeight), styles.flexColumn, styles.w100, !isSmallScreenWidth && styles.pt4]}
                 >
                     <ReportSubmitToContent
                         key={submitToContentKey}
@@ -293,10 +306,9 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         StyleUtils,
         submitToPopoverContentHeight,
         styles.flexColumn,
-        styles.flex1,
         styles.w100,
         styles.pt4,
-        isInLandscapeMode,
+        isSmallScreenWidth,
         submitToContentKey,
         report,
         policy,

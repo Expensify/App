@@ -26,7 +26,6 @@ type CorpayBeneficialOwner = {
     /** Residential address of the owner */
     residentialAddress?: string;
 
-    /** Ownership percentage */
     ownershipPercentage?: string;
 
     /** Nationality of the owner */
@@ -168,7 +167,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank account number */
     accountNumber?: string;
 
-    /** Bank account name */
     bankName?: BankName;
 
     /** Policy ID of the workspace the bank account is being set up on */
@@ -183,7 +181,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Last 4 digits of the account number */
     mask?: string;
 
-    /** Unique identifier for this account in Plaid */
     plaidAccountID?: string;
 
     /** Bank Account setup type (plaid or manual) */
@@ -217,7 +214,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Country user selects in first step */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 
-    /** Corpay fields */
     corpay: Corpay;
 
     /** Date the corpay bank account was created */
@@ -232,17 +228,14 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
         externalApiResponses?: {
             /** provider name */
             companyTaxID?: {
-                /** status of check */
                 status: string;
             };
             /** provider name */
             lexisNexisInstantIDResult?: {
-                /** status of check */
                 status: string;
             };
             /** provider name */
             requestorIdentityID?: {
-                /** status of check */
                 status: string;
                 /** result with validation errors */
                 apiResult?: {
@@ -315,7 +308,6 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Where the request is successful */
     isSuccess?: boolean;
 
-    /** A date that indicates the user has been throttled */
     throttledDate?: string;
 
     /** Additional data for the account in setup */
@@ -336,7 +328,6 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Draft step of the setup flow from Onyx */
     draftStep?: BankAccountStep;
 
-    /** Should display modal to reset data */
     shouldShowResetModal?: boolean;
 }>;
 

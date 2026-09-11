@@ -230,7 +230,7 @@ describe('WorkspaceTagsSettingsPage required-tag toggle visibility', () => {
     });
 });
 
-describe('RulesRequireFieldsPage tag toggle visibility', () => {
+describe('RulesRequireFieldsPage tag toggles', () => {
     const getRulesTagLabel = () => TestHelper.translateLocal('workspace.rules.requireFields.tag');
     const getRulesCategoryLabel = () => TestHelper.translateLocal('workspace.rules.requireFields.category');
 
@@ -238,7 +238,7 @@ describe('RulesRequireFieldsPage tag toggle visibility', () => {
     const setupRulesPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean) =>
         setupPolicy(policyTags, hasMultipleTagLists, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true}, [CONST.BETAS.RULES_REVAMP]);
 
-    it('shows the "Tag" toggle for single-level tags', async () => {
+    it('names the single toggle after the tag list for single-level tags', async () => {
         const policy = await setupRulesPolicy(singleLevelTags, false);
         const {unmount} = renderRulesPage(policy.id);
         await waitForBatchedUpdatesWithAct();
@@ -248,13 +248,14 @@ describe('RulesRequireFieldsPage tag toggle visibility', () => {
         await waitFor(() => {
             expect(screen.getAllByLabelText(getRulesCategoryLabel()).at(0)).toBeOnTheScreen();
         });
-        expect(screen.getAllByLabelText(getRulesTagLabel()).at(0)).toBeOnTheScreen();
+        expect(screen.getAllByLabelText('Department').at(0)).toBeOnTheScreen();
+        expect(screen.queryAllByLabelText(getRulesTagLabel())).toHaveLength(0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('shows the "Tag" toggle for dependent multi-level tags', async () => {
+    it('shows one generic "Tag" toggle for dependent multi-level tags', async () => {
         const policy = await setupRulesPolicy(dependentMultiLevelTags, true);
         const {unmount} = renderRulesPage(policy.id);
         await waitForBatchedUpdatesWithAct();
@@ -264,22 +265,27 @@ describe('RulesRequireFieldsPage tag toggle visibility', () => {
         await waitFor(() => {
             expect(screen.getAllByLabelText(getRulesCategoryLabel()).at(0)).toBeOnTheScreen();
         });
+        // One flag covers every level here, so the row must not be named after a single one of them.
         expect(screen.getAllByLabelText(getRulesTagLabel()).at(0)).toBeOnTheScreen();
+        expect(screen.queryAllByLabelText('Department')).toHaveLength(0);
+        expect(screen.queryAllByLabelText('Region')).toHaveLength(0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('hides the "Tag" toggle for independent multi-level tags', async () => {
+    it('shows a toggle per level for independent multi-level tags', async () => {
         const policy = await setupRulesPolicy(independentMultiLevelTags, true);
         const {unmount} = renderRulesPage(policy.id);
         await waitForBatchedUpdatesWithAct();
 
-        // The category toggle is always present, so wait on its accessibility label before asserting the tag toggle is absent.
+        // The category toggle is always present; wait on its accessibility label before asserting the tag toggles.
         // The row title and its switch can both carry the label, so use the All variants.
         await waitFor(() => {
             expect(screen.getAllByLabelText(getRulesCategoryLabel()).at(0)).toBeOnTheScreen();
         });
+        expect(screen.getAllByLabelText('Department').at(0)).toBeOnTheScreen();
+        expect(screen.getAllByLabelText('Region').at(0)).toBeOnTheScreen();
         expect(screen.queryAllByLabelText(getRulesTagLabel())).toHaveLength(0);
 
         unmount();

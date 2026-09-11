@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {ChildNode, ParentNode} from 'domhandler';
+import type {ChildNode} from 'domhandler';
 
 import render from 'dom-serializer';
 import {DataNode, Element} from 'domhandler';
@@ -9,22 +9,10 @@ import {parseDocument} from 'htmlparser2';
 
 import type GetCurrentSelection from './types';
 
+import installTransformedChildren from './installTransformedChildren';
+
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
-
-const installTransformedChildren = (parent: ParentNode, children: ChildNode[]) => {
-    // The helper must update the supplied domhandler parent so it owns the exact transformed child array.
-    // eslint-disable-next-line no-param-reassign
-    parent.children = children;
-
-    for (const [index, child] of children.entries()) {
-        child.parent = parent;
-        // Negative indices wrap to the last child, but the first child must have no predecessor.
-        // eslint-disable-next-line rulesdir/prefer-at
-        child.prev = children[index - 1] ?? null;
-        child.next = children.at(index + 1) ?? null;
-    }
-};
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
@@ -178,7 +166,6 @@ const getCurrentSelection: GetCurrentSelection = () => {
     return newHtml || '';
 };
 
-export {installTransformedChildren};
 export default {
     getCurrentSelection,
 };

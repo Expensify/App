@@ -16,6 +16,7 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -138,13 +139,14 @@ function SearchStaticList({
 
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // betas and introSelected are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
+            // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
                 getCurrencyDecimals,
                 item,
                 introSelected: undefined,
+                conciergeChat: undefined,
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
@@ -187,9 +189,10 @@ function SearchStaticList({
 
         const stateNum = item.report?.stateNum;
         const statusNum = item.report?.statusNum;
-        const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
-        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
+        const isDeleted = isDeletedTransaction(item);
+        const statusText = getReportStatusTranslation({stateNum, statusNum, translate, isDeleted});
+        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate, isDeleted});
 
         return (
             <PressableWithoutFeedback

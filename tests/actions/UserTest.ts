@@ -8,6 +8,7 @@ import type {NewLogin} from '@src/types/onyx';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import * as DeviceActions from '../../src/libs/actions/Device';
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
@@ -170,6 +171,29 @@ describe('actions/User', () => {
         });
     });
 
+    describe('dismissMarketingWindow', () => {
+        it('should dismiss the supplied marketing update key optimistically', async () => {
+            const updateKey = 'productUpdateJuly2026';
+
+            UserActions.dismissMarketingWindow(updateKey);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DISMISS_MARKETING_WINDOW,
+                {updateKey},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+                            value: updateKey,
+                        },
+                    ],
+                },
+            );
+        });
+    });
+
     describe('verifyAddSecondaryLoginCode', () => {
         it('should call API.write with correct parameters', async () => {
             // Given a validate code
@@ -231,13 +255,21 @@ describe('actions/User', () => {
             const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
             const successData = onyxData?.successData ?? [];
 
-            expect(successData).toHaveLength(1);
+            expect(successData).toHaveLength(2);
             expect(successData.at(0)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PENDING_CONTACT_ACTION,
                 value: {
                     isVerifiedValidateActionCode: true,
                     isLoading: false,
+                },
+            });
+            expect(successData.at(1)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    lastValidateCodeRequestedAt: null,
+                    lastValidateCodeReason: null,
                 },
             });
         });
@@ -323,8 +355,25 @@ describe('actions/User', () => {
                 const anyNumber: unknown = expect.any(Number);
 
                 expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
-                expect(optimisticUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: anyNumber}));
-                expect(failureUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: null}));
+                expect(optimisticUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: anyNumber, lastValidateCodeReason: null}));
+                expect(failureUpdate?.value).toEqual(expect.objectContaining({lastValidateCodeRequestedAt: null, lastValidateCodeReason: null}));
+            });
+        });
+
+        it('should store the reason atomically with the timestamp when a reasonCode is provided', () => {
+            UserActions.requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD});
+
+            return waitForBatchedUpdates().then(() => {
+                const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+                const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+                const anyNumber: unknown = expect.any(Number);
+
+                expect(optimisticUpdate?.value).toEqual(
+                    expect.objectContaining({
+                        lastValidateCodeRequestedAt: anyNumber,
+                        lastValidateCodeReason: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD,
+                    }),
+                );
             });
         });
 
@@ -351,6 +400,53 @@ describe('actions/User', () => {
                 expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
                 expect(mockAPI.write.mock.calls.at(0)?.[1]).toEqual({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID});
             });
+        });
+    });
+
+    describe('validateSecondaryLogin', () => {
+        beforeEach(() => {
+            jest.spyOn(DeviceActions, 'getDeviceInfoWithID').mockResolvedValue('{"deviceID":"test-device"}');
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should clear the validate-code stamp in successData alongside validated: true', async () => {
+            const contactMethod = 'test@example.com';
+            const validateCode = '123456';
+
+            UserActions.validateSecondaryLogin(contactMethod, validateCode);
+            await waitForBatchedUpdates();
+
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const successData = onyxData?.successData ?? [];
+            const validateActionCodeUpdate = successData.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+            const accountUpdate = successData.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(validateActionCodeUpdate).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.VALIDATE_ACTION_CODE,
+                value: {
+                    lastValidateCodeRequestedAt: null,
+                    lastValidateCodeReason: null,
+                },
+            });
+            expect(accountUpdate?.value).toEqual(expect.objectContaining({validated: true}));
+        });
+
+        it('should not clear the validate-code stamp in failureData', async () => {
+            const contactMethod = 'test@example.com';
+            const validateCode = '123456';
+
+            UserActions.validateSecondaryLogin(contactMethod, validateCode);
+            await waitForBatchedUpdates();
+
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const failureData = onyxData?.failureData ?? [];
+            const validateActionCodeUpdate = failureData.find((update) => update.key === ONYXKEYS.VALIDATE_ACTION_CODE);
+
+            expect(validateActionCodeUpdate).toBeUndefined();
         });
     });
 

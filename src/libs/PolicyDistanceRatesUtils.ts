@@ -2,9 +2,11 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {CustomUnit, Rate, RateAttributes} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -204,8 +206,68 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
+/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
+    if (!currency) {
+        return undefined;
+    }
+
+    const currencyToCountry: Record<string, GovernmentRateCountry> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY;
+    return currencyToCountry[currency];
+}
+
+/** Whether we can auto-update government distance rates for this output currency. */
+function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
+    return !!getGovernmentRateCountryForCurrency(currency);
+}
+
+/** The unit the currency's country publishes its mileage rates in. */
+function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+}
+
+/** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
+function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    if (!country) {
+        return undefined;
+    }
+
+    return `workspace.distanceRates.governmentRateCountries.${country}`;
+}
+
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
     return !!policy?.id && !!policy.commuterExclusions;
+}
+
+/**
+ * Whether distance expenses on this workspace must come from a mapped route or a GPS track, which rules out the
+ * manual and odometer flows. Commuter exclusions are derived from the mapped route, so configuring them enforces
+ * the requirement on its own, whatever `requireMapOrGPS` is set to.
+ */
+function isMapOrGPSRequired(policy: Policy | null | undefined): boolean {
+    if (!policy?.id) {
+        return false;
+    }
+
+    return !!policy.requireMapOrGPS || isCommuterExclusionEnabled(policy);
+}
+
+/**
+ * The distance type an entry point should open the flow on. `lastDistanceExpenseType` only records what the member
+ * picked last time, so it goes stale the moment the workspace starts requiring GPS or map entry. Falling back to map
+ * matches what the start page renders anyway, since it hides the manual and odometer tabs, and it keeps a stale
+ * preference from blocking a flow the member is still allowed to start.
+ */
+function getDistanceExpenseTypeForPolicy(policy: Policy | null | undefined, lastDistanceExpenseType: IOURequestType | undefined): IOURequestType | undefined {
+    const isManualOrOdometer = lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+
+    if (!isManualOrOdometer || !isMapOrGPSRequired(policy)) {
+        return lastDistanceExpenseType;
+    }
+
+    return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
 export {
@@ -214,6 +276,12 @@ export {
     validateCreateDistanceRateForm,
     buildOnyxDataForPolicyDistanceRateUpdates,
     getRateStatus,
+    getGovernmentRateCountryForCurrency,
+    isCurrencySupportedForAutoUpdate,
+    getExpectedUnitForCurrency,
+    getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
+    isMapOrGPSRequired,
+    getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
 };

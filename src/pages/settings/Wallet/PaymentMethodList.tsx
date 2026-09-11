@@ -20,6 +20,7 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     isActionableVirtualExpensifyCard,
     isBrokenConnectionPastDismissThreshold,
@@ -44,6 +45,8 @@ import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtil
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
+import {updateSelectedFeed} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,16 +96,12 @@ type PaymentMethodListProps = {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Additional style for the add bank account item */
     addBankAccountItemStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
     /** Whether connection statuses and sync details should be shown */
@@ -123,22 +122,14 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
-    /** The policy ID associated with the workspace, if component is rendered in workspace context */
-    policyID?: string;
-
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
-    /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
-
-    /* Currency of payment method to filter by */
     filterCurrency?: string;
-
-    /** Account states to exclude from the list */
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -147,10 +138,7 @@ type PaymentMethodListProps = {
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
@@ -191,7 +179,6 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
-    policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
@@ -243,12 +230,15 @@ function PaymentMethodList({
         status: BankAccountConnectionStatus,
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        isPendingDelete = false,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
+        // An account queued for deletion is struck through, so its action is disabled rather than hidden.
+        isActionDisabled: isPendingDelete,
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
@@ -290,9 +280,10 @@ function PaymentMethodList({
                     icon = getCardFeedIcon(card.bank, illustrations, companyCardFeedIcons);
                 }
 
+                const feedNameWithDomainID = card.fundID ? getCardFeedWithDomainID(card.bank, card.fundID) : undefined;
+
                 let shouldShowRBR = false;
-                if (card.fundID) {
-                    const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
+                if (feedNameWithDomainID) {
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
                 } else if ((!shouldShowConnectionStatus || !isUserPersonalCard) && card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
@@ -314,6 +305,7 @@ function PaymentMethodList({
                     brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                 }
 
+                const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
                 const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
@@ -339,9 +331,10 @@ function PaymentMethodList({
                 }
                 let cardConnectionStatus: PaymentMethodItem['connectionStatus'];
                 if (cardConnectionStatusDisplay) {
+                    const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard) : undefined;
                     let cardConnectionMessage: string | undefined;
-                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard) {
-                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
+                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
+                        cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${companyCardsRoute}`);
                     } else if (cardConnectionStatusDisplay.shouldUseReauthMessage) {
                         cardConnectionMessage = translate('walletPage.cardStatus.reconnectBank');
                     } else if (cardConnectionStatusDisplay.shouldUsePersonalCardFix) {
@@ -359,9 +352,14 @@ function PaymentMethodList({
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
                             : undefined,
                         onLinkPress:
-                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard
+                            cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute
                                 ? () => {
-                                      Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard));
+                                      // The Company cards page opens the last selected feed, so select this card's feed before going there.
+                                      // An unknown feed is ignored by getSelectedFeed, which falls back to the first available one.
+                                      if (companyCardFeedForCard && policyIDForCard) {
+                                          updateSelectedFeed(companyCardFeedForCard, policyIDForCard);
+                                      }
+                                      Navigation.navigate(companyCardsRoute);
                                   }
                                 : undefined,
                     };
@@ -584,7 +582,11 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-            const bankConnectionStatus = shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData)) : undefined;
+            // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
+            const bankConnectionStatus =
+                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
@@ -610,7 +612,14 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
-                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
+                connectionStatus: bankConnectionStatus
+                    ? mapBankStatusToRowStatus(
+                          bankConnectionStatus,
+                          paymentMethodPress,
+                          paymentMethodThreeDotsPress,
+                          paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      )
+                    : undefined,
             };
         });
         return combinedPaymentMethods;
@@ -620,12 +629,7 @@ function PaymentMethodList({
 
     const onPressItem = () => {
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
-            const path = Navigation.getActiveRoute();
-            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
-                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
-            }
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
         onAddBankAccountPress();

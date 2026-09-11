@@ -13,7 +13,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -33,7 +32,6 @@ import {
     getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -59,7 +57,6 @@ import {
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,8 +87,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -169,6 +165,7 @@ type CreateSplitsAndOnyxDataParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
     existingSplitChatReportID?: string;
+    optimisticSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -258,8 +255,7 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
+    optimisticSplitChatReportID?: string;
     delegateAccountID: number | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
@@ -298,8 +294,7 @@ function splitBill({
     policyRecentlyUsedTags,
     betas,
     personalDetails,
-    shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
+    optimisticSplitChatReportID,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -312,6 +307,7 @@ function splitBill({
         currentUserLogin,
         currentUserAccountID,
         existingSplitChatReportID,
+        optimisticSplitChatReportID,
         transactionParams: {
             amount,
             comment: parsedComment,
@@ -371,17 +367,11 @@ function splitBill({
             API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
         },
         {
-            shouldDeferForSearch,
+            shouldDeferForSearch: false,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    }
 
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
@@ -416,8 +406,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
-    shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
+    optimisticSplitChatReportID,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -430,6 +419,7 @@ function splitBillAndOpenReport({
         currentUserLogin,
         currentUserAccountID,
         existingSplitChatReportID,
+        optimisticSplitChatReportID,
         isASAPSubmitBetaEnabled,
         transactionParams: {
             amount,
@@ -489,17 +479,11 @@ function splitBillAndOpenReport({
             API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
         },
         {
-            shouldDeferForSearch,
+            shouldDeferForSearch: false,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-    if (shouldHandleNavigation) {
-        TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-        dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
-    } else {
-        removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    }
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
@@ -1251,8 +1235,6 @@ function completeSplitBill({
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
-    dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, undefined, true);
 }
 
@@ -1412,21 +1394,38 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
     });
 }
 
-function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+function findExistingSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
 
     // Check if the report is available locally if we do have one
     const allReports = getAllReports();
     const existingSplitChatOnyxData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
-    let existingSplitChatReport = existingChatReportID && existingSplitChatOnyxData ? {...existingSplitChatOnyxData} : undefined;
-
-    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport) {
-        existingSplitChatReport = getChatByParticipants(allParticipantsAccountIDs, undefined, participantAccountIDs.length > 1);
+    if (existingChatReportID && existingSplitChatOnyxData) {
+        return {...existingSplitChatOnyxData};
     }
 
-    // We found an existing chat report we are done...
+    return getChatByParticipants([...participantAccountIDs, currentUserAccountID], undefined, participantAccountIDs.length > 1);
+}
+
+/** Resolves the chat a split lands in, minting the optimistic ID when none exists yet so the UI can navigate to the report the split writes to. */
+function resolveOptimisticSplitChatReportID(existingSplitChatReportID: string | undefined, participants: Participant[], currentUserAccountID: number) {
+    const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
+    const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const optimisticSplitChatReportID = existingSplitChatReport ? undefined : generateReportID();
+    return {optimisticSplitChatReportID, chatReportID: existingSplitChatReport ? existingSplitChatReport.reportID : optimisticSplitChatReportID};
+}
+
+function getOrCreateOptimisticSplitChatReport(
+    existingSplitChatReportID: string | undefined,
+    participants: Participant[],
+    participantAccountIDs: number[],
+    currentUserAccountID: number,
+    optimisticSplitChatReportID?: string,
+) {
+    const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+
+    // We found an existing chat report, so we're done.
     if (existingSplitChatReport) {
         // Yes, these are the same, but give the caller a way to identify if we created a new report or not
         return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
@@ -1435,11 +1434,12 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     // Create a Group Chat if we have multiple participants
     if (participants.length > 1) {
         const splitChatReport = buildOptimisticChatReport({
-            participantList: allParticipantsAccountIDs,
+            participantList: [...participantAccountIDs, currentUserAccountID],
             reportName: '',
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             currentUserAccountID,
+            optimisticReportID: optimisticSplitChatReportID,
         });
 
         return {existingSplitChatReport: null, splitChatReport};
@@ -1449,6 +1449,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     const splitChatReport = buildOptimisticChatReport({
         participantList: participantAccountIDs,
         currentUserAccountID,
+        optimisticReportID: optimisticSplitChatReportID,
     });
     return {existingSplitChatReport: null, splitChatReport};
 }
@@ -1472,6 +1473,7 @@ function createSplitsAndOnyxData({
     currentUserLogin,
     currentUserAccountID,
     existingSplitChatReportID,
+    optimisticSplitChatReportID,
     transactionParams: {
         amount,
         comment,
@@ -1506,7 +1508,13 @@ function createSplitsAndOnyxData({
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
-    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(
+        existingSplitChatReportID,
+        participants,
+        participantAccountIDs,
+        currentUserAccountID,
+        optimisticSplitChatReportID,
+    );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
@@ -2341,10 +2349,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
-    }
-
     deferOrExecuteWrite(apiWrite, {
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
@@ -2364,6 +2368,7 @@ export {
     completeSplitBill,
     createDistanceRequest,
     createSplitsAndOnyxData,
+    resolveOptimisticSplitChatReportID,
     splitBill,
     splitBillAndOpenReport,
     startSplitBill,

@@ -127,3 +127,7 @@ Your Personal Expense Rule takes precedence. Workspace Merchant Rules apply only
 ## How do I clear a Category, Tag, or Tax rate value from an Expense Rule?
 
 When you create or edit a rule and open the **Category**, **Tag**, or **Tax rate** field, select **None** to clear the previously selected value. Then click or tap **Save rule**.
+
+## How do I leave Reimbursable or Billable unset in an Expense Rule?
+
+When you open the **Reimbursable** or **Billable** selector, it shows three options: **Don’t change**, **Yes**, and **No**. **Don’t change** is selected by default and leaves the field unset, so matching expenses keep their existing value.

@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
@@ -84,19 +84,13 @@ type PaymentMethodItem = PaymentMethod & {
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
-    /** The payment method item to render */
     item: PaymentMethodItem;
 
     /** Whether to show the default badge for this payment method */
     shouldShowDefaultBadge: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 };
 
@@ -329,11 +323,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
                     </View>
                     <Button
-                        small
-                        success
-                        text={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
-                    />
+                    >
+                        <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
+                    </Button>
                 </View>
             )}
             {isChaseAccountConnectedViaPlaid && (

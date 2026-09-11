@@ -44,7 +44,6 @@ function buildAdminPolicy(): Policy {
         role: CONST.POLICY.ROLE.ADMIN,
         owner: USER_EMAIL,
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
         employeeList: {
             [USER_EMAIL]: {
                 email: USER_EMAIL,

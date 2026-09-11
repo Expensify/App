@@ -1,4 +1,4 @@
-import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock, setDefaultTimeout} from 'bun:test';
 import type {Mock} from 'bun:test';
 
 import Git from '@scripts/utils/Git';
@@ -9,6 +9,12 @@ import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+
+// Each test shells out to the real `oxfmt` binary (twice per locale) plus file I/O, so under a loaded CI runner a
+// test can spike well past the default 5000ms per-test timeout (measured spikes of 4-11s vs a ~275ms healthy peak),
+// which killed the in-flight `oxfmt` subprocess with SIGTERM and flaked the run. 30s matches the CIGitLogic timeout
+// and leaves ample headroom over the worst observed contention.
+setDefaultTimeout(30000);
 
 let processExitSpy: Mock<typeof process.exit>;
 let consoleErrorSpy: Mock<typeof console.error>;
@@ -1485,6 +1491,227 @@ describe('generateTranslations', () => {
             // Should only translate the new string
             expect(translateSpy).toHaveBeenCalledTimes(1);
             expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined, expect.anything());
+        });
+
+        it('preserves the function wrapper when adding a plural translation key with --compare-ref', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                Str.dedent(`
+                const strings = {
+                    existingSection: {
+                        keep: 'Keep this existing translation',
+                    },
+                    codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                        one: \`copied 1 merchant rule from \${sourcePolicyName}\`,
+                        other: (count: number) => \`copied \${count} merchant rules from \${sourcePolicyName}\`,
+                    }),
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            fs.writeFileSync(
+                IT_PATH,
+                Str.dedent(`
+                import type en from './en';
+
+                const strings = {
+                    existingSection: {
+                        keep: '[it] Keep this existing translation',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
+                        hunks: [],
+                        addedLines: new Set([5, 6, 7, 8]),
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            expect(itContent).toContain('[it] Keep this existing translation');
+            expect(itContent).toContain('codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] copied 1 merchant rule from ${sourcePolicyName}');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] copied ${count} merchant rules from ${sourcePolicyName}');
+
+            expect(translateSpy).toHaveBeenCalledTimes(2);
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).toHaveBeenCalledWith('it', 'copied 1 merchant rule from ${sourcePolicyName}', undefined, expect.anything());
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).toHaveBeenCalledWith('it', 'copied ${count} merchant rules from ${sourcePolicyName}', undefined, expect.anything());
+        });
+
+        it('preserves the function wrapper when modifying a plural translation key with --compare-ref', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                Str.dedent(`
+                const strings = {
+                    codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                        one: \`copied 1 merchant rule from \${sourcePolicyName}\`,
+                        other: (count: number) => \`copied \${count} merchant rules from \${sourcePolicyName}\`,
+                    }),
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            fs.writeFileSync(
+                IT_PATH,
+                Str.dedent(`
+                import type en from './en';
+
+                const strings = {
+                    codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                        one: \`[it] copied 1 rule from \${sourcePolicyName}\`,
+                        other: (count: number) => \`[it] copied \${count} rules from \${sourcePolicyName}\`,
+                    }),
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set(),
+                        modifiedLines: new Set([3, 4]),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(
+                Str.dedent(`
+                const strings = {
+                    codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({
+                        one: \`copied 1 rule from \${sourcePolicyName}\`,
+                        other: (count: number) => \`copied \${count} rules from \${sourcePolicyName}\`,
+                    }),
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            expect(itContent).toContain('codingRules: ({sourcePolicyName}: {sourcePolicyName: string}) => ({');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] copied 1 merchant rule from ${sourcePolicyName}');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] copied ${count} merchant rules from ${sourcePolicyName}');
+            expect(itContent).not.toContain('[it] copied 1 rule from');
+
+            expect(translateSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('does not retranslate a sibling key that only shares a prefix with a changed function key', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                Str.dedent(`
+                const strings = {
+                    iou: {
+                        deleteReport: 'Delete report',
+                        deleteReportConfirmation: () => ({
+                            one: 'Are you sure you want to delete this report?',
+                            other: (count: number) => \`Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            fs.writeFileSync(
+                IT_PATH,
+                Str.dedent(`
+                import type en from './en';
+
+                const strings = {
+                    iou: {
+                        deleteReport: '[it] Delete report',
+                        deleteReportConfirmation: () => ({
+                            one: '[it] Are you sure you want to delete this report?',
+                            other: (count: number) => \`[it] Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        diffType: 'modified',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set(),
+                        modifiedLines: new Set([3]),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            mockShow.mockReturnValue(
+                Str.dedent(`
+                const strings = {
+                    iou: {
+                        deleteReport: 'Remove report',
+                        deleteReportConfirmation: () => ({
+                            one: 'Are you sure you want to delete this report?',
+                            other: (count: number) => \`Are you sure you want to delete these \${count} reports?\`,
+                        }),
+                    },
+                };
+                export default strings;
+            `),
+            );
+
+            process.argv = ['bun', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Delete report', undefined, expect.anything());
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Are you sure you want to delete this report?', undefined, expect.anything());
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Are you sure you want to delete these ${count} reports?', undefined, expect.anything());
         });
 
         it('handles modifying existing string values with --compare-ref', async () => {

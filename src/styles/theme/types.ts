@@ -5,8 +5,7 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type {ColorScheme, StatusBarStyle} from '..';
-
-type Color = string;
+import type {Color} from './colors';
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;

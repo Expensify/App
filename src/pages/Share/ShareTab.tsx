@@ -3,6 +3,7 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -40,6 +41,7 @@ const defaultListOptions = {
 function ShareTab() {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -61,6 +63,7 @@ function ShareTab() {
     const {options: listOptions, isLoading} = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         isSearching: !!debouncedTextInputValue.trim(),
+        includeP2P: true,
     });
     const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -71,6 +74,7 @@ function ShareTab() {
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
               dateFnsLocale,
+              convertToDisplayString,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               betas: betas ?? [],

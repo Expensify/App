@@ -1,5 +1,6 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -22,7 +23,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PermissionStatus} from 'react-native-permissions';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useState} from 'react';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -56,13 +56,11 @@ type UseSearchSelectorConfig = {
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
 
-    /** Whether to include current user */
     includeCurrentUser?: boolean;
 
     /** Enable phone contacts integration */
     enablePhoneContacts?: boolean;
 
-    /** Whether to include self DM */
     includeSelfDM?: boolean;
 
     /** Additional configuration for getValidOptions function */
@@ -77,7 +75,6 @@ type UseSearchSelectorConfig = {
     /** Initial selected options */
     initialSelected?: OptionData[];
 
-    /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 
     /** Additional contact options to merge (used by platform-specific implementations) */
@@ -86,7 +83,6 @@ type UseSearchSelectorConfig = {
     /** Whether to filter with recent attendees */
     recentAttendees?: Array<Partial<OptionData>>;
 
-    /** Whether to allow name-only options */
     shouldAllowNameOnlyOptions?: boolean;
 
     /** Whether to keep selected options in availableOptions instead of filtering them out */
@@ -103,13 +99,11 @@ type ContactState = {
     /** Contact options from device */
     contactOptions: Array<SearchOption<OnyxTypes.PersonalDetails>>;
 
-    /** Whether to show import UI */
     showImportUI: boolean;
 
     /** Function to trigger contact import */
     importContacts: () => void;
 
-    /** Function to set permission state */
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -117,7 +111,6 @@ type UseSearchSelectorReturn = {
     /** Current search term */
     searchTerm: string;
 
-    /** Debounced search term */
     debouncedSearchTerm: string;
 
     /** Function to update search term */
@@ -138,13 +131,11 @@ type UseSearchSelectorReturn = {
     /** Selected options that are not present in availableOptions.personalDetails (e.g. non-existing users invited by email). Only populated when shouldSeparateNonExistingSelectedOptions is true */
     selectedNonExistingOptions?: OptionData[];
 
-    /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
 
     /** Function to toggle selection state of an option */
     toggleSelection: (option: OptionData) => void;
 
-    /** Whether options are initialized */
     areOptionsInitialized: boolean;
 
     /** Contact-related state and functions (when enablePhoneContacts is true) */
@@ -155,6 +146,11 @@ type UseSearchSelectorReturn = {
 };
 
 const emptyOptionList: OptionList = {reports: [], personalDetails: []};
+
+const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorContext> = new Set([
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+    CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES,
+]);
 
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
@@ -191,6 +187,7 @@ function useSearchSelectorBase({
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -206,12 +203,18 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
     const isSearchingOptions = !!debouncedSearchTerm.trim();
+
+    // Keep option-list contact building aligned with downstream includeP2P filtering.
+    const appliesGetValidOptionsConfig = CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG.has(searchContext);
+    const includeP2P = !appliesGetValidOptionsConfig || (getValidOptionsConfig.includeP2P ?? true);
+    const appliedGetValidOptionsConfig = appliesGetValidOptionsConfig ? getValidOptionsConfig : CONST.EMPTY_OBJECT;
+
     const {
         options: filteredOptions,
         isLoading: isLoadingOptions,
@@ -220,6 +223,7 @@ function useSearchSelectorBase({
     } = useFilteredOptions({
         enabled: shouldInitialize,
         isSearching: isSearchingOptions,
+        includeP2P,
         batchSize: maxResultsPerPage,
     });
     const areOptionsInitialized = !isLoadingOptions;
@@ -229,7 +233,6 @@ function useSearchSelectorBase({
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
-
         // Imported contacts get a generated accountID, so one sharing a login with a real Onyx user would show a duplicate
         // row and be treated as a new invite. Track already-represented logins and drop contacts whose login is present.
         const existingLogins = new Set<string>();
@@ -261,7 +264,8 @@ function useSearchSelectorBase({
 
         return {
             ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions),
+            // Imported contacts are already hydrated.
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions.map((contact) => ({...contact, isHydrated: true as const}))),
         };
     })();
 
@@ -279,6 +283,7 @@ function useSearchSelectorBase({
                     options: optionsWithContacts,
                     draftComments,
                     dateFnsLocale,
+                    convertToDisplayString,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -308,6 +313,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -328,7 +334,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -343,6 +349,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -365,6 +372,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );
@@ -379,6 +387,7 @@ function useSearchSelectorBase({
                     conciergeReportID,
                     {
                         dateFnsLocale,
+                        convertToDisplayString,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,
@@ -399,7 +408,7 @@ function useSearchSelectorBase({
                         allPolicyTags,
                         sortedActions,
                         isTrackIntentUser,
-                        ...getValidOptionsConfig,
+                        ...appliedGetValidOptionsConfig,
                     },
                     translate,
                 );

@@ -1,4 +1,5 @@
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -9,7 +10,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -384,7 +385,7 @@ describe('actions/IOU', () => {
 
             const draftTransaction = transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${originalTransaction.transactionID}`];
             expect(draftTransaction).toBeTruthy();
-            expect(draftTransaction?.amount).toBe(-originalTransaction.amount);
+            expect(draftTransaction?.amount).toBe(originalTransaction.amount);
             expect(draftTransaction?.currency).toBe(originalTransaction.currency);
             expect(draftTransaction?.actionableWhisperReportActionID).toBe(reportActionID);
             expect(draftTransaction?.linkedTrackedExpenseReportID).toBe(selfDMReport.reportID);
@@ -634,7 +635,16 @@ describe('actions/IOU', () => {
                 const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
                 expect(draftTransaction?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, selfDMReport.reportID, undefined, CONST.IOU.ACTION.SUBMIT, true),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                            action: CONST.IOU.ACTION.SUBMIT,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: trackedExpense.transactionID,
+                            reportID: selfDMReport.reportID,
+                            isWorkspacesOnly: true,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID),
+                    ),
                 );
             });
         });

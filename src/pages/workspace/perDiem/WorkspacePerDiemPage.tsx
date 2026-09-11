@@ -273,13 +273,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
                         prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         handleDeletePerDiemRates();
@@ -360,7 +361,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                           }
                           Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
                       },
-                      success: true,
+                      buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   },
               ]
             : [],
@@ -412,16 +413,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     />
                 )}
                 {!isLoading && (
-                    <>
-                        {hasVisibleSubRates && subtitleContent}
-                        <WorkspacePerDiemTable
-                            perDiemData={perDiemRows}
-                            selectionEnabled={canWritePerDiem}
-                            selectedKeys={selectedSubRateKeys}
-                            onRowSelectionChange={setSelectedSubRateKeys}
-                            emptyState={emptyState}
-                        />
-                    </>
+                    <WorkspacePerDiemTable
+                        perDiemData={perDiemRows}
+                        selectionEnabled={canWritePerDiem}
+                        selectedKeys={selectedSubRateKeys}
+                        onRowSelectionChange={setSelectedSubRateKeys}
+                        headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
+                        emptyState={emptyState}
+                    />
                 )}
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

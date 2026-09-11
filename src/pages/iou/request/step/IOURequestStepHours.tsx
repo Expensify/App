@@ -83,17 +83,20 @@ function IOURequestStepHours({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const [formError, setFormError] = useState('');
 
+    const committedCount = `${transaction?.comment?.units?.count ?? ''}`;
+    // Mirrors the input so dirtiness compares the current value against the baseline instead of reading a ref
+    const [typedCount, setTypedCount] = useState(committedCount);
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormError('');
-        moneyRequestTimeInputRef.current?.updateNumber(`${transaction?.comment?.units?.count ?? ''}`);
-    }, [selectedTab, transaction?.comment?.units?.count]);
+        moneyRequestTimeInputRef.current?.updateNumber(committedCount);
+        // Keep the mirror in step with the value pushed into the input above
+        setTypedCount(committedCount);
+    }, [selectedTab, committedCount]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => {
-            const typedCount = moneyRequestTimeInputRef.current?.getNumber() ?? '';
-            return getStringFieldHasUnsavedChanges(typedCount, `${transaction?.comment?.units?.count ?? ''}`, isEmbeddedInStartPage);
-        },
+        getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedCount, committedCount, isEmbeddedInStartPage),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
@@ -176,7 +179,8 @@ function IOURequestStepHours({
                 containerStyle={styles.iouAmountTextInputContainer}
                 errorText={formError}
                 touchableInputWrapperStyle={styles.heightUndefined}
-                onInputChange={() => {
+                onInputChange={(newCount) => {
+                    setTypedCount(newCount);
                     if (!formError) {
                         return;
                     }

@@ -1,16 +1,9 @@
-import useLiveFilteredReportActions from '@components/Search/hooks/useLiveFilteredReportActions';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getSections} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -23,8 +16,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
-
-const emptyChildReportIDs: string[] = [];
+import useGroupChildren from './useGroupChildren';
 
 function GroupChildrenContent({
     item,
@@ -39,74 +31,23 @@ function GroupChildrenContent({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     newTransactionID,
-    bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupChildrenContentProps) {
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {selectedTransactions} = useSearchSelectionContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
-    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
-    const liveReportActions = useLiveFilteredReportActions(
-        isExpenseReportType ? emptyChildReportIDs : groupItem.transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID),
-    );
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-    const isActionLoadingSet = useActionLoadingReportIDs();
     const snapshotData = transactionsSnapshot?.data;
 
-    const selectedTransactionIDsSet = useMemo(() => new Set(Object.keys(selectedTransactions)), [selectedTransactions]);
-
-    const transactions: TransactionListItemType[] = useMemo(() => {
-        if (isExpenseReportType) {
-            return groupItem.transactions;
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        const [sectionData] = getSections({
-            dateFnsLocale,
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            data: snapshotData,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            isActionLoadingSet,
-            cardFeeds,
-            conciergeReportID,
-            convertToDisplayString,
-            reportActions: liveReportActions,
-            reportAttributesDerivedValue: undefined,
-        }) as [TransactionListItemType[], number, boolean];
-        return sectionData.map((transactionItem) => ({
-            ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
-        }));
-    }, [
-        isExpenseReportType,
-        groupItem.transactions,
-        snapshotData,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        translate,
-        formatPhoneNumber,
-        bankAccountList,
-        isActionLoadingSet,
-        cardFeeds,
-        conciergeReportID,
-        convertToDisplayString,
-        liveReportActions,
-        selectedTransactionIDsSet,
-        dateFnsLocale,
-    ]);
+    // Uses groupKeyForList: this split container's own keyForList is prefixed.
+    const {transactions} = useGroupChildren({
+        groupKey: groupItem.groupKeyForList,
+        groupTransactions: groupItem.transactions,
+    });
 
     const isEmpty = transactions.length === 0;
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
@@ -121,7 +62,6 @@ function GroupChildrenContent({
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
@@ -135,7 +75,6 @@ function GroupChildrenContent({
             offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
         });
     };
 
