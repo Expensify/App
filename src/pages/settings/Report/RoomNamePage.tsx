@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -36,7 +37,7 @@ type RoomNamePageProps = {
 
 function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -86,6 +87,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID="RoomNamePage"
         >
@@ -95,6 +97,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={updatePolicyRoomName}
@@ -103,15 +106,19 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={RoomNameInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.ROOM_NAME}
-                            defaultValue={report?.reportName}
-                            isFocused={isFocused}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={RoomNameInput}
+                                ref={inputCallbackRef}
+                                inputID={INPUT_IDS.ROOM_NAME}
+                                defaultValue={report?.reportName}
+                                isFocused={isFocused}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>

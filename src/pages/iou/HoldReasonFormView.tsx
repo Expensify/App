@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -17,7 +18,6 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type HoldReasonFormViewProps = {
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => void;
@@ -36,7 +36,7 @@ type HoldReasonFormViewProps = {
 function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSubmitter = true}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     return (
         <ScreenWrapper
@@ -49,6 +49,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID="moneyHoldReasonForm"
                 submitButtonText={translate('iou.holdExpense', {count: expenseCount})}
                 style={[styles.flexGrow1, styles.ph5]}
@@ -58,18 +59,23 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 shouldHideFixErrorsAlert
             >
                 <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.reason')}
-                        accessibilityLabel={translate('iou.reason')}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.COMMENT}
+                            valueType="string"
+                            name="comment"
+                            defaultValue={undefined}
+                            label={translate('iou.reason')}
+                            accessibilityLabel={translate('iou.reason')}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowHeight
+                            shouldSubmitForm
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

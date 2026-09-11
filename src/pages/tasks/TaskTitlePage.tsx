@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,8 +25,6 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
-
-import variables from '@styles/variables';
 
 import {canModifyTask, editTask} from '@userActions/Task';
 
@@ -104,6 +103,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <FormProvider
+                        submitFlexEnabled={false}
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
                         validate={validate}
@@ -112,30 +112,32 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         enabledWhenOffline
                         shouldHideFixErrorsAlert
                     >
-                        <View style={[styles.mb4]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.TITLE}
-                                name={INPUT_IDS.TITLE}
-                                label={translate('task.title')}
-                                accessibilityLabel={translate('task.title')}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
-                                ref={(element: AnimatedTextInputRef | null) => {
-                                    if (!element) {
-                                        return;
-                                    }
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        updateMultilineInputRange(inputRef.current);
-                                    }
-                                    inputRef.current = element;
-                                }}
-                                autoGrowHeight
-                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                shouldSubmitForm={false}
-                                type="markdown"
-                            />
-                        </View>
+                        <AutoGrowHeightInputContainer style={[styles.mb4]}>
+                            {(maxAutoGrowHeight) => (
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    inputID={INPUT_IDS.TITLE}
+                                    name={INPUT_IDS.TITLE}
+                                    label={translate('task.title')}
+                                    accessibilityLabel={translate('task.title')}
+                                    defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
+                                    ref={(element: AnimatedTextInputRef | null) => {
+                                        if (!element) {
+                                            return;
+                                        }
+                                        if (!inputRef.current && didScreenTransitionEnd) {
+                                            updateMultilineInputRange(inputRef.current);
+                                        }
+                                        inputRef.current = element;
+                                    }}
+                                    autoGrowHeight
+                                    maxAutoGrowHeight={maxAutoGrowHeight}
+                                    shouldSubmitForm={false}
+                                    type="markdown"
+                                />
+                            )}
+                        </AutoGrowHeightInputContainer>
                     </FormProvider>
                 </FullPageNotFoundView>
             )}

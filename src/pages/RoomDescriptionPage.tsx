@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -19,8 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {canEditReportDescription, getReportDescription} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-
-import variables from '@styles/variables';
 
 import {updateDescription} from '@userActions/Report';
 
@@ -108,6 +107,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
             />
             {canEdit && (
                 <FormProvider
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
                     onSubmit={submitForm}
@@ -117,30 +117,32 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                     shouldHideFixErrorsAlert
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
-                    <View style={[styles.mb6]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.REPORT_DESCRIPTION}
-                            label={translate('reportDescriptionPage.roomDescription')}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                            role={CONST.ROLE.PRESENTATION}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!el) {
-                                    return;
-                                }
-                                if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el, false);
-                                }
-                                reportDescriptionInputRef.current = el;
-                            }}
-                            value={description}
-                            onChangeText={handleReportDescriptionChange}
-                            autoCapitalize="none"
-                            type="markdown"
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={[styles.mb6]}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.REPORT_DESCRIPTION}
+                                label={translate('reportDescriptionPage.roomDescription')}
+                                accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoGrowHeight
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                ref={(el: BaseTextInputRef | null): void => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    if (!reportDescriptionInputRef.current) {
+                                        updateMultilineInputRange(el, false);
+                                    }
+                                    reportDescriptionInputRef.current = el;
+                                }}
+                                value={description}
+                                onChangeText={handleReportDescriptionChange}
+                                autoCapitalize="none"
+                                type="markdown"
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             )}
             {!canEdit && (

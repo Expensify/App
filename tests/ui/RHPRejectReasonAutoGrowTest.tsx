@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import RejectExpenseReportPage from '@pages/RejectExpenseReportPage';
 
@@ -115,6 +116,20 @@ describe('RHP rejection reason inputs', () => {
         mockInputWrapper.mockClear();
         mockSelectionList.mockClear();
         mockUseOnyx.mockReset();
+    });
+
+    it('gives hold reasons the available editor height while reserving the submit action', () => {
+        render(
+            <HoldReasonFormView
+                backTo=""
+                onSubmit={jest.fn()}
+                validate={jest.fn(() => ({}))}
+            />,
+        );
+
+        expect(mockFormProvider.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({submitFlexEnabled: false}));
+        expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowHeight: true}));
+        expectMeasuredHeightPropagation();
     });
 
     it('passes the measured available height to the transaction rejection input', () => {

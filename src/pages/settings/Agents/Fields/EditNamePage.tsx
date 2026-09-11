@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import {updateAgentName} from '@libs/actions/Agent';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +33,7 @@ function EditNamePage({route}: EditNamePageProps) {
     const accountID = route.params.accountID;
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
@@ -50,24 +52,31 @@ function EditNamePage({route}: EditNamePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}
-                onSubmit={handleSubmit}
+                onSubmit={(values) => handleSubmit({...values, [INPUT_IDS.FIRST_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.FIRST_NAME])})}
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.FIRST_NAME}
-                    label={translate('editAgentPage.agentName')}
-                    accessibilityLabel={translate('editAgentPage.agentName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    autoCapitalize="words"
-                    spellCheck={false}
-                    defaultValue={personalDetails?.displayName ?? ''}
-                    ref={inputCallbackRef}
-                />
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.FIRST_NAME}
+                            label={translate('editAgentPage.agentName')}
+                            accessibilityLabel={translate('editAgentPage.agentName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            autoCapitalize="words"
+                            spellCheck={false}
+                            defaultValue={personalDetails?.displayName ?? ''}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

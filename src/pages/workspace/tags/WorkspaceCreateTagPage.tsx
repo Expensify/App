@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -17,6 +18,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {escapeTagName, getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -44,7 +46,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
 
@@ -126,24 +128,31 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                     onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : undefined)}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                    onSubmit={createTag}
+                    onSubmit={(values) => createTag({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}
                     submitButtonText={translate('common.save')}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        label={translate('common.name')}
-                        accessibilityLabel={translate('common.name')}
-                        inputID={INPUT_IDS.TAG_NAME}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                inputID={INPUT_IDS.TAG_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
