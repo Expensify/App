@@ -22,7 +22,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
-import type {PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Αναζήτηση',
         reports: 'Αναφορές',
         spend: 'Δαπάνη',
+        insights: 'Στατιστικά',
         find: 'Εύρεση',
         searchWithThreeDots: 'Αναζήτηση...',
         next: 'Επόμενο',
@@ -465,6 +466,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Κανένα',
         unstableInternetConnection: 'Η σύνδεση στο διαδίκτυο είναι ασταθής. Ελέγξτε το δίκτυό σας και προσπαθήστε ξανά.',
         enableGlobalReimbursements: 'Ενεργοποίηση διεθνών αποζημιώσεων',
+        corpayPayModalTitle: 'Πληρωμή αναφοράς',
+        corpayPayModalPrompt:
+            'Αυτός ο υποβάλλων έχει τραπεζικό λογαριασμό που δεν είναι σε USD. Ενεργοποιήστε τις διεθνείς αποζημιώσεις για να πληρώσετε την αναφορά, ή ζητήστε του να προσθέσει τραπεζικό λογαριασμό σε USD.',
         purchaseAmount: 'Ποσό αγοράς',
         originalAmount: 'Αρχικό ποσό',
         frequency: 'Συχνότητα',
@@ -1721,11 +1725,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noDuplicatesTitle: 'Όλα έτοιμα!',
         noDuplicatesDescription: 'Δεν υπάρχουν διπλές συναλλαγές για έλεγχο εδώ.',
         confirmApprove: 'Επιβεβαιώστε το ποσό έγκρισης',
-        confirmApprovalAmount: 'Εγκρίνετε μόνο τις σύμφωνες δαπάνες ή εγκρίνετε ολόκληρη την αναφορά.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Αυτή η δαπάνη είναι σε αναμονή. Θέλετε παρ’ όλα αυτά να την εγκρίνετε;',
-            other: 'Αυτές οι δαπάνες έχουν τεθεί σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
-        }),
+        confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
+        confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
@@ -2341,6 +2342,11 @@ const translations: TranslationDeepObject<typeof en> = {
             usingImportedState: 'Χρησιμοποιείτε εισαγόμενη κατάσταση. Πατήστε εδώ για να την καθαρίσετε.',
             debugMode: 'Λειτουργία αποσφαλμάτωσης',
             showBranchNameInTitle: 'Εμφάνιση ονόματος κλάδου στον τίτλο του προγράμματος περιήγησης',
+            betaOverrides: 'Παρακάμψεις beta',
+            betaOverridesDescription:
+                'Οι παρακάμψεις ισχύουν μόνο για αυτή τη συσκευή και επηρεάζουν μόνο τους ελέγχους του frontend. Μια beta διατηρεί μια παράκαμψη μόνο όσο διαφέρει από τις beta του λογαριασμού σας, οπότε αν την αλλάξετε ξανά η παράκαμψη αφαιρείται. Η «Επαναφορά όλων των παρακάμψεων» επαναφέρει τις τιμές του λογαριασμού σας. Ορισμένες beta ελέγχονται και από το backend, οπότε μπορεί να αποτύχουν σε επίπεδο αιτήματος.',
+            resetAllOverrides: 'Επαναφορά όλων των παρακάμψεων',
+            overridden: 'Παρακάμφθηκε',
             invalidFile: 'Μη έγκυρο αρχείο',
             invalidFileDescription: 'Το αρχείο που προσπαθείτε να εισαγάγετε δεν είναι έγκυρο. Παρακαλούμε δοκιμάστε ξανά.',
             invalidateWithDelay: 'Ακύρωση με καθυστέρηση',
@@ -2670,6 +2676,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να διορθώσετε την κάρτα.`
                 : `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. Συνδεθείτε στην τράπεζά σας για να διορθώσετε την κάρτα.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Η σύνδεση της ${cardName} έχει διακοπεί για 30 ημέρες. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href="${connectionLink}">αφαιρέστε την κάρτα</a> αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`
+                : `Η σύνδεση της ${cardName} σας έχει διακοπεί για 30 ημέρες. Συνδεθείτε στην τράπεζά σας για να τη διορθώσετε ή αφαιρέστε την κάρτα αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`,
         addAdditionalCards: 'Προσθέστε επιπλέον κάρτες',
         upgradeDescription:
             'Χρειάζεστε να προσθέσετε περισσότερες κάρτες; Δημιουργήστε έναν χώρο εργασίας για να προσθέσετε επιπλέον προσωπικές κάρτες ή να αναθέσετε εταιρικές κάρτες σε όλη την ομάδα.',
@@ -3217,6 +3227,7 @@ ${amount} για ${merchant} - ${date}`,
         unread: 'Μη αναγνωσμένα',
         markAllAsRead: 'Επισήμανση όλων ως αναγνωσμένων',
         markAllAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε όλες τις συνομιλίες ως αναγνωσμένες;',
+        markAllTodosAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε ως αναγνωσμένες όλες τις συνομιλίες σε εκκρεμότητα;',
     },
     reportDetailsPage: {
         goToRoom: 'Μετάβαση στο δωμάτιο',
@@ -3397,6 +3408,7 @@ ${amount} για ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) => `Δεν ήταν δυνατή η προσθήκη του ${workEmail}. Δοκιμάστε ξανά αργότερα στις ρυθμίσεις ή συνομιλήστε με το Concierge για καθοδήγηση.`,
             workAccountClosedSubtitle:
                 'Ο επαγγελματικός λογαριασμός που σχετίζεται με αυτό το email είναι κλειστός. Παρακαλούμε επικοινωνήστε με τον διαχειριστή της εταιρείας σας για να τον επανενεργοποιήσει ή εγγραφείτε με διαφορετικό email.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} είναι ένα στοιχείο σύνδεσης ελεγχόμενο από τομέα για έναν υπάρχοντα λογαριασμό Expensify.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4693,6 +4705,7 @@ ${amount} για ${merchant} - ${date}`,
             customFieldHint: 'Προσθέστε προσαρμοσμένη κωδικοποίηση που θα εφαρμόζεται σε όλες τις δαπάνες από αυτό το μέλος.',
             reports: 'Αναφορές',
             reportFields: 'Πεδία αναφοράς',
+            invoiceFields: 'Πεδία τιμολογίου',
             reportTitle: 'Τίτλος αναφοράς',
             reportField: 'Πεδίο αναφοράς',
             taxes: 'Φόροι',
@@ -4705,6 +4718,7 @@ ${amount} για ${merchant} - ${date}`,
             accounting: 'Λογιστική',
             hr: 'HR',
             recruiting: 'Προσλήψεις',
+            mcp: 'MCP',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -4847,6 +4861,25 @@ ${amount} για ${merchant} - ${date}`,
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
+        },
+        mcp: {
+            connectors: 'Συνδέσεις',
+            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            connect: 'Σύνδεση',
+            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
+            helpLink: 'Διαβάστε τον οδηγό μας.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'από την Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'από την Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'από την OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6508,6 +6541,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
                         },
+                        setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
+                        feedSelectorIntro:
+                            'Ο οργανισμός σας έχει ήδη ρυθμίσει ροή ενοποιημένης τιμολόγησης ταξιδιών. Επιλέξτε την για να διατηρήσετε τις ταξιδιωτικές δαπάνες αυτού του χώρου εργασίας στον ίδιο μηνιαίο λογαριασμό.',
                     },
                     disableModal: {
                         title: 'Απενεργοποίηση της ενοποιημένης χρέωσης ταξιδιών;',
@@ -6668,6 +6704,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Λογιστική',
                 subtitle: 'Συγχρονίστε το λογιστικό σας σχέδιο και άλλα.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',
                 subtitle: 'Αυτόματη εισαγωγή αποδείξεων.',
@@ -6775,6 +6815,29 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             unsupportedFormulaValueError: (value) => `Το πεδίο τύπου ${value} δεν αναγνωρίζεται`,
             reportFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο αναφοράς',
             genericFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση του πεδίου αναφοράς. Παρακαλούμε δοκιμάστε ξανά.',
+        },
+        invoiceFields: {
+            subtitle: 'Τα πεδία τιμολογίου μπορεί να είναι χρήσιμα όταν θέλετε να συμπεριλάβετε επιπλέον πληροφορίες.',
+            importedFromAccountingSoftware: 'Τα παρακάτω πεδία τιμολογίου εισάγονται από την/τον',
+            disableInvoiceFields: 'Απενεργοποίηση πεδίων τιμολογίου',
+            disableInvoiceFieldsConfirmation: 'Είστε βέβαιοι; Τα πεδία τιμολογίου θα απενεργοποιηθούν στα τιμολόγια.',
+            delete: 'Διαγραφή πεδίου τιμολογίου',
+            deleteConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το πεδίο τιμολογίου;',
+            findInvoiceField: 'Εύρεση πεδίου τιμολογίου',
+            nameInputSubtitle: 'Επιλέξτε ένα όνομα για το πεδίο τιμολογίου.',
+            typeInputSubtitle: 'Επιλέξτε ποιον τύπο πεδίου τιμολογίου θέλετε να χρησιμοποιήσετε.',
+            initialValueInputSubtitle: 'Εισαγάγετε μια αρχική τιμή για εμφάνιση στο πεδίο τιμολογίου.',
+            listValuesInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα επιλογών του πεδίου τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            listInputSubtitle: 'Αυτές οι τιμές θα εμφανίζονται στη λίστα πεδίων τιμολογίου. Οι ενεργοποιημένες τιμές μπορούν να επιλεγούν από τα μέλη.',
+            emptyInvoiceFieldsValues: {
+                title: 'Δεν υπάρχουν ακόμη τιμές λίστας',
+                subtitle: 'Προσθέστε προσαρμοσμένες τιμές για να εμφανίζονται στα τιμολόγια.',
+            },
+            existingInvoiceFieldNameError: 'Υπάρχει ήδη πεδίο τιμολογίου με αυτό το όνομα',
+            invoiceFieldNameRequiredError: 'Παρακαλούμε εισαγάγετε ένα όνομα πεδίου τιμολογίου',
+            invoiceFieldTypeRequiredError: 'Παρακαλούμε επιλέξτε έναν τύπο πεδίου τιμολογίου',
+            invoiceFieldInitialValueRequiredError: 'Παρακαλούμε επιλέξτε μια αρχική τιμή για το πεδίο τιμολογίου',
+            addField: 'Προσθήκη πεδίου',
         },
         tags: {
             tagName: 'Όνομα ετικέτας',
@@ -7161,7 +7224,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             talkYourAccountManager: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
             talkToConcierge: 'Συνομιλήστε με το Concierge.',
             needAnotherAccounting: 'Χρειάζεστε άλλο λογιστικό λογισμικό;',
-            connectionName: (connectionName) => {
+            connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -7175,6 +7238,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7247,43 +7312,43 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Εισαγωγή λογαριασμών';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Εισαγωγή κατηγοριών';
+                            return 'Εισαγωγή κλάσεων';
                         case 'quickbooksOnlineImportLocations':
-                            return 'Εισαγωγή τοποθεσιών';
+                            return 'Γίνεται εισαγωγή τοποθεσιών';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Επεξεργασία εισαγόμενων δεδομένων';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
                             return 'Συγχρονισμός αποζημιωμένων αναφορών και πληρωμών λογαριασμών';
                         case 'quickbooksOnlineSyncTaxCodes':
-                            return 'Εισαγωγή κωδικών φόρου';
+                            return 'Εισαγωγή φορολογικών κωδικών';
                         case 'quickbooksOnlineCheckConnection':
                             return `Έλεγχος σύνδεσης ${integrationName}`;
                         case 'quickbooksOnlineImportMain':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων από ${integrationName}`;
                         case 'startingImportXero':
-                            return 'Γίνεται εισαγωγή δεδομένων Xero';
+                            return 'Εισαγωγή δεδομένων Xero';
                         case 'startingImportQBO':
-                            return `Γίνεται εισαγωγή δεδομένων ${integrationName}`;
+                            return `Γίνεται εισαγωγή δεδομένων από ${integrationName}`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Εισαγωγή δεδομένων QuickBooks Desktop';
                         case 'quickbooksDesktopImportTitle':
                             return 'Γίνεται εισαγωγή τίτλου';
                         case 'quickbooksDesktopImportApproveCertificate':
-                            return 'Γίνεται εισαγωγή πιστοποιητικού έγκρισης';
+                            return 'Γίνεται εισαγωγή του πιστοποιητικού έγκρισης';
                         case 'quickbooksDesktopImportDimensions':
                             return 'Γίνεται εισαγωγή διαστάσεων';
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Γίνεται εισαγωγή πολιτικής αποθήκευσης';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Γίνεται ακόμη συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι το Web Connector εκτελείται';
+                            return 'Συνεχίζεται ο συγχρονισμός δεδομένων με το QuickBooks... Βεβαιωθείτε ότι εκτελείται το Web Connector';
                         case 'quickbooksOnlineSyncTitle':
                             return `Γίνεται συγχρονισμός δεδομένων ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
                         case 'xeroSyncStep':
                         case 'intacctImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
+                            return 'Φόρτωση δεδομένων';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Ενημέρωση κατηγοριών';
                         case 'quickbooksOnlineSyncApplyCustomers':
@@ -7295,7 +7360,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'jobDone':
                             return 'Αναμονή για τη φόρτωση των εισαγόμενων δεδομένων';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Συγχρονισμός λογιστικού σχεδίου';
+                            return 'Γίνεται συγχρονισμός του λογιστικού σχεδίου';
                         case 'xeroSyncImportCategories':
                             return 'Γίνεται συγχρονισμός κατηγοριών';
                         case 'xeroSyncImportCustomers':
@@ -7309,13 +7374,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'xeroSyncImportBankAccounts':
                             return 'Συγχρονισμός τραπεζικών λογαριασμών';
                         case 'xeroSyncImportTaxRates':
-                            return 'Συγχρονισμός φορολογικών συντελεστών';
+                            return 'Γίνεται συγχρονισμός φορολογικών συντελεστών';
                         case 'xeroCheckConnection':
-                            return 'Γίνεται έλεγχος σύνδεσης με το Xero';
+                            return 'Έλεγχος σύνδεσης με το Xero';
                         case 'xeroSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Xero';
+                            return 'Συγχρονισμός δεδομένων Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Αρχικοποίηση σύνδεσης με το NetSuite';
+                            return 'Γίνεται προετοιμασία σύνδεσης με το NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Εισαγωγή πελατών';
                         case 'netSuiteSyncInitData':
@@ -7323,11 +7388,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncImportTaxes':
                             return 'Εισαγωγή φόρων';
                         case 'netSuiteSyncImportItems':
-                            return 'Εισαγωγή στοιχείων';
+                            return 'Γίνεται εισαγωγή στοιχείων';
                         case 'netSuiteSyncData':
                             return 'Εισαγωγή δεδομένων στο Expensify';
                         case 'netSuiteSyncAccounts':
-                            return 'Συγχρονισμός λογαριασμών';
+                            return 'Γίνεται συγχρονισμός λογαριασμών';
                         case 'netSuiteSyncCurrencies':
                             return 'Συγχρονισμός νομισμάτων';
                         case 'netSuiteSyncCategories':
@@ -7341,7 +7406,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Σήμανση αναφορών Expensify ως αποζημιωμένων';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Σήμανση λογαριασμών και τιμολογίων NetSuite ως εξοφλημένων';
+                            return 'Σήμανση των λογαριασμών και των τιμολογίων NetSuite ως εξοφλημένων';
                         case 'netSuiteImportVendorsTitle':
                             return 'Εισαγωγή προμηθευτών';
                         case 'netSuiteImportCustomListsTitle':
@@ -7354,23 +7419,23 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'quickbooksDesktopImportVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'intacctCheckConnection':
-                            return 'Έλεγχος σύνδεσης Sage Intacct';
+                            return 'Έλεγχος σύνδεσης με Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Εισαγωγή διαστάσεων Sage Intacct';
                         case 'intacctImportTitle':
                             return 'Εισαγωγή δεδομένων Sage Intacct';
                         case 'financialForceSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Certinia';
+                            return 'Συγχρονισμός δεδομένων Certinia';
                         case 'financialForceSyncStep':
                             return 'Γίνεται συγχρονισμός της σύνδεσης Certinia';
                         case 'financialForceSyncCategories':
-                            return 'Εισαγωγή κατηγοριών';
+                            return 'Γίνεται εισαγωγή κατηγοριών';
                         case 'financialForceSyncTags':
                             return 'Γίνεται εισαγωγή ετικετών';
                         case 'financialForceSyncVendors':
                             return 'Εισαγωγή προμηθευτών';
                         case 'financialForceSyncContacts':
-                            return 'Εισαγωγή επαφών';
+                            return 'Γίνεται εισαγωγή επαφών';
                         case 'financialForceSyncCompanies':
                             return 'Εισαγωγή εταιρειών';
                         case 'financialForceSyncUsers':
@@ -7384,19 +7449,31 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'rilletSyncConnection':
                             return 'Γίνεται προετοιμασία σύνδεσης με το Rillet';
                         case 'rilletSyncImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
+                            return 'Φόρτωση δεδομένων';
                         case 'dualEntrySyncTitle':
-                            return 'Συγχρονισμός δεδομένων DualEntry';
+                            return 'Γίνεται συγχρονισμός δεδομένων DualEntry';
                         case 'dualEntrySyncConnection':
                             return 'Γίνεται προετοιμασία σύνδεσης με το DualEntry';
                         case 'dualEntrySyncImportData':
-                            return 'Γίνεται φόρτωση δεδομένων';
+                            return 'Φόρτωση δεδομένων';
                         case 'dualEntrySyncPayments':
-                            return 'Γίνεται συγχρονισμός πληρωμών προμηθευτών';
+                            return 'Συγχρονισμός πληρωμών προμηθευτών';
                         case 'dualEntrySyncCardSettlements':
-                            return 'Γίνεται συγχρονισμός των διακανονισμών κάρτας';
+                            return 'Συγχρονισμός διακανονισμών κάρτας';
                         case 'dualEntrySyncTravelSettlements':
-                            return 'Γίνεται συγχρονισμός των διακανονισμών ταξιδιού';
+                            return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
+                        case 'campfireSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Φόρτωση δεδομένων';
+                        case 'campfireSyncPayments':
+                            return 'Συγχρονισμός πληρωμών προμηθευτών';
+                        case 'campfireSyncCardSettlements':
+                            return 'Συγχρονισμός διακανονισμών κάρτας';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
                         default: {
                             return `Λείπει η μετάφραση για το στάδιο: ${stage}`;
                         }
@@ -7439,6 +7516,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             defaultVendorSelectHeader: `Επιλέξτε έναν προεπιλεγμένο προμηθευτή για δαπάνες που δεν αντιστοιχίζονται αυτόματα.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
+            campfire: 'Campfire',
         },
         hr: {
             title: 'HR',
@@ -7823,6 +7901,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Τα πεδία αναφοράς είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Πεδία τιμολογίου',
+                description: `Τα πεδία τιμολογίου σάς επιτρέπουν να συμπεριλάβετε επιπλέον λεπτομέρειες σε επίπεδο τιμολογίου στα τιμολόγια.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Τα πεδία τιμολογίου είναι διαθέσιμα μόνο στο πλάνο Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Απολαύστε αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες καταχωρίσεις με την ενοποίηση Expensify + NetSuite. Αποκτήστε σε βάθος, σε πραγματικό χρόνο οικονομικές πληροφορίες με υποστήριξη ενσωματωμένων και προσαρμοσμένων τμημάτων, συμπεριλαμβανομένης της αντιστοίχισης έργων και πελατών.`,
@@ -7864,6 +7948,12 @@ ${reportName}`,
                 description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + DualEntry. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση DualEntry για πιο ξεκάθαρη οικονομική εικόνα.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η ενοποίησή μας με το DualEntry είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Απολαύστε τον αυτόματο συγχρονισμό και μειώστε τις χειροκίνητες εγγραφές με την ενσωμάτωση Expensify + Campfire. Ευθυγραμμίστε τις διαστάσεις κωδικοποίησης εξόδων και τον συγχρονισμό φόρων με τη ρύθμιση Campfire για πιο ξεκάθαρη οικονομική εικόνα.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Η ενοποίησή μας με το Campfire είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Προηγμένες εγκρίσεις',
@@ -8342,6 +8432,13 @@ ${reportName}`,
                 categoryRulesApplyGoingForwardTitle: 'Οι κανόνες κατηγορίας ισχύουν από εδώ και στο εξής',
                 categoryRulesApplyGoingForwardPrompt:
                     'Ένας προεπιλεγμένος φορολογικός συντελεστής εφαρμόζεται σε νέες δαπάνες σε αυτή την κατηγορία. Οι δαπάνες που υπάρχουν ήδη δεν θα αλλάξουν.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Ο επιλεγμένος φορολογικός συντελεστής είναι πλέον η προεπιλογή για τον χώρο εργασίας σας, επομένως αυτός ο κανόνας δεν είναι πλέον έγκυρος. Επιλέξτε έναν διαφορετικό φορολογικό συντελεστή.',
+                addTaxRateFirstTitle: 'Προσθέστε πρώτα έναν φορολογικό συντελεστή',
+                addTaxRateFirstPrompt:
+                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Προσθέστε έναν φορολογικό συντελεστή διαφορετικό από την προεπιλογή του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
+                createRuleFromExpenseAction: 'Δημιουργία κανόνα',
+                createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
             },
             newRule: {
                 title: 'Νέος κανόνας',
@@ -8710,6 +8807,16 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
+        },
+        campfire: {
+            campfireSetup: 'Ρύθμιση campfire',
+            enterCredentials: 'Εισαγάγετε το κλειδί API του Campfire',
+            howToFindAPIKey:
+                '<strong>Εύρεση του κλειδιού API.</strong><ol><li>Συνδεθείτε στο Campfire</li><li>Μεταβείτε στις Ρυθμίσεις -> API Keys</li><li>Δημιουργήστε κλειδί API</li><li>Επικολλήστε το κλειδί API παρακάτω</li></ol>',
+            subsidiary: 'Θυγατρική',
+            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο Campfire από την οποία θέλετε να εισαγάγετε δεδομένα.',
+            noSubsidiariesFound: 'Δεν βρέθηκαν θυγατρικές',
+            noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια οντότητα στο Campfire και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -9660,7 +9767,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Πληρωμή',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
-            has: {submittedViolation: 'Υποβληθείσα παράβαση'},
+            has: {submittedViolation: 'Υποβληθείσα παράβαση', approvedViolation: 'Εγκεκριμένη παράβαση'},
             filterType: {
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
@@ -9734,6 +9841,7 @@ ${reportName}`,
         exportedTo: 'Εξήχθη σε',
         exportAll: {
             selectAllMatchingItems: 'Επιλέξτε όλα τα στοιχεία που ταιριάζουν',
+            allMatchingItemsSelected: 'Έχουν επιλεγεί όλα τα στοιχεία που ταιριάζουν',
             selectAllOnThisPage: 'Επιλέξτε όλα σε αυτή τη σελίδα',
         },
         errors: {
@@ -9836,6 +9944,7 @@ ${reportName}`,
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `εξήχθη σε ${translatedLabel}`;
@@ -9876,6 +9985,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Επαναλήφθηκε ${count} φορές.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Η σύνδεση ${feedName} δεν λειτουργεί. Για να επαναφέρετε τις εισαγωγές καρτών, <a href='${workspaceCompanyCardRoute}'>συνδεθείτε στην τράπεζά σας</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11069,6 +11188,7 @@ ${reportName}`,
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',
+        reconciliationAllExpenses: 'Συμφωνία - Όλα τα έξοδα',
         exportInProgress: 'Εξαγωγή σε εξέλιξη',
         conciergeWillSend: 'Ο Concierge θα σας στείλει το αρχείο σύντομα.',
         downloadStatementPDF: 'Λήψη κατάστασης',
@@ -11100,6 +11220,7 @@ ${reportName}`,
         notVerified: 'Μη επαληθευμένο',
         retry: 'Προσπαθήστε ξανά',
         requestSent: 'Το αίτημα εστάλη',
+        requestAccessError: 'Δεν μπορέσαμε να στείλουμε το αίτημά σου. Παρακαλώ δοκίμασε ξανά.',
         verifyDomain: {
             title: 'Επαλήθευση τομέα',
             beforeProceeding: ({domainName}: {domainName: string}) => `Πριν συνεχίσετε, επιβεβαιώστε ότι σας ανήκει το <strong>${domainName}</strong> ενημερώνοντας τις ρυθμίσεις DNS του.`,
@@ -11159,13 +11280,12 @@ ${reportName}`,
             setMetadataGenericError: 'Δεν ήταν δυνατός ο ορισμός των μεταδεδομένων SAML',
         },
         accessRestricted: {
-            title: 'Περιορισμένη πρόσβαση',
-            subtitle: (domainName: string) =>
-                `Παρακαλούμε επιβεβαιώστε ότι είστε εξουσιοδοτημένος διαχειριστής της εταιρείας για το <strong>${domainName}</strong> εάν χρειάζεστε έλεγχο στα εξής:`,
-            companyCardManagement: 'Διαχείριση εταιρικής κάρτας',
-            accountCreationAndDeletion: 'Δημιουργία και διαγραφή λογαριασμού',
-            workspaceCreation: 'Δημιουργία χώρου εργασίας',
-            samlSSO: 'SAML SSO',
+            headerTitle: 'Περιορισμένη πρόσβαση',
+            title: 'Απαιτείται επαλήθευση',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Παρακαλούμε επιβεβαιώστε ότι είστε εξουσιοδοτημένος διαχειριστής εταιρείας για το <strong>${domainName}</strong> ή ζητήστε πρόσβαση από τους υπάρχοντες διαχειριστές.</centered-text></muted-text>`,
+            requestAdminAccess: 'Αίτημα πρόσβασης διαχειριστή',
+            verifyYourself: 'Επιβεβαιώστε την ταυτότητά σας',
         },
         addDomain: {
             title: 'Προσθήκη τομέα',
@@ -11179,7 +11299,6 @@ ${reportName}`,
             title: 'Ο τομέας έχει ήδη ρυθμιστεί. Αίτημα πρόσβασης;',
             description: 'Κάποιος έχει ήδη ρυθμίσει αυτόν τον τομέα στο Expensify. Θέλετε να ζητήσετε πρόσβαση διαχειριστή;',
             requestAccess: 'Αίτημα πρόσβασης διαχειριστή',
-            requestAccessError: 'Δεν μπορέσαμε να στείλουμε το αίτημά σου. Παρακαλώ δοκίμασε ξανά.',
         },
         domainAdded: {
             title: 'Το domain προστέθηκε',

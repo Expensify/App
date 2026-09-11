@@ -5,8 +5,8 @@ import ListPopup from '@components/Search/FilterDropdowns/ListPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
-import {useSearchResultsContext} from '@components/Search/SearchContext';
-import type {ReportFieldKey, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +17,7 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdvancedFiltersToReset, removeNegation} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
 import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -37,7 +37,7 @@ import DatePickerFilterPopup from './DatePickerFilterPopup';
 
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
-    onClosePress: () => void;
+    onClosePress: (() => void) | undefined;
     onLandscapePress?: () => void;
 };
 
@@ -45,22 +45,24 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
-    clearFilters: () => void;
+    shouldShowResetFilters: boolean;
+    resetFilters: () => void;
 };
 
 type FilterPopupProps = {
     baseFilterKey: SearchFilter['key'];
+    isDefault: boolean;
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>;
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
+function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
     return `Search-Filter-${filterKey}`;
 }
 
-function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
+function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
 
@@ -131,6 +133,7 @@ function FilterPopup({baseFilterKey, searchAdvancedFiltersForm, closeOverlay, se
     return (
         <ListPopup
             baseFilterKey={baseFilterKey}
+            isDefault={isDefault}
             values={searchAdvancedFiltersForm}
             label={label}
             closeOverlay={closeOverlay}
@@ -147,19 +150,22 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {setFilterQueryParams, updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
+    const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
         translate,
         dateFnsLocale,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
-        (filterKey): FilterItem => ({
+        (filterKey, isDefault): FilterItem => ({
             PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
                 <ListFilterHeightContextProvider>
                     <FilterPopup
                         baseFilterKey={removeNegation(filterKey)}
+                        isDefault={isDefault}
                         searchAdvancedFiltersForm={searchAdvancedFiltersForm}
                         closeOverlay={closeOverlay}
                         setPopoverWidth={setPopoverWidth}
@@ -169,42 +175,48 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
-            onClosePress: () => {
-                if (isAmountFilterKey(filterKey)) {
-                    const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
-                    const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-                    const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-                    updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
-                    return;
-                }
+            onClosePress: isDefault
+                ? undefined
+                : () => {
+                      if (isAmountFilterKey(filterKey)) {
+                          const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
+                          const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+                          const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+                          updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
+                          return;
+                      }
 
-                if (isDateFilterKey(filterKey)) {
-                    const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
-                    const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
-                    const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-                    const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
-                    updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
-                    return;
-                }
+                      if (isDateFilterKey(filterKey)) {
+                          const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
+                          const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+                          const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+                          const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
+                          updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
+                          return;
+                      }
 
-                if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
-                    const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
-                        if (isReportFieldKey(curr)) {
-                            acc[curr] = undefined;
-                        }
-                        return acc;
-                    }, {} as Partial<SearchAdvancedFiltersForm>);
-                    updateFilterQueryParams(formValues);
-                    return;
-                }
+                      if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
+                          const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
+                              if (isReportFieldKey(curr)) {
+                                  acc[curr] = undefined;
+                              }
+                              return acc;
+                          }, {} as Partial<SearchAdvancedFiltersForm>);
+                          updateFilterQueryParams(formValues);
+                          return;
+                      }
 
-                updateFilterQueryParams({[filterKey]: undefined});
-            },
+                      updateFilterQueryParams({[filterKey]: undefined});
+                  },
         }),
     );
 
-    const clearFilters = () => {
-        setFilterQueryParams(getAdvancedFiltersToReset(searchAdvancedFiltersForm ?? {}));
+    const resetFilters = () => {
+        if (!currentSearchQueryJSON) {
+            return;
+        }
+
+        Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
         setSearchContext(false);
     };
     const isCategoryFilterLoading = shouldShowInitialCategoryFilterLoading(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
@@ -213,7 +225,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        clearFilters,
+        shouldShowResetFilters:
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        resetFilters,
     };
 }
 
