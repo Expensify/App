@@ -26,7 +26,10 @@ jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn((props: React.PropsWithChildren) => props.children));
 jest.mock('@components/Search/hooks/useFilterFeedValue');
 jest.mock('@components/Search/hooks/useFilterTaxRateValue');
-jest.mock('@components/Search/SearchContext', () => ({useSearchQueryContext: jest.fn(() => ({currentSearchQueryJSON: undefined}))}));
+jest.mock('@components/Search/SearchContext', () => ({
+    useSearchQueryContext: jest.fn(() => ({currentSearchQueryJSON: undefined, currentDefaultSearchQueryFilterKeys: new Set<string>()})),
+    useSearchQueryActions: jest.fn(() => ({setCurrentSearchKey: jest.fn()})),
+}));
 jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({convertToDisplayStringWithoutCurrency: jest.fn()}))}));
