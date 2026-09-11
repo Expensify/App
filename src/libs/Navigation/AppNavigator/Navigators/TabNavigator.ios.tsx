@@ -22,6 +22,7 @@ import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorSta
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -250,6 +251,10 @@ function TabNavigator() {
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
+                initialParams={{
+                    screen: SCREENS.SEARCH.ROOT,
+                    params: {q: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})},
+                }}
                 options={{tabBarLabel: '', tabBarIcon: SPEND_TAB_ICON}}
             />
             <Tab.Screen
